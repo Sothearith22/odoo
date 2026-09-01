@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_curriculum_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="program">
+                <t t-call="web.external_layout">
+                    <div class="page" style="position: relative;">
+                        
+                        <!-- Watermark -->
+                        <div style="position: absolute; top: 30%; left: 10%; font-size: 100px; color: rgba(0,0,0,0.03); transform: rotate(-45deg); pointer-events: none; white-space: nowrap; font-weight: bold; z-index: -1;">
+                            OFFICIAL CURRICULUM
+                        </div>
+
+                        <!-- ── Report Header ── -->
+                        <div class="row mb-4">
+                            <div class="col-8">
+                                <h2 style="font-weight: 800; color: #1e3a8a; margin: 0; letter-spacing: -0.5px;">
+                                    Semester Curriculum
+                                </h2>
+                                <p style="color: #64748b; margin-top: 4px; font-size: 1.1rem; font-weight: 500;">
+                                    <t t-esc="program.department_id.faculty_id.name"/> › 
+                                    <t t-esc="program.department_id.name"/>
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <div style="font-size: 0.9rem; color: #64748b;">
+                                    <strong><i class="fa fa-calendar"/> Print date:</strong><br/>
+                                    <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d %B %Y')"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── Program Summary Box ── -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div style="background: #f8fafc; border-left: 5px solid #3b82f6; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h3 style="margin: 0 0 12px 0; font-size: 1.4rem; color: #0f172a; font-weight: 700;">
+                                                <i class="fa fa-graduation-cap text-primary me-2"/> <t t-esc="program.name"/>
+                                            </h3>
+                                            <div class="mb-1">
+                                                <strong style="color: #475569; width: 80px; display: inline-block;">Code:</strong> 
+                                                <span class="badge" style="background-color: #e2e8f0; color: #334155;"><t t-esc="program.code"/></span>
+                                            </div>
+                                            <div class="mb-1">
+                                                <strong style="color: #475569; width: 80px; display: inline-block;">Degree:</strong> 
+                                                <span class="badge" style="background-color: #dbeafe; color: #1e40af;"><t t-esc="program.degree_type.capitalize()"/></span>
+                                            </div>
+                                            <div>
+                                                <strong style="color: #475569; width: 80px; display: inline-block;">Duration:</strong> 
+                                                <t t-esc="program.duration_years"/> year(s)
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-1">
+                                                <strong style="color: #475569;"><i class="fa fa-university me-1"/> Faculty:</strong> 
+                                                <t t-esc="program.department_id.faculty_id.name"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <strong style="color: #475569;"><i class="fa fa-building me-1"/> Department:</strong> 
+                                                <t t-esc="program.department_id.name"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <strong style="color: #475569;"><i class="fa fa-star me-1"/> Required Credits:</strong> 
+                                                <strong><t t-esc="program.total_credits"/></strong>
+                                            </div>
+                                            <div>
+                                                <strong style="color: #475569;"><i class="fa fa-users me-1"/> Enrolled Students:</strong> 
+                                                <t t-esc="len(program.student_ids.filtered(lambda s: s.status == 'active'))"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── Subjects by Semester ── -->
+                        <t t-set="subjects" t-value="program.subject_ids.filtered(lambda s: s.active).sorted(key=lambda s: (s.semester_number, s.code))"/>
+
+                        <t t-if="subjects">
+                            <t t-set="semesters" t-value="sorted(set(subjects.mapped('semester_number')))"/>
+                            <t t-foreach="semesters" t-as="sem_num">
+                                <t t-set="sem_subjects" t-value="subjects.filtered(lambda s: s.semester_number == sem_num)"/>
+
+                                <!-- Semester heading -->
+                                <div style="background: linear-gradient(to right, #1e3a8a, #3b82f6); color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;" class="mt-4">
+                                    <strong style="font-size: 1.1rem; letter-spacing: 0.5px;">SEMESTER <t t-esc="sem_num"/></strong>
+                                    <span style="font-size: 0.9em; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 12px;">
+                                        <t t-esc="len(sem_subjects)"/> subjects | <t t-esc="sum(sem_subjects.mapped('credits'))"/> credits
+                                    </span>
+                                </div>
+
+                                <!-- Subject rows -->
+                                <table class="table table-sm table-striped align-middle mb-0" style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                                    <thead style="background: #f1f5f9; color: #334155; font-size: 0.85rem; text-transform: uppercase;">
+                                        <tr>
+                                            <th style="width: 15%; padding-left: 12px;">Code</th>
+                                            <th style="width: 45%;">Subject Name</th>
+                                            <th style="width: 10%; text-align: center;">Credits</th>
+                                            <th style="width: 30%;">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="font-size: 0.95rem;">
+                                        <t t-foreach="sem_subjects" t-as="subj">
+                                            <tr>
+                                                <td style="padding-left: 12px; font-family: monospace; font-weight: bold; color: #475569;">
+                                                    <t t-esc="subj.code or '—'"/>
+                                                </td>
+                                                <td style="font-weight: 500; color: #0f172a;"><t t-esc="subj.name"/></td>
+                                                <td style="text-align: center;">
+                                                    <span class="badge rounded-pill" style="background-color: #e2e8f0; color: #0f172a; min-width: 25px;"><t t-esc="subj.credits"/></span>
+                                                </td>
+                                                <td style="font-size: 0.85rem; color: #64748b;">
+                                                    <t t-esc="subj.description or ''"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="alert alert-info mt-4" role="alert" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
+                                <i class="fa fa-info-circle me-2"/> No subjects have been assigned to this program yet.
+                            </div>
+                        </t>
+
+                        <!-- ── Credit Summary Footer ── -->
+                        <t t-if="subjects">
+                            <div class="row mt-5 mb-5 page-break-inside-avoid">
+                                <div class="col-12 d-flex justify-content-end">
+                                    <div style="background: #f8fafc; border: 2px solid #cbd5e1; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                                        <div style="font-size: 0.9rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; text-align: center;">Curriculum Summary</div>
+                                        <div style="font-size: 1.2rem; color: #0f172a;">
+                                            <strong><i class="fa fa-book text-primary me-2"/> Total Subjects: </strong>
+                                            <t t-esc="len(subjects)"/>
+                                            <span style="color: #cbd5e1; margin: 0 12px;">|</span>
+                                            <strong><i class="fa fa-star text-warning me-2"/> Total Credits: </strong>
+                                            <t t-esc="sum(subjects.mapped('credits'))"/> / <t t-esc="program.total_credits"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

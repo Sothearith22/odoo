@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== ACADEMIC YEAR ==================== -->
+    <record id="view_university_academic_year_list" model="ir.ui.view">
+        <field name="name">university.academic.year.list</field>
+        <field name="model">university.academic.year</field>
+        <field name="arch" type="xml">
+            <list string="Academic Years" sample="1">
+                <field name="name" decoration-bf="1"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="current" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_academic_year_form" model="ir.ui.view">
+        <field name="name">university.academic.year.form</field>
+        <field name="model">university.academic.year</field>
+        <field name="arch" type="xml">
+            <form string="Academic Year">
+                <sheet>
+                    <widget name="web_ribbon" title="Current" bg_color="text-bg-success" invisible="not current"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <div class="oe_title">
+                        <label for="name" string="Academic Year"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. 2026-2027" required="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Duration">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                        <group string="Status">
+                            <field name="current" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Semesters" name="semesters_tab">
+                            <field name="semester_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="semester_type"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_university_academic_year_search" model="ir.ui.view">
+        <field name="name">university.academic.year.search</field>
+        <field name="model">university.academic.year</field>
+        <field name="arch" type="xml">
+            <search string="Search Academic Years">
+                <field name="name"/>
+                <filter string="Current Year" name="filter_current" domain="[('current', '=', True)]"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_university_academic_year" model="ir.actions.act_window">
+        <field name="name">Academic Years</field>
+        <field name="res_model">university.academic.year</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_university_academic_year_search"/>
+    </record>
+
+    <!-- ==================== SEMESTER ==================== -->
+    <record id="view_university_semester_list" model="ir.ui.view">
+        <field name="name">university.semester.list</field>
+        <field name="model">university.semester</field>
+        <field name="arch" type="xml">
+            <list string="Semesters" sample="1">
+                <field name="name" decoration-bf="1"/>
+                <field name="academic_year_id"/>
+                <field name="semester_type" widget="badge"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_semester_form" model="ir.ui.view">
+        <field name="name">university.semester.form</field>
+        <field name="model">university.semester</field>
+        <field name="arch" type="xml">
+            <form string="Semester">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Semester Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Semester 1" required="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="academic_year_id"/>
+                            <field name="semester_type"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_university_semester" model="ir.actions.act_window">
+        <field name="name">Semesters</field>
+        <field name="res_model">university.semester</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

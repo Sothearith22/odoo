@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_fee_list" model="ir.ui.view">
+        <field name="name">university.fee.list</field>
+        <field name="model">university.fee</field>
+        <field name="arch" type="xml">
+            <list string="Fee Invoices">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="date"/>
+                <field name="due_date"/>
+                <field name="total_amount"/>
+                <field name="paid_amount"/>
+                <field name="balance"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'paid'" decoration-warning="state == 'posted'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_fee_form" model="ir.ui.view">
+        <field name="name">university.fee.form</field>
+        <field name="model">university.fee</field>
+        <field name="arch" type="xml">
+            <form string="Fee Invoice">
+                <header>
+                    <button name="action_post" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_print_receipt" string="Print Receipt" type="object" invisible="state != 'paid'" class="oe_highlight"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state == 'canceled'"/>
+                    <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'canceled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="student_id"/>
+                            <field name="academic_year_id"/>
+                            <field name="semester_id"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="due_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Fee Lines" name="fee_lines">
+                            <field name="line_ids" invisible="state in ('paid', 'canceled')" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                            <field name="line_ids" invisible="state not in ('paid', 'canceled')" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="paid_amount" widget="monetary"/>
+                                <field name="balance" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Payments" name="payments">
+                            <field name="payment_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="payment_method"/>
+                                    <field name="amount" sum="Total Payments"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'posted'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_fee_search" model="ir.ui.view">
+        <field name="name">university.fee.search</field>
+        <field name="model">university.fee</field>
+        <field name="arch" type="xml">
+            <search string="Search Fees">
+                <field name="name"/>
+                <field name="student_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
+                <filter string="Paid" name="paid" domain="[('state', '=', 'paid')]"/>
+                <group>
+                    <filter string="Student" name="student" context="{'group_by': 'student_id'}"/>
+                    <filter string="Status" name="status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_university_fee" model="ir.actions.act_window">
+        <field name="name">Fee Invoices</field>
+        <field name="res_model">university.fee</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create the first fee invoice!
+            </p>
+        </field>
+    </record>
+
+</odoo>

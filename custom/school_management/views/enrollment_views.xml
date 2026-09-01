@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_enrollment_list" model="ir.ui.view">
+        <field name="name">university.enrollment.list</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Course Enrollments" sample="1">
+                <header>
+                    <button name="%(school_management.action_print_curriculum_5plus)d"
+                            string="Print Curriculum (≥5 Students)"
+                            type="action"
+                            help="Print the semester curriculum for all majors with 5+ active students"/>
+                </header>
+                <field name="student_id" decoration-bf="1"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="teacher_id"/>
+                <field name="semester_id"/>
+                <field name="academic_year_id"/>
+                <field name="faculty_id"/>
+                <field name="enrollment_date"/>
+                <field name="status" widget="badge" decoration-success="status == 'enrolled'" decoration-info="status == 'completed'" decoration-danger="status == 'dropped'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_enrollment_form" model="ir.ui.view">
+        <field name="name">university.enrollment.form</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Course Enrollment">
+                <sheet>
+                    <group>
+                        <group string="Student">
+                            <field name="student_id"/>
+                        </group>
+                        <group string="Enrollment">
+                            <field name="section_id"/>
+                        </group>
+                        <group string="Period &amp; Status">
+                            <field name="academic_year_id"/>
+                            <field name="semester_id"/>
+                            <field name="enrollment_date"/>
+                            <field name="status"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GRAPH VIEW -->
+    <record id="view_university_enrollment_graph" model="ir.ui.view">
+        <field name="name">university.enrollment.graph</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <graph string="Enrollments Analysis" sample="1">
+                <field name="faculty_id"/>
+                <field name="status"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- PIVOT VIEW -->
+    <record id="view_university_enrollment_pivot" model="ir.ui.view">
+        <field name="name">university.enrollment.pivot</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <pivot string="Enrollments Analysis" sample="1">
+                <field name="faculty_id" type="row"/>
+                <field name="semester_id" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_enrollment_search" model="ir.ui.view">
+        <field name="name">university.enrollment.search</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <search string="Search Enrollments">
+                <field name="student_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <separator/>
+                <filter string="Enrolled" name="filter_enrolled" domain="[('status', '=', 'enrolled')]"/>
+                <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
+                <filter string="Dropped" name="filter_dropped" domain="[('status', '=', 'dropped')]"/>
+                <group>
+                    <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
+                    <filter string="Class Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
+                    <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
+    <record id="action_university_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrollments</field>
+        <field name="res_model">university.enrollment</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="search_view_id" ref="view_university_enrollment_search"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!-- ==================== ROOT MENU ==================== -->
+    <menuitem
+        id="menu_school_root"
+        name="University"
+        sequence="10"
+        web_icon="school_management,static/description/icon.png"
+    />
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <menuitem
+        id="menu_school_dashboard"
+        name="Dashboard"
+        parent="menu_school_root"
+        action="action_school_dashboard"
+        sequence="1"
+    />
+
+    <!-- ==================== 1. STRUCTURE ==================== -->
+    <menuitem
+        id="menu_university_structure"
+        name="Structure"
+        parent="menu_school_root"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_university_faculty"
+        name="Faculties"
+        parent="menu_university_structure"
+        action="action_university_faculty"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_university_department"
+        name="Departments"
+        parent="menu_university_structure"
+        action="action_university_department"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_university_program"
+        name="Programs"
+        parent="menu_university_structure"
+        action="action_university_program"
+        sequence="30"
+    />
+
+    <!-- ==================== 2. STUDENTS ==================== -->
+    <menuitem
+        id="menu_school_student_category"
+        name="Students"
+        parent="menu_school_root"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_school_student_all"
+        name="All Students"
+        parent="menu_school_student_category"
+        action="action_university_student"
+        sequence="10"
+    />
+
+    <!-- ==================== 3. TEACHERS ==================== -->
+    <menuitem
+        id="menu_school_teacher_category"
+        name="Teachers"
+        parent="menu_school_root"
+        sequence="30"
+    />
+    <menuitem
+        id="menu_school_teacher_all"
+        name="All Teachers"
+        parent="menu_school_teacher_category"
+        action="action_university_teacher"
+        sequence="10"
+    />
+
+    <!-- ==================== 4. ACADEMIC ==================== -->
+    <menuitem
+        id="menu_university_academic_category"
+        name="Academic"
+        parent="menu_school_root"
+        sequence="40"
+    />
+    <menuitem
+        id="menu_university_academic_year"
+        name="Academic Years"
+        parent="menu_university_academic_category"
+        action="action_university_academic_year"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_university_semester"
+        name="Semesters"
+        parent="menu_university_academic_category"
+        action="action_university_semester"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_university_subject"
+        name="Subjects"
+        parent="menu_university_academic_category"
+        action="action_university_subject"
+        sequence="30"
+    />
+    <menuitem
+        id="menu_university_class_section"
+        name="Class Sections"
+        parent="menu_university_academic_category"
+        action="action_university_class_section"
+        sequence="40"
+    />
+    <menuitem
+        id="menu_university_classroom"
+        name="Classrooms"
+        parent="menu_university_academic_category"
+        action="action_university_classroom"
+        sequence="50"
+    />
+
+    <!-- ==================== 5. ENROLLMENT ==================== -->
+    <menuitem
+        id="menu_university_enrollment_category"
+        name="Enrollment"
+        parent="menu_school_root"
+        sequence="50"
+    />
+    <menuitem
+        id="menu_university_enrollment_bulk"
+        name="Bulk Enroll Students"
+        parent="menu_university_enrollment_category"
+        action="action_university_enrollment_wizard"
+        sequence="5"
+    />
+    <menuitem
+        id="menu_university_enrollment"
+        name="Course Enrollments"
+        parent="menu_university_enrollment_category"
+        action="action_university_enrollment"
+        sequence="10"
+    />
+
+    <!-- ==================== 6. FINANCE ==================== -->
+    <menuitem
+        id="menu_university_finance_category"
+        name="Finance"
+        parent="menu_school_root"
+        sequence="60"
+    />
+    <menuitem
+        id="menu_university_fee"
+        name="Fee Invoices"
+        parent="menu_university_finance_category"
+        action="action_university_fee"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_university_payment"
+        name="Payments"
+        parent="menu_university_finance_category"
+        action="action_university_payment"
+        sequence="20"
+    />
+
+</odoo>

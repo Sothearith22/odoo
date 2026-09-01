@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_subject_list" model="ir.ui.view">
+        <field name="name">university.subject.list</field>
+        <field name="model">university.subject</field>
+        <field name="arch" type="xml">
+            <list string="Subjects" sample="1" default_order="semester_number,code">
+                <field name="semester_number" string="Sem."/>
+                <field name="code" decoration-bf="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="program_ids" widget="many2many_tags"/>
+                <field name="department_id"/>
+                <field name="credits"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="view_university_subject_kanban" model="ir.ui.view">
+        <field name="name">university.subject.kanban</field>
+        <field name="model">university.subject</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_ids"/>
+                <field name="department_id"/>
+                <field name="semester_number"/>
+                <field name="credits"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-graduation-cap me-1" title="Program"/>
+                                <field name="program_ids" widget="many2many_tags"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-building me-1" title="Department"/>
+                                <field name="department_id"/>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge text-bg-info">Semester <field name="semester_number"/></span>
+                                <span class="badge text-bg-secondary float-end"><field name="credits"/> Credits</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_subject_form" model="ir.ui.view">
+        <field name="name">university.subject.form</field>
+        <field name="model">university.subject</field>
+        <field name="arch" type="xml">
+            <form string="Subject">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <div class="oe_title">
+                        <label for="name" string="Subject Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Database Management Systems" required="1"/>
+                        </h1>
+                        <div class="text-muted">
+                            <field name="code" placeholder="e.g. CS301" required="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Details">
+                            <field name="program_ids" widget="many2many_tags"/>
+                            <field name="department_id"/>
+                            <field name="credits"/>
+                            <field name="semester_number"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Teachers" name="teachers_tab">
+                            <field name="teacher_ids"
+                                   widget="many2many"
+                                   domain="[('department_id', '=', department_id)]">
+                                <list>
+                                    <field name="teacher_id"/>
+                                    <field name="name"/>
+                                    <field name="department_id"/>
+                                    <field name="specialization"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Class Sections" name="sections_tab">
+                            <field name="section_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="teacher_id"/>
+                                    <field name="semester_id"/>
+                                    <field name="classroom_id"/>
+                                    <field name="capacity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description_tab">
+                            <field name="description" placeholder="Course syllabus or subject overview..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_subject_search" model="ir.ui.view">
+        <field name="name">university.subject.search</field>
+        <field name="model">university.subject</field>
+        <field name="arch" type="xml">
+            <search string="Search Subjects">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="program_ids"/>
+                <field name="department_id"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
+    <record id="action_university_subject" model="ir.actions.act_window">
+        <field name="name">Subjects</field>
+        <field name="res_model">university.subject</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_university_subject_search"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_program_list" model="ir.ui.view">
+        <field name="name">university.program.list</field>
+        <field name="model">university.program</field>
+        <field name="arch" type="xml">
+            <list string="Degree Programs" sample="1">
+                <field name="code" decoration-bf="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="department_id"/>
+                <field name="degree_type" widget="badge" decoration-info="degree_type == 'bachelor'" decoration-success="degree_type == 'master'" decoration-warning="degree_type == 'doctorate'"/>
+                <field name="duration_years"/>
+                <field name="total_credits"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="view_university_program_kanban" model="ir.ui.view">
+        <field name="name">university.program.kanban</field>
+        <field name="model">university.program</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <field name="degree_type"/>
+                <field name="duration_years"/>
+                <field name="total_credits"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-building me-1" title="Department"/>
+                                <field name="department_id"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-clock-o me-1" title="Duration"/>
+                                <field name="duration_years"/> Years
+                            </div>
+                            <div class="mt-2">
+                                <span t-if="record.degree_type.raw_value == 'bachelor'" class="badge text-bg-info">Bachelor</span>
+                                <span t-if="record.degree_type.raw_value == 'master'" class="badge text-bg-success">Master</span>
+                                <span t-if="record.degree_type.raw_value == 'doctorate'" class="badge text-bg-warning">Doctorate</span>
+                                <span class="badge text-bg-secondary float-end"><field name="total_credits"/> Credits</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_program_form" model="ir.ui.view">
+        <field name="name">university.program.form</field>
+        <field name="model">university.program</field>
+        <field name="arch" type="xml">
+            <form string="Degree Program">
+                <header>
+                    <button name="action_print_curriculum_report"
+                            string="Print Curriculum"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-print"
+                            help="Download the Semester Curriculum PDF for this program"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <!-- Stat buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(school_management.action_university_subject)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                context="{'search_default_program_ids': id}">
+                            <field name="subject_count" widget="statinfo" string="Subjects"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Program Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Bachelor of Computer Science" required="1"/>
+                        </h1>
+                        <div class="text-muted">
+                            <field name="code" placeholder="e.g. BCS" required="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Program Details">
+                            <field name="department_id"/>
+                            <field name="degree_type"/>
+                        </group>
+                        <group string="Requirements">
+                            <field name="duration_years"/>
+                            <field name="total_credits"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Students" name="students_tab">
+                            <field name="student_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="student_id"/>
+                                    <field name="name"/>
+                                    <field name="academic_year_id"/>
+                                    <field name="status" widget="badge" decoration-success="status == 'active'" decoration-info="status == 'graduated'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Subjects (Curriculum)" name="subjects_tab">
+                            <field name="subject_ids"
+                                   context="{'default_department_id': department_id}"
+                                   domain="[('active', '=', True)]">
+                                <list default_order="semester_number,code">
+                                    <field name="semester_number" string="Sem."/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="credits"/>
+                                    <field name="description" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_program_search" model="ir.ui.view">
+        <field name="name">university.program.search</field>
+        <field name="model">university.program</field>
+        <field name="arch" type="xml">
+            <search string="Search Programs">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="department_id"/>
+                <separator/>
+                <filter string="Bachelor" name="filter_bachelor" domain="[('degree_type', '=', 'bachelor')]"/>
+                <filter string="Master" name="filter_master" domain="[('degree_type', '=', 'master')]"/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Degree Type" name="group_by_degree" context="{'group_by': 'degree_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
+    <record id="action_university_program" model="ir.actions.act_window">
+        <field name="name">Programs</field>
+        <field name="res_model">university.program</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_university_program_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first degree program</p>
+            <p>Define Bachelor, Master, or Doctorate programs offered by departments.</p>
+        </field>
+    </record>
+
+</odoo>

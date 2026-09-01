@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_faculty_list" model="ir.ui.view">
+        <field name="name">university.faculty.list</field>
+        <field name="model">university.faculty</field>
+        <field name="arch" type="xml">
+            <list string="Faculties" sample="1">
+                <field name="code" decoration-bf="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="dean_id"/>
+                <field name="department_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="view_university_faculty_kanban" model="ir.ui.view">
+        <field name="name">university.faculty.kanban</field>
+        <field name="model">university.faculty</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="dean_id"/>
+                <field name="department_count"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.dean_id.value">
+                                <i class="fa fa-user me-1" title="Dean"/>
+                                <field name="dean_id"/>
+                            </div>
+                            <div class="mt-2 text-muted small">
+                                <span><i class="fa fa-building" title="Departments"/> <field name="department_count"/> Departments</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_faculty_form" model="ir.ui.view">
+        <field name="name">university.faculty.form</field>
+        <field name="model">university.faculty</field>
+        <field name="arch" type="xml">
+            <form string="Faculty">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <!-- Stat buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(school_management.action_university_department)d"
+                                type="action" class="oe_stat_button" icon="fa-building"
+                                context="{'search_default_faculty_id': id}">
+                            <field name="department_count" widget="statinfo" string="Departments"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Faculty Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Faculty of Information Technology" required="1"/>
+                        </h1>
+                        <div class="text-muted">
+                            <field name="code" placeholder="e.g. FIT" required="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Leadership">
+                            <field name="dean_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Departments" name="departments_tab">
+                            <field name="department_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="head_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description_tab">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_faculty_search" model="ir.ui.view">
+        <field name="name">university.faculty.search</field>
+        <field name="model">university.faculty</field>
+        <field name="arch" type="xml">
+            <search string="Search Faculties">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="dean_id"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
+    <record id="action_university_faculty" model="ir.actions.act_window">
+        <field name="name">Faculties</field>
+        <field name="res_model">university.faculty</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_university_faculty_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first faculty</p>
+            <p>Define faculties to organize departments and academic programs.</p>
+        </field>
+    </record>
+
+</odoo>

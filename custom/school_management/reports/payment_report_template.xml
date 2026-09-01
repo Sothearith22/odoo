@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_payment_receipt_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="fee" t-value="o.fee_id"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Title -->
+                        <div class="row mb-4">
+                            <div class="col-7">
+                                <h2 style="font-weight: 700; color: #1a8cff; margin: 0;">
+                                    University Payment Receipt
+                                </h2>
+                            </div>
+                            <div class="col-5 text-end">
+                                <div><strong>Receipt no.</strong> <span t-field="o.name"/></div>
+                                <div><strong>Receipt date</strong> <span t-field="o.date"/></div>
+                                <div t-if="fee and fee.due_date">
+                                    <strong>Invoice due</strong> <span t-field="fee.due_date"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- From / Bill to -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <div style="background-color: #f5f8fc; padding: 12px; border-radius: 4px;">
+                                    <div style="font-weight: 600; margin-bottom: 6px;">From</div>
+                                    <div><span t-field="o.env.company.name"/></div>
+                                    <div t-if="o.env.company.email"><span t-field="o.env.company.email"/></div>
+                                    <div t-if="o.env.company.phone"><span t-field="o.env.company.phone"/></div>
+                                    <div t-if="o.env.company.street">
+                                        <span t-field="o.env.company.street"/>
+                                        <t t-if="o.env.company.city">, <span t-field="o.env.company.city"/></t>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background-color: #f5f8fc; padding: 12px; border-radius: 4px; margin-left: 10%;">
+                                    <div style="font-weight: 600; margin-bottom: 6px;">Bill to</div>
+                                    <div><span t-field="o.student_id.name"/></div>
+                                    <div t-if="o.student_id.student_id">
+                                        Student ID: <span t-field="o.student_id.student_id"/>
+                                    </div>
+                                    <div t-if="o.student_id.email"><span t-field="o.student_id.email"/></div>
+                                    <div t-if="o.student_id.phone"><span t-field="o.student_id.phone"/></div>
+                                    <div t-if="o.student_id.address"><span t-field="o.student_id.address"/></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fee lines table -->
+                        <table class="table table-sm mt-2" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #1a8cff; color: #fff;">
+                                    <th style="padding: 10px; text-align: left;">Description</th>
+                                    <th style="padding: 10px; text-align: right; width: 25%;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-if="fee and fee.line_ids">
+                                    <t t-foreach="fee.line_ids" t-as="line">
+                                        <tr t-att-style="'background-color: #eef6ff;' if line_index % 2 else ''">
+                                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                                                <span t-field="line.name"/>
+                                            </td>
+                                            <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right;">
+                                                <span t-field="line.amount"
+                                                      t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">
+                                            Payment received
+                                            <t t-if="fee"> for invoice <span t-field="fee.name"/></t>
+                                        </td>
+                                        <td style="padding: 10px; border-bottom: 1px solid #dee2e6; text-align: right;">
+                                            <span t-field="o.amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Payment info + totals -->
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <div style="background-color: #eef6ff; padding: 12px; border-radius: 4px; border: 1px solid #1a8cff;">
+                                    <div style="font-weight: 600; margin-bottom: 6px;">Payment details</div>
+                                    <div>Method: <span t-field="o.payment_method"/></div>
+                                    <div t-if="o.reference">Reference: <span t-field="o.reference"/></div>
+                                    <div t-if="fee">Invoice: <span t-field="fee.name"/></div>
+                                </div>
+                                <div class="mt-3">
+                                    <div style="font-weight: 600;">Notes</div>
+                                    <div>
+                                        Thank you <span t-field="o.student_id.name"/> for your payment.
+                                        Please keep this receipt for your records.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <table style="width: 80%; float: right;">
+                                    <tr>
+                                        <td style="padding: 6px 8px;">Subtotal</td>
+                                        <td style="padding: 6px 8px; text-align: right;">
+                                            <span t-if="fee" t-field="fee.total_amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            <span t-else="" t-field="o.amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 8px;">Amount paid (this receipt)</td>
+                                        <td style="padding: 6px 8px; text-align: right;">
+                                            <span t-field="o.amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 6px 8px;">Total paid on invoice</td>
+                                        <td style="padding: 6px 8px; text-align: right;">
+                                            <span t-if="fee" t-field="fee.paid_amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            <span t-else="" t-field="o.amount"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color: #eef6ff;">
+                                        <td style="padding: 8px; font-weight: 700;">Balance due</td>
+                                        <td style="padding: 8px; text-align: right; font-weight: 700;">
+                                            <span t-if="fee" t-field="fee.balance"
+                                                  t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            <span t-else="">0.00</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== LIST VIEW ==================== -->
+    <record id="view_university_teacher_list" model="ir.ui.view">
+        <field name="name">university.teacher.list</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <list string="Teachers" sample="1">
+                <field name="image_1920" widget="image" options="{'size': [32, 32]}" string="Photo"/>
+                <field name="teacher_id" decoration-bf="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="department_id"/>
+                <field name="specialization"/>
+                <field name="email" widget="email"/>
+                <field name="phone" widget="phone"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ==================== KANBAN VIEW ==================== -->
+    <record id="view_university_teacher_kanban" model="ir.ui.view">
+        <field name="name">university.teacher.kanban</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="teacher_id"/>
+                <field name="image_1920"/>
+                <field name="department_id"/>
+                <field name="email"/>
+                <templates>
+                    <t t-name="card" class="flex-row">
+                        <aside class="o_kanban_aside_full o_kanban_image_fill">
+                            <field name="image_1920" widget="image" class="d-block w-100 h-100 object-fit-cover"/>
+                        </aside>
+                        <main class="ms-2">
+                            <strong class="fs-5"><field name="name"/></strong>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-id-badge me-1" title="Teacher ID"/>
+                                <field name="teacher_id"/>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fa fa-building me-1" title="Department"/>
+                                <field name="department_id"/>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fa fa-envelope me-1" title="Email"/>
+                                <field name="email"/>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ==================== FORM VIEW ==================== -->
+    <record id="view_university_teacher_form" model="ir.ui.view">
+        <field name="name">university.teacher.form</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <form string="Teacher">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
+                    <div class="oe_title">
+                        <label for="name" string="Teacher Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Dr. John Doe" required="1"/>
+                        </h1>
+                        <div class="text-muted">
+                            <i class="fa fa-id-badge me-1" title="Teacher ID"/>
+                            <field name="teacher_id" placeholder="e.g. TCH-001"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Personal Information">
+                            <field name="gender" widget="radio" options="{'horizontal': true}"/>
+                            <field name="date_of_birth"/>
+                        </group>
+                        <group string="Contact Information">
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="address"/>
+                        </group>
+                        <group string="Academic Information">
+                            <field name="department_id"/>
+                            <field name="specialization"/>
+                            <field name="qualification"/>
+                        </group>
+                        <group string="Status">
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Subjects" name="subjects_tab">
+                            <field name="subject_ids"
+                                   widget="many2many"
+                                   domain="[('department_id', '=', department_id)]">
+                                <list>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="program_ids" widget="many2many_tags"/>
+                                    <field name="credits"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Class Sections" name="sections_tab">
+                            <field name="section_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="subject_id"/>
+                                    <field name="semester_id"/>
+                                    <field name="classroom_id"/>
+                                    <field name="capacity"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ==================== SEARCH VIEW ==================== -->
+    <record id="view_university_teacher_search" model="ir.ui.view">
+        <field name="name">university.teacher.search</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <search string="Search Teachers">
+                <field name="name"/>
+                <field name="teacher_id"/>
+                <field name="email"/>
+                <field name="department_id"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Gender" name="group_by_gender" context="{'group_by': 'gender'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==================== WINDOW ACTION ==================== -->
+    <record id="action_university_teacher" model="ir.actions.act_window">
+        <field name="name">Teachers</field>
+        <field name="res_model">university.teacher</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_university_teacher_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first teacher record</p>
+            <p>Add teachers and assign them to departments and class sections.</p>
+        </field>
+    </record>
+
+</odoo>

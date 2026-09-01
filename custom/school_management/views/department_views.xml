@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- LIST VIEW -->
+    <record id="view_university_department_list" model="ir.ui.view">
+        <field name="name">university.department.list</field>
+        <field name="model">university.department</field>
+        <field name="arch" type="xml">
+            <list string="Departments" sample="1">
+                <field name="code" decoration-bf="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="faculty_id"/>
+                <field name="head_id"/>
+                <field name="program_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW -->
+    <record id="view_university_department_kanban" model="ir.ui.view">
+        <field name="name">university.department.kanban</field>
+        <field name="model">university.department</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="faculty_id"/>
+                <field name="head_id"/>
+                <field name="program_count"/>
+                <field name="teacher_count"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-university me-1" title="Faculty"/>
+                                <field name="faculty_id"/>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.head_id.value">
+                                <i class="fa fa-user me-1" title="Head"/>
+                                <field name="head_id"/>
+                            </div>
+                            <div class="mt-2 text-muted small d-flex gap-3">
+                                <span><i class="fa fa-graduation-cap" title="Programs"/> <field name="program_count"/> Programs</span>
+                                <span><i class="fa fa-id-badge" title="Teachers"/> <field name="teacher_count"/> Teachers</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- FORM VIEW -->
+    <record id="view_university_department_form" model="ir.ui.view">
+        <field name="name">university.department.form</field>
+        <field name="model">university.department</field>
+        <field name="arch" type="xml">
+            <form string="Department">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+
+                    <!-- Stat buttons -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(school_management.action_university_program)d"
+                                type="action" class="oe_stat_button" icon="fa-graduation-cap"
+                                context="{'search_default_department_id': id}">
+                            <field name="program_count" widget="statinfo" string="Programs"/>
+                        </button>
+                        <button name="%(school_management.action_university_teacher)d"
+                                type="action" class="oe_stat_button" icon="fa-id-badge"
+                                context="{'search_default_department_id': id}">
+                            <field name="teacher_count" widget="statinfo" string="Teachers"/>
+                        </button>
+                        <button name="%(school_management.action_university_subject)d"
+                                type="action" class="oe_stat_button" icon="fa-book"
+                                context="{'search_default_department_id': id}">
+                            <field name="subject_count" widget="statinfo" string="Subjects"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Department Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Department of Computer Science" required="1"/>
+                        </h1>
+                        <div class="text-muted">
+                            <field name="code" placeholder="e.g. CS" required="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Affiliation">
+                            <field name="faculty_id"/>
+                            <field name="head_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Programs" name="programs_tab">
+                            <field name="program_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="degree_type"/>
+                                    <field name="duration_years"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Teachers" name="teachers_tab">
+                            <field name="teacher_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="teacher_id"/>
+                                    <field name="name"/>
+                                    <field name="email"/>
+                                    <field name="specialization"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Subjects" name="subjects_tab">
+                            <field name="subject_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="credits"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_university_department_search" model="ir.ui.view">
+        <field name="name">university.department.search</field>
+        <field name="model">university.department</field>
+        <field name="arch" type="xml">
+            <search string="Search Departments">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="faculty_id"/>
+                <field name="head_id"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
+    <record id="action_university_department" model="ir.actions.act_window">
+        <field name="name">Departments</field>
+        <field name="res_model">university.department</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_university_department_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first department</p>
+            <p>Organize academic staff, subjects, and programs under departments.</p>
+        </field>
+    </record>
+
+</odoo>
