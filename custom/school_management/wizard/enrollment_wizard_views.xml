@@ -16,20 +16,26 @@
                         <div class="col-md-7">
                             <h4 class="text-primary mb-3">1. Select Academic Target</h4>
                             <group>
+                                <field name="faculty_id"
+                                       options="{'no_create': True}"
+                                       placeholder="Select Faculty..."/>
+
+                                <field name="department_id"
+                                       options="{'no_create': True}"
+                                       placeholder="Select Department..."/>
+
                                 <field name="program_id"
                                        options="{'no_create': True}"
                                        placeholder="Search Major / Program..."/>
                                 
                                 <field name="subject_id"
                                        options="{'no_create': True}"
-                                       domain="[('program_ids', 'in', program_id), ('active', '=', True)]"
                                        invisible="not program_id"
                                        required="program_id"
                                        placeholder="Select Subject..."/>
                                 
                                 <field name="section_id"
                                        options="{'no_create': True}"
-                                       domain="[('subject_id', '=', subject_id)]"
                                        invisible="not subject_id"
                                        required="subject_id"
                                        placeholder="Select Class Section..."/>
@@ -71,8 +77,23 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Students -->
-                    <h4 class="text-primary mt-4 mb-3" invisible="not program_id">3. Selected Students</h4>
+                    <!-- Step 3: Loaded Subjects -->
+                    <h4 class="text-primary mt-4 mb-3" invisible="not program_id">3. Loaded Subjects for Major</h4>
+                    <field name="subject_ids"
+                           nolabel="1"
+                           widget="many2many"
+                           invisible="not program_id">
+                        <list create="false" edit="false" delete="false">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="credits"/>
+                            <field name="semester_number"/>
+                            <field name="department_id"/>
+                        </list>
+                    </field>
+
+                    <!-- Step 4: Students -->
+                    <h4 class="text-primary mt-4 mb-3" invisible="not program_id">4. Selected Students</h4>
                     <field name="student_ids"
                            nolabel="1"
                            widget="many2many"

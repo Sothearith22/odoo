@@ -7,10 +7,23 @@ class UniversityEnrollmentWizard(models.TransientModel):
     _description = "Bulk Student Enrollment Wizard"
 
     # ── Cascading location fields ─────────────────────────────────────────────
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        string="Faculty",
+    )
+    department_id = fields.Many2one(
+        "university.department",
+        string="Department",
+    )
     program_id = fields.Many2one(
         "university.program",
-        string="Major",
+        string="Major / Program",
         required=True,
+    )
+    subject_ids = fields.Many2many(
+        "university.subject",
+        string="Loaded Subjects",
+        readonly=True,
     )
 
     # ── Subject / Section ─────────────────────────────────────────────────────
@@ -84,18 +97,52 @@ class UniversityEnrollmentWizard(models.TransientModel):
 
     # ── Onchange cascade ──────────────────────────────────────────────────────
 
+    @api.onchange("faculty_id")
+    def _onchange_faculty_id(self):
+        self.department_id = False
+        self.program_id = False
+        self.subject_id = False
+        self.section_id = False
+        self.subject_ids = False
+        self.student_ids = False
+        if self.faculty_id:
+            return {"domain": {"department_id": [("faculty_id", "=", self.faculty_id.id)]}}
+        return {"domain": {"department_id": []}}
+
+    @api.onchange("department_id")
+    def _onchange_department_id(self):
+        self.program_id = False
+        self.subject_id = False
+        self.section_id = False
+        self.subject_ids = False
+        self.student_ids = False
+        if self.department_id:
+            if not self.faculty_id and self.department_id.faculty_id:
+                self.faculty_id = self.department_id.faculty_id
+            return {"domain": {"program_id": [("department_id", "=", self.department_id.id)]}}
+        return {"domain": {"program_id": []}}
+
     @api.onchange("program_id")
     def _onchange_program_id(self):
         self.subject_id = False
         self.section_id = False
         self.student_ids = False
+        self.subject_ids = False
         if self.program_id:
+            if not self.department_id and self.program_id.department_id:
+                self.department_id = self.program_id.department_id
+                if self.department_id.faculty_id:
+                    self.faculty_id = self.department_id.faculty_id
+            
+            subjects = self.env["university.subject"].search(self._get_subject_domain())
+            self.subject_ids = subjects
+
             students = self.env["university.student"].search([
                 ("program_id", "=", self.program_id.id),
                 ("status", "=", "active")
             ])
             self.student_ids = students
-            return {"domain": {"subject_id": self._get_subject_domain()}}
+            return {"domain": {"subject_id": [("id", "in", subjects.ids)]}}
 
     def _get_subject_domain(self):
         self.ensure_one()
