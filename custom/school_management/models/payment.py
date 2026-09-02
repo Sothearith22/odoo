@@ -25,7 +25,6 @@ class UniversityPayment(models.Model):
             ("cash", "Cash"),
             ("bank_transfer", "Bank Transfer"),
             ("credit_card", "Credit Card"),
-            ("check", "Check"),
         ],
         string="Payment Method",
         default="cash",
@@ -41,7 +40,6 @@ class UniversityPayment(models.Model):
         ],
         string="Status",
         default="draft",
-        tracking=True,
     )
 
     @api.model_create_multi

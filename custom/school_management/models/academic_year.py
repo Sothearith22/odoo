@@ -35,4 +35,7 @@ class UniversitySemester(models.Model):
     )
     date_start = fields.Date(string="Start Date")
     date_end = fields.Date(string="End Date")
+    semester_subject_ids = fields.One2many(
+        "university.semester.subject", "semester_id", string="Offered Subjects"
+    )
     active = fields.Boolean(string="Active", default=True)

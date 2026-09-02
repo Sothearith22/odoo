@@ -106,7 +106,7 @@
                     <notebook>
                         <page string="Programs" name="programs_tab">
                             <field name="program_ids">
-                                <list create="0" edit="0" delete="0">
+                                <list>
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="degree_type"/>
@@ -116,7 +116,7 @@
                         </page>
                         <page string="Teachers" name="teachers_tab">
                             <field name="teacher_ids">
-                                <list create="0" edit="0" delete="0">
+                                <list>
                                     <field name="teacher_id"/>
                                     <field name="name"/>
                                     <field name="email"/>
@@ -126,7 +126,7 @@
                         </page>
                         <page string="Subjects" name="subjects_tab">
                             <field name="subject_ids">
-                                <list create="0" edit="0" delete="0">
+                                <list>
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="credits"/>

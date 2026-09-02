@@ -113,7 +113,7 @@
                     <notebook>
                         <page string="Students" name="students_tab">
                             <field name="student_ids">
-                                <list create="0" edit="0" delete="0">
+                                <list>
                                     <field name="student_id"/>
                                     <field name="name"/>
                                     <field name="academic_year_id"/>

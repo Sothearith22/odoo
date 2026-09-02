@@ -39,14 +39,14 @@
                     </div>
                     <group>
                         <group>
-                            <field name="student_id" readonly="state != 'draft'"/>
-                            <field name="fee_id" readonly="state != 'draft'"/>
-                            <field name="amount" readonly="state != 'draft'"/>
+                            <field name="student_id"/>
+                            <field name="fee_id"/>
+                            <field name="amount"/>
                         </group>
                         <group>
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="payment_method" readonly="state != 'draft'"/>
-                            <field name="reference" readonly="state != 'draft'"/>
+                            <field name="date"/>
+                            <field name="payment_method"/>
+                            <field name="reference"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>

@@ -11,6 +11,7 @@
                 <field name="student_id" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="program_id"/>
+                <field name="faculty_id"/>
                 <field name="department_id"/>
                 <field name="academic_year_id"/>
                 <field name="phone" widget="phone"/>
@@ -29,6 +30,7 @@
             <kanban class="o_university_student_kanban" sample="1">
                 <field name="name"/>
                 <field name="student_id"/>
+                <field name="faculty_id"/>
                 <field name="image_1920"/>
                 <field name="program_id"/>
                 <field name="status"/>
@@ -46,6 +48,10 @@
                             <div class="text-muted small">
                                 <i class="fa fa-graduation-cap me-1" title="Program"/>
                                 <field name="program_id"/>
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fa fa-building me-1" title="Faculty"/>
+                                <field name="faculty_id"/>
                             </div>
                             <div class="mt-2">
                                 <span t-if="record.status.raw_value == 'active'" class="badge text-bg-success">Active</span>
@@ -198,10 +204,6 @@
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                     <filter string="Gender" name="group_by_gender" context="{'group_by': 'gender'}"/>
                 </group>
-                <searchpanel>
-                    <field name="department_id" string="Department" icon="fa-building" enable_counters="1"/>
-                    <field name="status" string="Status" icon="fa-info-circle" enable_counters="1"/>
-                </searchpanel>
             </search>
         </field>
     </record>

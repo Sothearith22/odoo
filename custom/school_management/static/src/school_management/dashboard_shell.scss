@@ -1,0 +1,125 @@
+.o_school_shell {
+    --brand-900: #1b2a4a;
+    --brand-700: #29385c;
+    --brand-600: #34456e;
+    --accent: #b8863f;
+    --accent-soft: #f6ead4;
+    --bg: #f6f5f2;
+    --surface: #ffffff;
+    --border: #e6e2d8;
+    --ink: #1f2430;
+
+    height: 100%;
+    width: 100%;
+    background-color: var(--bg);
+
+    .o_school_sidebar {
+        width: 250px;
+        flex-shrink: 0;
+        height: 100%;
+        background-color: var(--brand-900);
+        transition: width 0.2s ease;
+        overflow: hidden;
+    }
+
+    &.o_school_shell_collapsed .o_school_sidebar {
+        width: 72px;
+    }
+    &.o_school_shell_collapsed .o_school_sidebar_label,
+    &.o_school_shell_collapsed .o_school_nav_group_label {
+        display: none;
+    }
+    &.o_school_shell_collapsed .o_school_nav_btn {
+        justify-content: center;
+    }
+
+    .o_school_sidebar_header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+    }
+
+    .o_school_collapse_btn {
+        color: #fff;
+        background: transparent;
+        border: none;
+    }
+    .o_school_collapse_btn:hover {
+        color: var(--accent);
+    }
+
+    .o_school_nav_group_label {
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.5rem 0.75rem 0.25rem;
+    }
+
+    .o_school_nav_btn {
+        color: rgba(255, 255, 255, 0.85);
+        border: none;
+        border-radius: 6px;
+        padding: 0.45rem 0.75rem;
+        transition: background-color 0.15s ease;
+    }
+    .o_school_nav_btn:hover {
+        background-color: var(--brand-700);
+        color: #fff;
+    }
+    .o_school_nav_btn.active {
+        background-color: var(--brand-600);
+        color: #fff;
+        box-shadow: inset 3px 0 0 var(--accent);
+    }
+    .o_school_nav_icon {
+        width: 18px;
+        text-align: center;
+    }
+
+    .o_school_topbar {
+        background-color: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+    .o_school_title {
+        color: var(--ink);
+    }
+
+    .o_school_loading {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--brand-900);
+        z-index: 5;
+    }
+
+    .o_school_kpi_card {
+        border: 1px solid var(--border);
+        border-top: 3px solid var(--kpi-accent, var(--accent));
+        border-radius: 10px;
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .o_school_kpi_card:hover {
+        box-shadow: 0 6px 16px rgba(27, 42, 74, 0.08);
+        transform: translateY(-2px);
+        cursor: pointer;
+    }
+    .o_school_kpi_icon {
+        color: var(--kpi-accent, var(--accent));
+    }
+
+    .o_school_panel {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        transition: box-shadow 0.15s ease;
+    }
+    .o_school_panel[role="button"] {
+        cursor: pointer;
+    }
+    .o_school_panel[role="button"]:hover {
+        box-shadow: 0 4px 12px rgba(27, 42, 74, 0.06);
+    }
+    .o_school_panel_header {
+        background-color: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+}

@@ -87,7 +87,7 @@
                     <notebook>
                         <page string="Departments" name="departments_tab">
                             <field name="department_ids">
-                                <list create="0" edit="0" delete="0">
+                                <list>
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="head_id"/>

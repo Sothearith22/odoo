@@ -4,6 +4,7 @@ access_university_department_user,university.department.user,model_university_de
 access_university_program_user,university.program.user,model_university_program,base.group_user,1,1,1,1
 access_university_academic_year_user,university.academic.year.user,model_university_academic_year,base.group_user,1,1,1,1
 access_university_semester_user,university.semester.user,model_university_semester,base.group_user,1,1,1,1
+access_university_semester_subject_user,university.semester.subject.user,model_university_semester_subject,base.group_user,1,1,1,1
 access_university_teacher_user,university.teacher.user,model_university_teacher,base.group_user,1,1,1,1
 access_university_student_user,university.student.user,model_university_student,base.group_user,1,1,1,1
 access_university_subject_user,university.subject.user,model_university_subject,base.group_user,1,1,1,1

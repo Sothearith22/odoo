@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <t t-name="school_management.SchoolLayout" owl="1">
+    <div class="o_school_shell d-flex w-100 h-100" t-att-class="{ 'o_school_shell_collapsed': state.collapsed }">
+
+      <div class="o_school_sidebar d-flex flex-column">
+        <div class="o_school_sidebar_header d-flex align-items-center justify-content-between p-3">
+          <div class="d-flex align-items-center overflow-hidden">
+            <i class="fa fa-university fa-lg me-2 flex-shrink-0" aria-hidden="true"/>
+            <span class="fw-bold text-white text-nowrap o_school_sidebar_label">University</span>
+          </div>
+          <button class="btn btn-sm o_school_collapse_btn d-none d-lg-inline-flex" t-on-click="() => this.toggleSidebar()" aria-label="Toggle sidebar">
+            <i class="fa fa-bars" aria-hidden="true"/>
+          </button>
+        </div>
+
+        <div class="o_school_sidebar_body flex-grow-1 overflow-auto p-2">
+          <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center active"
+                  t-on-click="() => this.openDashboard()"
+                  title="Dashboard">
+            <i class="fa fa-dashboard fa-lg o_school_nav_icon" aria-hidden="true"/>
+            <span class="ms-2 o_school_sidebar_label">Dashboard</span>
+          </button>
+
+          <div class="o_school_nav_group mt-1">
+            <div class="o_school_nav_group_label o_school_sidebar_label">Structure</div>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_faculty')">
+              <i class="fa fa-university o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Faculties</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_department')">
+              <i class="fa fa-building o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Departments</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_program')">
+              <i class="fa fa-certificate o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Programs / Majors</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_subject')">
+              <i class="fa fa-book o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Subjects</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_class_section')">
+              <i class="fa fa-users o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Class Sections</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_classroom')">
+              <i class="fa fa-th o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Classrooms</span>
+            </button>
+          </div>
+
+          <div class="o_school_nav_group mt-2">
+            <div class="o_school_nav_group_label o_school_sidebar_label">Students</div>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_student')">
+              <i class="fa fa-graduation-cap o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">All Students</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_enrollment')">
+              <i class="fa fa-clipboard o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Student Enrollment</span>
+            </button>
+          </div>
+
+          <div class="o_school_nav_group mt-2">
+            <div class="o_school_nav_group_label o_school_sidebar_label">Teachers</div>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_teacher')">
+              <i class="fa fa-user o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">All Teachers</span>
+            </button>
+          </div>
+
+          <div class="o_school_nav_group mt-2">
+            <div class="o_school_nav_group_label o_school_sidebar_label">Academic</div>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_academic_year')">
+              <i class="fa fa-calendar o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Academic Years</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_semester')">
+              <i class="fa fa-calendar-check-o o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Semesters</span>
+            </button>
+          </div>
+
+          <div class="o_school_nav_group mt-2">
+            <div class="o_school_nav_group_label o_school_sidebar_label">Finance</div>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_fee')">
+              <i class="fa fa-money o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Invoices</span>
+            </button>
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-on-click="() => this.navigate('school_management.action_university_payment')">
+              <i class="fa fa-credit-card o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Payments</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="o_school_content flex-grow-1 d-flex flex-column overflow-auto">
+        <div class="o_school_topbar d-flex align-items-center justify-content-between px-4 py-3">
+          <div>
+            <h3 class="fw-bold mb-0 o_school_title">University Management</h3>
+            <div class="text-muted small">Overview of academic structure, people, courses, and operations</div>
+          </div>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto position-relative bg-view">
+          <t t-slot="default"/>
+        </div>
+      </div>
+    </div>
+  </t>
+
+</templates>

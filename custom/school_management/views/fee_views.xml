@@ -51,14 +51,8 @@
                     </group>
                     <notebook>
                         <page string="Fee Lines" name="fee_lines">
-                            <field name="line_ids" invisible="state in ('paid', 'canceled')" readonly="state != 'draft'">
+                            <field name="line_ids">
                                 <list editable="bottom">
-                                    <field name="name"/>
-                                    <field name="amount" sum="Total"/>
-                                </list>
-                            </field>
-                            <field name="line_ids" invisible="state not in ('paid', 'canceled')" readonly="1">
-                                <list>
                                     <field name="name"/>
                                     <field name="amount" sum="Total"/>
                                 </list>
@@ -71,7 +65,7 @@
                             </group>
                         </page>
                         <page string="Payments" name="payments">
-                            <field name="payment_ids" readonly="1">
+                            <field name="payment_ids">
                                 <list>
                                     <field name="name"/>
                                     <field name="date"/>

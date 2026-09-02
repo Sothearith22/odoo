@@ -15,7 +15,7 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
     academic_year_id = fields.Many2one(
         "university.academic.year",
         string="Academic Year Filter",
-        help="Optional: Filter available sections by Academic Year.",
+        help="Optional: Filter       available sections by Academic Year.",
     )
     semester_id = fields.Many2one(
         "university.semester",
@@ -45,10 +45,10 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
         required=True,
     )
 
-    @api.onchange("academic_year_id")
-    def _onchange_academic_year(self):
-        if self.academic_year_id and self.semester_id.academic_year_id != self.academic_year_id:
-            self.semester_id = False
+    @api.onchange("semester_id")
+    def _onchange_semester_id(self):
+        if self.semester_id and not self.academic_year_id:
+            self.academic_year_id = self.semester_id.academic_year_id
 
     @api.onchange("academic_year_id", "semester_id", "student_id")
     def _onchange_filters(self):
@@ -61,6 +61,22 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
             
         if self.semester_id:
             domain.append(("semester_id", "=", self.semester_id.id))
+            
+            # Find subjects offered in this semester (via Semester Subjects junction model)
+            offered_subjects = self.semester_id.semester_subject_ids.mapped("subject_id")
+            
+            sections_domain = [
+                ("active", "=", True),
+                ("semester_id", "=", self.semester_id.id),
+            ]
+            if offered_subjects:
+                sections_domain.append(("subject_id", "in", offered_subjects.ids))
+            if self.student_id.program_id:
+                sections_domain.append(("subject_id.program_ids", "in", [self.student_id.program_id.id]))
+                
+            matching_sections = self.env["university.class.section"].search(sections_domain)
+            if matching_sections:
+                self.section_ids = matching_sections
         elif self.academic_year_id:
             domain.append(("semester_id.academic_year_id", "=", self.academic_year_id.id))
             

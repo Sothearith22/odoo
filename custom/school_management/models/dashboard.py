@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import api
+from odoo import api, fields, models
 
 
 class UniversityDashboard(models.Model):
@@ -62,6 +63,55 @@ class UniversityDashboard(models.Model):
             
             # Placeholder until phase 5 part 2
             rec.total_scholarships = 0.0
+
+    @api.model
+    def get_chart_data(self):
+        # 1. Program Distribution (Bar Chart)
+        self.env.cr.execute("""
+            SELECT p.name, COUNT(s.id) 
+            FROM university_student s
+            JOIN university_program p ON s.program_id = p.id
+            WHERE s.active = True
+            GROUP BY p.name
+            ORDER BY COUNT(s.id) DESC
+            LIMIT 10
+        """)
+        program_data = self.env.cr.fetchall()
+
+        # 2. Student Demographics (Doughnut Chart)
+        self.env.cr.execute("""
+            SELECT status, COUNT(id)
+            FROM university_student
+            GROUP BY status
+        """)
+        status_data = self.env.cr.fetchall()
+        
+        # 3. Recent Activity (Last 5 Payments)
+        recent_payments = self.env["university.payment"].search_read(
+            [("state", "=", "posted")],
+            ["name", "amount", "date", "student_id", "currency_id"],
+            limit=5,
+            order="date desc, id desc"
+        )
+        
+        # Resolve related fields for recent payments
+        for p in recent_payments:
+            if p.get("student_id"):
+                p["student_name"] = p["student_id"][1]
+            else:
+                p["student_name"] = "Unknown"
+
+        return {
+            "program_distribution": {
+                "labels": [row[0] for row in program_data],
+                "data": [row[1] for row in program_data],
+            },
+            "student_status": {
+                "labels": [row[0].capitalize() for row in status_data],
+                "data": [row[1] for row in status_data],
+            },
+            "recent_payments": recent_payments,
+        }
 
     def action_open_students(self):
         return self._open_action("university.student")
@@ -147,3 +197,39 @@ class UniversityDashboard(models.Model):
             "view_mode": "list,form",
             "target": "current",
         }
+
+    def action_open_semesters(self):
+        return self._open_action("university.semester")
+
+    def action_open_enrollment_history(self):
+        return self._open_action("university.enrollment")
+
+    def action_open_enrollment_wizard(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Multiple Enrollments",
+            "res_model": "university.enrollment.wizard",
+            "view_mode": "form",
+            "target": "new",
+        }
+
+    def _coming_soon_notification(self, title):
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": title,
+                "message": "This feature is currently under development.",
+                "type": "warning",
+                "sticky": False,
+            }
+        }
+
+    def action_open_academic_records(self):
+        return self._coming_soon_notification("Academic Records")
+
+    def action_open_teacher_assignments(self):
+        return self._coming_soon_notification("Teacher Assignments")
+
+    def action_open_scholarships(self):
+        return self._coming_soon_notification("Scholarships")

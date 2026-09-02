@@ -28,6 +28,7 @@ class UniversityDepartment(models.Model):
 
     def _compute_counts(self):
         for rec in self:
-            rec.program_count = len(rec.program_ids)
-            rec.teacher_count = len(rec.teacher_ids)
-            rec.subject_count = len(rec.subject_ids)
+            rec.program_count = len(rec.with_context(active_test=False).program_ids)
+            rec.teacher_count = len(rec.with_context(active_test=False).teacher_ids)
+            rec.subject_count = len(rec.with_context(active_test=False).subject_ids)
+    

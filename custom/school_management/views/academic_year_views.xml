@@ -119,6 +119,18 @@
                             <field name="date_end"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Offered Subjects" name="offered_subjects_tab">
+                            <field name="semester_subject_ids">
+                                <list editable="bottom">
+                                    <field name="subject_id"/>
+                                    <field name="department_id"/>
+                                    <field name="credits"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

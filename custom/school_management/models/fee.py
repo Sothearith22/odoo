@@ -38,7 +38,6 @@ class UniversityFee(models.Model):
         ],
         string="Status",
         default="draft",
-        tracking=True,
     )
 
     @api.model_create_multi

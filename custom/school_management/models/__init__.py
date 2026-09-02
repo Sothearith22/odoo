@@ -5,6 +5,7 @@ from . import academic_year
 from . import teacher
 from . import classroom
 from . import subject
+from . import semester_subject
 from . import class_section
 from . import student
 from . import enrollment

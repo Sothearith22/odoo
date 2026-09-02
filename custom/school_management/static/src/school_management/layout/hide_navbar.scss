@@ -1,0 +1,23 @@
+/* Hide Odoo top navbar and user menu for school_management module */
+body.o_school_management_active .o_main_navbar,
+body.o_school_management_active .o_user_menu,
+body.o_school_management_active .o_topbar,
+body.o_school_management_active .o_web_client .o_main_navbar,
+body.o_school_management_active .o_web_client .o_user_menu {
+    display: none !important;
+}
+
+/* Ensure content takes full height without navbar */
+body.o_school_management_active .o_web_client {
+    height: 100vh;
+}
+
+body.o_school_management_active .o_content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Hide the profile/user dropdown */
+body.o_school_management_active .o_menu_systray .o_user_menu {
+    display: none !important;
+}

@@ -16,7 +16,7 @@
                             <h4 class="text-primary mt-4 mb-3">2. Filter Available Classes (Optional)</h4>
                             <group>
                                 <field name="academic_year_id" options="{'no_create': True}"/>
-                                <field name="semester_id" options="{'no_create': True}" invisible="not academic_year_id"/>
+                                <field name="semester_id" options="{'no_create': True}"/>
                             </group>
                             
                             <h4 class="text-primary mt-4 mb-3">3. Enrollment Details</h4>

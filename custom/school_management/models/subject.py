@@ -38,6 +38,11 @@ class UniversitySubject(models.Model):
         "subject_id",
         string="Class Sections",
     )
+    semester_subject_ids = fields.One2many(
+        "university.semester.subject",
+        "subject_id",
+        string="Semester Offerings",
+    )
     active = fields.Boolean(string="Active", default=True)
 
     @api.onchange("program_ids")
