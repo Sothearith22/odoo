@@ -55,6 +55,10 @@
         padding: 0.5rem 0.75rem 0.25rem;
     }
 
+    .o_school_nav_group_active .o_school_nav_group_label {
+        color: var(--accent);
+    }
+
     .o_school_nav_btn {
         color: rgba(255, 255, 255, 0.85);
         border: none;

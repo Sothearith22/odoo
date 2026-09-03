@@ -1,56 +1,60 @@
-# School Management
-# │
+# University Management System
+#
+# Models (_name) grouped by module area.
+# "*"  = implemented in the current codebase
+# "+"  = planned (to be implemented after role management)
+
+
+# └── Dashboard
+#     └── school.dashboard                  *
+
+
+# ├── Structure
+# │   ├── university.faculty                *
+# │   ├── university.department             *
+# │   ├── university.program                *
+# │   ├── university.subject                *
+# │   ├── university.class.section          *
+# │   └── university.classroom              *
+
+
 # ├── Students
-# │   └── Students
-# │
+# │   ├── university.student                *
+# │   └── university.enrollment             *
+
+
+# ├── Teachers
+# │   └── university.teacher                *
+
+
 # ├── Academic
-# │   ├── Teachers
-# │   ├── Classrooms
-# │   ├── Subjects
-# │   └── Academic Years
-# │
-# ├── Enrollment
-# │   └── Enrollments
-# │
+# │   ├── university.academic.year          *
+# │   ├── university.semester               *
+# │   └── university.semester.subject       *
+
+
 # ├── Attendance
-# │   └── Attendance Records
-# │
+# │   └── university.attendance             +
+
+
 # ├── Exams
-# │   ├── Exams
-# │   └── Exam Results
-# │
+# │   ├── university.exam                   +
+# │   ├── university.assessment             +
+# │   ├── university.result                 +
+# │   └── university.grade                  +
+
+
 # └── Finance
-#     ├── Fees
-#     └── Payments
+#     ├── university.fee   (+ fee.line)     *
+#     └── university.payment                *
 
 
+1. # Other planned models
+2. # ├── university.schedule                   +
+3. # ├── university.scholarship                +
+4. # ├── university.graduation                 +
+5. # └── university.certificate                +
 
-<!-- 
-university.faculty
-university.department
-university.program
-university.subject
-
-university.student
-university.teacher
-
-university.academic.year
-university.semester
-university.enrollment
-university.class.section
-
-university.classroom
-university.schedule
-university.attendance
-
-university.exam
-university.assessment
-university.result
-university.grade
-
-university.fee
-university.payment
-university.scholarship
-
-university.graduation
-university.certificate -->
+# Wizards (transient models)
+# ├── university.enrollment.wizard          *
+# └── university.student.enrollment.wizard  *

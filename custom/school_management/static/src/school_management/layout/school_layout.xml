@@ -16,84 +16,29 @@
         </div>
 
         <div class="o_school_sidebar_body flex-grow-1 overflow-auto p-2">
-          <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center active"
+          <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                  t-att-class="{ 'active': this.isActive('dashboard') }"
+                  t-att-aria-current="this.isActive('dashboard') ? 'page' : undefined"
                   t-on-click="() => this.openDashboard()"
                   title="Dashboard">
             <i class="fa fa-dashboard fa-lg o_school_nav_icon" aria-hidden="true"/>
             <span class="ms-2 o_school_sidebar_label">Dashboard</span>
           </button>
 
-          <div class="o_school_nav_group mt-1">
-            <div class="o_school_nav_group_label o_school_sidebar_label">Structure</div>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_faculty')">
-              <i class="fa fa-university o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Faculties</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_department')">
-              <i class="fa fa-building o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Departments</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_program')">
-              <i class="fa fa-certificate o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Programs / Majors</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_subject')">
-              <i class="fa fa-book o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Subjects</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_class_section')">
-              <i class="fa fa-users o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Class Sections</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_classroom')">
-              <i class="fa fa-th o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Classrooms</span>
-            </button>
-          </div>
-
-          <div class="o_school_nav_group mt-2">
-            <div class="o_school_nav_group_label o_school_sidebar_label">Students</div>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_student')">
-              <i class="fa fa-graduation-cap o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">All Students</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_enrollment')">
-              <i class="fa fa-clipboard o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Student Enrollment</span>
-            </button>
-          </div>
-
-          <div class="o_school_nav_group mt-2">
-            <div class="o_school_nav_group_label o_school_sidebar_label">Teachers</div>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_teacher')">
-              <i class="fa fa-user o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">All Teachers</span>
-            </button>
-          </div>
-
-          <div class="o_school_nav_group mt-2">
-            <div class="o_school_nav_group_label o_school_sidebar_label">Academic</div>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_academic_year')">
-              <i class="fa fa-calendar o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Academic Years</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_semester')">
-              <i class="fa fa-calendar-check-o o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Semesters</span>
-            </button>
-          </div>
-
-          <div class="o_school_nav_group mt-2">
-            <div class="o_school_nav_group_label o_school_sidebar_label">Finance</div>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_fee')">
-              <i class="fa fa-money o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Invoices</span>
-            </button>
-            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                    t-on-click="() => this.navigate('school_management.action_university_payment')">
-              <i class="fa fa-credit-card o_school_nav_icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label">Payments</span>
-            </button>
-          </div>
+          <t t-foreach="navGroups" t-as="group" t-key="group.label">
+            <div class="o_school_nav_group" t-att-class="{ 'mt-1': group_index === 0, 'mt-2': group_index !== 0, 'o_school_nav_group_active': this.isGroupActive(group) }">
+              <div class="o_school_nav_group_label o_school_sidebar_label"><t t-out="group.label"/></div>
+              <t t-foreach="group.items" t-as="item" t-key="item.key">
+                <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                        t-att-class="{ 'active': this.isActive(item.key) }"
+                        t-att-aria-current="this.isActive(item.key) ? 'page' : undefined"
+                        t-on-click="() => this.navigate(item.actionXmlId, item.key)"
+                        t-att-title="item.label">
+                  <i class="o_school_nav_icon" t-att-class="item.icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label"><t t-out="item.label"/></span>
+                </button>
+              </t>
+            </div>
+          </t>
         </div>
       </div>
 
