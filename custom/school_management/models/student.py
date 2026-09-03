@@ -136,11 +136,11 @@ class Student(models.Model):
             "context": {"default_fee_id": False},
         }
 
-    def action_open_course_registration(self):
+    def action_open_enrollment_registration(self):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Register Courses",
+            "name": "Register Enrollments",
             "res_model": "university.student.enrollment.wizard",
             "view_mode": "form",
             "target": "new",

@@ -115,7 +115,7 @@
                             </field>
                         </page>
                         <page string="Description" name="description_tab">
-                            <field name="description" placeholder="Course syllabus or subject overview..."/>
+                            <field name="description" placeholder="Subject syllabus or overview..."/>
                         </page>
                     </notebook>
                 </sheet>

@@ -11,7 +11,16 @@
                 <field name="name" decoration-bf="1"/>
                 <field name="faculty_id"/>
                 <field name="head_id"/>
-                <field name="program_ids" widget="many2many_tags"/>
+                <!-- Hidden by default: rendering tags for this x2many reads every related
+                     program per row (N+1). Turn it on only when it is actually needed. -->
+                <field name="program_ids" widget="many2many_tags" optional="hide"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <!-- These are off by default on purpose. If the *_count fields are non-stored
+                     computes, every extra one adds a read_group/search per row × per page.
+                     Only make them visible once they are store=True (or batched computes). -->
+                <field name="program_count" optional="hide"/>
+                <field name="teacher_count" optional="hide"/>
+                <field name="subject_count" optional="hide"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -22,7 +31,7 @@
         <field name="name">university.department.kanban</field>
         <field name="model">university.department</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban sample="1" default_group_by="faculty_id" quick_create="false">
                 <field name="name"/>
                 <field name="code"/>
                 <field name="faculty_id"/>
@@ -39,16 +48,16 @@
                                 </div>
                             </div>
                             <div class="text-muted small mt-1">
-                                <i class="fa fa-university me-1" title="Faculty"/>
+                                <i class="fa fa-university me-1" role="img" title="Faculty" aria-label="Faculty"/>
                                 <field name="faculty_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.head_id.value">
-                                <i class="fa fa-user me-1" title="Head"/>
+                                <i class="fa fa-user me-1" role="img" title="Head" aria-label="Head"/>
                                 <field name="head_id"/>
                             </div>
                             <div class="mt-2 text-muted small d-flex gap-3">
-                                <span><i class="fa fa-graduation-cap" title="Programs"/> <field name="program_count"/> Programs</span>
-                                <span><i class="fa fa-id-badge" title="Teachers"/> <field name="teacher_count"/> Teachers</span>
+                                <span><i class="fa fa-graduation-cap" role="img" title="Programs" aria-label="Programs"/> <field name="program_count"/> Programs</span>
+                                <span><i class="fa fa-id-badge" role="img" title="Teachers" aria-label="Teachers"/> <field name="teacher_count"/> Teachers</span>
                             </div>
                         </main>
                     </t>
@@ -67,7 +76,10 @@
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
 
-                    <!-- Stat buttons -->
+                    <!-- Stat buttons. NOTE: search_default_department_id only works if the
+                         target model (university.program / .teacher / .subject) really has a
+                         `department_id` field exposed in its search view. If a relation is
+                         many2many, use that field's name instead (e.g. search_default_department_ids). -->
                     <div class="oe_button_box" name="button_box">
                         <button name="%(school_management.action_university_program)d"
                                 type="action" class="oe_stat_button" icon="fa-graduation-cap"
@@ -98,8 +110,8 @@
 
                     <group>
                         <group string="Affiliation">
-                            <field name="faculty_id"/>
-                            <field name="head_id"/>
+                            <field name="faculty_id" options="{'no_create': True}"/>
+                            <field name="head_id" options="{'no_create': True}"/>
                         </group>
                     </group>
 
@@ -154,6 +166,7 @@
                 <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
                 <group>
                     <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
+                    <filter string="Department Head" name="group_by_head" context="{'group_by': 'head_id'}"/>
                 </group>
             </search>
         </field>
@@ -165,10 +178,10 @@
         <field name="res_model">university.department</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_university_department_search"/>
+        <field name="context">{'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first department</p>
             <p>Organize academic staff, subjects, and programs under departments.</p>
         </field>
     </record>
-
 </odoo>

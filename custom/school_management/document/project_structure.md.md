@@ -29,7 +29,6 @@
 university.faculty
 university.department
 university.program
-university.course
 university.subject
 
 university.student

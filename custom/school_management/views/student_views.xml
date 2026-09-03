@@ -73,8 +73,8 @@
         <field name="arch" type="xml">
             <form string="Student">
                 <header>
-                    <button name="action_open_course_registration" 
-                            string="Enroll in Courses" 
+                    <button name="action_open_enrollment_registration" 
+                            string="Enroll in Classes" 
                             type="object" 
                             class="oe_highlight"
                             icon="fa-graduation-cap"/>
@@ -121,7 +121,7 @@
                     </group>
 
                     <notebook>
-                        <page string="Course Enrollments" name="enrollments_tab">
+                        <page string="Enrollments" name="enrollments_tab">
                             <field name="enrollment_ids">
                                 <list editable="bottom">
                                     <field name="section_id"/>

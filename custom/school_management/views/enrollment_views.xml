@@ -6,7 +6,7 @@
         <field name="name">university.enrollment.list</field>
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
-            <list string="Course Enrollments" sample="1">
+            <list string="Enrollments" sample="1">
                 <header>
                     <button name="%(school_management.action_print_curriculum_5plus)d"
                             string="Print Curriculum (≥5 Students)"
@@ -31,7 +31,7 @@
         <field name="name">university.enrollment.form</field>
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
-            <form string="Course Enrollment">
+            <form string="Enrollment">
                 <sheet>
                     <group>
                         <group string="Student">

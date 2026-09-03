@@ -44,7 +44,7 @@ flowchart TB
 | `university.program` | Degree programs (bachelor/master/etc.) |
 | `university.academic.year` | Academic years with semesters |
 | `university.semester` | Semesters within a year |
-| `university.subject` | Courses/subjects (credits, department) |
+| `university.subject` | Subjects (credits, department) |
 | `university.class.section` | Section of a subject (teacher, semester, room, capacity) |
 | `university.teacher` | Instructors (department, class sections) |
 | `university.student` | Students (identity, academic info, fees) |
@@ -64,7 +64,7 @@ flowchart TB
 
 3. **Student holds identity, not everything** — Academic history lives in enrollments; fees/payments are separate transaction records.
 
-4. **No `university.course` model** — The architecture doc mentions Course between Program and Subject, but the code links subjects directly to departments.
+4. **No `university.course` model** — The structure is Faculty → Department → Program → Subject; subjects link directly to programs and departments.
 
 ---
 
@@ -77,7 +77,7 @@ University (root)
 ├── Students → All Students
 ├── Teachers → All Teachers
 ├── Academic → Academic Years, Semesters, Subjects, Class Sections, Classrooms
-├── Enrollment → Course Enrollments
+├── Enrollment → Enrollments
 └── Finance → Fee Invoices, Payments
 ```
 

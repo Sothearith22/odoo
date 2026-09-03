@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 
 class UniversityEnrollment(models.Model):
     _name = "university.enrollment"
-    _description = "University Course Enrollment"
+    _description = "University Enrollment"
     _sql_constraints = [
         (
             "student_section_unique",

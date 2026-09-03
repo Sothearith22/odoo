@@ -144,7 +144,7 @@
     />
     <menuitem
         id="menu_university_enrollment"
-        name="Course Enrollments"
+        name="Enrollments"
         parent="menu_university_enrollment_category"
         action="action_university_enrollment"
         sequence="10"

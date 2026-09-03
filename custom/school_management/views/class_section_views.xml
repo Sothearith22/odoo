@@ -40,7 +40,7 @@
                     </div>
 
                     <group>
-                        <group string="Course &amp; Instructor">
+                        <group string="Subject &amp; Instructor">
                             <field name="subject_id"/>
                             <field name="teacher_id" domain="[('subject_ids', 'in', subject_id)]"/>
                         </group>

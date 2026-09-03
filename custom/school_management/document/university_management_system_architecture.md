@@ -1,7 +1,7 @@
 # 🎓 University Management System --- Full Architecture
 
 The key idea is: **Student is not the whole system. Academic structure,
-enrollment, courses, semesters, exams, results, fees, and users all
+enrollment, subjects, semesters, exams, results, fees, and users all
 interact.**
 
 ## 1. 🏛️ University Structure
@@ -15,9 +15,7 @@ University
 │              │
 │              └── Program
 │                      │
-│                      └── Course
-│                              │
-│                              └── Subject
+│                      └── Subject
 ```
 
 Example:
@@ -45,7 +43,6 @@ Royal University
 university.faculty
 university.department
 university.program
-university.course
 university.subject
 ```
 
@@ -82,7 +79,7 @@ university.student
     └── Dropped
 ```
 
-**Important:** Don't put semester, course, exam, fee, and result
+**Important:** Don't put semester, subject, exam, fee, and result
 directly as simple fields on Student. Those are separate business
 records.
 
@@ -94,8 +91,6 @@ Faculty
 Department
    ↓
 Program
-   ↓
-Course
    ↓
 Subject
 ```
@@ -138,7 +133,7 @@ Academic Year
 
 This is important because a student's academic data changes over time.
 
-## 5. 📝 Course Enrollment
+## 5. 📝 Enrollment
 
 Don't connect Student directly to Subject with a simple Many2many.
 
@@ -600,7 +595,6 @@ UNIVERSITY
 │   └── Guardian
 │
 ├── 📚 ACADEMIC
-│   ├── Course
 │   ├── Subject
 │   ├── Semester
 │   ├── Enrollment
@@ -654,10 +648,10 @@ Program
    │
    ├───────────────┐
    ↓               ↓
-Course          Student
+Subject         Student
    │               │
-   ↓               ↓
-Subject        Enrollment
+   │               ↓
+   │          Enrollment
    │               │
    │               ↓
    │          Class Section

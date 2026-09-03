@@ -174,7 +174,7 @@ class UniversityDashboard(models.Model):
     def action_create_enrollment(self):
         return {
             "type": "ir.actions.act_window",
-            "name": "New Course Enrollment",
+            "name": "New Enrollment",
             "res_model": "university.enrollment",
             "view_mode": "form",
             "target": "current",

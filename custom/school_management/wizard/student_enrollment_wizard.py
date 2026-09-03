@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 
 class UniversityStudentEnrollmentWizard(models.TransientModel):
     _name = "university.student.enrollment.wizard"
-    _description = "Student Course Registration Wizard"
+    _description = "Student Enrollment Registration Wizard"
 
     student_id = fields.Many2one(
         "university.student",
@@ -25,7 +25,7 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
     )
     section_ids = fields.Many2many(
         "university.class.section",
-        relation="student_course_reg_rel",
+        relation="student_enrollment_reg_rel",
         string="Class Sections",
         required=True,
     )
@@ -82,7 +82,7 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
             
         return {"domain": {"section_ids": domain}}
 
-    def action_register_courses(self):
+    def action_register_enrollments(self):
         self.ensure_one()
         if not self.section_ids:
             raise ValidationError("Please select at least one class section.")

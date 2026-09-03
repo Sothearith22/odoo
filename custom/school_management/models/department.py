@@ -26,6 +26,12 @@ class UniversityDepartment(models.Model):
     teacher_count = fields.Integer(compute="_compute_counts", string="Teachers")
     subject_count = fields.Integer(compute="_compute_counts", string="Subjects")
 
+    # sql constraints for unique head id and code of department 
+    _sql_constraints = [
+        ("unique_head_id", "unique(head_id,active)", "A teacher can only be the head of one department!"),
+        ("unique_code", "unique(code,active)", "The department code must be unique!"),
+    ]
+
     def _compute_counts(self):
         for rec in self:
             rec.program_count = len(rec.with_context(active_test=False).program_ids)
