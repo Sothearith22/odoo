@@ -1,60 +1,56 @@
 # University Management System
 #
-# Models (_name) grouped by module area.
-# "*"  = implemented in the current codebase
-# "+"  = planned (to be implemented after role management)
+# Codebase-aligned model map as of 2026-09-04.
+# "*" = implemented in the current addon
+# "+" = planned / not yet implemented
+# "ext" = extension of an existing Odoo model
+# "wiz" = transient model wizard
 
+# Dashboard
+#     school.dashboard                              *
 
-# └── Dashboard
-#     └── school.dashboard                  *
+# Structure
+#     university.faculty                            *
+#     university.department                         *
+#     university.program                            *
+#     university.subject                            *
+#     university.classroom                          *
 
+# Academic calendar
+#     university.academic.year                      *
+#     university.semester                           *
+#     university.semester.subject                   *
 
-# ├── Structure
-# │   ├── university.faculty                *
-# │   ├── university.department             *
-# │   ├── university.program                *
-# │   ├── university.subject                *
-# │   ├── university.class.section          *
-# │   └── university.classroom              *
+# People
+#     university.teacher                            *
+#     university.student                            *
+#     res.users                                     ext -> adds teacher_id
 
+# Delivery and registration
+#     university.class.section                      *
+#     university.enrollment                         *
+#     university.academic.assignment                *
+#     university.enrollment.wizard                  wiz
+#     university.student.enrollment.wizard          wiz
 
-# ├── Students
-# │   ├── university.student                *
-# │   └── university.enrollment             *
+# Finance
+#     university.fee                                *
+#     university.fee.line                           *
+#     university.payment                            *
 
+# Planned models
+#     university.schedule                           +
+#     university.attendance                         +
+#     university.exam                               +
+#     university.assessment                         +
+#     university.result                             +
+#     university.grade                              +
+#     university.scholarship                        +
+#     university.graduation                         +
+#     university.certificate                        +
 
-# ├── Teachers
-# │   └── university.teacher                *
-
-
-# ├── Academic
-# │   ├── university.academic.year          *
-# │   ├── university.semester               *
-# │   └── university.semester.subject       *
-
-
-# ├── Attendance
-# │   └── university.attendance             +
-
-
-# ├── Exams
-# │   ├── university.exam                   +
-# │   ├── university.assessment             +
-# │   ├── university.result                 +
-# │   └── university.grade                  +
-
-
-# └── Finance
-#     ├── university.fee   (+ fee.line)     *
-#     └── university.payment                *
-
-
-1. # Other planned models
-2. # ├── university.schedule                   +
-3. # ├── university.scholarship                +
-4. # ├── university.graduation                 +
-5. # └── university.certificate                +
-
-# Wizards (transient models)
-# ├── university.enrollment.wizard          *
-# └── university.student.enrollment.wizard  *
+# Security flow reference
+#     res.users.teacher_id -> university.teacher
+#     university.teacher -> department
+#     department -> faculty
+#     record rules scope data through that chain

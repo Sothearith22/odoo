@@ -3,6 +3,8 @@ from . import department
 from . import program
 from . import academic_year
 from . import teacher
+from . import academic_assignment
+from . import res_users
 from . import classroom
 from . import subject
 from . import semester_subject

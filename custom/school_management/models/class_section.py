@@ -58,7 +58,6 @@ class UniversityClassSection(models.Model):
             "target": "new",
             "context": {
                 "default_section_id": self.id,
-                "default_subject_id": self.subject_id.id,
                 "default_program_id": self.subject_id.program_ids[:1].id
                 if
                     self.subject_id.program_ids

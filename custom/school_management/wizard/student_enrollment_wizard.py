@@ -100,16 +100,29 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
         if not sections_to_enroll:
             raise ValidationError("The student is already enrolled in all selected sections.")
 
-        # Capacity check
-        errors = []
-        for section in sections_to_enroll:
-            if section.capacity:
-                if section.enrolled_student_count >= section.capacity:
-                    errors.append(f"'{section.name}' (Subject: {section.subject_id.name}) is full. Capacity: {section.capacity}.")
-        
-        if errors:
-            error_msg = "\n".join(errors)
-            raise ValidationError(f"Cannot enroll due to capacity limits:\n{error_msg}")
+        # Capacity check with row-level locking to prevent race conditions
+        if sections_to_enroll:
+            self.env.cr.execute(
+                "SELECT id, capacity FROM university_class_section WHERE id IN %s ORDER BY id FOR UPDATE",
+                [tuple(sections_to_enroll.ids)]
+            )
+            locked_sections = {row[0]: row[1] for row in self.env.cr.fetchall()}
+            
+            errors = []
+            for section in sections_to_enroll:
+                capacity = locked_sections.get(section.id)
+                if capacity:
+                    self.env.cr.execute(
+                        "SELECT count(*) FROM university_enrollment WHERE section_id = %s AND status = 'enrolled'",
+                        [section.id]
+                    )
+                    real_enrolled_count = self.env.cr.fetchone()[0]
+                    if real_enrolled_count >= capacity:
+                        errors.append(f"'{section.name}' (Subject: {section.subject_id.name}) is full. Capacity: {capacity}.")
+            
+            if errors:
+                error_msg = "\n".join(errors)
+                raise ValidationError(f"Cannot enroll due to capacity limits:\n{error_msg}")
 
         # Create enrollments
         enrollments = self.env["university.enrollment"].create([

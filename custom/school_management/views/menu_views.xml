@@ -63,19 +63,40 @@
         sequence="10"
     />
 
-    <!-- ==================== 3. TEACHERS ==================== -->
+    <!-- ==================== 3. ACADEMIC STAFF ==================== -->
     <menuitem
         id="menu_school_teacher_category"
-        name="Teachers"
+        name="Academic Staff"
         parent="menu_school_root"
         sequence="30"
     />
     <menuitem
         id="menu_school_teacher_all"
-        name="All Teachers"
+        name="Teachers"
         parent="menu_school_teacher_category"
         action="action_university_teacher"
         sequence="10"
+    />
+    <menuitem
+        id="menu_university_hod"
+        name="Heads of Department"
+        parent="menu_school_teacher_category"
+        action="action_university_hod"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_university_dean"
+        name="Heads of Faculty"
+        parent="menu_school_teacher_category"
+        action="action_university_dean"
+        sequence="30"
+    />
+    <menuitem
+        id="menu_university_academic_assignment"
+        name="Role Assignments"
+        parent="menu_school_teacher_category"
+        action="action_university_academic_assignment"
+        sequence="40"
     />
 
     <!-- ==================== 4. ACADEMIC ==================== -->

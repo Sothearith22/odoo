@@ -28,16 +28,10 @@
                                        options="{'no_create': True}"
                                        placeholder="Search Major / Program..."/>
                                 
-                                <field name="subject_id"
+                                <field name="section_id"
                                        options="{'no_create': True}"
                                        invisible="not program_id"
                                        required="program_id"
-                                       placeholder="Select Subject..."/>
-                                
-                                <field name="section_id"
-                                       options="{'no_create': True}"
-                                       invisible="not subject_id"
-                                       required="subject_id"
                                        placeholder="Select Class Section..."/>
                             </group>
                             
@@ -93,7 +87,10 @@
                     </field>
 
                     <!-- Step 4: Students -->
-                    <h4 class="text-primary mt-4 mb-3" invisible="not program_id">4. Selected Students</h4>
+                    <div class="d-flex justify-content-between align-items-center mt-4 mb-3" invisible="not program_id">
+                        <h4 class="text-primary m-0">4. Selected Students</h4>
+                        <button name="action_select_all_students" type="object" string="Select All Students" class="btn btn-secondary btn-sm" icon="fa-users"/>
+                    </div>
                     <field name="student_ids"
                            nolabel="1"
                            widget="many2many"

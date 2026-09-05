@@ -36,8 +36,11 @@ export class SchoolLayout extends Component {
                 navItem("student", "All Students", "fa fa-graduation-cap", "school_management.action_university_student"),
                 navItem("enrollment", "Student Enrollment", "fa fa-clipboard", "school_management.action_university_enrollment"),
             ]),
-            navGroup("Teachers", [
-                navItem("teacher", "All Teachers", "fa fa-user", "school_management.action_university_teacher"),
+            navGroup("Academic Staff", [
+                navItem("teacher", "Teachers", "fa fa-user", "school_management.action_university_teacher"),
+                navItem("hod", "Heads of Department", "fa fa-users", "school_management.action_university_hod"),
+                navItem("dean", "Heads of Faculty", "fa fa-star", "school_management.action_university_dean"),
+                navItem("assignment", "Role Assignments", "fa fa-id-card-o", "school_management.action_university_academic_assignment"),
             ]),
             navGroup("Academic", [
                 navItem("academic_year", "Academic Years", "fa fa-calendar", "school_management.action_university_academic_year"),

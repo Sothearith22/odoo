@@ -11,7 +11,9 @@
         "web",
     ],
     "data": [
+        "security/security.xml",
         "security/ir.model.access.csv",
+        "security/record_rules.xml",
         "data/cleanup_legacy_models.xml",
         "data/dashboard_data.xml",
         "data/fee_sequence.xml",
@@ -25,6 +27,7 @@
         "views/classroom_views.xml",
         "views/subject_views.xml",
         "views/class_section_views.xml",
+        "views/academic_assignment_views.xml",
         "views/teacher_views.xml",
         "views/student_views.xml",
         # Reports must load before enrollment_views so the server action

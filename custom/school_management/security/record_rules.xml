@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Record rules for organizational visibility.
+
+    These provide role-based scoping for the organizational groups:
+      - Teacher sees only their own profile and their assigned data.
+      - Head of Department sees their department and its teachers/subjects.
+      - Head of Faculty sees their faculty and its departments.
+
+    The rules only apply to members of the corresponding role group, so they
+    do not restrict the full-access Administrator or existing base users.
+-->
+<odoo>
+
+    <!-- Teacher: see own profile only -->
+    <record id="rule_teacher_own_profile" model="ir.rule">
+        <field name="name">Teacher: own profile</field>
+        <field name="model_id" ref="model_university_teacher"/>
+        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="domain_force">[('id', '=', user.teacher_id.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Teacher: see class sections they teach -->
+    <record id="rule_teacher_own_sections" model="ir.rule">
+        <field name="name">Teacher: own class sections</field>
+        <field name="model_id" ref="model_university_class_section"/>
+        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Teacher: see subjects they teach -->
+    <record id="rule_teacher_own_subjects" model="ir.rule">
+        <field name="name">Teacher: own subjects</field>
+        <field name="model_id" ref="model_university_subject"/>
+        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="domain_force">[('teacher_ids.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- HOD: see teachers of the department they head -->
+    <record id="rule_hod_teachers" model="ir.rule">
+        <field name="name">HOD: department teachers</field>
+        <field name="model_id" ref="model_university_teacher"/>
+        <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
+        <field name="domain_force">[('department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- HOD: see subjects of the department they head -->
+    <record id="rule_hod_subjects" model="ir.rule">
+        <field name="name">HOD: department subjects</field>
+        <field name="model_id" ref="model_university_subject"/>
+        <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
+        <field name="domain_force">[('department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- HOD: see class sections of the department they head -->
+    <record id="rule_hod_sections" model="ir.rule">
+        <field name="name">HOD: department class sections</field>
+        <field name="model_id" ref="model_university_class_section"/>
+        <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
+        <field name="domain_force">[('subject_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Head of Faculty: see teachers of the faculty they manage -->
+    <record id="rule_dean_teachers" model="ir.rule">
+        <field name="name">Head of Faculty: faculty teachers</field>
+        <field name="model_id" ref="model_university_teacher"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">[('department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Head of Faculty: see departments of the faculty they manage -->
+    <record id="rule_dean_departments" model="ir.rule">
+        <field name="name">Head of Faculty: faculty departments</field>
+        <field name="model_id" ref="model_university_department"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">[('faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Head of Faculty: see students of the faculty they manage -->
+    <record id="rule_dean_students" model="ir.rule">
+        <field name="name">Head of Faculty: faculty students</field>
+        <field name="model_id" ref="model_university_student"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">[('department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>

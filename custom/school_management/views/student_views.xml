@@ -190,6 +190,7 @@
                 <field name="email"/>
                 <field name="program_id"/>
                 <field name="department_id"/>
+                <field name="faculty_id"/>
                 <separator/>
                 <filter string="Active Students" name="filter_status_active" domain="[('status', '=', 'active')]"/>
                 <filter string="Suspended" name="filter_status_suspended" domain="[('status', '=', 'suspended')]"/>

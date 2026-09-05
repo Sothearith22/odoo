@@ -35,11 +35,12 @@ class UniversityProgram(models.Model):
         string="Subjects"
     )
     subject_count = fields.Integer(
-        string="Subjects",
+        string="Subject Count",
         compute="_compute_subject_count",
     )
     active = fields.Boolean(string="Active", default=True)
 
+    @api.depends("subject_ids")
     def _compute_subject_count(self):
         for program in self:
             program.subject_count = len(program.subject_ids)

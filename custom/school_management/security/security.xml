@@ -1,7 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!--
+    Security Groups (role-based access for the academic staff hierarchy).
+
+    Hierarchy (each implied by the one above it):
+        School User
+        Building "University Administration"
+            ├── school_student   (Student)
+            ├── school_teacher   (Teacher)
+            │       └── school_hod  (Head of Department)
+            │               └── school_dean (Head of Faculty)
+            └── school_admin    (Administration - full control)
+-->
 <odoo>
     <record id="group_school_user" model="res.groups">
-        <field name="name">School User</field>
+        <field name="name">School User</field>  
+    </record>
+
+    <record id="group_school_student" model="res.groups">
+        <field name="name">Student</field>
+        <field name="implied_ids" eval="[(4, ref('group_school_user'))]"/>
+    </record>
+
+    <record id="group_school_teacher" model="res.groups">
+        <field name="name">Teacher</field>
+        <field name="implied_ids" eval="[(4, ref('group_school_user'))]"/>
+    </record>
+
+    <record id="group_school_hod" model="res.groups">
+        <field name="name">Head of Department</field>
+        <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
+    </record>
+
+    <record id="group_school_dean" model="res.groups">
+        <field name="name">Head of Faculty</field>
+        <field name="implied_ids" eval="[(4, ref('group_school_hod'))]"/>
+    </record>
+
+    <record id="group_school_admin" model="res.groups">
+        <field name="name">University Administrator</field>
+        <field name="implied_ids" eval="[(4, ref('group_school_dean'))]"/>
     </record>
 </odoo>

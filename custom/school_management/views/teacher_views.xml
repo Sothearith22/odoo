@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Academic Staff (Teacher) Views
+
+    Includes the upgraded Teacher list / form, plus dedicated Deans and
+    Heads of Department list views that reuse the same staff model (no
+    duplicate person records).
+-->
 <odoo>
 
     <!-- ==================== LIST VIEW ==================== -->
@@ -10,10 +17,14 @@
                 <field name="image_1920" widget="image" options="{'size': [32, 32]}" string="Photo"/>
                 <field name="teacher_id" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
+                <field name="position" widget="badge" optional="hide"/>
+                <field name="faculty_id"/>
                 <field name="department_id"/>
-                <field name="specialization"/>
+                <field name="specialization" optional="show"/>
                 <field name="email" widget="email"/>
                 <field name="phone" widget="phone"/>
+                <field name="is_dean" widget="badge" decoration-info="is_dean" string="Head of Faculty"/>
+                <field name="is_hod" widget="badge" decoration-success="is_hod" string="HOD"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -29,6 +40,7 @@
                 <field name="teacher_id"/>
                 <field name="image_1920"/>
                 <field name="department_id"/>
+                <field name="position"/>
                 <field name="email"/>
                 <templates>
                     <t t-name="card" class="flex-row">
@@ -44,6 +56,10 @@
                             <div class="text-muted small">
                                 <i class="fa fa-building me-1" title="Department"/>
                                 <field name="department_id"/>
+                            </div>
+                            <div class="text-muted small" t-if="record.position.value">
+                                <i class="fa fa-graduation-cap me-1" title="Position"/>
+                                <field name="position"/>
                             </div>
                             <div class="text-muted small">
                                 <i class="fa fa-envelope me-1" title="Email"/>
@@ -61,14 +77,14 @@
         <field name="name">university.teacher.form</field>
         <field name="model">university.teacher</field>
         <field name="arch" type="xml">
-            <form string="Teacher">
+            <form string="Academic Staff">
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
 
                     <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
                     <div class="oe_title">
-                        <label for="name" string="Teacher Name"/>
+                        <label for="name" string="Full Name"/>
                         <h1>
                             <field name="name" placeholder="e.g. Dr. John Doe" required="1"/>
                         </h1>
@@ -89,9 +105,15 @@
                             <field name="address"/>
                         </group>
                         <group string="Academic Information">
+                            <field name="faculty_id" readonly="1"/>
                             <field name="department_id"/>
+                            <field name="position"/>
                             <field name="specialization"/>
                             <field name="qualification"/>
+                            <field name="hire_date"/>
+                        </group>
+                        <group string="Access">
+                            <field name="user_id"/>
                         </group>
                         <group string="Status">
                             <field name="active" widget="boolean_toggle"/>
@@ -99,28 +121,69 @@
                     </group>
 
                     <notebook>
-                        <page string="Subjects" name="subjects_tab">
-                            <field name="subject_ids"
-                                   widget="many2many"
-                                   domain="[('department_id', '=', department_id)]">
-                                <list>
-                                    <field name="code"/>
-                                    <field name="name"/>
-                                    <field name="program_ids" widget="many2many_tags"/>
-                                    <field name="credits"/>
-                                </list>
-                            </field>
+                        <page string="Administrative Responsibilities" name="admin_responsibilities_tab">
+                            <group>
+                                <group string="Head of Faculty">
+                                    <field name="is_dean" readonly="1"/>
+                                    <field name="managed_faculty_id" readonly="1"/>
+                                    <field name="dean_appointment_start" readonly="1"/>
+                                    <field name="dean_appointment_end" readonly="1"/>
+                                    <button name="%(school_management.action_university_academic_assignment)d"
+                                            type="action" string="Open Head of Faculty Assignment"
+                                            context="{'search_default_staff_id': id, 'search_default_filter_dean': 1}"
+                                            class="btn-link"/>
+                                </group>
+                                <group string="Head of Department">
+                                    <field name="is_hod" readonly="1"/>
+                                    <field name="managed_department_id" readonly="1"/>
+                                    <field name="hod_appointment_start" readonly="1"/>
+                                    <field name="hod_appointment_end" readonly="1"/>
+                                    <button name="%(school_management.action_university_academic_assignment)d"
+                                            type="action" string="Open HOD Assignment"
+                                            context="{'search_default_staff_id': id, 'search_default_filter_hod': 1}"
+                                            class="btn-link"/>
+                                </group>
+                            </group>
+                            <group string="Assignment History">
+                                <field name="assignment_ids">
+                                    <list>
+                                        <field name="role" widget="badge"
+                                               decoration-info="role == 'dean'"
+                                               decoration-primary="role == 'vice_dean'"
+                                               decoration-success="role == 'department_head'"/>
+                                        <field name="faculty_id"/>
+                                        <field name="department_id"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="active" widget="boolean_toggle"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
-                        <page string="Class Sections" name="sections_tab">
-                            <field name="section_ids">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="subject_id"/>
-                                    <field name="semester_id"/>
-                                    <field name="classroom_id"/>
-                                    <field name="capacity"/>
-                                </list>
-                            </field>
+                        <page string="Teaching" name="teaching_tab">
+                            <group string="Subjects">
+                                <field name="subject_ids"
+                                       widget="many2many"
+                                       domain="[('department_id', '=', department_id)]">
+                                    <list>
+                                        <field name="code"/>
+                                        <field name="name"/>
+                                        <field name="program_ids" widget="many2many_tags"/>
+                                        <field name="credits"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Class Sections">
+                                <field name="section_ids">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="subject_id"/>
+                                        <field name="semester_id"/>
+                                        <field name="classroom_id"/>
+                                        <field name="capacity"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -138,13 +201,18 @@
                 <field name="name"/>
                 <field name="teacher_id"/>
                 <field name="email"/>
+                <field name="faculty_id" string="Faculty"/>
                 <field name="department_id"/>
                 <separator/>
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <filter string="Head of Faculty" name="filter_dean" domain="[('is_dean', '=', True)]"/>
+                <filter string="Head of Department" name="filter_hod" domain="[('is_hod', '=', True)]"/>
                 <group>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
-                    <filter string="Gender" name="group_by_gender" context="{'group_by': 'gender'}"/>
+                    <filter string="Position" name="group_by_position" context="{'group_by': 'position'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
                 </group>
             </search>
         </field>
@@ -158,7 +226,112 @@
         <field name="search_view_id" ref="view_university_teacher_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first teacher record</p>
-            <p>Add teachers and assign them to departments and class sections.</p>
+            <p>Add academic staff and assign them to departments, positions, subjects, and class sections.</p>
+        </field>
+    </record>
+
+    <!-- ==================== DEANS LIST VIEW ==================== -->
+    <record id="view_university_dean_list" model="ir.ui.view">
+        <field name="name">university.dean.list</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <list string="Heads of Faculty" sample="1">
+                <field name="image_1920" widget="image" options="{'size': [40, 40]}" string="Photo"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="position"/>
+                <field name="managed_faculty_id" string="Faculty"/>
+                <field name="dean_appointment_start" string="Appointment Start"/>
+                <field name="dean_appointment_end" string="Appointment End"/>
+                <field name="email" widget="email"/>
+                <field name="phone" widget="phone"/>
+                <field name="active" widget="boolean_toggle" decoration-info="active" string="Status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ==================== DEANS SEARCH VIEW ==================== -->
+    <record id="view_university_dean_search" model="ir.ui.view">
+        <field name="name">university.dean.search</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <search string="Search Heads of Faculty">
+                <field name="name"/>
+                <field name="managed_faculty_id" string="Faculty"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <group>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'managed_faculty_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==================== DEANS WINDOW ACTION ==================== -->
+    <record id="action_university_dean" model="ir.actions.act_window">
+        <field name="name">Heads of Faculty</field>
+        <field name="res_model">university.teacher</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_dean', '=', True)]</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="search_view_id" ref="view_university_dean_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No heads of faculty assigned</p>
+            <p>Heads of faculty are academic staff members with an active Head of Faculty appointment.</p>
+        </field>
+    </record>
+
+    <!-- ==================== HOD LIST VIEW ==================== -->
+    <record id="view_university_hod_list" model="ir.ui.view">
+        <field name="name">university.hod.list</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <list string="Heads of Department" sample="1">
+                <field name="image_1920" widget="image" options="{'size': [40, 40]}" string="Photo"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="position"/>
+                <field name="managed_department_id" string="Department"/>
+                <field name="faculty_id" string="Faculty"/>
+                <field name="hod_appointment_start" string="Start Date"/>
+                <field name="hod_appointment_end" string="End Date"/>
+                <field name="email" widget="email"/>
+                <field name="phone" widget="phone"/>
+                <field name="active" widget="boolean_toggle" decoration-info="active" string="Status"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ==================== HOD SEARCH VIEW ==================== -->
+    <record id="view_university_hod_search" model="ir.ui.view">
+        <field name="name">university.hod.search</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <search string="Search Heads of Department">
+                <field name="name"/>
+                <field name="managed_department_id" string="Department"/>
+                <field name="faculty_id" string="Faculty"/>
+                <separator/>
+                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
+                <group>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'managed_department_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ==================== HOD WINDOW ACTION ==================== -->
+    <record id="action_university_hod" model="ir.actions.act_window">
+        <field name="name">Heads of Department</field>
+        <field name="res_model">university.teacher</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_hod', '=', True)]</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="search_view_id" ref="view_university_hod_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No heads of department assigned</p>
+            <p>Heads of Department are academic staff members with an active HOD appointment.</p>
         </field>
     </record>
 

@@ -26,12 +26,7 @@ class UniversityEnrollmentWizard(models.TransientModel):
         readonly=True,
     )
 
-    # ── Subject / Section ─────────────────────────────────────────────────────
-    subject_id = fields.Many2one(
-        "university.subject",
-        string="Subject",
-        required=True,
-    )
+    # ── Class Section ─────────────────────────────────────────────────────────
     section_id = fields.Many2one(
         "university.class.section",
         string="Class Section",
@@ -101,7 +96,6 @@ class UniversityEnrollmentWizard(models.TransientModel):
     def _onchange_faculty_id(self):
         self.department_id = False
         self.program_id = False
-        self.subject_id = False
         self.section_id = False
         self.subject_ids = False
         self.student_ids = False
@@ -112,7 +106,6 @@ class UniversityEnrollmentWizard(models.TransientModel):
     @api.onchange("department_id")
     def _onchange_department_id(self):
         self.program_id = False
-        self.subject_id = False
         self.section_id = False
         self.subject_ids = False
         self.student_ids = False
@@ -124,7 +117,6 @@ class UniversityEnrollmentWizard(models.TransientModel):
 
     @api.onchange("program_id")
     def _onchange_program_id(self):
-        self.subject_id = False
         self.section_id = False
         self.student_ids = False
         self.subject_ids = False
@@ -142,7 +134,27 @@ class UniversityEnrollmentWizard(models.TransientModel):
                 ("status", "=", "active")
             ])
             self.student_ids = students
-            return {"domain": {"subject_id": [("id", "in", subjects.ids)]}}
+            return {"domain": {"section_id": [("subject_id", "in", subjects.ids)]}}
+
+    def action_select_all_students(self):
+        self.ensure_one()
+        if not self.program_id:
+            raise ValidationError("Please select a Major first.")
+        
+        students = self.env["university.student"].search([
+            ("program_id", "=", self.program_id.id),
+            ("status", "=", "active")
+        ])
+        
+        self.write({"student_ids": [(6, 0, students.ids)]})
+        
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "new",
+        }
 
     def _get_subject_domain(self):
         self.ensure_one()
@@ -157,9 +169,7 @@ class UniversityEnrollmentWizard(models.TransientModel):
             ("program_ids", "=", False),
         ]
 
-    @api.onchange("subject_id")
-    def _onchange_subject_id(self):
-        self.section_id = False
+
 
     # ── Computed ──────────────────────────────────────────────────────────────
 
@@ -194,18 +204,19 @@ class UniversityEnrollmentWizard(models.TransientModel):
 
     def _check_subject_program(self):
         self.ensure_one()
-        if not self.subject_id or not self.program_id:
+        if not self.section_id or not self.program_id:
             return
-        if self.subject_id.program_ids and self.program_id not in self.subject_id.program_ids:
+        subject = self.section_id.subject_id
+        if subject.program_ids and self.program_id not in subject.program_ids:
             raise ValidationError(
-                "The selected subject does not belong to the chosen major."
+                "The selected section's subject does not belong to the chosen major."
             )
         if (
-            not self.subject_id.program_ids
-            and self.subject_id.department_id != self.program_id.department_id
+            not subject.program_ids
+            and subject.department_id != self.program_id.department_id
         ):
             raise ValidationError(
-                "The selected subject does not belong to the chosen major."
+                "The selected section's subject does not belong to the chosen major."
             )
 
     # ── Main action ───────────────────────────────────────────────────────────
@@ -233,10 +244,25 @@ class UniversityEnrollmentWizard(models.TransientModel):
 
         if self.section_id.capacity:
             seats_needed = len(students_to_enroll)
-            if self.enrolled_count + seats_needed > self.section_id.capacity:
+            
+            # 1. Lock the section row to serialize concurrent enrollments
+            self.env.cr.execute(
+                "SELECT id FROM university_class_section WHERE id = %s FOR UPDATE",
+                [self.section_id.id]
+            )
+            
+            # 2. Re-read the active enrollment count directly from the DB to bypass ORM cache
+            self.env.cr.execute(
+                "SELECT count(*) FROM university_enrollment WHERE section_id = %s AND status = 'enrolled'",
+                [self.section_id.id]
+            )
+            real_enrolled_count = self.env.cr.fetchone()[0]
+            real_available = max(self.section_id.capacity - real_enrolled_count, 0)
+            
+            if real_enrolled_count + seats_needed > self.section_id.capacity:
                 raise ValidationError(
                     "Not enough seats in this class section. "
-                    f"Available: {self.available_seats}, requested: {seats_needed}."
+                    f"Available: {real_available}, requested: {seats_needed}."
                 )
 
         enrollments = self.env["university.enrollment"].create([
