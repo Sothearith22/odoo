@@ -44,11 +44,14 @@ class UniversityDepartment(models.Model):
         compute="_compute_counts", string="Class Section Count"
     )
 
-    # sql constraints for unique head id and code of department
-    _sql_constraints = [
-        ("unique_head_id", "unique(head_id,active)", "A teacher can only be the head of one department!"),
-        ("unique_code", "unique(code,active)", "The department code must be unique!"),
-    ]
+    _unique_head_id = models.UniqueIndex(
+        "(head_id, active)",
+        "A teacher can only be the head of one department!",
+    )
+    _unique_code = models.UniqueIndex(
+        "(code, active)",
+        "The department code must be unique!",
+    )
 
     @api.depends("subject_ids.section_ids")
     def _compute_class_sections(self):

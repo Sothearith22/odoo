@@ -1,0 +1,30 @@
+.o_student_dashboard {
+    background: #f6f7f9;
+    color: #1f2937;
+}
+
+.o_student_dashboard_header {
+    background: #ffffff;
+}
+
+.o_student_dashboard_empty {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+}
+
+.o_student_stat_card {
+    position: relative;
+    overflow: hidden;
+}
+
+.o_student_stat_icon {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    font-size: 1.25rem;
+}

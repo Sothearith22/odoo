@@ -73,17 +73,24 @@
         <field name="arch" type="xml">
             <form string="Student">
                 <header>
-                    <button name="action_open_enrollment_registration" 
-                            string="Enroll in Classes" 
-                            type="object" 
+                    <button name="action_open_enrollment_registration"
+                            string="Enroll in Classes"
+                            type="object"
                             class="oe_highlight"
                             icon="fa-graduation-cap"/>
+                    <field name="status"
+                           widget="statusbar"
+                           statusbar_visible="active,suspended,graduated,dropped"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
 
-                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
+                    <field name="image_1920"
+                           widget="image"
+                           class="oe_avatar"
+                           options="{'preview_image': 'image_1920'}"/>
                     <div class="oe_title">
                         <label for="name" string="Student Name"/>
                         <h1>
@@ -95,32 +102,40 @@
                         </div>
                     </div>
 
-                    <group>
-                        <group string="Identity">
-                            <field name="gender" widget="radio" options="{'horizontal': true}"/>
-                            <field name="date_of_birth"/>
-                        </group>
-                        <group string="Contact Information">
-                            <field name="email" widget="email"/>
-                            <field name="phone" widget="phone"/>
-                            <field name="address"/>
-                            <field name="emergency_contact_name"/>
-                            <field name="emergency_contact_phone" widget="phone"/>
-                        </group>
-                        <group string="Academic Information">
+                    <group string="Student Snapshot">
+                        <group string="Academic Placement">
                             <field name="faculty_id"/>
                             <field name="department_id"/>
                             <field name="program_id"/>
                             <field name="academic_year_id"/>
                             <field name="current_semester_id"/>
                         </group>
-                        <group string="Status">
-                            <field name="status"/>
-                            <field name="active" widget="boolean_toggle"/>
+                        <group string="Contact">
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="emergency_contact_name"/>
+                            <field name="emergency_contact_phone" widget="phone"/>
                         </group>
                     </group>
 
                     <notebook>
+                        <page string="Personal Details" name="personal_details_tab">
+                            <group>
+                                <group string="Identity">
+                                    <field name="gender" widget="radio" options="{'horizontal': true}"/>
+                                    <field name="date_of_birth"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </group>
+                                <group string="System Access">
+                                    <field name="user_id"/>
+                                </group>
+                            </group>
+                            <group string="Address">
+                                <field name="address"
+                                       nolabel="1"
+                                       placeholder="Street, city, province, and any other address details..."/>
+                            </group>
+                        </page>
                         <page string="Enrollments" name="enrollments_tab">
                             <field name="enrollment_ids">
                                 <list editable="bottom">
@@ -134,7 +149,6 @@
                             </field>
                         </page>
                         <page string="Fees &amp; Payments" name="fees_tab">
-                            <field name="currency_id" invisible="1"/>
                             <group>
                                 <group string="Fee Summary">
                                     <field name="fee_total" widget="monetary"/>
@@ -170,7 +184,9 @@
                             </field>
                         </page>
                         <page string="Notes &amp; Remarks" name="notes_tab">
-                            <field name="notes" placeholder="Add administrative remarks or student background information..."/>
+                            <field name="notes"
+                                   nolabel="1"
+                                   placeholder="Add administrative remarks or student background information..."/>
                         </page>
                     </notebook>
                 </sheet>

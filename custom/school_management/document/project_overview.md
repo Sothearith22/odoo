@@ -104,7 +104,7 @@ Examples from `record_rules.xml`:
 - Teachers can see class sections where `teacher_id.user_id = user.id`.
 - Teachers can see subjects where they are assigned.
 - HOD users can see teachers, subjects, and sections inside their headed department.
-- Dean users can see departments, teachers, and students inside their faculty.
+- Dean users can manage departments, programs/majors, subjects, teachers, and students inside their faculty.
 
 This means the real security flow is:
 
@@ -236,6 +236,19 @@ The backend also includes a custom dashboard shell and layout assets under `stat
 - Security roles and record scoping: partially implemented
 - Schedule, attendance, exams, grades, GPA, scholarships, graduation: planned
 
+## Dean Access Rule
+
+The intended dean scope is faculty-level management. A Dean user is linked to a teacher record through `res.users.teacher_id`, and the faculty points to that same teacher through `faculty.dean_id`.
+
+Current implemented Dean access:
+
+- Departments where `faculty_id.dean_id.user_id = user.id`
+- Programs/majors where `department_id.faculty_id.dean_id.user_id = user.id`
+- Subjects where `department_id.faculty_id.dean_id.user_id = user.id`
+- Teachers where `department_id.faculty_id.dean_id.user_id = user.id`
+- Students where `department_id.faculty_id.dean_id.user_id = user.id`
+
+Attendance is still planned, so Dean attendance permissions cannot be enforced until a `university.attendance` model exists.
 ## Verification Notes
 
 As of 2026-09-04:

@@ -3,8 +3,6 @@ from odoo.exceptions import ValidationError
 
 
 def _reindex_org_units(env, org_units):
-    """Refresh ``faculty.dean_id`` and ``department.head_id`` pointers for the
-    given affected organization units, based on their active assignments."""
     assignment_model = env["university.academic.assignment"]
     dean_faculties = set()
     head_departments = set()
@@ -39,14 +37,6 @@ def _reindex_org_units(env, org_units):
 
 
 class UniversityAcademicAssignment(models.Model):
-    """Reusable appointment record for administrative roles.
-
-    A staff member (``university.teacher``) can hold administrative roles such
-    as Dean (of a Faculty) or Head of Department. Keeping these as appointment
-    records (instead of separate person models) avoids duplicating people when
-    their role changes, and preserves historical assignments with dates.
-    """
-
     _name = "university.academic.assignment"
     _description = "Academic Role Assignment"
     _order = "start_date desc, id desc"
@@ -86,18 +76,14 @@ class UniversityAcademicAssignment(models.Model):
     active = fields.Boolean(string="Active", default=True)
     notes = fields.Text(string="Notes")
 
-    _sql_constraints = [
-        (
-            "unique_active_dean_faculty",
-            "UNIQUE(faculty_id) WHERE role = 'dean' AND active",
-            "Only one active Head of Faculty is allowed per Faculty.",
-        ),
-        (
-            "unique_active_head_department",
-            "UNIQUE(department_id) WHERE role = 'department_head' AND active",
-            "Only one active Head of Department is allowed per Department.",
-        ),
-    ]
+    _unique_active_dean_faculty = models.UniqueIndex(
+        "(faculty_id) WHERE role = 'dean' AND active IS TRUE",
+        "Only one active Head of Faculty is allowed per Faculty.",
+    )
+    _unique_active_head_department = models.UniqueIndex(
+        "(department_id) WHERE role = 'department_head' AND active IS TRUE",
+        "Only one active Head of Department is allowed per Department.",
+    )
 
     @api.depends("staff_id", "role", "faculty_id", "department_id")
     def _compute_name(self):

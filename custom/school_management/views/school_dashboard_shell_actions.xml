@@ -6,4 +6,9 @@
         <field name="tag">school_dashboard_shell</field>
     </record>
 
+    <record id="action_student_dashboard_shell" model="ir.actions.client">
+        <field name="name">Student Dashboard</field>
+        <field name="tag">student_dashboard_shell</field>
+    </record>
+
 </odoo>

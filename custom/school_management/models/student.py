@@ -9,6 +9,13 @@ class Student(models.Model):
     # Identity
     name = fields.Char(string="Student Name", required=True)
     student_id = fields.Char(string="Student ID", copy=False, index=True)
+    user_id = fields.Many2one(
+        "res.users",
+        string="Related User",
+        ondelete="set null",
+        index=True,
+        help="The Odoo login for this student.",
+    )
     image_1920 = fields.Image(string="Photo")
     date_of_birth = fields.Date(string="Date of Birth")
     gender = fields.Selection(
@@ -101,6 +108,11 @@ class Student(models.Model):
         string="Fee Balance",
         compute="_compute_fee_totals",
         currency_field="currency_id",
+    )
+
+    _unique_user_id = models.UniqueIndex(
+        "(user_id) WHERE user_id IS NOT NULL",
+        "A student login can only be linked to one student record.",
     )
 
     def _compute_currency_id(self):

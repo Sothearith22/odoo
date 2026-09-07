@@ -5,13 +5,10 @@ from odoo.exceptions import ValidationError
 class UniversityEnrollment(models.Model):
     _name = "university.enrollment"
     _description = "University Enrollment"
-    _sql_constraints = [
-        (
-            "student_section_unique",
-            "unique(student_id, section_id)",
-            "This student is already enrolled in this class section.",
-        ),
-    ]
+    _student_section_unique = models.UniqueIndex(
+        "(student_id, section_id)",
+        "This student is already enrolled in this class section.",
+    )
 
     student_id = fields.Many2one(
         "university.student",

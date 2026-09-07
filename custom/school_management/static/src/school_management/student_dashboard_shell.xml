@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="school_management.StudentDashboardShell" owl="1">
+        <main class="o_student_dashboard h-100 overflow-auto bg-view">
+            <t t-if="state.loading">
+                <div class="o_student_dashboard_empty text-muted">Loading your dashboard...</div>
+            </t>
+            <t t-elif="state.error">
+                <div class="o_student_dashboard_empty text-danger">
+                    <i class="fa fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+            <t t-elif="!state.student">
+                <div class="o_student_dashboard_empty">
+                    <i class="fa fa-user-o fa-2x mb-3 text-muted" aria-hidden="true"></i>
+                    <h2 class="h4">Student profile not linked</h2>
+                    <p class="text-muted mb-0">Ask an administrator to link this login to your student record.</p>
+                </div>
+            </t>
+            <t t-else="">
+                <header class="o_student_dashboard_header px-4 py-4 border-bottom">
+                    <div class="container-fluid px-0">
+                        <div class="text-uppercase small fw-semibold text-muted">Student Portal</div>
+                        <h1 class="h2 mb-1 mt-2">Welcome, <t t-esc="state.student.name"/></h1>
+                        <div class="text-muted">
+                            <span t-esc="state.student.student_id || 'Student ID not assigned'"/>
+                            <span class="mx-2">•</span>
+                            <span t-esc="state.student.status"/>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="container-fluid px-4 py-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <div class="card h-100 border-0 shadow-sm o_student_stat_card">
+                                <div class="card-body">
+                                    <div class="text-muted small">Enrollments</div>
+                                    <div class="fs-2 fw-bold mt-2" t-esc="state.enrollmentCount"/>
+                                    <i class="fa fa-book text-primary o_student_stat_icon" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="card h-100 border-0 shadow-sm o_student_stat_card">
+                                <div class="card-body">
+                                    <div class="text-muted small">Fee invoices</div>
+                                    <div class="fs-2 fw-bold mt-2" t-esc="state.feeCount"/>
+                                    <i class="fa fa-file-text-o text-warning o_student_stat_icon" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="card h-100 border-0 shadow-sm o_student_stat_card">
+                                <div class="card-body">
+                                    <div class="text-muted small">Payments</div>
+                                    <div class="fs-2 fw-bold mt-2" t-esc="state.paymentCount"/>
+                                    <i class="fa fa-credit-card text-success o_student_stat_icon" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-12 col-xl-7">
+                            <section class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent py-3">
+                                    <h2 class="h5 mb-0">Academic profile</h2>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5 text-muted fw-normal">Program</dt>
+                                        <dd class="col-sm-7" t-esc="this.relationLabel(state.student.program_id)"/>
+                                        <dt class="col-sm-5 text-muted fw-normal">Department</dt>
+                                        <dd class="col-sm-7" t-esc="this.relationLabel(state.student.department_id)"/>
+                                        <dt class="col-sm-5 text-muted fw-normal">Faculty</dt>
+                                        <dd class="col-sm-7" t-esc="this.relationLabel(state.student.faculty_id)"/>
+                                        <dt class="col-sm-5 text-muted fw-normal">Academic year</dt>
+                                        <dd class="col-sm-7" t-esc="this.relationLabel(state.student.academic_year_id)"/>
+                                        <dt class="col-sm-5 text-muted fw-normal">Current semester</dt>
+                                        <dd class="col-sm-7 mb-0" t-esc="this.relationLabel(state.student.current_semester_id)"/>
+                                    </dl>
+                                </div>
+                            </section>
+                        </div>
+
+                        <div class="col-12 col-xl-5">
+                            <section class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent py-3">
+                                    <h2 class="h5 mb-0">Fee summary</h2>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between py-2 border-bottom">
+                                        <span class="text-muted">Total</span>
+                                        <strong t-esc="state.student.fee_total"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-2 border-bottom">
+                                        <span class="text-muted">Paid</span>
+                                        <strong class="text-success" t-esc="state.student.fee_paid"/>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-2">
+                                        <span class="text-muted">Balance</span>
+                                        <strong class="text-danger" t-esc="state.student.fee_balance"/>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="button" class="btn btn-primary" t-on-click="() => this.navigate('school_management.action_university_enrollment_student')">
+                            <i class="fa fa-book me-2" aria-hidden="true"></i>My enrollments
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" t-on-click="() => this.navigate('school_management.action_university_fee_student')">
+                            <i class="fa fa-file-text-o me-2" aria-hidden="true"></i>My fees
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" t-on-click="() => this.navigate('school_management.action_university_payment_student')">
+                            <i class="fa fa-credit-card me-2" aria-hidden="true"></i>My payments
+                        </button>
+                    </div>
+                </div>
+            </t>
+        </main>
+    </t>
+
+</templates>

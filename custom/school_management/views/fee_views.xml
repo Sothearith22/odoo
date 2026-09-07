@@ -112,4 +112,12 @@
         </field>
     </record>
 
+    <record id="action_university_fee_student" model="ir.actions.act_window">
+        <field name="name">My Fees</field>
+        <field name="res_model">university.fee</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('student_id.user_id', '=', uid)]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+
 </odoo>

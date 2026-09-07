@@ -6,6 +6,7 @@
     "author": "University Department",
     "license": "LGPL-3",
     "depends": [
+        "auth_signup",
         "base",
         "mail",
         "web",
@@ -48,6 +49,9 @@
             "school_management/static/src/school_management/dashboard_shell.js",
             "school_management/static/src/school_management/dashboard_shell.xml",
             "school_management/static/src/school_management/dashboard_shell.scss",
+            "school_management/static/src/school_management/student_dashboard_shell.js",
+            "school_management/static/src/school_management/student_dashboard_shell.xml",
+            "school_management/static/src/school_management/student_dashboard_shell.scss",
             "school_management/static/src/school_management/layout/school_layout.js",
             "school_management/static/src/school_management/layout/school_layout.xml",
             "school_management/static/src/school_management/layout/school_layout.scss",

@@ -8,6 +8,15 @@
         sequence="10"
         web_icon="school_management,static/description/icon.png"
         action="action_school_dashboard_shell"
+        groups="base.group_system,school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin"
+    />
+
+    <menuitem
+        id="menu_school_student_portal_root"
+        name="Student Portal"
+        sequence="10"
+        action="action_student_dashboard_shell"
+        groups="school_management.group_school_student"
     />
 
     <!-- ==================== DASHBOARD ==================== -->
