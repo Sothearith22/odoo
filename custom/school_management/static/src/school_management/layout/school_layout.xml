@@ -29,13 +29,15 @@
             <div class="o_school_nav_group" t-att-class="{ 'mt-1': group_index === 0, 'mt-2': group_index !== 0, 'o_school_nav_group_active': this.isGroupActive(group) }">
               <div class="o_school_nav_group_label o_school_sidebar_label"><t t-out="group.label"/></div>
               <t t-foreach="group.items" t-as="item" t-key="item.key">
-                <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                        t-att-class="{ 'active': this.isActive(item.key) }"
-                        t-att-aria-current="this.isActive(item.key) ? 'page' : undefined"
-                        t-on-click="() => this.navigate(item.actionXmlId, item.key)"
-                        t-att-title="item.label">
-                  <i class="o_school_nav_icon" t-att-class="item.icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label"><t t-out="item.label"/></span>
-                </button>
+                <t t-if="!item.adminOnly || state.canBulkEnroll">
+                  <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                          t-att-class="{ 'active': this.isActive(item.key) }"
+                          t-att-aria-current="this.isActive(item.key) ? 'page' : undefined"
+                          t-on-click="() => this.navigate(item.actionXmlId, item.key)"
+                          t-att-title="item.label">
+                    <i class="o_school_nav_icon" t-att-class="item.icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label"><t t-out="item.label"/></span>
+                  </button>
+                </t>
               </t>
             </div>
           </t>

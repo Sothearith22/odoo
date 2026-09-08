@@ -7,6 +7,13 @@
         <field name="model">university.student</field>
         <field name="arch" type="xml">
             <list string="Students" sample="1">
+                <header>
+                    <button name="%(school_management.action_university_bulk_enrollment_wizard)d"
+                            string="Enroll Students"
+                            type="action"
+                            class="btn-primary"
+                            icon="fa-graduation-cap"/>
+                </header>
                 <field name="image_1920" widget="image" options="{'size': [32, 32]}" string="Photo"/>
                 <field name="student_id" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>

@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
-import { Component, useState } from "@odoo/owl";
+import { Component, onWillStart, useState } from "@odoo/owl";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { onMounted } from "@odoo/owl";
+import { user } from "@web/core/user";
 
 const DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
 
@@ -10,8 +11,8 @@ function navGroup(label, items) {
     return { label, items };
 }
 
-function navItem(key, label, icon, actionXmlId) {
-    return { key, label, icon, actionXmlId };
+function navItem(key, label, icon, actionXmlId, adminOnly = false) {
+    return { key, label, icon, actionXmlId, adminOnly };
 }
 
 export class SchoolLayout extends Component {
@@ -35,6 +36,7 @@ export class SchoolLayout extends Component {
             navGroup("Students", [
                 navItem("student", "All Students", "fa fa-graduation-cap", "school_management.action_university_student"),
                 navItem("enrollment", "Student Enrollment", "fa fa-clipboard", "school_management.action_university_enrollment"),
+                navItem("bulk_enrollment", "Enroll Multiple Students", "fa fa-users", "school_management.action_university_bulk_enrollment_wizard", true),
             ]),
             navGroup("Academic Staff", [
                 navItem("teacher", "Teachers", "fa fa-user", "school_management.action_university_teacher"),
@@ -55,6 +57,13 @@ export class SchoolLayout extends Component {
         this.state = useState({
             collapsed: false,
             activeKey: "dashboard",
+            canBulkEnroll: false,
+        });
+
+        onWillStart(async () => {
+            this.state.canBulkEnroll =
+                await user.hasGroup("school_management.group_school_admin") ||
+                await user.hasGroup("base.group_system");
         });
 
         useBus(this.env.bus, "MENUS:APP-CHANGED", this.refreshActive.bind(this));

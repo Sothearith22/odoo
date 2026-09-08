@@ -86,6 +86,18 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         values = super().default_get(fields_list)
+
+        if (
+            self.env.context.get("active_model") == "university.student"
+            and self.env.context.get("active_ids")
+            and "student_ids" in fields_list
+        ):
+            students = self.env["university.student"].browse(
+                self.env.context.get("active_ids")
+            ).exists()
+            if students:
+                values["student_ids"] = [(6, 0, students.ids)]
+
         section = self.env["university.class.section"].browse(
             values.get("section_id")
         ).exists()

@@ -1,6 +1,6 @@
 from psycopg2 import IntegrityError
 
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -282,3 +282,112 @@ class TestHodRecordRules(TransactionCase):
             [("id", "=", section.id)], limit=1
         )
         self.assertFalse(visible)
+
+
+class TestBulkEnrollmentWizard(TransactionCase):
+    def setUp(self):
+        super().setUp()
+        Year = self.env["university.academic.year"]
+        Semester = self.env["university.semester"]
+        self.Faculty = self.env["university.faculty"]
+        self.Department = self.env["university.department"]
+        self.Program = self.env["university.program"]
+        self.Student = self.env["university.student"]
+        self.Enrollment = self.env["university.enrollment"]
+        self.Section = self.env["university.class.section"]
+        self.Wizard = self.env["university.bulk.enrollment.wizard"]
+
+        self.year = Year.create(
+            {"name": "2025-2026", "date_start": "2025-09-01", "date_end": "2026-06-30"}
+        )
+        self.semester = Semester.create(
+            {"name": "S1", "academic_year_id": self.year.id, "semester_type": "semester_1"}
+        )
+        self.faculty = self.Faculty.create({"name": "F", "code": "F1"})
+        self.department = self.Department.create(
+            {"name": "D", "code": "D1", "faculty_id": self.faculty.id}
+        )
+        self.program = self.Program.create(
+            {"name": "P", "code": "P1", "department_id": self.department.id}
+        )
+        self.section = self.Section.create(
+            {
+                "name": "SEC-A",
+                "program_id": self.program.id,
+                "semester_id": self.semester.id,
+                "capacity": 5,
+            }
+        )
+        self.student_a = self.Student.create({"name": "A", "program_id": self.program.id})
+        self.student_b = self.Student.create({"name": "B", "program_id": self.program.id})
+
+    def _wizard_vals(self):
+        return {
+            "program_id": self.program.id,
+            "academic_year_id": self.year.id,
+            "semester_id": self.semester.id,
+            "section_id": self.section.id,
+        }
+
+    def test_context_active_ids_prefills_students(self):
+        wizard = self.Wizard.with_context(
+            active_model="university.student",
+            active_ids=[self.student_a.id, self.student_b.id],
+        ).create(self._wizard_vals())
+        self.assertEqual(
+            wizard.student_ids.ids, [self.student_a.id, self.student_b.id]
+        )
+
+    def test_enroll_students_creates_enrollments_for_section(self):
+        wizard = self.Wizard.with_context(
+            active_model="university.student",
+            active_ids=[self.student_a.id, self.student_b.id],
+        ).create(self._wizard_vals())
+        result = wizard.action_enroll_students()
+        self.assertEqual(result["type"], "ir.actions.client")
+        enrollments = self.Enrollment.search(
+            [("student_id", "in", [self.student_a.id, self.student_b.id])]
+        )
+        self.assertEqual(len(enrollments), 2)
+        for enrollment in enrollments:
+            self.assertEqual(enrollment.section_id, self.section)
+            self.assertEqual(enrollment.program_id, self.program)
+
+    def test_duplicate_enrollment_is_skipped(self):
+        wizard = self.Wizard.with_context(
+            active_model="university.student",
+            active_ids=[self.student_a.id],
+        ).create(self._wizard_vals())
+        result = wizard.action_enroll_students()
+        self.assertEqual(result["type"], "ir.actions.client")
+        enrollments_after_first = self.Enrollment.search(
+            [("student_id", "=", self.student_a.id)]
+        )
+        self.assertEqual(len(enrollments_after_first), 1)
+        wizard.write({"student_ids": [(6, 0, [self.student_a.id])]})
+        with self.assertRaises(UserError):
+            wizard.action_enroll_students()
+        enrollments_after_second = self.Enrollment.search(
+            [("student_id", "=", self.student_a.id)]
+        )
+        self.assertEqual(len(enrollments_after_second), 1)
+
+    def test_capacity_exceeded_is_rejected(self):
+        wizard = self.Wizard.with_context(
+            active_model="university.student",
+            active_ids=[self.student_a.id, self.student_b.id],
+        ).create(self._wizard_vals())
+        for _i in range(4):
+            self.Enrollment.create(
+                {
+                    "student_id": self.Student.create(
+                        {"name": "X", "program_id": self.program.id}
+                    ).id,
+                    "program_id": self.program.id,
+                    "section_id": self.section.id,
+                    "academic_year_id": self.year.id,
+                    "semester_id": self.semester.id,
+                }
+            )
+        with self.assertRaises(UserError):
+            wizard.action_enroll_students()

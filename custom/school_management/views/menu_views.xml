@@ -167,10 +167,11 @@
     />
     <menuitem
         id="menu_university_bulk_major_enrollment"
-        name="Bulk Enroll Students"
+        name="Enroll Multiple Students"
         parent="menu_university_enrollment_category"
         action="action_university_bulk_enrollment_wizard"
         sequence="5"
+        groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_enrollment"
