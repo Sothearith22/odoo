@@ -5875,7 +5875,6 @@ class BaseModel(metaclass=MetaModel):
         :param ids: a tuple of record ids
         :param prefetch_ids: a reversible iterable of record ids (for prefetching)
         """
-
         self.env = env
         self._ids = ids
         self._prefetch_ids = prefetch_ids

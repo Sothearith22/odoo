@@ -8,19 +8,25 @@
         <field name="arch" type="xml">
             <list string="Enrollments" sample="1">
                 <header>
+                    <button name="%(school_management.action_university_bulk_enrollment_wizard)d"
+                            string="Bulk Major Enrollment"
+                            type="action"
+                            class="btn-primary"/>
                     <button name="%(school_management.action_print_curriculum_5plus)d"
                             string="Print Curriculum (≥5 Students)"
                             type="action"
                             help="Print the semester curriculum for all majors with 5+ active students"/>
                 </header>
                 <field name="student_id" decoration-bf="1"/>
-                <field name="section_id"/>
-                <field name="subject_id"/>
-                <field name="teacher_id"/>
-                <field name="semester_id"/>
-                <field name="academic_year_id"/>
+                <field name="program_id" string="Major / Program"/>
+                <field name="department_id"/>
                 <field name="faculty_id"/>
-                <field name="enrollment_date"/>
+                <field name="section_id" string="Class Section (Optional)" optional="hide"/>
+                <field name="subject_id" optional="hide"/>
+                <field name="teacher_id" optional="hide"/>
+                <field name="academic_year_id"/>
+                <field name="semester_id"/>
+                <field name="enrollment_date" optional="show"/>
                 <field name="status" widget="badge" decoration-success="status == 'enrolled'" decoration-info="status == 'completed'" decoration-danger="status == 'dropped'"/>
             </list>
         </field>
@@ -31,21 +37,28 @@
         <field name="name">university.enrollment.form</field>
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
-            <form string="Enrollment">
+            <form string="Student Enrollment">
                 <sheet>
                     <group>
                         <group string="Student">
-                            <field name="student_id"/>
+                            <field name="student_id" options="{'no_create': True}"/>
                         </group>
-                        <group string="Enrollment">
-                            <field name="section_id"/>
+                        <group string="Academic Structure">
+                            <field name="program_id" string="Major / Program" options="{'no_create': True}"/>
+                            <field name="faculty_id" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="section_id" string="Class Section (Optional)" options="{'no_create': True}"/>
                         </group>
-                        <group string="Period &amp; Status">
-                            <field name="academic_year_id"/>
-                            <field name="semester_id"/>
+                        <group string="Academic Information">
+                            <field name="academic_year_id" options="{'no_create': True}"/>
+                            <field name="semester_id" options="{'no_create': True}"/>
                             <field name="enrollment_date"/>
                             <field name="status"/>
                         </group>
+                    </group>
+                    <group string="Subject-Bound Sections (Legacy)" invisible="not section_id">
+                        <field name="subject_id"/>
+                        <field name="teacher_id"/>
                     </group>
                 </sheet>
             </form>
@@ -58,7 +71,8 @@
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
             <graph string="Enrollments Analysis" sample="1">
-                <field name="faculty_id"/>
+                <field name="program_id"/>
+                <field name="department_id"/>
                 <field name="status"/>
             </graph>
         </field>
@@ -70,7 +84,7 @@
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
             <pivot string="Enrollments Analysis" sample="1">
-                <field name="faculty_id" type="row"/>
+                <field name="program_id" type="row"/>
                 <field name="semester_id" type="col"/>
             </pivot>
         </field>
@@ -83,15 +97,16 @@
         <field name="arch" type="xml">
             <search string="Search Enrollments">
                 <field name="student_id"/>
+                <field name="program_id"/>
                 <field name="section_id"/>
-                <field name="subject_id"/>
+                <field name="semester_id"/>
                 <separator/>
                 <filter string="Enrolled" name="filter_enrolled" domain="[('status', '=', 'enrolled')]"/>
                 <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
                 <filter string="Dropped" name="filter_dropped" domain="[('status', '=', 'dropped')]"/>
                 <group>
                     <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
-                    <filter string="Class Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
+                    <filter string="Major / Program" name="group_by_program" context="{'group_by': 'program_id'}"/>
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
@@ -99,18 +114,61 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_enrollment_kanban" model="ir.ui.view">
+        <field name="name">university.enrollment.kanban</field>
+        <field name="model">university.enrollment</field>
+        <field name="arch" type="xml">
+            <kanban sample="1" default_group_by="status" quick_create="false">
+                <field name="student_id"/>
+                <field name="program_id"/>
+                <field name="semester_id"/>
+                <field name="status"/>
+                <field name="enrollment_date"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-6 o_kanban_record_title"><field name="student_id"/></strong>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-graduation-cap me-1" title="Program"/>
+                                <field name="program_id"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-calendar me-1" title="Semester"/>
+                                <field name="semester_id"/>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.enrollment_date.value">
+                                <i class="fa fa-clock-o me-1" title="Enrollment Date"/>
+                                <field name="enrollment_date"/>
+                            </div>
+                            <div class="mt-2">
+                                <span t-if="record.status.raw_value == 'enrolled'" class="badge text-bg-success">Enrolled</span>
+                                <span t-if="record.status.raw_value == 'completed'" class="badge text-bg-info">Completed</span>
+                                <span t-if="record.status.raw_value == 'dropped'" class="badge text-bg-danger">Dropped</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- WINDOW ACTION -->
     <record id="action_university_enrollment" model="ir.actions.act_window">
         <field name="name">Enrollments</field>
         <field name="res_model">university.enrollment</field>
-        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
         <field name="search_view_id" ref="view_university_enrollment_search"/>
     </record>
 
     <record id="action_university_enrollment_student" model="ir.actions.act_window">
         <field name="name">My Enrollments</field>
         <field name="res_model">university.enrollment</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_enrollment_search"/>

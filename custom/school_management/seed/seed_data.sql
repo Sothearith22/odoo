@@ -83,11 +83,6 @@ VALUES
   (4, 'Dr. Alice Hamilton', 'TCH-0004', 'female', '1988-11-05', '+1 555-0104', 'a.hamilton@university.edu', '101 Science Ave', 3, 5, 'assistant_professor', 'Molecular Genetics', 'Ph.D. Biology', '2019-08-20', false, false, true, 1, NOW(), 1, NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- Update Faculty and Department Heads
-UPDATE university_faculty SET dean_id = 1 WHERE id = 1;
-UPDATE university_department SET head_id = 2 WHERE id = 1;
-UPDATE university_department SET head_id = 3 WHERE id = 3;
-
 -- ------------------------------------------------------------------------------
 -- 8. SUBJECTS
 -- ------------------------------------------------------------------------------
@@ -146,19 +141,27 @@ VALUES
   (2, 'Jane Smith', 'STU-2025-002', 'female', '2005-01-22', 'jane.smith@student.university.edu', '+1 555-0202', '34 Campus Drive', 'Robert Smith', '+1 555-0902', 1, 1, 1, 1, 1, 'active', true, 1, NOW(), 1, NOW()),
   (3, 'Alex Johnson', 'STU-2025-003', 'other', '2003-11-30', 'alex.j@student.university.edu', '+1 555-0203', '56 University Ave', 'Taylor Johnson', '+1 555-0903', 2, 3, 3, 1, 1, 'active', true, 1, NOW(), 1, NOW()),
   (4, 'Emily Brown', 'STU-2025-004', 'female', '2004-08-09', 'emily.b@student.university.edu', '+1 555-0204', '78 Dorms Way', 'David Brown', '+1 555-0904', 1, 1, 1, 1, 1, 'active', true, 1, NOW(), 1, NOW()),
-  (5, 'Michael Lee', 'STU-2025-005', 'male', '2004-12-01', 'michael.lee@student.university.edu', '+1 555-0205', '90 Oak Rd', 'Susan Lee', '+1 555-0905', 3, 5, 2, 1, 1, 'active', true, 1, NOW(), 1, NOW())
+  (5, 'Michael Lee', 'STU-2025-005', 'male', '2004-12-01', 'michael.lee@student.university.edu', '+1 555-0205', '90 Oak Rd', 'Susan Lee', '+1 555-0905', 1, 1, 1, 1, 1, 'active', true, 1, NOW(), 1, NOW())
 ON CONFLICT (id) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- 8. STUDENT AUTHENTICATION (student <-> res.users unique link)
+-- ------------------------------------------------------------------------------
+-- Note: Student portal accounts (res.users) are intentionally NOT seeded here.
+-- They are created through the portal signup flow (see models/res_users.py),
+-- which guarantees a one-to-one link between a student record and its login.
+-- 
 
 -- ------------------------------------------------------------------------------
 -- 12. ENROLLMENTS
 -- ------------------------------------------------------------------------------
-INSERT INTO university_enrollment (id, student_id, section_id, subject_id, teacher_id, academic_year_id, semester_id, faculty_id, enrollment_date, status, create_uid, create_date, write_uid, write_date)
+INSERT INTO university_enrollment (id, student_id, program_id, section_id, subject_id, teacher_id, academic_year_id, semester_id, faculty_id, enrollment_date, status, create_uid, create_date, write_uid, write_date)
 VALUES 
-  (1, 1, 1, 1, 1, 1, 1, 1, '2025-09-02', 'enrolled', 1, NOW(), 1, NOW()),
-  (2, 1, 3, 3, 2, 1, 1, 1, '2025-09-02', 'enrolled', 1, NOW(), 1, NOW()),
-  (3, 2, 1, 1, 1, 1, 1, 1, '2025-09-03', 'enrolled', 1, NOW(), 1, NOW()),
-  (4, 3, 4, 5, 3, 1, 1, 2, '2025-09-04', 'enrolled', 1, NOW(), 1, NOW()),
-  (5, 4, 1, 1, 1, 1, 1, 1, '2025-09-05', 'enrolled', 1, NOW(), 1, NOW())
+  (1, 1, 1, 1, 1, 1, 1, 1, 1, '2025-09-02', 'enrolled', 1, NOW(), 1, NOW()),
+  (2, 1, 1, 3, 3, 2, 1, 1, 1, '2025-09-02', 'enrolled', 1, NOW(), 1, NOW()),
+  (3, 2, 1, 1, 1, 1, 1, 1, 1, '2025-09-03', 'enrolled', 1, NOW(), 1, NOW()),
+  (4, 3, 3, 4, 5, 3, 1, 1, 2, '2025-09-04', 'enrolled', 1, NOW(), 1, NOW()),
+  (5, 4, 1, 1, 1, 1, 1, 1, 1, '2025-09-05', 'enrolled', 1, NOW(), 1, NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------------------------------------------

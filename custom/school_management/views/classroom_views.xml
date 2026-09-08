@@ -67,11 +67,47 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_classroom_kanban" model="ir.ui.view">
+        <field name="name">university.classroom.kanban</field>
+        <field name="model">university.classroom</field>
+        <field name="arch" type="xml">
+            <kanban sample="1" default_group_by="room_type" quick_create="false">
+                <field name="name"/>
+                <field name="building"/>
+                <field name="room_type"/>
+                <field name="capacity"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-building me-1" title="Building"/>
+                                <field name="building"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-tag me-1" title="Room Type"/>
+                                <field name="room_type"/>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge text-bg-secondary"><field name="capacity"/> Capacity</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- WINDOW ACTION -->
     <record id="action_university_classroom" model="ir.actions.act_window">
         <field name="name">Classrooms</field>
         <field name="res_model">university.classroom</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_classroom_search"/>
     </record>
 

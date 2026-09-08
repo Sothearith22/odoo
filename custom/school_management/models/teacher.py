@@ -16,6 +16,10 @@ class Teacher(models.Model):
         ondelete="set null",
         help="Optionally link this academic staff member to their Odoo login for role-based access.",
     )
+    _unique_user_id = models.UniqueIndex(
+        "(user_id) WHERE user_id IS NOT NULL",
+        "A staff login can only be linked to one academic staff record.",
+    )
     gender = fields.Selection(
         [
             ("male", "Male"),

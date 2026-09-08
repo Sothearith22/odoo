@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, onMounted, onWillUnmount, useRef } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -17,13 +17,25 @@ class SchoolDashboardShell extends Component {
         this.chartProgramRef = useRef("chart_program");
         this.charts = [];
 
-        this.state = { dashboard: null, chartData: null };
+        this.state = useState({
+            dashboard: null,
+            chartData: null,
+            error: null,
+            isLoading: true,
+        });
 
         onWillStart(async () => {
-            await Promise.all([
-                loadBundle("web.chartjs_lib"),
-                this.loadDashboardData()
-            ]);
+            try {
+                await Promise.all([
+                    loadBundle("web.chartjs_lib"),
+                    this.loadDashboardData(),
+                ]);
+            } catch (error) {
+                console.error("Failed to load school dashboard", error);
+                this.state.error = error.message || "Unable to load dashboard data.";
+            } finally {
+                this.state.isLoading = false;
+            }
         });
 
         onMounted(() => {
@@ -59,7 +71,7 @@ class SchoolDashboardShell extends Component {
     }
 
     renderCharts() {
-        if (!this.state.chartData) return;
+        if (!this.state.chartData || !window.Chart) return;
 
         // Render Student Status Chart
         if (this.chartStatusRef.el) {
@@ -67,9 +79,9 @@ class SchoolDashboardShell extends Component {
             this.charts.push(new window.Chart(ctxStatus, {
                 type: 'doughnut',
                 data: {
-                    labels: this.state.chartData.student_status.labels,
+                    labels: this.state.chartData.student_status?.labels || [],
                     datasets: [{
-                        data: this.state.chartData.student_status.data,
+                        data: this.state.chartData.student_status?.data || [],
                         backgroundColor: ['#1f7a5c', '#17a2b8', '#ffc107', '#dc3545'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
@@ -92,10 +104,10 @@ class SchoolDashboardShell extends Component {
             this.charts.push(new window.Chart(ctxProgram, {
                 type: 'bar',
                 data: {
-                    labels: this.state.chartData.program_distribution.labels,
+                    labels: this.state.chartData.program_distribution?.labels || [],
                     datasets: [{
                         label: 'Students',
-                        data: this.state.chartData.program_distribution.data,
+                        data: this.state.chartData.program_distribution?.data || [],
                         backgroundColor: '#3a6ea5',
                         borderRadius: 4,
                     }]

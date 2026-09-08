@@ -114,7 +114,13 @@
 
                     <group>
                         <group string="Overview">
-                            <field name="dean_id"/>
+                            <field name="dean_id" readonly="1"/>
+                            <button name="%(school_management.action_university_academic_assignment)d"
+                                    type="action"
+                                    string="Manage Head of Faculty Appointment"
+                                    context="{'search_default_faculty_id': id, 'search_default_filter_dean': 1}"
+                                    class="btn-link"
+                                    icon="fa-tasks"/>
                             <field name="code" string="Faculty Code"/>
                         </group>
                         <group string="Description">
@@ -206,7 +212,7 @@
     <record id="action_university_faculty" model="ir.actions.act_window">
         <field name="name">Faculties</field>
         <field name="res_model">university.faculty</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_faculty_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first faculty</p>

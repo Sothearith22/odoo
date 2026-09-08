@@ -133,7 +133,30 @@
         <field name="name">HOD: department class sections</field>
         <field name="model_id" ref="model_university_class_section"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">[('subject_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('subject_id.department_id.head_id.user_id', '=', user.id), ('program_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- HOD: see the assignments of staff in the department they head -->
+    <record id="rule_hod_assignments" model="ir.rule">
+        <field name="name">HOD: department role assignments</field>
+        <field name="model_id" ref="model_university_academic_assignment"/>
+        <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
+        <field name="domain_force">[('staff_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_hod_enrollments" model="ir.rule">
+        <field name="name">HOD: department enrollments</field>
+        <field name="model_id" ref="model_university_enrollment"/>
+        <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
+        <field name="domain_force">['|', ('program_id.department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -193,6 +216,141 @@
         <field name="model_id" ref="model_university_student"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
         <field name="domain_force">[('department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_dean_enrollments" model="ir.rule">
+        <field name="name">Head of Faculty: faculty enrollments</field>
+        <field name="model_id" ref="model_university_enrollment"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">['|', ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Head of Faculty: see class sections of the faculty they manage -->
+    <record id="rule_dean_sections" model="ir.rule">
+        <field name="name">Head of Faculty: faculty class sections</field>
+        <field name="model_id" ref="model_university_class_section"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">['|', ('subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Head of Faculty: see the assignments of staff in the faculty they manage -->
+    <record id="rule_dean_assignments" model="ir.rule">
+        <field name="name">Head of Faculty: faculty role assignments</field>
+        <field name="model_id" ref="model_university_academic_assignment"/>
+        <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="domain_force">[('staff_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- University Administrator: full organizational visibility for continuation workflows -->
+    <record id="rule_admin_all_faculties" model="ir.rule">
+        <field name="name">Administrator: all faculties</field>
+        <field name="model_id" ref="model_university_faculty"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_departments" model="ir.rule">
+        <field name="name">Administrator: all departments</field>
+        <field name="model_id" ref="model_university_department"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_programs" model="ir.rule">
+        <field name="name">Administrator: all programs</field>
+        <field name="model_id" ref="model_university_program"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_subjects" model="ir.rule">
+        <field name="name">Administrator: all subjects</field>
+        <field name="model_id" ref="model_university_subject"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_students" model="ir.rule">
+        <field name="name">Administrator: all students</field>
+        <field name="model_id" ref="model_university_student"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_academic_years" model="ir.rule">
+        <field name="name">Administrator: all academic years</field>
+        <field name="model_id" ref="model_university_academic_year"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_semesters" model="ir.rule">
+        <field name="name">Administrator: all semesters</field>
+        <field name="model_id" ref="model_university_semester"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_class_sections" model="ir.rule">
+        <field name="name">Administrator: all class sections</field>
+        <field name="model_id" ref="model_university_class_section"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_all_enrollments" model="ir.rule">
+        <field name="name">Administrator: all enrollments</field>
+        <field name="model_id" ref="model_university_enrollment"/>
+        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="domain_force">[('id', '!=', 0)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>

@@ -2,7 +2,15 @@
 <templates xml:space="preserve">
 
   <t t-name="school_management.DashboardShell" owl="1">
-      <div class="flex-grow-1 d-flex flex-column h-100 o_school_dashboard_layout bg-view" t-if="state.dashboard">
+      <div class="flex-grow-1 d-flex flex-column h-100 o_school_dashboard_layout bg-view">
+        <div t-if="state.error" class="alert alert-danger m-4" role="alert">
+            <h4 class="alert-heading">Dashboard could not load</h4>
+            <p class="mb-0" t-esc="state.error"/>
+        </div>
+        <div t-elif="state.isLoading or !state.dashboard" class="d-flex align-items-center justify-content-center flex-grow-1 text-muted">
+            Loading dashboard...
+        </div>
+        <t t-else="">
         
         <!-- Top Header -->
         <div class="px-4 py-3 d-flex justify-content-between align-items-center sticky-top z-1 dashboard-header bg-view border-bottom">
@@ -233,6 +241,7 @@
             </div>
             
         </div>
+        </t>
       </div>
   </t>
 

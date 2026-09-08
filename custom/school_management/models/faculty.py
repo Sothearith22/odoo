@@ -7,7 +7,15 @@ class UniversityFaculty(models.Model):
 
     name = fields.Char(string="Faculty Name", required=True)
     code = fields.Char(string="Faculty Code", required=True)
-    dean_id = fields.Many2one("university.teacher", string="Head of Faculty")
+    dean_id = fields.Many2one(
+        "university.teacher",
+        string="Head of Faculty",
+        compute="_compute_dean_id",
+        store=True,
+        compute_sudo=True,
+        readonly=True,
+        help="Automatically derived from the most recent active Head of Faculty assignment.",
+    )
     department_ids = fields.One2many(
         "university.department", "faculty_id", string="Departments"
     )
@@ -68,6 +76,18 @@ class UniversityFaculty(models.Model):
             rec.department_count = len(
                 rec.with_context(active_test=False).department_ids
             )
+
+    @api.depends(
+        "assignment_ids.role",
+        "assignment_ids.active",
+        "assignment_ids.staff_id",
+    )
+    def _compute_dean_id(self):
+        for rec in self:
+            appointee = rec.assignment_ids.filtered(
+                lambda a: a.active and a.role in ("dean", "vice_dean")
+            )[:1].staff_id
+            rec.dean_id = appointee
 
     @api.depends(
         "department_ids.teacher_ids",

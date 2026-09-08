@@ -2,40 +2,6 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
-def _reindex_org_units(env, org_units):
-    assignment_model = env["university.academic.assignment"]
-    dean_faculties = set()
-    head_departments = set()
-
-    for role, faculty_id, department_id in org_units or []:
-        if role in ("dean", "vice_dean") and faculty_id:
-            dean_faculties.add(faculty_id)
-        elif role == "department_head" and department_id:
-            head_departments.add(department_id)
-
-    for fid in dean_faculties:
-        appointee = assignment_model.search(
-            [
-                ("role", "in", ("dean", "vice_dean")),
-                ("faculty_id", "=", fid),
-                ("active", "=", True),
-            ],
-            limit=1,
-        ).staff_id
-        env["university.faculty"].browse(fid).write({"dean_id": appointee.id or False})
-
-    for did in head_departments:
-        appointee = assignment_model.search(
-            [
-                ("role", "=", "department_head"),
-                ("department_id", "=", did),
-                ("active", "=", True),
-            ],
-            limit=1,
-        ).staff_id
-        env["university.department"].browse(did).write({"head_id": appointee.id or False})
-
-
 class UniversityAcademicAssignment(models.Model):
     _name = "university.academic.assignment"
     _description = "Academic Role Assignment"
@@ -140,43 +106,3 @@ class UniversityAcademicAssignment(models.Model):
     def _onchange_department_id(self):
         if self.department_id:
             self.faculty_id = self.department_id.faculty_id
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super().create(vals_list)
-        records._reindex_created()
-        return records
-
-    def _reindex_created(self):
-        org_units = [
-            (rec.role, rec.faculty_id.id, rec.department_id.id)
-            for rec in self
-            if rec.active
-        ]
-        if org_units:
-            _reindex_org_units(self.env, org_units)
-
-    def write(self, vals):
-        before = {
-            rec.id: (rec.role, rec.faculty_id.id, rec.department_id.id)
-            for rec in self
-        }
-        res = super().write(vals)
-        org_units = list(before.values())
-        org_units += [
-            (rec.role, rec.faculty_id.id, rec.department_id.id)
-            for rec in self
-            if rec.active
-        ]
-        if org_units:
-            _reindex_org_units(self.env, org_units)
-        return res
-
-    def unlink(self):
-        org_units = [
-            (rec.role, rec.faculty_id.id, rec.department_id.id) for rec in self
-        ]
-        res = super().unlink()
-        if org_units:
-            _reindex_org_units(self.env, org_units)
-        return res

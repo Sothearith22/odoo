@@ -30,7 +30,7 @@
 #     university.class.section                      *
 #     university.enrollment                         *
 #     university.academic.assignment                *
-#     university.enrollment.wizard                  wiz
+#     university.bulk.enrollment.wizard             wiz
 #     university.student.enrollment.wizard          wiz
 
 # Finance

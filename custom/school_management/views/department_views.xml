@@ -114,8 +114,13 @@
                     <group>
                         <group string="Overview">
                             <field name="faculty_id" options="{'no_create': True}"/>
-                            <field name="head_id" string="Head of Department" options="{'no_create': True}"
-                                   domain="[('department_id', '=', id), ('active', '=', True)]"/>
+                            <field name="head_id" string="Head of Department" readonly="1"/>
+                            <button name="%(school_management.action_university_academic_assignment)d"
+                                    type="action"
+                                    string="Manage Head of Department Appointment"
+                                    context="{'search_default_department_id': id, 'search_default_filter_hod': 1}"
+                                    class="btn-link"
+                                    icon="fa-tasks"/>
                             <field name="code" string="Department Code"/>
                         </group>
                         <group string="Statistics">
@@ -216,7 +221,7 @@
     <record id="action_university_department" model="ir.actions.act_window">
         <field name="name">Departments</field>
         <field name="res_model">university.department</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_department_search"/>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="help" type="html">

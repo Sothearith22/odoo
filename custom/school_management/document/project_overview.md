@@ -51,7 +51,7 @@ The implemented system follows this business flow:
 ### Model extensions and wizards
 
 - `res.users` is extended in `models/res_users.py` with `teacher_id`.
-- `university.enrollment.wizard`
+- `university.bulk.enrollment.wizard`
 - `university.student.enrollment.wizard`
 
 ## Relationship Map
@@ -284,7 +284,7 @@ school_management/
 |   |-- ir.model.access.csv
 |   `-- record_rules.xml
 |-- wizard/
-|   |-- enrollment_wizard_views.xml
+|   |-- bulk_enrollment_wizard_views.xml
 |   `-- student_enrollment_wizard_views.xml
 |-- reports/
 |   |-- payment_report_template.xml

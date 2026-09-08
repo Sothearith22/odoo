@@ -75,11 +75,56 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_payment_kanban" model="ir.ui.view">
+        <field name="name">university.payment.kanban</field>
+        <field name="model">university.payment</field>
+        <field name="arch" type="xml">
+            <kanban sample="1" default_group_by="state" quick_create="false">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="amount"/>
+                <field name="payment_method"/>
+                <field name="date"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-6 o_kanban_record_title"><field name="name"/></strong>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-user me-1" title="Student"/>
+                                <field name="student_id"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-credit-card me-1" title="Payment Method"/>
+                                <field name="payment_method"/>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.date.value">
+                                <i class="fa fa-calendar me-1" title="Payment Date"/>
+                                <field name="date"/>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge text-bg-primary"><field name="amount"/></span>
+                                <span t-if="record.state.raw_value == 'posted'" class="badge text-bg-success float-end">Posted</span>
+                                <span t-if="record.state.raw_value == 'draft'" class="badge text-bg-info float-end">Draft</span>
+                                <span t-if="record.state.raw_value == 'canceled'" class="badge text-bg-danger float-end">Canceled</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <!-- ACTION -->
     <record id="action_university_payment" model="ir.actions.act_window">
         <field name="name">Payments</field>
         <field name="res_model">university.payment</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create the first payment record!
@@ -90,7 +135,7 @@
     <record id="action_university_payment_student" model="ir.actions.act_window">
         <field name="name">My Payments</field>
         <field name="res_model">university.payment</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>

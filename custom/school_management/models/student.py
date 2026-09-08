@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 
 class Student(models.Model):
@@ -36,19 +37,26 @@ class Student(models.Model):
     emergency_contact_phone = fields.Char(string="Emergency Contact Phone")
 
     # Academic Information
-    faculty_id = fields.Many2one(
-        "university.faculty",
-        string="Faculty",
+    program_id = fields.Many2one(
+        "university.program",
+        string="Program",
+        index=True,
     )
     department_id = fields.Many2one(
         "university.department",
         string="Department",
-        domain="[('faculty_id', '=', faculty_id)]",
+        related="program_id.department_id",
+        store=True,
+        readonly=True,
+        help="Derived from the selected program.",
     )
-    program_id = fields.Many2one(
-        "university.program",
-        string="Program",
-        domain="[('department_id', '=', department_id)]",
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        string="Faculty",
+        related="program_id.department_id.faculty_id",
+        store=True,
+        readonly=True,
+        help="Derived from the selected program's department.",
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -110,6 +118,10 @@ class Student(models.Model):
         currency_field="currency_id",
     )
 
+    _unique_student_id = models.UniqueIndex(
+        "(student_id) WHERE student_id IS NOT NULL",
+        "The Student ID must be unique.",
+    )
     _unique_user_id = models.UniqueIndex(
         "(user_id) WHERE user_id IS NOT NULL",
         "A student login can only be linked to one student record.",
@@ -119,23 +131,6 @@ class Student(models.Model):
         currency = self.env.company.currency_id
         for rec in self:
             rec.currency_id = currency
-
-    @api.onchange("faculty_id")
-    def _onchange_faculty_id(self):
-        # Clear department and program if they don't belong to the new faculty
-        if self.faculty_id and self.department_id and self.department_id.faculty_id != self.faculty_id:
-            self.department_id = False
-            self.program_id = False
-
-    @api.onchange("department_id")
-    def _onchange_department_id(self):
-        # Clear program if it doesn't belong to the new department
-        if self.department_id and self.program_id and self.program_id.department_id != self.department_id:
-            self.program_id = False
-        # Optionally, auto-set faculty if not set or mismatched
-        if self.department_id and self.department_id.faculty_id:
-            if self.faculty_id != self.department_id.faculty_id:
-                self.faculty_id = self.department_id.faculty_id
 
     def action_view_payments(self):
         self.ensure_one()
@@ -158,6 +153,25 @@ class Student(models.Model):
             "target": "new",
             "context": {
                 "default_student_id": self.id,
+            },
+        }
+
+    def action_continue_student(self):
+        self.ensure_one()
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError("Only University Administrators can continue a dropped student.")
+        if self.status != "dropped" and self.active:
+            raise UserError("Only dropped or inactive students can be continued.")
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Continue Student",
+            "res_model": "university.student.enrollment.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_student_id": self.id,
+                "continue_student": True,
             },
         }
 

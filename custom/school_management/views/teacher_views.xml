@@ -222,7 +222,7 @@
     <record id="action_university_teacher" model="ir.actions.act_window">
         <field name="name">Teachers</field>
         <field name="res_model">university.teacher</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_teacher_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first teacher record</p>
@@ -271,7 +271,7 @@
     <record id="action_university_dean" model="ir.actions.act_window">
         <field name="name">Heads of Faculty</field>
         <field name="res_model">university.teacher</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('is_dean', '=', True)]</field>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="search_view_id" ref="view_university_dean_search"/>
@@ -325,7 +325,7 @@
     <record id="action_university_hod" model="ir.actions.act_window">
         <field name="name">Heads of Department</field>
         <field name="res_model">university.teacher</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('is_hod', '=', True)]</field>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="search_view_id" ref="view_university_hod_search"/>

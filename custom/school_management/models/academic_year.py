@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class UniversityAcademicYear(models.Model):
@@ -13,6 +14,23 @@ class UniversityAcademicYear(models.Model):
     )
     current = fields.Boolean(string="Current Academic Year", default=False)
     active = fields.Boolean(string="Active", default=True)
+
+    @api.constrains("date_start", "date_end")
+    def _check_date_range(self):
+        for year in self:
+            if year.date_start and year.date_end and year.date_start > year.date_end:
+                raise ValidationError("The academic year start date must be before the end date.")
+
+    @api.constrains("current", "active")
+    def _check_single_current_year(self):
+        for year in self.filtered(lambda rec: rec.current and rec.active):
+            duplicate = self.search([
+                ("id", "!=", year.id),
+                ("current", "=", True),
+                ("active", "=", True),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError("Only one active academic year can be marked as current.")
 
 
 class UniversitySemester(models.Model):
@@ -39,3 +57,17 @@ class UniversitySemester(models.Model):
         "university.semester.subject", "semester_id", string="Offered Subjects"
     )
     active = fields.Boolean(string="Active", default=True)
+
+    @api.constrains("date_start", "date_end", "academic_year_id")
+    def _check_date_range(self):
+        for semester in self:
+            if semester.date_start and semester.date_end and semester.date_start > semester.date_end:
+                raise ValidationError("The semester start date must be before the end date.")
+
+            academic_year = semester.academic_year_id
+            if not academic_year:
+                continue
+            if semester.date_start and semester.date_start < academic_year.date_start:
+                raise ValidationError("The semester start date cannot be before its academic year.")
+            if semester.date_end and semester.date_end > academic_year.date_end:
+                raise ValidationError("The semester end date cannot be after its academic year.")

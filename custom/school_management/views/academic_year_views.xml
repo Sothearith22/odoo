@@ -74,10 +74,44 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_academic_year_kanban" model="ir.ui.view">
+        <field name="name">university.academic.year.kanban</field>
+        <field name="model">university.academic.year</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="current"/>
+                <field name="semester_ids"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-calendar me-1" title="Period"/>
+                                <field name="date_start"/> → <field name="date_end"/>
+                            </div>
+                            <div class="mt-2">
+                                <span t-if="record.current.raw_value" class="badge text-bg-success">Current</span>
+                                <span class="badge text-bg-secondary float-end"><field name="semester_ids"/> Semesters</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="action_university_academic_year" model="ir.actions.act_window">
         <field name="name">Academic Years</field>
         <field name="res_model">university.academic.year</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_academic_year_search"/>
     </record>
 
@@ -136,10 +170,52 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_semester_kanban" model="ir.ui.view">
+        <field name="name">university.semester.kanban</field>
+        <field name="model">university.semester</field>
+        <field name="arch" type="xml">
+            <kanban sample="1" default_group_by="academic_year_id" quick_create="false">
+                <field name="name"/>
+                <field name="academic_year_id"/>
+                <field name="semester_type"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="semester_subject_ids"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                </div>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-calendar me-1" title="Academic Year"/>
+                                <field name="academic_year_id"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-tag me-1" title="Semester Type"/>
+                                <field name="semester_type"/>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fa fa-clock-o me-1" title="Period"/>
+                                <field name="date_start"/> → <field name="date_end"/>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge text-bg-secondary"><field name="semester_subject_ids"/> Subjects</span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="action_university_semester" model="ir.actions.act_window">
         <field name="name">Semesters</field>
         <field name="res_model">university.semester</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
     </record>
 
 </odoo>

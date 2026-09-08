@@ -1,7 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-
 class ResUsers(models.Model):
     """Extend the user to link them to an academic staff record, enabling
     organizational record rules (a teacher sees their own data, a HOD their
@@ -12,6 +11,11 @@ class ResUsers(models.Model):
         string="Academic Staff",
         ondelete="set null",
         help="The academic staff record this user belongs to.",
+    )
+
+    _unique_teacher_id = models.UniqueIndex(
+        "(teacher_id) WHERE teacher_id IS NOT NULL",
+        "An academic staff record can only be linked to one user.",
     )
 
     def _get_signup_student(self, email):

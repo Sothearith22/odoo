@@ -10,7 +10,15 @@ class UniversityDepartment(models.Model):
     faculty_id = fields.Many2one(
         "university.faculty", string="Faculty", required=True
     )
-    head_id = fields.Many2one("university.teacher", string="Head of Department")
+    head_id = fields.Many2one(
+        "university.teacher",
+        string="Head of Department",
+        compute="_compute_head_id",
+        store=True,
+        compute_sudo=True,
+        readonly=True,
+        help="Automatically derived from the most recent active HOD assignment.",
+    )
     program_ids = fields.One2many(
         "university.program", "department_id", string="Programs"
     )
@@ -44,10 +52,6 @@ class UniversityDepartment(models.Model):
         compute="_compute_counts", string="Class Section Count"
     )
 
-    _unique_head_id = models.UniqueIndex(
-        "(head_id, active)",
-        "A teacher can only be the head of one department!",
-    )
     _unique_code = models.UniqueIndex(
         "(code, active)",
         "The department code must be unique!",
@@ -57,6 +61,18 @@ class UniversityDepartment(models.Model):
     def _compute_class_sections(self):
         for rec in self:
             rec.class_section_ids = rec.subject_ids.mapped("section_ids")
+
+    @api.depends(
+        "assignment_ids.role",
+        "assignment_ids.active",
+        "assignment_ids.staff_id",
+    )
+    def _compute_head_id(self):
+        for rec in self:
+            appointee = rec.assignment_ids.filtered(
+                lambda a: a.active and a.role == "department_head"
+            )[:1].staff_id
+            rec.head_id = appointee
 
     @api.depends(
         "program_ids",

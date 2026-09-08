@@ -13,8 +13,9 @@
                                 <field name="student_id"/>
                             </group>
                             
-                            <h4 class="text-primary mt-4 mb-3">2. Filter Available Classes (Optional)</h4>
+                            <h4 class="text-primary mt-4 mb-3">2. Enrollment Academic Information</h4>
                             <group>
+                                <field name="program_id" options="{'no_create': True}"/>
                                 <field name="academic_year_id" options="{'no_create': True}"/>
                                 <field name="semester_id" options="{'no_create': True}"/>
                             </group>
@@ -27,7 +28,12 @@
                         </div>
                     </div>
                     
-                    <h4 class="text-primary mt-4 mb-3">4. Select Classes</h4>
+                    <h4 class="text-primary mt-4 mb-3">4. Optional Class Assignment</h4>
+                    <div class="alert alert-info mb-3" role="alert">
+                        Leave class sections empty to enroll the student in the major
+                        for this academic period. Select sections only when assigning
+                        a class or cohort now.
+                    </div>
                     <field name="section_ids" nolabel="1" widget="many2many">
                         <list>
                             <field name="name"/>

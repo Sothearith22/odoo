@@ -34,6 +34,11 @@ class UniversityProgram(models.Model):
         "subject_id",
         string="Subjects"
     )
+    section_ids = fields.One2many(
+        "university.class.section",
+        "program_id",
+        string="Class Sections",
+    )
     subject_count = fields.Integer(
         string="Subject Count",
         compute="_compute_subject_count",

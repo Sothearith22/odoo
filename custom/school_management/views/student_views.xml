@@ -77,10 +77,19 @@
                             string="Enroll in Classes"
                             type="object"
                             class="oe_highlight"
-                            icon="fa-graduation-cap"/>
+                            icon="fa-graduation-cap"
+                            groups="school_management.group_school_admin"/>
+                    <button name="action_continue_student"
+                            string="Continue Student"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-play-circle"
+                            groups="school_management.group_school_admin"
+                            invisible="status != 'dropped' and active"/>
                     <field name="status"
                            widget="statusbar"
-                           statusbar_visible="active,suspended,graduated,dropped"/>
+                           statusbar_visible="active,suspended,graduated,dropped"
+                           groups="school_management.group_school_admin"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -96,17 +105,25 @@
                         <h1>
                             <field name="name" placeholder="e.g. Sothearith Kim" required="1"/>
                         </h1>
-                        <div class="text-muted">
-                            <i class="fa fa-id-card me-1" title="Student ID"/>
-                            <field name="student_id" placeholder="e.g. STD-2026-001"/>
-                        </div>
+<div class="text-muted">
+                        <i class="fa fa-id-card me-1" title="Student ID"/>
+                        <field name="student_id" placeholder="e.g. STD-2026-001"/>
                     </div>
+                    <div groups="!school_management.group_school_admin">
+                        <field name="status"
+                               widget="badge"
+                               decoration-success="status == 'active'"
+                               decoration-warning="status == 'suspended'"
+                               decoration-info="status == 'graduated'"
+                               decoration-danger="status == 'dropped'"/>
+                    </div>
+                </div>
 
                     <group string="Student Snapshot">
                         <group string="Academic Placement">
-                            <field name="faculty_id"/>
-                            <field name="department_id"/>
                             <field name="program_id"/>
+                            <field name="department_id"/>
+                            <field name="faculty_id"/>
                             <field name="academic_year_id"/>
                             <field name="current_semester_id"/>
                         </group>
@@ -229,7 +246,7 @@
     <record id="action_university_student" model="ir.actions.act_window">
         <field name="name">Students</field>
         <field name="res_model">university.student</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_student_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first student record</p>

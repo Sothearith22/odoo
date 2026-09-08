@@ -2,12 +2,15 @@
 
 import { WebClient } from "@web/webclient/webclient";
 import { user } from "@web/core/user";
+import { router } from "@web/core/browser/router";
 import { patch } from "@web/core/utils/patch";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { onMounted, useState } from "@odoo/owl";
 import { SchoolLayout } from "./school_layout";
 
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
+const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
+const SCHOOL_DASHBOARD_TAG = "school_dashboard_shell";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STUDENT_ACTION_XMLID = "school_management.action_student_dashboard_shell";
 const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
@@ -19,7 +22,7 @@ const SCHOOL_MODELS = new Set([
     "university.classroom",
     "university.department",
     "university.enrollment",
-    "university.enrollment.wizard",
+    "university.bulk.enrollment.wizard",
     "university.faculty",
     "university.fee",
     "university.payment",
@@ -78,9 +81,42 @@ patch(WebClient.prototype, {
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", refreshSchoolRoute);
         onMounted(() => {
             setTimeout(checkSchoolApp);
+            setTimeout(() => this.ensureSchoolDashboardRoute());
             setTimeout(() => this.redirectStudentToDashboard());
         });
         checkSchoolApp();
+    },
+
+    async ensureSchoolDashboardRoute() {
+        if (this.dashboardRedirecting) {
+            return;
+        }
+
+        const currentApp = this.menuService.getCurrentApp();
+        if (currentApp?.xmlid !== SCHOOL_APP_XMLID) {
+            return;
+        }
+
+        const currentAction = this.actionService.currentController?.action || {};
+        const routeAction = router.current.action;
+        const isDashboardAction =
+            currentAction.tag === SCHOOL_DASHBOARD_TAG ||
+            currentAction.xml_id === SCHOOL_DASHBOARD_XMLID;
+
+        // A route action means another page is being restored. Only repair a
+        // genuinely action-less University route after a full browser reload.
+        if (isDashboardAction || currentAction.type || routeAction) {
+            return;
+        }
+
+        this.dashboardRedirecting = true;
+        try {
+            await this.actionService.doAction(SCHOOL_DASHBOARD_XMLID, {
+                clearBreadcrumbs: true,
+            });
+        } finally {
+            this.dashboardRedirecting = false;
+        }
     },
 
     async redirectStudentToDashboard() {

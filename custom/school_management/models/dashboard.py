@@ -1,4 +1,3 @@
-from odoo import api
 from odoo import api, fields, models
 
 
@@ -36,29 +35,41 @@ class UniversityDashboard(models.Model):
             rec.currency_id = currency
 
     def _compute_counts(self):
-        for rec in self:
-            rec.student_count = self.env["university.student"].search_count([])
-            rec.active_student_count = self.env["university.student"].search_count([("status", "=", "active")])
-            rec.suspended_student_count = self.env["university.student"].search_count([("status", "=", "suspended")])
-            rec.graduated_student_count = self.env["university.student"].search_count([("status", "=", "graduated")])
-            rec.dropped_student_count = self.env["university.student"].search_count([("status", "=", "dropped")])
+        Student = self.env["university.student"].sudo()
+        Teacher = self.env["university.teacher"].sudo()
+        Faculty = self.env["university.faculty"].sudo()
+        Department = self.env["university.department"].sudo()
+        Program = self.env["university.program"].sudo()
+        Subject = self.env["university.subject"].sudo()
+        Classroom = self.env["university.classroom"].sudo()
+        Section = self.env["university.class.section"].sudo()
+        Enrollment = self.env["university.enrollment"].sudo()
+        Fee = self.env["university.fee"].sudo()
+        Payment = self.env["university.payment"].sudo()
 
-            rec.teacher_count = self.env["university.teacher"].search_count([])
-            rec.faculty_count = self.env["university.faculty"].search_count([])
-            rec.department_count = self.env["university.department"].search_count([])
-            rec.program_count = self.env["university.program"].search_count([])
-            rec.subject_count = self.env["university.subject"].search_count([])
-            rec.classroom_count = self.env["university.classroom"].search_count([])
-            rec.section_count = self.env["university.class.section"].search_count([])
-            rec.enrollment_count = self.env["university.enrollment"].search_count([])
-            rec.fee_count = self.env["university.fee"].search_count([])
-            rec.payment_count = self.env["university.payment"].search_count([])
+        for rec in self:
+            rec.student_count = Student.search_count([])
+            rec.active_student_count = Student.search_count([("status", "=", "active")])
+            rec.suspended_student_count = Student.search_count([("status", "=", "suspended")])
+            rec.graduated_student_count = Student.search_count([("status", "=", "graduated")])
+            rec.dropped_student_count = Student.search_count([("status", "=", "dropped")])
+
+            rec.teacher_count = Teacher.search_count([])
+            rec.faculty_count = Faculty.search_count([])
+            rec.department_count = Department.search_count([])
+            rec.program_count = Program.search_count([])
+            rec.subject_count = Subject.search_count([])
+            rec.classroom_count = Classroom.search_count([])
+            rec.section_count = Section.search_count([])
+            rec.enrollment_count = Enrollment.search_count([])
+            rec.fee_count = Fee.search_count([])
+            rec.payment_count = Payment.search_count([])
             
             # Financials
-            posted_fees = self.env["university.fee"].search([("state", "in", ("posted", "paid"))])
+            posted_fees = Fee.search([("state", "in", ("posted", "paid"))])
             rec.total_unpaid_fees = sum(posted_fees.mapped("balance"))
             
-            posted_payments = self.env["university.payment"].search([("state", "=", "posted")])
+            posted_payments = Payment.search([("state", "=", "posted")])
             rec.total_paid_fees = sum(posted_payments.mapped("amount"))
             
             # Placeholder until phase 5 part 2
@@ -87,7 +98,7 @@ class UniversityDashboard(models.Model):
         status_data = self.env.cr.fetchall()
         
         # 3. Recent Activity (Last 5 Payments)
-        recent_payments = self.env["university.payment"].search_read(
+        recent_payments = self.env["university.payment"].sudo().search_read(
             [("state", "=", "posted")],
             ["name", "amount", "date", "student_id", "currency_id"],
             limit=5,
@@ -207,8 +218,8 @@ class UniversityDashboard(models.Model):
     def action_open_enrollment_wizard(self):
         return {
             "type": "ir.actions.act_window",
-            "name": "Multiple Enrollments",
-            "res_model": "university.enrollment.wizard",
+            "name": "Bulk Enroll Students",
+            "res_model": "university.bulk.enrollment.wizard",
             "view_mode": "form",
             "target": "new",
         }
