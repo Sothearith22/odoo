@@ -7,6 +7,36 @@ import { user } from "@web/core/user";
 
 const DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
 
+const GROUP_SYSTEM = "base.group_system";
+const GROUP_USER = "school_management.group_school_user";
+const GROUP_ADMIN = "school_management.group_school_admin";
+const GROUP_DEAN = "school_management.group_school_dean";
+const GROUP_HOD = "school_management.group_school_hod";
+const GROUP_TEACHER = "school_management.group_school_teacher";
+
+// Minimal role required to open each action (null = any University staff member).
+// Because School HOD/Dean/Admin imply Teacher and base.group_system implies all,
+// members of a higher role automatically gain the lower-role items.
+const ITEM_GROUP = {
+    faculty: GROUP_ADMIN,
+    department: GROUP_HOD,
+    program: GROUP_DEAN,
+    subject: GROUP_TEACHER,
+    class_section: GROUP_TEACHER,
+    classroom: GROUP_ADMIN,
+    student: GROUP_TEACHER,
+    enrollment: GROUP_HOD,
+    bulk_enrollment: GROUP_ADMIN,
+    teacher: GROUP_TEACHER,
+    hod: GROUP_HOD,
+    dean: GROUP_DEAN,
+    assignment: GROUP_HOD,
+    academic_year: GROUP_ADMIN,
+    semester: GROUP_ADMIN,
+    fee: GROUP_ADMIN,
+    payment: GROUP_ADMIN,
+};
+
 function navGroup(label, items) {
     return { label, items };
 }
@@ -58,12 +88,37 @@ export class SchoolLayout extends Component {
             collapsed: false,
             activeKey: "dashboard",
             canBulkEnroll: false,
+            visibleNavGroups: [],
         });
 
         onWillStart(async () => {
+            const isSystem = await user.hasGroup(GROUP_SYSTEM);
             this.state.canBulkEnroll =
-                await user.hasGroup("school_management.group_school_admin") ||
-                await user.hasGroup("base.group_system");
+                (await user.hasGroup(GROUP_ADMIN)) || isSystem;
+
+            const check = async (key) => {
+                if (isSystem) {
+                    return true;
+                }
+                const group = ITEM_GROUP[key];
+                if (!group) {
+                    // No explicit group -> anyone inside the University app.
+                    return await user.hasGroup(GROUP_USER);
+                }
+                return await user.hasGroup(group);
+            };
+
+            const accessible = {};
+            for (const key of Object.keys(ITEM_GROUP)) {
+                accessible[key] = await check(key);
+            }
+
+            this.state.visibleNavGroups = this.navGroups
+                .map((group) => ({
+                    ...group,
+                    items: group.items.filter((item) => accessible[item.key]),
+                }))
+                .filter((group) => group.items.length);
         });
 
         useBus(this.env.bus, "MENUS:APP-CHANGED", this.refreshActive.bind(this));

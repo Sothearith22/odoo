@@ -21,13 +21,13 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <button t-on-click="() => this.navigate('school_management.action_university_student')" class="btn btn-sm px-3 btn-brand-primary text-white" style="background-color: var(--brand-900, #1b2a4a);">
+                <button t-if="this.canOpen('student')" t-on-click="() => this.navigate('school_management.action_university_student')" class="btn btn-sm px-3 btn-brand-primary text-white" style="background-color: var(--brand-900, #1b2a4a);">
                     <i class="fa fa-user-plus me-1" aria-hidden="true"></i><span class="d-none d-md-inline">New Student</span>
                 </button>
-                <button t-on-click="() => this.navigate('school_management.action_university_enrollment')" class="btn btn-sm px-3 btn-outline-secondary d-none d-md-inline-block">
+                <button t-if="this.canOpen('enrollment')" t-on-click="() => this.navigate('school_management.action_university_enrollment')" class="btn btn-sm px-3 btn-outline-secondary d-none d-md-inline-block">
                     <i class="fa fa-check-square-o me-1" aria-hidden="true"></i>Enroll Student
                 </button>
-                <button t-on-click="() => this.navigate('school_management.action_university_fee')" class="btn btn-sm px-3 btn-outline-secondary d-none d-md-inline-block">
+                <button t-if="this.canOpen('fee')" t-on-click="() => this.navigate('school_management.action_university_fee')" class="btn btn-sm px-3 btn-outline-secondary d-none d-md-inline-block">
                     <i class="fa fa-money me-1" aria-hidden="true"></i>New Fee Invoice
                 </button>
             </div>
@@ -36,7 +36,7 @@
         <div class="p-4 pt-4 flex-grow-1 overflow-auto dashboard-canvas">
             <!-- 1. PRIMARY METRICS (CLICKABLE KPI CARDS) -->
             <div class="row g-3 mb-4">
-                <div class="col-12 col-sm-6 col-xl-3" t-on-click="() => this.navigate('school_management.action_university_student')" role="button">
+                <div class="col-12 col-sm-6 col-xl-3" t-att-class="{ 'o_disabled': !this.canOpen('student') }" role="button" t-on-click="this.go('student')">
                     <div class="card shadow-sm h-100 o_school_kpi_card border-0" style="--kpi-accent:#1b2a4a; --kpi-accent-soft:#e8eaf0; border-top: 3px solid #1b2a4a !important;">
                         <div class="card-body p-3 d-flex align-items-center justify-content-between">
                             <div>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-sm-6 col-xl-3" t-on-click="() => this.navigate('school_management.action_university_teacher')" role="button">
+                <div class="col-12 col-sm-6 col-xl-3" t-att-class="{ 'o_disabled': !this.canOpen('teacher') }" role="button" t-on-click="this.go('teacher')">
                     <div class="card shadow-sm h-100 o_school_kpi_card border-0" style="--kpi-accent:#1f7a5c; --kpi-accent-soft:#e3f2ec; border-top: 3px solid #1f7a5c !important;">
                         <div class="card-body p-3 d-flex align-items-center justify-content-between">
                             <div>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-sm-6 col-xl-3" t-on-click="() => this.navigate('school_management.action_university_program')" role="button">
+                <div class="col-12 col-sm-6 col-xl-3" t-att-class="{ 'o_disabled': !this.canOpen('program') }" role="button" t-on-click="this.go('program')">
                     <div class="card shadow-sm h-100 o_school_kpi_card border-0" style="--kpi-accent:#b8863f; --kpi-accent-soft:#f6ead4; border-top: 3px solid #b8863f !important;">
                         <div class="card-body p-3 d-flex align-items-center justify-content-between">
                             <div>
@@ -78,7 +78,7 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-sm-6 col-xl-3" t-on-click="() => this.navigate('school_management.action_university_department')" role="button">
+                <div class="col-12 col-sm-6 col-xl-3" t-att-class="{ 'o_disabled': !this.canOpen('department') }" role="button" t-on-click="this.go('department')">
                     <div class="card shadow-sm h-100 o_school_kpi_card border-0" style="--kpi-accent:#3a6ea5; --kpi-accent-soft:#e6eef7; border-top: 3px solid #3a6ea5 !important;">
                         <div class="card-body p-3 d-flex align-items-center justify-content-between">
                             <div>
@@ -126,7 +126,7 @@
                             <h5 class="mb-0 fw-bold fs-6">
                                 <i class="fa fa-money me-2" style="color: #b8863f;" aria-hidden="true"></i>Fee Status
                             </h5>
-                            <button t-on-click="() => this.navigate('school_management.action_university_fee')" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
+                            <button t-if="this.canOpen('fee')" t-on-click="() => this.navigate('school_management.action_university_fee')" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
                                 View Invoices <i class="fa fa-arrow-right ms-1"></i>
                             </button>
                         </div>
@@ -155,7 +155,7 @@
                             <h5 class="mb-0 fw-bold fs-6">
                                 <i class="fa fa-history me-2" style="color: #1f7a5c;" aria-hidden="true"></i>Recent Payments
                             </h5>
-                            <button t-on-click="() => this.navigate('school_management.action_university_payment')" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
+                            <button t-if="this.canOpen('payment')" t-on-click="() => this.navigate('school_management.action_university_payment')" class="btn btn-sm btn-link text-decoration-none p-0 text-muted">
                                 View All <i class="fa fa-arrow-right ms-1"></i>
                             </button>
                         </div>
@@ -192,15 +192,15 @@
                         </div>
                         <div class="card-body p-3">
                             <div class="d-grid gap-2">
-                                <button t-on-click="() => this.navigate('school_management.action_university_academic_year')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
+                                <button t-if="this.canOpen('academic_year')" t-on-click="() => this.navigate('school_management.action_university_academic_year')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
                                     <span><i class="fa fa-calendar-check-o me-2" style="color: #1b2a4a;" aria-hidden="true"></i>Academic Years &amp; Semesters</span>
                                     <i class="fa fa-chevron-right text-muted small" aria-hidden="true"></i>
                                 </button>
-                                <button t-on-click="() => this.navigate('school_management.action_university_class_section')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
+                                <button t-if="this.canOpen('section')" t-on-click="() => this.navigate('school_management.action_university_class_section')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
                                     <span><i class="fa fa-users me-2" style="color: #1b2a4a;" aria-hidden="true"></i>Class Sections &amp; Schedules</span>
                                     <i class="fa fa-chevron-right text-muted small" aria-hidden="true"></i>
                                 </button>
-                                <button t-on-click="() => this.navigate('school_management.action_university_enrollment')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
+                                <button t-if="this.canOpen('enrollment')" t-on-click="() => this.navigate('school_management.action_university_enrollment')" class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 border rounded shadow-sm bg-light">
                                     <span><i class="fa fa-list-alt me-2" style="color: #1b2a4a;" aria-hidden="true"></i>Student Enrollments</span>
                                     <i class="fa fa-chevron-right text-muted small" aria-hidden="true"></i>
                                 </button>

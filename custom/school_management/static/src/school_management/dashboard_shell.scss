@@ -107,6 +107,15 @@
         transform: translateY(-2px);
         cursor: pointer;
     }
+    .o_school_kpi_card.o_disabled,
+    .o_school_kpi_card.o_disabled:hover,
+    .o_disabled,
+    .o_disabled:hover {
+        cursor: default;
+        transform: none;
+        box-shadow: none;
+        opacity: 0.6;
+    }
     .o_school_kpi_icon {
         color: var(--kpi-accent, var(--accent));
     }

@@ -25,7 +25,7 @@
             <span class="ms-2 o_school_sidebar_label">Dashboard</span>
           </button>
 
-          <t t-foreach="navGroups" t-as="group" t-key="group.label">
+          <t t-foreach="state.visibleNavGroups" t-as="group" t-key="group.label">
             <div class="o_school_nav_group" t-att-class="{ 'mt-1': group_index === 0, 'mt-2': group_index !== 0, 'o_school_nav_group_active': this.isGroupActive(group) }">
               <div class="o_school_nav_group_label o_school_sidebar_label"><t t-out="group.label"/></div>
               <t t-foreach="group.items" t-as="item" t-key="item.key">

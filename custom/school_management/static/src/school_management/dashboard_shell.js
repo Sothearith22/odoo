@@ -5,6 +5,36 @@ import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
+const GROUP_SYSTEM = "base.group_system";
+const GROUP_ADMIN = "school_management.group_school_admin";
+const GROUP_HOD = "school_management.group_school_hod";
+
+// Key -> minimal role required to open the target action.
+const ACTION_ROLE = {
+    student: "school_management.group_school_teacher",
+    teacher: "school_management.group_school_teacher",
+    program: "school_management.group_school_dean",
+    department: "school_management.group_school_hod",
+    section: "school_management.group_school_teacher",
+    enrollment: "school_management.group_school_hod",
+    academic_year: "school_management.group_school_admin",
+    fee: "school_management.group_school_admin",
+    payment: "school_management.group_school_admin",
+};
+
+// Key -> action_id (XMLID) to open for the dashboard quick links.
+const ACTION_XMLID = {
+    student: "school_management.action_university_student",
+    teacher: "school_management.action_university_teacher",
+    program: "school_management.action_university_program",
+    department: "school_management.action_university_department",
+    section: "school_management.action_university_class_section",
+    enrollment: "school_management.action_university_enrollment",
+    academic_year: "school_management.action_university_academic_year",
+    fee: "school_management.action_university_fee",
+    payment: "school_management.action_university_payment",
+};
+
 class SchoolDashboardShell extends Component {
     static template = "school_management.DashboardShell";
     static props = ["*"];
@@ -12,7 +42,8 @@ class SchoolDashboardShell extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        
+        this.user = useService("user");
+
         this.chartStatusRef = useRef("chart_status");
         this.chartProgramRef = useRef("chart_program");
         this.charts = [];
@@ -22,6 +53,17 @@ class SchoolDashboardShell extends Component {
             chartData: null,
             error: null,
             isLoading: true,
+            canOpen: {
+                student: false,
+                teacher: false,
+                program: false,
+                department: false,
+                section: false,
+                enrollment: false,
+                academic_year: false,
+                fee: false,
+                payment: false,
+            },
         });
 
         onWillStart(async () => {
@@ -29,6 +71,7 @@ class SchoolDashboardShell extends Component {
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
                     this.loadDashboardData(),
+                    this.loadCapabilities(),
                 ]);
             } catch (error) {
                 console.error("Failed to load school dashboard", error);
@@ -45,6 +88,30 @@ class SchoolDashboardShell extends Component {
         onWillUnmount(() => {
             this.charts.forEach(chart => chart.destroy());
         });
+    }
+
+    async loadCapabilities() {
+        const isSystem = await this.user.hasGroup(GROUP_SYSTEM);
+        const can = async (role) => {
+            if (isSystem) {
+                return true;
+            }
+            return await this.user.hasGroup(role);
+        };
+        for (const key of Object.keys(ACTION_ROLE)) {
+            this.state.canOpen[key] = await can(ACTION_ROLE[key]);
+        }
+    }
+
+    canOpen(key) {
+        return Boolean(this.state.canOpen[key]);
+    }
+
+    go(key) {
+        if (!this.canOpen(key)) {
+            return;
+        }
+        this.navigate(ACTION_XMLID[key]);
     }
 
     navigate(actionXmlId) {

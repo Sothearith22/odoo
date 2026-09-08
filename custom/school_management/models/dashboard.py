@@ -34,83 +34,110 @@ class UniversityDashboard(models.Model):
         for rec in self:
             rec.currency_id = currency
 
+    def _can_read(self, model):
+        """Whether the current user may read the given model (no sudo)."""
+        try:
+            return self.env[model].check_access_rights("read", raise_exception=False)
+        except Exception:
+            return False
+
+    def _safe_count(self, model, domain=None):
+        """Count records the current user is allowed to see (via ACL + record rules)."""
+        try:
+            if not self._can_read(model):
+                return 0
+            return self.env[model].search_count(domain or [])
+        except Exception:
+            return 0
+
+    def _safe_sum(self, model, domain, field):
+        try:
+            if not self._can_read(model):
+                return 0.0
+            records = self.env[model].search(domain or [])
+            return sum(records.mapped(field) or [0.0]) or 0.0
+        except Exception:
+            return 0.0
+
     def _compute_counts(self):
-        Student = self.env["university.student"].sudo()
-        Teacher = self.env["university.teacher"].sudo()
-        Faculty = self.env["university.faculty"].sudo()
-        Department = self.env["university.department"].sudo()
-        Program = self.env["university.program"].sudo()
-        Subject = self.env["university.subject"].sudo()
-        Classroom = self.env["university.classroom"].sudo()
-        Section = self.env["university.class.section"].sudo()
-        Enrollment = self.env["university.enrollment"].sudo()
-        Fee = self.env["university.fee"].sudo()
-        Payment = self.env["university.payment"].sudo()
-
         for rec in self:
-            rec.student_count = Student.search_count([])
-            rec.active_student_count = Student.search_count([("status", "=", "active")])
-            rec.suspended_student_count = Student.search_count([("status", "=", "suspended")])
-            rec.graduated_student_count = Student.search_count([("status", "=", "graduated")])
-            rec.dropped_student_count = Student.search_count([("status", "=", "dropped")])
+            rec.student_count = self._safe_count("university.student")
+            rec.active_student_count = self._safe_count(
+                "university.student", [("status", "=", "active")]
+            )
+            rec.suspended_student_count = self._safe_count(
+                "university.student", [("status", "=", "suspended")]
+            )
+            rec.graduated_student_count = self._safe_count(
+                "university.student", [("status", "=", "graduated")]
+            )
+            rec.dropped_student_count = self._safe_count(
+                "university.student", [("status", "=", "dropped")]
+            )
 
-            rec.teacher_count = Teacher.search_count([])
-            rec.faculty_count = Faculty.search_count([])
-            rec.department_count = Department.search_count([])
-            rec.program_count = Program.search_count([])
-            rec.subject_count = Subject.search_count([])
-            rec.classroom_count = Classroom.search_count([])
-            rec.section_count = Section.search_count([])
-            rec.enrollment_count = Enrollment.search_count([])
-            rec.fee_count = Fee.search_count([])
-            rec.payment_count = Payment.search_count([])
-            
-            # Financials
-            posted_fees = Fee.search([("state", "in", ("posted", "paid"))])
-            rec.total_unpaid_fees = sum(posted_fees.mapped("balance"))
-            
-            posted_payments = Payment.search([("state", "=", "posted")])
-            rec.total_paid_fees = sum(posted_payments.mapped("amount"))
-            
+            rec.teacher_count = self._safe_count("university.teacher")
+            rec.faculty_count = self._safe_count("university.faculty")
+            rec.department_count = self._safe_count("university.department")
+            rec.program_count = self._safe_count("university.program")
+            rec.subject_count = self._safe_count("university.subject")
+            rec.classroom_count = self._safe_count("university.classroom")
+            rec.section_count = self._safe_count("university.class.section")
+            rec.enrollment_count = self._safe_count("university.enrollment")
+            rec.fee_count = self._safe_count("university.fee")
+            rec.payment_count = self._safe_count("university.payment")
+
+            # Financials — only aggregated from records the current user may see.
+            rec.total_unpaid_fees = self._safe_sum(
+                "university.fee",
+                [("state", "in", ("posted", "paid"))],
+                "balance",
+            )
+            rec.total_paid_fees = self._safe_sum(
+                "university.payment",
+                [("state", "=", "posted")],
+                "amount",
+            )
+
             # Placeholder until phase 5 part 2
             rec.total_scholarships = 0.0
 
     @api.model
     def get_chart_data(self):
-        # 1. Program Distribution (Bar Chart)
-        self.env.cr.execute("""
-            SELECT p.name, COUNT(s.id) 
-            FROM university_student s
-            JOIN university_program p ON s.program_id = p.id
-            WHERE s.active = True
-            GROUP BY p.name
-            ORDER BY COUNT(s.id) DESC
-            LIMIT 10
-        """)
-        program_data = self.env.cr.fetchall()
+        program_data = []
+        status_data = []
+        recent_payments = []
 
-        # 2. Student Demographics (Doughnut Chart)
-        self.env.cr.execute("""
-            SELECT status, COUNT(id)
-            FROM university_student
-            GROUP BY status
-        """)
-        status_data = self.env.cr.fetchall()
-        
-        # 3. Recent Activity (Last 5 Payments)
-        recent_payments = self.env["university.payment"].sudo().search_read(
-            [("state", "=", "posted")],
-            ["name", "amount", "date", "student_id", "currency_id"],
-            limit=5,
-            order="date desc, id desc"
-        )
-        
-        # Resolve related fields for recent payments
-        for p in recent_payments:
-            if p.get("student_id"):
-                p["student_name"] = p["student_id"][1]
-            else:
-                p["student_name"] = "Unknown"
+        if self._can_read("university.student"):
+            program_rows = self.env["university.student"].read_group(
+                [("active", "=", True), ("program_id", "!=", False)],
+                ["program_id"],
+                groupby=["program_id"],
+                orderby="program_id_count desc",
+                limit=10,
+            )
+            program_data = [
+                (row["program_id"][1] if row["program_id"] else "Other", row["program_id_count"])
+                for row in program_rows
+            ]
+
+            status_rows = self.env["university.student"].read_group(
+                [], ["status"], groupby=["status"]
+            )
+            status_data = [
+                (row["status"] or "unknown", row["status_count"]) for row in status_rows
+            ]
+
+        if self._can_read("university.payment"):
+            recent_payments = self.env["university.payment"].search_read(
+                [("state", "=", "posted")],
+                ["name", "amount", "date", "student_id", "currency_id"],
+                limit=5,
+                order="date desc, id desc",
+            )
+            for p in recent_payments:
+                p["student_name"] = (
+                    p["student_id"][1] if p.get("student_id") else "Unknown"
+                )
 
         return {
             "program_distribution": {
