@@ -2,7 +2,7 @@
 <odoo>
     <!--
         Cleanup legacy school.* actions/views left after renaming models to university.*
-        These IDs were already cleaned up by the ORM during previous upgrades,
-        so this file is now a no-op placeholder to avoid manifest load errors.
+        These IDs were already cleaned up by the ORM during previous upgrades.
     -->
+    <delete model="ir.actions.act_window" id="action_school_management_module"/>
 </odoo>

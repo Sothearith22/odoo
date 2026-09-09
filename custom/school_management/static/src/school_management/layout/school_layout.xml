@@ -42,6 +42,28 @@
             </div>
           </t>
         </div>
+
+        <div class="o_school_sidebar_footer p-2" t-if="state.canManageSettings || state.canManageModules">
+          <button t-if="state.canManageModules"
+                  class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                  t-att-class="{ 'active': this.isActive(appsItem.key) }"
+                  t-att-aria-current="this.isActive(appsItem.key) ? 'page' : undefined"
+                  t-on-click="() => this.openApps()"
+                  title="Apps">
+            <i class="fa fa-th-large fa-lg o_school_nav_icon" aria-hidden="true"/>
+            <span class="ms-2 o_school_sidebar_label">Apps</span>
+          </button>
+
+          <button class="btn o_school_nav_btn o_school_settings_btn w-100 text-start d-flex align-items-center"
+                  t-if="state.canManageSettings"
+                  t-att-class="{ 'active': this.isActive(settingsItem.key) }"
+                  t-att-aria-current="this.isActive(settingsItem.key) ? 'page' : undefined"
+                  t-on-click="() => this.navigate(settingsItem.actionXmlId, settingsItem.key)"
+                  title="Settings">
+            <i class="fa fa-cog fa-lg o_school_nav_icon" aria-hidden="true"/>
+            <span class="ms-2 o_school_sidebar_label">Settings</span>
+          </button>
+        </div>
       </div>
 
       <div class="o_school_content flex-grow-1 d-flex flex-column overflow-auto">

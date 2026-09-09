@@ -14,3 +14,4 @@ from . import enrollment
 from . import fee
 from . import payment
 from . import dashboard
+from . import res_config_settings

@@ -6,6 +6,8 @@ import { onMounted } from "@odoo/owl";
 import { user } from "@web/core/user";
 
 const DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
+const SETTINGS_XMLID = "school_management.action_university_settings";
+const APPS_XMLID = "base.open_module_tree";
 
 const GROUP_SYSTEM = "base.group_system";
 const GROUP_USER = "school_management.group_school_user";
@@ -83,16 +85,33 @@ export class SchoolLayout extends Component {
                 navItem("payment", "Payments", "fa fa-credit-card", "school_management.action_university_payment"),
             ]),
         ];
+        this.settingsItem = navItem(
+            "settings",
+            "Settings",
+            "fa fa-cog",
+            SETTINGS_XMLID
+        );
+        this.appsItem = navItem(
+            "apps",
+            "Apps",
+            "fa fa-th-large",
+            APPS_XMLID,
+            true
+        );
 
         this.state = useState({
             collapsed: false,
             activeKey: "dashboard",
             canBulkEnroll: false,
+            canManageSettings: false,
+            canManageModules: false,
             visibleNavGroups: [],
         });
 
         onWillStart(async () => {
             const isSystem = await user.hasGroup(GROUP_SYSTEM);
+            this.state.canManageSettings = isSystem;
+            this.state.canManageModules = isSystem;
             this.state.canBulkEnroll =
                 (await user.hasGroup(GROUP_ADMIN)) || isSystem;
 
@@ -127,7 +146,11 @@ export class SchoolLayout extends Component {
     }
 
     get _flatItems() {
-        return this.navGroups.flatMap((group) => group.items);
+        return [
+            ...this.navGroups.flatMap((group) => group.items),
+            this.settingsItem,
+            this.appsItem,
+        ];
     }
 
     refreshActive() {
@@ -172,6 +195,11 @@ export class SchoolLayout extends Component {
         this.state.activeKey = key;
         this.action.doAction(actionXmlId, { clearBreadcrumbs: true });
     }
+
+    openApps() {
+        this.navigate(APPS_XMLID, this.appsItem.key);
+    }
+
 }
 
 export default SchoolLayout;

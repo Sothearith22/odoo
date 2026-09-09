@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_document_signature_from" model="ir.ui.view">
+    <field name="name">unversity.document.signature.from</field>
+    <field name="name">university.document.signture</field>
+        <field name="arch" type="xml">
+            <from>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="student_id"/>
+                        <field name="fee_id"/>
+                        <field name="state" widget="statusbar" />
+                    </group>
+                    <field name="signature" widget="signature"/>
+                    <button name="action_sign" string="Confirm Signature" type="object" invisible="state == 'signed'"/>
+                </sheet>
+            </from>
+        </field>
+    </record>
+
+    <record id="action_document_signature" model="ir.actions.act.windos">
+        <field name="name">Signatures</field>
+        <field name="res.model">university.document.signature</field>
+        <field name="view_mode">from,list</field>
+    </record>
+
+
+</odoo>

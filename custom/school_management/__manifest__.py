@@ -31,6 +31,7 @@
         "views/academic_assignment_views.xml",
         "views/teacher_views.xml",
         "views/student_views.xml",
+        "views/res_config_settings_views.xml",
         # Reports must load before enrollment_views so the server action
         # XML ID exists when the list-header button is resolved.
         "reports/payment_report_template.xml",

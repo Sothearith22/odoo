@@ -11,6 +11,7 @@ import { SchoolLayout } from "./school_layout";
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
 const SCHOOL_DASHBOARD_TAG = "school_dashboard_shell";
+const SCHOOL_SETTINGS_XMLID = "school_management.action_university_settings";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STUDENT_ACTION_XMLID = "school_management.action_student_dashboard_shell";
 const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
@@ -59,6 +60,7 @@ patch(WebClient.prototype, {
             const actionModel = currentAction.res_model;
             const isSchoolApp = currentApp?.xmlid === SCHOOL_APP_XMLID;
             const isSchoolAction =
+                currentAction.xml_id === SCHOOL_SETTINGS_XMLID ||
                 SCHOOL_ACTION_TAGS.has(currentAction.tag) ||
                 SCHOOL_MODELS.has(actionModel) ||
                 (typeof actionModel === "string" && actionModel.startsWith("university."));

@@ -188,6 +188,16 @@
         groups="school_management.group_school_admin"
     />
 
+    <!-- ==================== SETTINGS ==================== -->
+    <menuitem
+        id="menu_university_settings"
+        name="Settings"
+        parent="menu_school_root"
+        action="school_management.action_university_settings"
+        sequence="90"
+        groups="base.group_system"
+    />
+
     <!-- ==================== 5. ENROLLMENT ==================== -->
     <menuitem
         id="menu_university_enrollment_category"
