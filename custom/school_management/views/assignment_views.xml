@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_university_assignment_tree" model="ir.ui.view">
+        <field name="name">university.assignment.tree</field>
+        <field name="model">university.assignment</field>
+        <field name="arch" type="xml">
+            <list string="Assignments">
+                <field name="name"/>
+                <field name="assignment_type"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="teacher_id"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_assignment_form" model="ir.ui.view">
+        <field name="name">university.assignment.form</field>
+        <field name="model">university.assignment</field>
+        <field name="arch" type="xml">
+            <form string="Assignment">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="oe_highlight" invisible="state == 'approved'"/>
+                    <button name="action_draft" type="object" string="Reset to Draft" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Assignment Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="section_id" string="Grade"/>
+                            <field name="subject_id"/>
+                            <field name="assignment_type"/>
+                        </group>
+                        <group>
+                            <field name="teacher_id"/>
+                            <field name="due_date"/>
+                            <field name="student_id" invisible="assignment_type == 'class'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_university_assignment" model="ir.actions.act_window">
+        <field name="name">Assignments</field>
+        <field name="res_model">university.assignment</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    
+    <record id="action_university_grade_assignment" model="ir.actions.act_window">
+        <field name="name">Grade Assignments</field>
+        <field name="res_model">university.assignment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('assignment_type', '=', 'class')]</field>
+        <field name="context">{'default_assignment_type': 'class'}</field>
+    </record>
+
+    <record id="action_university_student_assignment" model="ir.actions.act_window">
+        <field name="name">Student Assignments</field>
+        <field name="res_model">university.assignment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('assignment_type', '=', 'student')]</field>
+        <field name="context">{'default_assignment_type': 'student'}</field>
+    </record>
+</odoo>

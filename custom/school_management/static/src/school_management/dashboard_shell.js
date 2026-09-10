@@ -4,6 +4,7 @@ import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState } fr
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { user } from "@web/core/user";
 
 const GROUP_SYSTEM = "base.group_system";
 const GROUP_ADMIN = "school_management.group_school_admin";
@@ -15,7 +16,10 @@ const ACTION_ROLE = {
     teacher: "school_management.group_school_teacher",
     program: "school_management.group_school_dean",
     department: "school_management.group_school_hod",
+    faculty: "school_management.group_school_admin",
     section: "school_management.group_school_teacher",
+    subject: "school_management.group_school_teacher",
+    classroom: "school_management.group_school_admin",
     enrollment: "school_management.group_school_hod",
     academic_year: "school_management.group_school_admin",
     fee: "school_management.group_school_admin",
@@ -28,12 +32,34 @@ const ACTION_XMLID = {
     teacher: "school_management.action_university_teacher",
     program: "school_management.action_university_program",
     department: "school_management.action_university_department",
+    faculty: "school_management.action_university_faculty",
     section: "school_management.action_university_class_section",
+    subject: "school_management.action_university_subject",
+    classroom: "school_management.action_university_classroom",
     enrollment: "school_management.action_university_enrollment",
     academic_year: "school_management.action_university_academic_year",
     fee: "school_management.action_university_fee",
     payment: "school_management.action_university_payment",
 };
+
+// Catalog metadata for the System Capabilities & Roadmap panel.
+const CAPABILITY_CATEGORIES = {
+    structure: { label: "Academic Structure", icon: "fa-university" },
+    students: { label: "Students", icon: "fa-graduation-cap" },
+    staff: { label: "Academic Staff", icon: "fa-user" },
+    academic: { label: "Academic Operations", icon: "fa-calendar-check-o" },
+    finance: { label: "Finance", icon: "fa-money" },
+    system: { label: "System", icon: "fa-cube" },
+};
+const CAPABILITY_ORDER = Object.keys(CAPABILITY_CATEGORIES);
+
+const CAPABILITY_STATUS = {
+    active: { label: "Active", badge: "bg-success-subtle text-success border border-success-subtle" },
+    beta: { label: "Beta", badge: "bg-info-subtle text-info border border-info-subtle" },
+    development: { label: "In Development", badge: "bg-warning-subtle text-warning border border-warning-subtle" },
+    planned: { label: "Planned", badge: "bg-light text-muted border" },
+};
+const LIVE_STATUSES = new Set(["active", "beta"]);
 
 class SchoolDashboardShell extends Component {
     static template = "school_management.DashboardShell";
@@ -42,7 +68,6 @@ class SchoolDashboardShell extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.user = useService("user");
 
         this.chartStatusRef = useRef("chart_status");
         this.chartProgramRef = useRef("chart_program");
@@ -51,14 +76,22 @@ class SchoolDashboardShell extends Component {
         this.state = useState({
             dashboard: null,
             chartData: null,
+            capabilities: [],
             error: null,
             isLoading: true,
+            isRefreshing: false,
+            isFullAccess: false,
+            isNavigating: false,
+            lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             canOpen: {
                 student: false,
                 teacher: false,
                 program: false,
                 department: false,
+                faculty: false,
                 section: false,
+                subject: false,
+                classroom: false,
                 enrollment: false,
                 academic_year: false,
                 fee: false,
@@ -68,10 +101,13 @@ class SchoolDashboardShell extends Component {
 
         onWillStart(async () => {
             try {
+                const isSystem = await user.hasGroup(GROUP_SYSTEM);
+                this.state.isFullAccess = isSystem || await user.hasGroup(GROUP_ADMIN);
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
                     this.loadDashboardData(),
                     this.loadCapabilities(),
+                    this.loadRoadmapData(),
                 ]);
             } catch (error) {
                 console.error("Failed to load school dashboard", error);
@@ -86,17 +122,28 @@ class SchoolDashboardShell extends Component {
         });
 
         onWillUnmount(() => {
-            this.charts.forEach(chart => chart.destroy());
+            this.destroyCharts();
         });
     }
 
+    destroyCharts() {
+        this.charts.forEach((chart) => {
+            try {
+                chart.destroy();
+            } catch (err) {
+                console.warn("Chart destroy warning", err);
+            }
+        });
+        this.charts = [];
+    }
+
     async loadCapabilities() {
-        const isSystem = await this.user.hasGroup(GROUP_SYSTEM);
+        const isSystem = await user.hasGroup(GROUP_SYSTEM);
         const can = async (role) => {
             if (isSystem) {
                 return true;
             }
-            return await this.user.hasGroup(role);
+            return await user.hasGroup(role);
         };
         for (const key of Object.keys(ACTION_ROLE)) {
             this.state.canOpen[key] = await can(ACTION_ROLE[key]);
@@ -107,15 +154,155 @@ class SchoolDashboardShell extends Component {
         return Boolean(this.state.canOpen[key]);
     }
 
-    go(key) {
+    async loadRoadmapData() {
+        try {
+            this.state.capabilities = await this.orm.searchRead(
+                "university.capability",
+                [],
+                [
+                    "name", "category", "status", "phase", "release_version",
+                    "description", "icon", "released_on", "sort_order",
+                ],
+                { order: "sort_order, id" }
+            );
+        } catch (error) {
+            console.error("Failed to load system capabilities", error);
+            this.state.capabilities = [];
+        }
+    }
+
+    capabilityStatusLabel(status) {
+        return CAPABILITY_STATUS[status]?.label || status || "—";
+    }
+
+    capabilityBadge(status) {
+        return CAPABILITY_STATUS[status]?.badge || "bg-light text-muted border";
+    }
+
+    capabilityIconTone(status) {
+        const tones = {
+            active: "text-success",
+            beta: "text-info",
+            development: "text-warning",
+            planned: "text-muted",
+        };
+        return tones[status] || "text-muted";
+    }
+
+    isLive(status) {
+        return LIVE_STATUSES.has(status);
+    }
+
+    capabilityCategoryMeta(key) {
+        return CAPABILITY_CATEGORIES[key] || CAPABILITY_CATEGORIES.system;
+    }
+
+    get _liveCapabilities() {
+        return (this.state.capabilities || []).filter((cap) => LIVE_STATUSES.has(cap.status));
+    }
+
+    capabilityOverall() {
+        const total = this.state.capabilities.length;
+        const live = this._liveCapabilities.length;
+        return {
+            total,
+            live,
+            pct: total ? Math.round((live / total) * 100) : 0,
+        };
+    }
+
+    capabilityCategories() {
+        const byCategory = this.state.capabilities.reduce((acc, cap) => {
+            (acc[cap.category] = acc[cap.category] || []).push(cap);
+            return acc;
+        }, {});
+        return CAPABILITY_ORDER.filter((key) => byCategory[key]).map((key) => {
+            const items = byCategory[key];
+            const live = items.filter((cap) => LIVE_STATUSES.has(cap.status)).length;
+            return {
+                key,
+                label: this.capabilityCategoryMeta(key).label,
+                icon: this.capabilityCategoryMeta(key).icon,
+                items,
+                total: items.length,
+                live,
+                pct: items.length ? Math.round((live / items.length) * 100) : 0,
+            };
+        });
+    }
+
+    roadmapPhases() {
+        const byPhase = {};
+        for (const cap of this.state.capabilities) {
+            const phase = cap.phase || 1;
+            byPhase[phase] = byPhase[phase] || { phase, count: 0, live: 0 };
+            byPhase[phase].count += 1;
+            if (LIVE_STATUSES.has(cap.status)) {
+                byPhase[phase].live += 1;
+            }
+        }
+        return Object.values(byPhase).sort((a, b) => a.phase - b.phase);
+    }
+
+    async go(key) {
         if (!this.canOpen(key)) {
             return;
         }
-        this.navigate(ACTION_XMLID[key]);
+        await this.navigate(ACTION_XMLID[key]);
     }
 
-    navigate(actionXmlId) {
-        this.action.doAction(actionXmlId, { clearBreadcrumbs: true });
+    async navigate(actionXmlId) {
+        if (this.state.isNavigating || !actionXmlId) {
+            return;
+        }
+        this.state.isNavigating = true;
+        try {
+            await this.action.doAction(actionXmlId);
+        } finally {
+            this.state.isNavigating = false;
+        }
+    }
+
+    async openCapability(cap) {
+        if (!this.state.isFullAccess || !cap?.id) {
+            return;
+        }
+        try {
+            await this.action.doAction({
+                type: "ir.actions.act_window",
+                res_model: "university.capability",
+                res_id: cap.id,
+                view_mode: "form",
+                views: [[false, "form"]],
+                name: cap.name || "Capability",
+            });
+        } catch (error) {
+            console.error("Failed to open capability", error);
+        }
+    }
+
+    openCapabilityKeyboard(ev, cap) {
+        if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            this.openCapability(cap);
+        }
+    }
+
+    async reload() {
+        if (this.state.isRefreshing) return;
+        this.state.isRefreshing = true;
+        this.state.error = null;
+        try {
+            await this.loadDashboardData();
+            await this.loadRoadmapData();
+            this.state.lastUpdated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            this.renderCharts();
+        } catch (error) {
+            console.error("Failed to refresh dashboard data", error);
+            this.state.error = error.message || "Unable to refresh dashboard data.";
+        } finally {
+            this.state.isRefreshing = false;
+        }
     }
 
     async loadDashboardData() {
@@ -137,11 +324,45 @@ class SchoolDashboardShell extends Component {
         this.state.chartData = chartData || null;
     }
 
+    formatCurrency(amount) {
+        const val = Number(amount) || 0;
+        return "$" + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    getStudentInitials(name) {
+        if (!name || typeof name !== "string") return "?";
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    getFeeCollectionRate() {
+        const paid = Number(this.state.dashboard?.total_paid_fees) || 0;
+        const unpaid = Number(this.state.dashboard?.total_unpaid_fees) || 0;
+        const total = paid + unpaid;
+        if (total <= 0) return 100;
+        return Math.round((paid / total) * 100);
+    }
+
+    hasChartData(type) {
+        if (!this.state.chartData) return false;
+        if (type === "status") {
+            const data = this.state.chartData.student_status?.data || [];
+            return data.some((v) => Number(v) > 0);
+        }
+        if (type === "program") {
+            const data = this.state.chartData.program_distribution?.data || [];
+            return data.some((v) => Number(v) > 0);
+        }
+        return false;
+    }
+
     renderCharts() {
+        this.destroyCharts();
         if (!this.state.chartData || !window.Chart) return;
 
-        // Render Student Status Chart
-        if (this.chartStatusRef.el) {
+        // 1. Student Status Doughnut Chart
+        if (this.chartStatusRef.el && this.hasChartData("status")) {
             const ctxStatus = this.chartStatusRef.el.getContext("2d");
             this.charts.push(new window.Chart(ctxStatus, {
                 type: 'doughnut',
@@ -149,7 +370,8 @@ class SchoolDashboardShell extends Component {
                     labels: this.state.chartData.student_status?.labels || [],
                     datasets: [{
                         data: this.state.chartData.student_status?.data || [],
-                        backgroundColor: ['#1f7a5c', '#17a2b8', '#ffc107', '#dc3545'],
+                        backgroundColor: ['#1f7a5c', '#2563eb', '#d97706', '#dc2626'],
+                        hoverBackgroundColor: ['#19624a', '#1d4ed8', '#b45309', '#b91c1c'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
                     }]
@@ -158,36 +380,69 @@ class SchoolDashboardShell extends Component {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom' }
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
+                                padding: 16,
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1b2a4a',
+                            titleFont: { size: 13, weight: '600' },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                        }
                     },
-                    cutout: '70%'
+                    cutout: '72%'
                 }
             }));
         }
 
-        // Render Program Distribution Chart
-        if (this.chartProgramRef.el) {
+        // 2. Program Distribution Horizontal / Bar Chart
+        if (this.chartProgramRef.el && this.hasChartData("program")) {
             const ctxProgram = this.chartProgramRef.el.getContext("2d");
             this.charts.push(new window.Chart(ctxProgram, {
                 type: 'bar',
                 data: {
                     labels: this.state.chartData.program_distribution?.labels || [],
                     datasets: [{
-                        label: 'Students',
+                        label: 'Enrolled Students',
                         data: this.state.chartData.program_distribution?.data || [],
                         backgroundColor: '#3a6ea5',
-                        borderRadius: 4,
+                        hoverBackgroundColor: '#2b527d',
+                        borderRadius: 6,
+                        maxBarThickness: 32,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1b2a4a',
+                            titleFont: { size: 13, weight: '600' },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                        }
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { display: false } },
-                        x: { grid: { display: false } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { size: 11 } },
+                            grid: { color: 'rgba(0, 0, 0, 0.04)' }
+                        },
+                        x: {
+                            ticks: { font: { size: 11 } },
+                            grid: { display: false }
+                        }
                     }
                 }
             }));

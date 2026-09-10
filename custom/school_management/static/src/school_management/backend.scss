@@ -1,0 +1,49 @@
+// University Management System - Shared Backend Views Polish
+// Scoped to the custom school shell so these rules do not affect native Odoo
+// pages such as Apps, Settings, Contacts, Sales, or other installed modules.
+
+.o_school_shell {
+    // -----------------------------------------------------------------------
+    // Status badge consistency
+    // -----------------------------------------------------------------------
+    .o_list_view .o_data_row .badge,
+    .o_kanban_card .badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        line-height: 1.25;
+    }
+
+    // -----------------------------------------------------------------------
+    // Numeric / financial column alignment in lists
+    // -----------------------------------------------------------------------
+    .o_list_view .o_list_number,
+    .o_list_view .o_data_cell.o_td_alignment_right {
+        font-variant-numeric: tabular-nums;
+    }
+
+    // -----------------------------------------------------------------------
+    // List header buttons: give the primary bulk action clear emphasis
+    // -----------------------------------------------------------------------
+    .o_list_view > header .btn-primary {
+        font-weight: 600;
+    }
+
+    // -----------------------------------------------------------------------
+    // Empty states in list views
+    // -----------------------------------------------------------------------
+    .o_view_nocontent_smiling_face {
+        font-size: 0.95rem;
+    }
+
+    // -----------------------------------------------------------------------
+    // Form sheets: consistent grouped section spacing & heading hierarchy
+    // -----------------------------------------------------------------------
+    .o_form_view .o_form_sheet_bg > .o_form_sheet {
+        max-width: 1140px;
+    }
+
+    .o_form_view .o_group .o_td_label {
+        padding: 0.375rem 0.5rem;
+    }
+}

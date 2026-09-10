@@ -1,6 +1,390 @@
-.o_school_layout {
-    height: 100vh;
-    width: 100vw;
-    background-color: #f6f5f2;
+// University Management System - Sidebar & App Shell Stylesheet
+
+.o_school_shell {
+    --brand-900: #1b2a4a;
+    --brand-700: #29385c;
+    --brand-600: #34456e;
+    --accent: #b8863f;
+    --accent-soft: #f6ead4;
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --ink: #1e293b;
+
+    height: 100%;
+    width: 100%;
+    background-color: var(--bg);
+    position: relative;
     overflow: hidden;
+
+    // ---------------------------------------------------------
+    // Sidebar Base
+    // ---------------------------------------------------------
+    .o_school_sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        height: 100%;
+        background-color: var(--brand-900);
+        background: linear-gradient(180deg, #1b2a4a 0%, #15223c 100%);
+        transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s ease;
+        overflow: hidden;
+        z-index: 1030;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    // Brand Crest Emblem
+    .o_school_crest {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(184, 134, 63, 0.3) 0%, rgba(184, 134, 63, 0.1) 100%);
+        border: 1px solid rgba(184, 134, 63, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+
+        .text-gold {
+            color: #d4a75e;
+        }
+    }
+
+    .o_school_sidebar_header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        min-height: 64px;
+    }
+
+    .o_school_collapse_btn {
+        color: rgba(255, 255, 255, 0.7);
+        background: transparent;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    // Quick Search Input
+    .o_school_search_wrapper {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .o_school_search_input {
+        background-color: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.8rem;
+        transition: all 0.15s ease;
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        &:focus {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: var(--accent);
+            color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(184, 134, 63, 0.25);
+            outline: none;
+        }
+    }
+
+    // Navigation Accordion Groups
+    .o_school_nav_group_header {
+        cursor: pointer;
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.04);
+
+            .o_school_nav_group_label {
+                color: rgba(255, 255, 255, 0.8);
+            }
+        }
+    }
+
+    .o_school_nav_group_label {
+        color: rgba(255, 255, 255, 0.45);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .o_school_group_chevron {
+        transition: transform 0.2s ease;
+    }
+
+    // Nav Item Buttons
+    .o_school_nav_btn {
+        color: rgba(255, 255, 255, 0.78);
+        border: none;
+        border-radius: 8px;
+        padding: 0.48rem 0.75rem;
+        font-size: 0.86rem;
+        font-weight: 500;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        text-decoration: none;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            transform: translateX(2px);
+        }
+
+        &.active {
+            background-color: rgba(184, 134, 63, 0.18);
+            color: #ffffff;
+            font-weight: 600;
+            border-left: 3px solid var(--accent);
+            box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.05);
+            transform: none;
+
+            .o_school_nav_icon {
+                color: #d4a75e;
+            }
+
+            &:hover {
+                background-color: rgba(184, 134, 63, 0.25);
+                transform: none;
+            }
+        }
+    }
+
+    .o_school_nav_icon {
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+    }
+
+    // Sidebar Footer
+    .o_school_sidebar_footer {
+        flex-shrink: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        background-color: rgba(0, 0, 0, 0.15);
+    }
+
+    // User Profile Card & Dropdown
+    .o_user_avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #b8863f 0%, #d4a75e 100%);
+        color: #1b2a4a;
+        font-weight: 700;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .o_user_profile_trigger {
+        transition: background-color 0.15s ease;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+    }
+
+    .o_school_user_menu {
+        background-color: #0f172a;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        width: calc(100% - 16px);
+        left: 8px !important;
+        animation: o-fade-up 0.15s ease;
+
+        .o_user_menu_item {
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+    }
+
+    .o_school_topbar {
+        min-height: 52px;
+        flex-shrink: 0;
+        background-color: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .o_school_view_switcher {
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+
+        .o_school_view_switch_btn {
+            border: 0;
+            border-radius: 0;
+            color: var(--ink);
+            background-color: var(--surface);
+            font-weight: 600;
+
+            &:hover,
+            &.active {
+                color: #ffffff;
+                background-color: var(--brand-900);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Collapsed Mode (72px)
+    // ---------------------------------------------------------
+    &.o_school_shell_collapsed {
+        .o_school_sidebar {
+            width: 72px;
+        }
+
+        .o_school_sidebar_label,
+        .o_school_nav_group_label,
+        .o_school_group_chevron,
+        .o_school_search_wrapper {
+            display: none !important;
+        }
+
+        .o_school_sidebar_header {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+
+            .o_school_crest {
+                margin-right: 0 !important;
+            }
+
+            .o_school_collapse_btn {
+                display: none !important;
+            }
+        }
+
+        .o_school_nav_btn {
+            justify-content: center !important;
+            padding: 0.6rem 0 !important;
+
+            &:hover {
+                transform: none !important;
+            }
+
+            // Floating Tooltip Badge
+            &:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                left: calc(100% + 12px);
+                top: 50%;
+                transform: translateY(-50%);
+                background-color: #0f172a;
+                color: #ffffff;
+                font-size: 0.78rem;
+                font-weight: 600;
+                padding: 6px 12px;
+                border-radius: 6px;
+                white-space: nowrap;
+                pointer-events: none;
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                z-index: 99999;
+            }
+        }
+
+        .o_user_profile_trigger {
+            justify-content: center !important;
+            padding: 0.4rem 0 !important;
+
+            &:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                left: calc(100% + 12px);
+                top: 50%;
+                transform: translateY(-50%);
+                background-color: #0f172a;
+                color: #ffffff;
+                font-size: 0.78rem;
+                font-weight: 600;
+                padding: 6px 12px;
+                border-radius: 6px;
+                white-space: nowrap;
+                pointer-events: none;
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                z-index: 99999;
+            }
+        }
+
+        .o_school_user_menu {
+            left: calc(100% + 8px) !important;
+            bottom: 8px !important;
+            width: 200px;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Mobile Drawer & Backdrop (< 992px)
+    // ---------------------------------------------------------
+    // The drawer is anchored to the shell (position: relative) instead of the
+    // viewport, so it starts below the native top bar and never covers it.
+    @media (max-width: 991.98px) {
+        .o_school_sidebar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: -270px;
+            width: 260px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.35);
+        }
+
+        &.o_school_mobile_open {
+            .o_school_sidebar {
+                left: 0;
+            }
+        }
+
+        .o_school_sidebar_backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1020;
+            animation: o-fade-in 0.2s ease;
+        }
+    }
+}
+
+// Fade in animations
+@keyframes o-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes o-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }

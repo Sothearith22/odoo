@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError
 
 class UniversityPayment(models.Model):
     _name = "university.payment"
+    _inherit = ["mail.thread"]
     _description = "Student Payment"
     _order = "date desc, id desc"
 
@@ -68,6 +69,27 @@ class UniversityPayment(models.Model):
                     _("The selected fee invoice must belong to the same student as the payment.")
                 )
 
+    @api.constrains("amount", "fee_id", "state")
+    def _check_no_overpayment(self):
+        for payment in self:
+            if payment.fee_id and payment.state == "posted":
+                other_posted = payment.fee_id.payment_ids.filtered(
+                    lambda p: p.state == "posted" and p.id != payment.id
+                )
+                remaining = payment.fee_id.total_amount - sum(
+                    other_posted.mapped("amount")
+                )
+                if payment.amount > remaining + 0.001:
+                    raise ValidationError(
+                        _(
+                            "Payment amount (%(amount).2f) exceeds the remaining balance "
+                            "(%(balance).2f) on fee invoice %(fee)s.",
+                            amount=payment.amount,
+                            balance=remaining,
+                            fee=payment.fee_id.name,
+                        )
+                    )
+
     def write(self, vals):
         if not vals or self.env.context.get("bypass_payment_write_guard"):
             return super().write(vals)
@@ -86,9 +108,13 @@ class UniversityPayment(models.Model):
 
     def action_post(self):
         for payment in self:
+            fee = payment.fee_id
+            was_paid = bool(fee and fee.state == "paid")
             payment.with_context(bypass_payment_write_guard=True).write({"state": "posted"})
-            if payment.fee_id:
-                payment.fee_id._compute_totals()
+            if fee:
+                fee._compute_totals()
+                if not was_paid and fee.state == "paid":
+                    fee._send_payment_receipt_email(payment)
 
     def action_cancel(self):
         for payment in self:

@@ -14,7 +14,7 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
     )
     program_id = fields.Many2one(
         "university.program",
-        string="Major / Program",
+        string="Major ",
         required=True,
         domain="[('active', '=', True)]",
     )

@@ -14,4 +14,11 @@
         <field name="padding" eval="4"/>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="seq_university_document_signature" model="ir.sequence">
+        <field name="name">University Document Signature</field>
+        <field name="code">university.document.signature</field>
+        <field name="prefix">SIGN-</field>
+        <field name="padding" eval="4"/>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

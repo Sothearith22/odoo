@@ -1,4 +1,9 @@
+import logging
+
 from odoo import api, fields, models
+
+
+_logger = logging.getLogger(__name__)
 
 
 class UniversityDashboard(models.Model):
@@ -37,26 +42,57 @@ class UniversityDashboard(models.Model):
     def _can_read(self, model):
         """Whether the current user may read the given model (no sudo)."""
         try:
-            return self.env[model].check_access_rights("read", raise_exception=False)
+            return self.env[model].browse().has_access("read")
         except Exception:
+            _logger.exception(
+                "Dashboard access check failed for user %s (%s) on model %s",
+                self.env.user.id,
+                self.env.user.login,
+                model,
+            )
             return False
 
     def _safe_count(self, model, domain=None):
         """Count records the current user is allowed to see (via ACL + record rules)."""
         try:
             if not self._can_read(model):
+                _logger.info(
+                    "Dashboard count skipped for user %s (%s): no read access on %s",
+                    self.env.user.id,
+                    self.env.user.login,
+                    model,
+                )
                 return 0
             return self.env[model].search_count(domain or [])
         except Exception:
+            _logger.exception(
+                "Dashboard count failed for user %s (%s) on model %s",
+                self.env.user.id,
+                self.env.user.login,
+                model,
+            )
             return 0
 
     def _safe_sum(self, model, domain, field):
         try:
             if not self._can_read(model):
+                _logger.info(
+                    "Dashboard sum skipped for user %s (%s): no read access on %s",
+                    self.env.user.id,
+                    self.env.user.login,
+                    model,
+                )
                 return 0.0
             records = self.env[model].search(domain or [])
             return sum(records.mapped(field) or [0.0]) or 0.0
         except Exception:
+            _logger.exception(
+                "Dashboard sum failed for user %s (%s) on model %s.%s",
+                self.env.user.id,
+                self.env.user.login,
+                model,
+                field,
+            )
             return 0.0
 
     def _compute_counts(self):
@@ -108,35 +144,55 @@ class UniversityDashboard(models.Model):
         recent_payments = []
 
         if self._can_read("university.student"):
-            program_rows = self.env["university.student"].read_group(
-                [("active", "=", True), ("program_id", "!=", False)],
-                ["program_id"],
-                groupby=["program_id"],
-                orderby="program_id_count desc",
-                limit=10,
-            )
-            program_data = [
-                (row["program_id"][1] if row["program_id"] else "Other", row["program_id_count"])
-                for row in program_rows
-            ]
+            try:
+                program_rows = self.env["university.student"]._read_group(
+                    [("active", "=", True), ("program_id", "!=", False)],
+                    ["program_id"],
+                    ["__count"],
+                    order="__count DESC",
+                    limit=10,
+                )
+                can_read_program = self._can_read("university.program")
+                program_counts = {}
+                for program, count in program_rows:
+                    label = (
+                        program.display_name
+                        if program and can_read_program
+                        else ("Other" if not program else "Restricted")
+                    )
+                    program_counts[label] = program_counts.get(label, 0) + count
+                program_data = list(program_counts.items())
 
-            status_rows = self.env["university.student"].read_group(
-                [], ["status"], groupby=["status"]
-            )
-            status_data = [
-                (row["status"] or "unknown", row["status_count"]) for row in status_rows
-            ]
+                status_rows = self.env["university.student"]._read_group(
+                    [], ["status"], ["__count"]
+                )
+                status_data = [
+                    (status or "unknown", count) for status, count in status_rows
+                ]
+            except Exception:
+                _logger.exception(
+                    "Dashboard student charts failed for user %s (%s)",
+                    self.env.user.id,
+                    self.env.user.login,
+                )
 
         if self._can_read("university.payment"):
-            recent_payments = self.env["university.payment"].search_read(
-                [("state", "=", "posted")],
-                ["name", "amount", "date", "student_id", "currency_id"],
-                limit=5,
-                order="date desc, id desc",
-            )
-            for p in recent_payments:
-                p["student_name"] = (
-                    p["student_id"][1] if p.get("student_id") else "Unknown"
+            try:
+                recent_payments = self.env["university.payment"].search_read(
+                    [("state", "=", "posted")],
+                    ["name", "amount", "date", "student_id", "currency_id"],
+                    limit=5,
+                    order="date desc, id desc",
+                )
+                for p in recent_payments:
+                    p["student_name"] = (
+                        p["student_id"][1] if p.get("student_id") else "Unknown"
+                    )
+            except Exception:
+                _logger.exception(
+                    "Dashboard payment chart failed for user %s (%s)",
+                    self.env.user.id,
+                    self.env.user.login,
                 )
 
         return {

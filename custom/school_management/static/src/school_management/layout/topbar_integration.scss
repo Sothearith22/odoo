@@ -1,0 +1,20 @@
+/* Top bar integration for the University Management System.
+ *
+ * The native Odoo NavBar (app switcher, module menus, and the systray with
+ * the User menu on the right) stays visible inside the school app. These
+ * rules only make the custom shell fit in the space remaining below it.
+ */
+
+// The school shell is a direct flex child of `.o_web_client`. Fill the
+// height left below the NavBar instead of forcing the full viewport,
+// so the sidebar and content never run underneath the top bar.
+body.o_school_management_active .o_web_client > .o_school_shell {
+    height: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+// Keep older Chrome/Safari from scrolling the shell under the navbar.
+body.o_school_management_active .o_web_client {
+    overflow: hidden;
+}

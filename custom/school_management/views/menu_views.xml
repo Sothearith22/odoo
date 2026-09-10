@@ -2,12 +2,6 @@
 <odoo>
 
     <!-- ==================== ROOT MENU ==================== -->
-    <!--
-        Visible to every University Management member.
-        group_school_user is the base role implied (via implied_ids) by Student,
-        Teacher, HOD, Dean and Administrator, so all staff/hierarchy roles see it.
-        base.group_system keeps the internal Odoo Administrator in.
-    -->
     <menuitem
         id="menu_school_root"
         name="University"
@@ -17,10 +11,7 @@
         groups="base.group_system,school_management.group_school_user"
     />
 
-    <!--
-        Dedicated Student Portal root (kept separate from the staff dashboard).
-        The student OWL shell scopes every view to the student's own records.
-    -->
+    <!-- Dedicated Student Portal root -->
     <menuitem
         id="menu_school_student_portal_root"
         name="Student Portal"
@@ -30,13 +21,21 @@
     />
 
     <!-- ==================== DASHBOARD ==================== -->
-    <!-- Landers: only staff roles reach the staff dashboard; students use the portal. -->
     <menuitem
         id="menu_school_dashboard"
         name="Dashboard"
         parent="menu_school_root"
         action="action_school_dashboard_shell"
         sequence="1"
+        groups="school_management.group_school_teacher"
+    />
+
+    <menuitem
+        id="menu_teacher_dashboard"
+        name="Teacher Dashboard"
+        parent="menu_school_root"
+        action="action_teacher_dashboard_shell"
+        sequence="2"
         groups="school_management.group_school_teacher"
     />
 
@@ -187,15 +186,43 @@
         sequence="50"
         groups="school_management.group_school_admin"
     />
-
-    <!-- ==================== SETTINGS ==================== -->
     <menuitem
-        id="menu_university_settings"
-        name="Settings"
+        id="menu_university_timetable"
+        name="Timetable"
+        parent="menu_university_academic_category"
+        action="action_university_timetable_slot"
+        sequence="60"
+        groups="school_management.group_school_teacher"
+    />
+
+    <!-- ==================== 4.5 ASSIGNMENTS ==================== -->
+    <menuitem
+        id="menu_university_assignments_category"
+        name="Assignments"
         parent="menu_school_root"
-        action="school_management.action_university_settings"
-        sequence="90"
-        groups="base.group_system"
+        sequence="45"
+        groups="school_management.group_school_teacher"
+    />
+    <menuitem
+        id="menu_university_lesson_plan"
+        name="Lesson Plans"
+        parent="menu_university_assignments_category"
+        action="action_university_lesson_plan"
+        sequence="10"
+    />
+    <menuitem
+        id="menu_university_grade_assignment"
+        name="Grade Assignments"
+        parent="menu_university_assignments_category"
+        action="action_university_grade_assignment"
+        sequence="20"
+    />
+    <menuitem
+        id="menu_university_student_assignment"
+        name="Student Assignments"
+        parent="menu_university_assignments_category"
+        action="action_university_student_assignment"
+        sequence="30"
     />
 
     <!-- ==================== 5. ENROLLMENT ==================== -->
@@ -229,7 +256,7 @@
         name="Finance"
         parent="menu_school_root"
         sequence="60"
-        groups="school_management.group_school_admin"
+        groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_fee"
@@ -247,5 +274,39 @@
         sequence="20"
         groups="school_management.group_school_admin"
     />
+    <menuitem
+        id="menu_university_document_signature"
+        name="Document Signatures"
+        parent="menu_university_finance_category"
+        action="action_university_document_signature"
+        sequence="30"
+        groups="base.group_system,school_management.group_school_admin"
+    />
 
+    <!-- ==================== 7. SYSTEM (ADMIN) ==================== -->
+    <menuitem
+        id="menu_university_system"
+        name="System"
+        parent="menu_school_root"
+        sequence="85"
+        groups="base.group_system,school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_capability"
+        name="Capabilities &amp; Roadmap"
+        parent="menu_university_system"
+        action="action_university_capability"
+        sequence="10"
+        groups="base.group_system,school_management.group_school_admin"
+    />
+
+    <!-- ==================== SETTINGS ==================== -->
+    <menuitem
+        id="menu_university_settings"
+        name="Settings"
+        parent="menu_school_root"
+        action="school_management.action_university_settings"
+        sequence="90"
+        groups="base.group_system"
+    />
 </odoo>

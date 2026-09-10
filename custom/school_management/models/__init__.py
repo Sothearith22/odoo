@@ -15,3 +15,11 @@ from . import fee
 from . import payment
 from . import dashboard
 from . import res_config_settings
+from . import document_signature
+from . import capability
+from . import lesson_plan
+from . import assignment
+from . import timetable
+from . import notice_board
+from . import service_hour
+from . import attendance

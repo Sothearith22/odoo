@@ -1,28 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_document_signature_from" model="ir.ui.view">
-    <field name="name">unversity.document.signature.from</field>
-    <field name="name">university.document.signture</field>
+    <record id="view_university_document_signature_list" model="ir.ui.view">
+        <field name="name">university.document.signature.list</field>
+        <field name="model">university.document.signature</field>
         <field name="arch" type="xml">
-            <from>
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="student_id"/>
-                        <field name="fee_id"/>
-                        <field name="state" widget="statusbar" />
-                    </group>
-                    <field name="signature" widget="signature"/>
-                    <button name="action_sign" string="Confirm Signature" type="object" invisible="state == 'signed'"/>
-                </sheet>
-            </from>
+            <list string="Document Signatures">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="fee_id"/>
+                <field name="signed_name"/>
+                <field name="state" widget="badge" decoration-info="state == 'pending'" decoration-success="state == 'signed'"/>
+                <field name="signed_on"/>
+            </list>
         </field>
     </record>
 
-    <record id="action_document_signature" model="ir.actions.act.windos">
-        <field name="name">Signatures</field>
-        <field name="res.model">university.document.signature</field>
-        <field name="view_mode">from,list</field>
+    <record id="view_university_document_signature_form" model="ir.ui.view">
+        <field name="name">university.document.signature.form</field>
+        <field name="model">university.document.signature</field>
+        <field name="arch" type="xml">
+            <form string="Document Signature">
+                <header>
+                    <button name="action_signed" string="Confirm Signature" type="object" invisible="state == 'signed'" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,signed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <field name="student_id" readonly="state == 'signed'"/>
+                        <field name="fee_id" domain="[('student_id', '=', student_id)]" readonly="state == 'signed'"/>
+                        <field name="signed_name" readonly="state == 'signed'"/>
+                        <field name="signed_on"/>
+                    </group>
+                    <field name="signature" widget="signature" readonly="state == 'signed'"/>
+                </sheet>
+            </form>
+        </field>
     </record>
 
+    <record id="view_university_document_signature_search" model="ir.ui.view">
+        <field name="name">university.document.signature.search</field>
+        <field name="model">university.document.signature</field>
+        <field name="arch" type="xml">
+            <search string="Search Document Signatures">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="fee_id"/>
+                <field name="signed_name"/>
+                <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Signed" name="signed" domain="[('state', '=', 'signed')]"/>
+            </search>
+        </field>
+    </record>
 
+    <record id="action_university_document_signature" model="ir.actions.act_window">
+        <field name="name">Document Signatures</field>
+        <field name="res_model">university.document.signature</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_university_document_signature_search"/>
+    </record>
 </odoo>

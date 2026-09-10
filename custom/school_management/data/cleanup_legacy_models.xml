@@ -4,5 +4,4 @@
         Cleanup legacy school.* actions/views left after renaming models to university.*
         These IDs were already cleaned up by the ORM during previous upgrades.
     -->
-    <delete model="ir.actions.act_window" id="action_school_management_module"/>
 </odoo>

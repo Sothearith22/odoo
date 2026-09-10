@@ -192,7 +192,7 @@
                                     <field name="total_amount" widget="monetary" sum="Total"/>
                                     <field name="paid_amount" widget="monetary" sum="Paid"/>
                                     <field name="balance" widget="monetary" sum="Balance"/>
-                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'paid'" decoration-warning="state == 'posted'"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'paid'" decoration-warning="state == 'posted'" decoration-danger="state == 'canceled'"/>
                                 </list>
                             </field>
                             <separator string="Payments"/>
@@ -203,7 +203,7 @@
                                     <field name="fee_id"/>
                                     <field name="payment_method"/>
                                     <field name="amount" widget="monetary" sum="Total Payments"/>
-                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-danger="state == 'canceled'"/>
                                 </list>
                             </field>
                         </page>

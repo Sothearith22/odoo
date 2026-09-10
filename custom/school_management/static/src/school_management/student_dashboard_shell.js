@@ -41,6 +41,12 @@ class StudentDashboardShell extends Component {
                     "fee_total",
                     "fee_paid",
                     "fee_balance",
+                    "email",
+                    "phone",
+                    "gender",
+                    "date_of_birth",
+                    "address",
+                    "image_1920",
                 ],
                 { limit: 1 },
             );
@@ -70,6 +76,19 @@ class StudentDashboardShell extends Component {
 
     navigate(actionXmlId) {
         this.action.doAction(actionXmlId, { clearBreadcrumbs: true });
+    }
+
+    openMyProfile() {
+        if (!this.state.student) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "My Profile",
+            res_model: "university.student",
+            res_id: this.state.student.id,
+            views: [[false, "form"]],
+            view_mode: "form",
+            context: { student_self_view: true },
+        });
     }
 }
 

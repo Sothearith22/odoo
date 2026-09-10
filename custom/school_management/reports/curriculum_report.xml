@@ -24,7 +24,7 @@
         <field name="model_id" ref="model_university_program"/>
         <field name="state">code</field>
         <field name="code">
-action = model.action_print_curriculum_5plus()
+            action = model.action_print_curriculum_5plus()
         </field>
         <field name="binding_model_id" ref="model_university_enrollment"/>
         <field name="binding_type">action</field>

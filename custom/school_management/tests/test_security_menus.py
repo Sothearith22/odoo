@@ -30,6 +30,7 @@ class TestSecurityMenus(TransactionCase):
         self.root_menu = self.env.ref("school_management.menu_school_root")
         self.dashboard_menu = self.env.ref("school_management.menu_school_dashboard")
         self.finance_menu = self.env.ref("school_management.menu_university_finance_category")
+        self.signature_menu = self.env.ref("school_management.menu_university_document_signature")
         self.student_menu = self.env.ref("school_management.menu_school_student_category")
         self.academic_year_menu = self.env.ref("school_management.menu_university_academic_year")
         self.subject_menu = self.env.ref("school_management.menu_university_subject")
@@ -86,6 +87,41 @@ class TestSecurityMenus(TransactionCase):
         # Read the record to trigger compute fields safely.
         self.assertEqual(rec.with_user(user).fee_count, 0)
 
+        with self.assertLogs("odoo.addons.school_management.models.dashboard", level="INFO") as logs:
+            rec.with_user(user).invalidate_recordset()
+            self.assertEqual(rec.with_user(user).fee_count, 0)
+        self.assertTrue(any("university.fee" in message for message in logs.output))
+
+    def test_dashboard_chart_data_respects_scope_without_access_error(self):
+        user = self._make_user("t4", self.g_teacher)
+        chart_data = self.Dashboard.with_user(user).get_chart_data()
+
+        self.assertIn("program_distribution", chart_data)
+        self.assertIn("student_status", chart_data)
+        self.assertEqual(chart_data["recent_payments"], [])
+
+    def test_university_admin_can_read_all_dashboard_sources(self):
+        user = self._make_user("full_admin", self.g_admin)
+        for model in (
+            "university.faculty",
+            "university.department",
+            "university.program",
+            "university.academic.year",
+            "university.semester",
+            "university.teacher",
+            "university.student",
+            "university.subject",
+            "university.classroom",
+            "university.class.section",
+            "university.enrollment",
+            "university.fee",
+            "university.payment",
+            "university.document.signature",
+        ):
+            records = self.env[model].with_user(user)
+            self.assertTrue(records.has_access("read"), model)
+            records.search([], limit=1)
+
     # ------------------------------------------------------------------ #
     # 5. Unauthorized user cannot read protected finance models
     # ------------------------------------------------------------------ #
@@ -99,6 +135,18 @@ class TestSecurityMenus(TransactionCase):
         with self.assertRaises(AccessError):
             self.env["university.academic.year"].with_user(user).search([], limit=1)
 
+    def test_student_sees_only_the_linked_student_record(self):
+        user = self._make_user("student_scope", self.g_student)
+        own_student = self.Student.create(
+            {"name": "Own Student", "user_id": user.id}
+        )
+        other_student = self.Student.create({"name": "Other Student"})
+
+        visible = self.Student.with_user(user).search([])
+
+        self.assertIn(own_student, visible)
+        self.assertNotIn(other_student, visible)
+
     # ------------------------------------------------------------------ #
     # Root menu visibility per role
     # ------------------------------------------------------------------ #
@@ -107,6 +155,21 @@ class TestSecurityMenus(TransactionCase):
         self.assertIn(self.g_user, menu_groups)
         system = self.env.ref("base.group_system")
         self.assertIn(system, menu_groups)
+
+    def test_university_root_and_dashboard_menu_open_dashboard_action(self):
+        dashboard_action = self.env.ref("school_management.action_school_dashboard_shell")
+        legacy_dashboard_action = self.env.ref("school_management.action_school_dashboard")
+        department_action = self.env.ref("school_management.action_university_department")
+
+        self.assertEqual(self.root_menu.action, dashboard_action)
+        self.assertEqual(self.dashboard_menu.action, dashboard_action)
+        self.assertEqual(dashboard_action.type, "ir.actions.client")
+        self.assertEqual(dashboard_action.tag, "school_dashboard_shell")
+        self.assertNotEqual(dashboard_action, department_action)
+        self.assertFalse(
+            any(menu.action == legacy_dashboard_action for menu in self.env["ir.ui.menu"].search([])),
+            "The legacy school.dashboard action must not be attached to a menu",
+        )
 
     def test_root_menu_visible_to_teacher_hod_dean_admin(self):
         for group in (self.g_teacher, self.g_hod, self.g_dean, self.g_admin):
@@ -121,9 +184,26 @@ class TestSecurityMenus(TransactionCase):
     # ------------------------------------------------------------------ #
     def test_finance_menu_admin_only(self):
         finance_groups = self.finance_menu.group_ids
+        signature_groups = self.signature_menu.group_ids
+        system = self.env.ref("base.group_system")
         self.assertIn(self.g_admin, finance_groups)
+        self.assertIn(self.g_admin, signature_groups)
+        self.assertIn(system, finance_groups)
+        self.assertIn(system, signature_groups)
         self.assertNotIn(self.g_teacher, finance_groups)
+        self.assertNotIn(self.g_teacher, signature_groups)
         self.assertNotIn(self.g_dean, finance_groups)
+        self.assertNotIn(self.g_dean, signature_groups)
+
+    def test_document_signature_menu_opens_finance_action(self):
+        action = self.env.ref("school_management.action_university_document_signature")
+        system = self.env.ref("base.group_system")
+
+        self.assertEqual(self.signature_menu.parent_id, self.finance_menu)
+        self.assertEqual(self.signature_menu.action, action)
+        self.assertEqual(action.res_model, "university.document.signature")
+        self.assertIn(self.g_admin, self.signature_menu.group_ids)
+        self.assertIn(system, self.signature_menu.group_ids)
 
     def test_academic_year_menu_admin_only(self):
         groups = self.academic_year_menu.group_ids

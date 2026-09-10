@@ -28,3 +28,29 @@
     right: 1.25rem;
     font-size: 1.25rem;
 }
+
+// Profile card avatar
+.o_student_avatar_wrap {
+    width: 96px;
+    height: 96px;
+}
+
+.o_student_avatar {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border: 3px solid #e5e7eb;
+}
+
+.o_student_avatar_placeholder {
+    width: 96px;
+    height: 96px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: 3px solid #e5e7eb;
+}
+
+.o_student_profile_card {
+    .card-footer {
+        background: transparent;
+    }
+}

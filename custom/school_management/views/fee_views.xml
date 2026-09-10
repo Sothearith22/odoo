@@ -6,15 +6,20 @@
         <field name="name">university.fee.list</field>
         <field name="model">university.fee</field>
         <field name="arch" type="xml">
-            <list string="Fee Invoices">
+            <list string="Fee Invoices" multi_edit="1">
                 <field name="name"/>
                 <field name="student_id"/>
-                <field name="date"/>
-                <field name="due_date"/>
-                <field name="total_amount"/>
-                <field name="paid_amount"/>
+                <field name="date" optional="show"/>
+                <field name="due_date" optional="hide"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="paid_amount" sum="Paid"/>
                 <field name="balance"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'paid'" decoration-warning="state == 'posted'"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'paid'"
+                       decoration-warning="state == 'posted'"
+                       decoration-danger="state == 'canceled'"/>
             </list>
         </field>
     </record>
@@ -26,13 +31,19 @@
         <field name="arch" type="xml">
             <form string="Fee Invoice">
                 <header>
-                    <button name="action_post" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_post" string="Confirm Invoice" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_request_signature" string="Request Signature" type="object" invisible="state != 'posted'" class="oe_highlight" groups="base.group_system,school_management.group_school_admin"/>
                     <button name="action_print_receipt" string="Print Receipt" type="object" invisible="state != 'paid'" class="oe_highlight"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state == 'canceled'"/>
                     <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'canceled'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,paid"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_signatures" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="signature_count" widget="statinfo" string="Signatures"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name"/>
@@ -71,7 +82,7 @@
                                     <field name="date"/>
                                     <field name="payment_method"/>
                                     <field name="amount" sum="Total Payments"/>
-                                    <field name="state" widget="badge" decoration-success="state == 'posted'"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-danger="state == 'canceled'"/>
                                 </list>
                             </field>
                         </page>

@@ -1,0 +1,58 @@
+.school_dashboard_shell {
+    background-color: #f4f6f9;
+    min-height: 100%;
+    padding-bottom: 2rem;
+
+    .card {
+        border: 1px solid #e3e6f0;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        transition: box-shadow 0.2s ease;
+
+        &.cursor-pointer {
+            cursor: pointer;
+            &:hover {
+                box-shadow: 0 0.5rem 1.75rem 0 rgba(58, 59, 69, 0.2);
+                transform: translateY(-2px);
+            }
+        }
+
+        .card-header {
+            border-bottom: 1px solid #e3e6f0;
+        }
+    }
+
+    h2 {
+        font-weight: 700;
+        color: #3a3b45;
+    }
+
+    h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #3a3b45;
+    }
+
+    h6.text-muted {
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .table {
+        font-size: 0.875rem;
+
+        thead {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+    }
+}

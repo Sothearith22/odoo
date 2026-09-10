@@ -1,143 +1,765 @@
-.o_school_shell {
-    --brand-900: #1b2a4a;
-    --brand-700: #29385c;
-    --brand-600: #34456e;
-    --accent: #b8863f;
-    --accent-soft: #f6ead4;
-    --bg: #f6f5f2;
-    --surface: #ffffff;
-    --border: #e6e2d8;
-    --ink: #1f2430;
+// University Management System - Dashboard Stylesheet
+// Cohesive Design System Tokens, Animations, and Layout Utilities
 
-    height: 100%;
-    width: 100%;
-    background-color: var(--bg);
 
-    .o_school_sidebar {
-        width: 250px;
-        flex-shrink: 0;
-        height: 100%;
-        background-color: var(--brand-900);
-        transition: width 0.2s ease;
-        overflow: hidden;
-    }
 
-    &.o_school_shell_collapsed .o_school_sidebar {
-        width: 72px;
-    }
-    &.o_school_shell_collapsed .o_school_sidebar_label,
-    &.o_school_shell_collapsed .o_school_nav_group_label {
-        display: none;
-    }
-    &.o_school_shell_collapsed .o_school_nav_btn {
-        justify-content: center;
-    }
+// -------------------------------------------------------------
+// Executive Dashboard Layout & Component Tokens
+// -------------------------------------------------------------
 
-    .o_school_sidebar_header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-        color: #fff;
-    }
+.o_school_dashboard_layout {
+    // Design System Tokens
+    --brand-primary: #1b2a4a;
+    --brand-primary-hover: #29385c;
+    --brand-primary-soft: #edf2f9;
 
-    .o_school_sidebar_footer {
-        flex-shrink: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-    }
+    --brand-emerald: #1f7a5c;
+    --brand-emerald-hover: #19624a;
+    --brand-emerald-soft: #eaf6f1;
 
-    .o_school_collapse_btn {
-        color: #fff;
-        background: transparent;
-        border: none;
-    }
-    .o_school_collapse_btn:hover {
-        color: var(--accent);
-    }
+    --brand-amber: #b8863f;
+    --brand-amber-hover: #986d30;
+    --brand-amber-soft: #fcf4e8;
 
-    .o_school_nav_group_label {
-        color: rgba(255, 255, 255, 0.45);
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        padding: 0.5rem 0.75rem 0.25rem;
-    }
+    --brand-sapphire: #3a6ea5;
+    --brand-sapphire-hover: #2b537f;
+    --brand-sapphire-soft: #edf4fb;
 
-    .o_school_nav_group_active .o_school_nav_group_label {
-        color: var(--accent);
-    }
+    --color-success: #1f7a5c;
+    --color-success-bg: #e8f5f0;
+    --color-warning: #d97706;
+    --color-warning-bg: #fef3c7;
+    --color-danger: #dc2626;
+    --color-danger-bg: #fef2f2;
+    --color-info: #2563eb;
+    --color-info-bg: #eff6ff;
 
-    .o_school_nav_btn {
-        color: rgba(255, 255, 255, 0.85);
-        border: none;
-        border-radius: 6px;
-        padding: 0.45rem 0.75rem;
-        transition: background-color 0.15s ease;
-    }
-    .o_school_nav_btn:hover {
-        background-color: var(--brand-700);
-        color: #fff;
-    }
-    .o_school_nav_btn.active {
-        background-color: var(--brand-600);
-        color: #fff;
-        box-shadow: inset 3px 0 0 var(--accent);
-    }
-    .o_school_nav_icon {
-        width: 18px;
-        text-align: center;
+    --bg-page: #f8f9fc;
+    --surface-card: #ffffff;
+    --border-color: #e2e8f0;
+    --border-subtle: #f1f5f9;
+
+    --text-heading: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    --shadow-resting: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+    --shadow-elevated: 0 8px 24px rgba(27, 42, 74, 0.08), 0 2px 6px rgba(27, 42, 74, 0.04);
+    --shadow-focus: 0 0 0 3px rgba(27, 42, 74, 0.18);
+
+    background-color: var(--bg-page);
+    color: var(--text-body);
+    font-family: inherit;
+
+    // Header & Actions
+    .dashboard-header {
+        background-color: var(--surface-card);
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
     }
 
-    .o_school_topbar {
-        background-color: var(--surface);
-        border-bottom: 1px solid var(--border);
-    }
-    .o_school_title {
-        color: var(--ink);
+    .dashboard-title {
+        color: var(--text-heading);
+        font-weight: 700;
+        letter-spacing: -0.02em;
     }
 
-    .o_school_loading {
-        position: absolute;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.6);
-        color: var(--brand-900);
-        z-index: 5;
+    .btn-brand-primary {
+        background-color: var(--brand-primary);
+        color: #ffffff;
+        border: 1px solid var(--brand-primary);
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        transition: all 0.15s ease;
+
+        &:hover, &:focus {
+            background-color: var(--brand-primary-hover);
+            border-color: var(--brand-primary-hover);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(27, 42, 74, 0.15);
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+        }
     }
 
-    .o_school_kpi_card {
-        border: 1px solid var(--border);
-        border-top: 3px solid var(--kpi-accent, var(--accent));
-        border-radius: 10px;
-        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    .btn-brand-outline {
+        background-color: #ffffff;
+        color: var(--text-heading);
+        border: 1px solid var(--border-color);
+        font-weight: 500;
+        border-radius: var(--radius-md);
+        transition: all 0.15s ease;
+
+        &:hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            color: var(--brand-primary);
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+        }
     }
-    .o_school_kpi_card:hover {
-        box-shadow: 0 6px 16px rgba(27, 42, 74, 0.08);
-        transform: translateY(-2px);
-        cursor: pointer;
+
+    .btn-refresh {
+        color: var(--text-muted);
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        transition: all 0.15s ease;
+
+        &:hover {
+            color: var(--brand-primary);
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        &.is-refreshing i {
+            animation: o-spin 0.8s linear infinite;
+        }
     }
-    .o_school_kpi_card.o_disabled,
-    .o_school_kpi_card.o_disabled:hover,
-    .o_disabled,
-    .o_disabled:hover {
+
+    // Interactive KPI Cards (Tier 1)
+    .o_kpi_card {
+        background-color: var(--surface-card);
+        border: 1px solid var(--border-color);
+        border-top: 3px solid var(--card-accent, var(--brand-primary));
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-resting);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+        outline: none;
         cursor: default;
-        transform: none;
-        box-shadow: none;
-        opacity: 0.6;
-    }
-    .o_school_kpi_icon {
-        color: var(--kpi-accent, var(--accent));
+
+        &:hover {
+            transform: none;
+            box-shadow: var(--shadow-elevated);
+            border-color: #cbd5e1;
+
+            .o_kpi_action_hint {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        &:focus-visible {
+            box-shadow: var(--shadow-focus);
+            border-color: var(--card-accent, var(--brand-primary));
+        }
+
+        &.o_disabled {
+            cursor: default;
+            transform: none !important;
+            box-shadow: var(--shadow-resting) !important;
+            opacity: 0.7;
+
+            .o_kpi_action_hint {
+                display: none;
+            }
+        }
+
+        .o_kpi_icon_box {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background-color: var(--card-accent-soft, var(--brand-primary-soft));
+            color: var(--card-accent, var(--brand-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .o_kpi_value {
+            color: var(--text-heading);
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .o_kpi_label {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .o_kpi_action_btn {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--card-accent, var(--brand-primary));
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            padding: 0.2rem 0.45rem;
+
+            &:hover,
+            &:focus {
+                background-color: var(--card-accent-soft, var(--brand-primary-soft));
+                border-color: var(--card-accent-soft, var(--brand-primary-soft));
+                color: var(--card-accent, var(--brand-primary));
+            }
+        }
     }
 
-    .o_school_panel {
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        transition: box-shadow 0.15s ease;
+    // Secondary Academic Metrics Ribbon (Tier 2)
+    .o_secondary_kpi_bar {
+        background-color: var(--surface-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-resting);
+        padding: 0.75rem 1rem;
+
+        .o_sec_item {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            transition: background-color 0.15s ease;
+            cursor: default;
+
+            &:hover {
+                background-color: #f8fafc;
+            }
+
+            &:focus-visible {
+                outline: none;
+                box-shadow: var(--shadow-focus);
+            }
+
+            .o_sec_action_btn {
+                color: var(--brand-primary);
+                border-radius: var(--radius-sm);
+                padding: 0.15rem 0.4rem;
+
+                &:hover,
+                &:focus {
+                    background-color: var(--brand-primary-soft);
+                    color: var(--brand-primary-hover);
+                }
+            }
+
+            .o_sec_icon {
+                font-size: 1.1rem;
+                color: var(--text-muted);
+                width: 24px;
+                text-align: center;
+            }
+
+            .o_sec_label {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .o_sec_count {
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: var(--text-heading);
+                font-variant-numeric: tabular-nums;
+            }
+        }
     }
-    .o_school_panel[role="button"] {
-        cursor: pointer;
+
+    // Panels (Charts, Finance, Operations)
+    .o_dashboard_panel {
+        background-color: var(--surface-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-resting);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .o_panel_header {
+            background-color: var(--surface-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .o_panel_title {
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: var(--text-heading);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .o_panel_link {
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: var(--brand-primary);
+                text-decoration: none;
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--radius-sm);
+                transition: all 0.15s ease;
+
+                &:hover {
+                    color: var(--brand-emerald);
+                    background-color: var(--brand-emerald-soft);
+                }
+
+                &:focus-visible {
+                    outline: none;
+                    box-shadow: var(--shadow-focus);
+                }
+            }
+        }
+
+        .o_panel_body {
+            padding: 1.25rem;
+            flex-grow: 1;
+        }
     }
-    .o_school_panel[role="button"]:hover {
-        box-shadow: 0 4px 12px rgba(27, 42, 74, 0.06);
+
+    // Financial Health Meter
+    .o_finance_stat {
+        padding: 0.75rem 0.5rem;
+        text-align: center;
+
+        .o_finance_label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .o_finance_num {
+            font-size: 1.45rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
     }
-    .o_school_panel_header {
-        background-color: var(--surface);
-        border-bottom: 1px solid var(--border);
+
+    .o_finance_progress_bar {
+        height: 10px;
+        border-radius: var(--radius-full, 9999px);
+        background-color: #f1f5f9;
+        overflow: hidden;
+        display: flex;
+
+        .o_bar_paid {
+            background-color: var(--brand-emerald);
+            transition: width 0.6s ease;
+        }
+
+        .o_bar_unpaid {
+            background-color: var(--color-danger);
+            transition: width 0.6s ease;
+        }
+    }
+
+    // Recent Payments Feed
+    .o_payment_list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        .o_payment_item {
+            padding: 0.85rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background-color 0.15s ease;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background-color: #fbfcfe;
+            }
+
+            .o_student_avatar {
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background-color: var(--brand-primary-soft);
+                color: var(--brand-primary);
+                font-weight: 700;
+                font-size: 0.85rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .o_payment_name {
+                font-weight: 600;
+                color: var(--text-heading);
+                font-size: 0.9rem;
+            }
+
+            .o_payment_date {
+                font-size: 0.78rem;
+                color: var(--text-muted);
+            }
+
+            .o_payment_amount {
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--brand-emerald);
+                font-variant-numeric: tabular-nums;
+            }
+        }
+    }
+
+    // Quick Operations Buttons
+    .o_quick_op_btn {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--text-heading);
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-align: left;
+        width: 100%;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+            color: var(--brand-primary);
+
+            .fa-chevron-right {
+                transform: translateX(4px);
+                color: var(--brand-primary) !important;
+            }
+        }
+
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+            border-color: var(--brand-primary);
+        }
+
+        .fa-chevron-right {
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+    }
+
+    // System Capabilities & Roadmap Panel
+    .o_capability_body {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+
+        // Overall / category progress bars
+        .o_cap_progress {
+            height: 7px;
+            border-radius: 9999px;
+            background-color: #f1f5f9;
+            overflow: hidden;
+
+            .o_cap_progress_fill {
+                height: 100%;
+                border-radius: 9999px;
+                background-color: var(--brand-emerald);
+                transition: width 0.6s ease;
+            }
+
+            .o_cap_fill_empty {
+                background-color: #cbd5e1;
+            }
+        }
+
+        .o_cap_progress_sm {
+            height: 5px;
+            margin-top: 0.25rem;
+        }
+
+        .o_cap_pct {
+            color: var(--text-heading);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .o_cap_categories {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+
+            .o_cap_cat_head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+
+                .o_cap_cat_label {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    color: var(--text-body);
+                    font-weight: 600;
+
+                    .fa {
+                        width: 14px;
+                        text-align: center;
+                        color: var(--brand-sapphire);
+                    }
+                }
+
+                .o_cap_cat_count {
+                    font-variant-numeric: tabular-nums;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        // Phase stepper chips
+        .o_cap_phases {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .o_cap_phase_chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.28rem 0.55rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+
+            &.o_cap_phase_done {
+                background-color: var(--brand-emerald-soft);
+                border-color: var(--brand-emerald);
+                color: var(--brand-emerald);
+            }
+
+            &.o_cap_phase_todo {
+                background-color: #ffffff;
+                color: var(--text-muted);
+            }
+
+            .o_cap_phase_count {
+                background-color: rgba(255, 255, 255, 0.7);
+                border: 1px solid currentColor;
+                color: inherit;
+                font-size: 0.68rem;
+                line-height: 1;
+                padding: 0.1rem 0.35rem;
+            }
+
+            .o_cap_phase_check {
+                font-size: 0.7rem;
+            }
+        }
+
+        // Scrollable capability feed
+        .o_cap_items_scroll {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            max-height: 210px;
+            overflow-y: auto;
+        }
+
+        .o_cap_item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.4rem 0.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            transition: background-color 0.15s ease;
+            text-decoration: none;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background-color: #fbfcfe;
+
+                .o_cap_item_edit {
+                    opacity: 1;
+                    color: var(--brand-emerald);
+                }
+            }
+
+            &.o_cap_item_clickable {
+                cursor: pointer;
+
+                &:hover {
+                    background-color: var(--brand-emerald-soft);
+                }
+
+                &:focus-visible {
+                    outline: none;
+                    background-color: var(--brand-emerald-soft);
+                    box-shadow: var(--shadow-focus);
+                }
+            }
+
+            .o_cap_item_icon {
+                width: 18px;
+                text-align: center;
+                flex-shrink: 0;
+                font-size: 0.9rem;
+            }
+
+            .o_cap_item_text {
+                flex-grow: 1;
+                min-width: 0;
+            }
+
+            .o_cap_item_name {
+                font-size: 0.84rem;
+                font-weight: 600;
+                color: var(--text-heading);
+            }
+
+            .o_cap_item_meta {
+                font-size: 0.72rem;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+
+                .o_cap_item_meta_sep {
+                    opacity: 0.6;
+                }
+            }
+
+            .o_cap_item_edit {
+                flex-shrink: 0;
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                opacity: 0;
+                transition: opacity 0.15s ease, color 0.15s ease;
+            }
+
+            .o_cap_item_badge {
+                flex-shrink: 0;
+                font-size: 0.7rem;
+                font-weight: 600;
+            }
+        }
+    }
+
+    // Empty States
+    .o_empty_state {
+        text-align: center;
+        padding: 2.5rem 1.5rem;
+
+        .o_empty_icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .o_empty_title {
+            font-weight: 700;
+            color: var(--text-heading);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .o_empty_desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            max-width: 320px;
+            margin: 0 auto;
+        }
+    }
+
+    // Error State
+    .o_dashboard_error {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin: 1.5rem;
+
+        .o_error_icon {
+            color: #dc2626;
+            font-size: 1.75rem;
+        }
+    }
+
+    // Skeleton Shimmer Loading State
+    .o_skeleton_box {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: o-skeleton-shimmer 1.5s infinite;
+        border-radius: var(--radius-sm);
+    }
+}
+
+// Keyframe Animations
+@keyframes o-skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes o-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// Responsive Breakpoints
+@media (max-width: 768px) {
+    .o_school_dashboard_layout {
+        .dashboard-header {
+            padding: 0.75rem 1rem !important;
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+
+        .o_kpi_value {
+            font-size: 1.6rem !important;
+        }
+
+        .o_finance_num {
+            font-size: 1.2rem !important;
+        }
+
+        .dashboard-canvas {
+            padding: 1rem !important;
+        }
     }
 }

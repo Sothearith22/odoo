@@ -6,14 +6,18 @@
         <field name="name">university.payment.list</field>
         <field name="model">university.payment</field>
         <field name="arch" type="xml">
-            <list string="Payments">
+            <list string="Payments" multi_edit="1">
                 <field name="name"/>
                 <field name="student_id"/>
-                <field name="fee_id"/>
-                <field name="date"/>
+                <field name="fee_id" optional="hide"/>
+                <field name="date" optional="show"/>
                 <field name="payment_method"/>
                 <field name="amount" sum="Total Amount"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'posted'"
+                       decoration-danger="state == 'canceled'"/>
             </list>
         </field>
     </record>
@@ -25,7 +29,7 @@
         <field name="arch" type="xml">
             <form string="Payment">
                 <header>
-                    <button name="action_post" string="Confirm" type="object" invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_post" string="Confirm Payment" type="object" invisible="state != 'draft'" class="oe_highlight"/>
                     <button name="action_print_receipt" string="Print Receipt" type="object" invisible="state != 'posted'" class="oe_highlight"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state == 'canceled'"/>
                     <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'canceled'"/>
@@ -38,12 +42,12 @@
                         </h1>
                     </div>
                     <group>
-                        <group>
+                        <group string="Payment Details">
                             <field name="student_id" readonly="state != 'draft'"/>
                             <field name="fee_id" readonly="state != 'draft'"/>
                             <field name="amount" readonly="state != 'draft'"/>
                         </group>
-                        <group>
+                        <group string="Processing">
                             <field name="date" readonly="state != 'draft'"/>
                             <field name="payment_method" readonly="state != 'draft'"/>
                             <field name="reference" readonly="state != 'draft'"/>

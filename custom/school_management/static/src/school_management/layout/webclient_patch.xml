@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-inherit="web.WebClient" t-inherit-mode="extension" owl="1">
-        <!-- Hide standard navbar conditionally -->
+        <!-- Keep the standard navbar (module menus, app switcher, systray/User
+             menu) visible inside the school app; only fullscreen hides it. -->
         <xpath expr="//NavBar" position="attributes">
-            <attribute name="t-if">!state.fullscreen and !schoolState.isActive</attribute>
+            <attribute name="t-if">!state.fullscreen</attribute>
         </xpath>
         
         <!-- Conditionally wrap ActionContainer -->

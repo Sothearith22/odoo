@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_university_lesson_plan_tree" model="ir.ui.view">
+        <field name="name">university.lesson.plan.tree</field>
+        <field name="model">university.lesson.plan</field>
+        <field name="arch" type="xml">
+            <list string="Lesson Plans">
+                <field name="name"/>
+                <field name="subject_id"/>
+                <field name="section_id"/>
+                <field name="teacher_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_lesson_plan_form" model="ir.ui.view">
+        <field name="name">university.lesson.plan.form</field>
+        <field name="model">university.lesson.plan</field>
+        <field name="arch" type="xml">
+            <form string="Lesson Plan">
+                <header>
+                    <button name="action_approve" type="object" string="Approve" class="oe_highlight" invisible="state == 'approved'"/>
+                    <button name="action_draft" type="object" string="Reset to Draft" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Lesson Plan Title"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="section_id" string="Grade"/>
+                            <field name="subject_id"/>
+                            <field name="share_to" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="teacher_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lesson Plan" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_university_lesson_plan" model="ir.actions.act_window">
+        <field name="name">Lesson Plans</field>
+        <field name="res_model">university.lesson.plan</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

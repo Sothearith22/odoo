@@ -5,6 +5,7 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-set="fee" t-value="o.fee_id"/>
+                <t t-set="signature" t-value="fee and fee.signature_ids.filtered(lambda record: record.state == 'signed' and record.signature).sorted('signed_on', reverse=True)[:1]"/>
                 <t t-call="web.external_layout">
                     <div class="page">
 
@@ -142,6 +143,22 @@
                                         </td>
                                     </tr>
                                 </table>
+                            </div>
+                        </div>
+
+                        <!-- Confirmed document signature -->
+                        <div t-if="signature" class="row mt-5">
+                            <div class="col-6 offset-6 text-center">
+                                <div style="font-weight: 600; margin-bottom: 6px;">Authorized Signature</div>
+                                <img t-att-src="image_data_uri(signature.signature)"
+                                     alt="Signature"
+                                     style="max-width: 220px; max-height: 90px;"/>
+                                <div t-if="signature.signed_name">
+                                    <span t-field="signature.signed_name"/>
+                                </div>
+                                <div t-if="signature.signed_on" class="text-muted">
+                                    Signed on <span t-field="signature.signed_on"/>
+                                </div>
                             </div>
                         </div>
 

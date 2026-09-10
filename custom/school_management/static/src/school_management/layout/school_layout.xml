@@ -2,82 +2,217 @@
 <templates xml:space="preserve">
 
   <t t-name="school_management.SchoolLayout" owl="1">
-    <div class="o_school_shell d-flex w-100 h-100" t-att-class="{ 'o_school_shell_collapsed': state.collapsed }">
+    <div class="o_school_shell d-flex w-100 h-100" t-att-class="{ 'o_school_shell_collapsed': state.collapsed, 'o_school_mobile_open': state.mobileOpen }">
 
-      <div class="o_school_sidebar d-flex flex-column">
+      <!-- Mobile Touch Backdrop -->
+      <div t-if="state.mobileOpen" class="o_school_sidebar_backdrop d-lg-none" t-on-click="() => this.closeMobileDrawer()"/>
+
+      <!-- ========================================================= -->
+      <!-- SIDEBAR CONTAINER                                         -->
+      <!-- ========================================================= -->
+      <aside class="o_school_sidebar d-flex flex-column" aria-label="University Navigation">
+        
+        <!-- 1. Header with Brand Crest & Title -->
         <div class="o_school_sidebar_header d-flex align-items-center justify-content-between p-3">
-          <div class="d-flex align-items-center overflow-hidden">
-            <i class="fa fa-university fa-lg me-2 flex-shrink-0" aria-hidden="true"/>
-            <span class="fw-bold text-white text-nowrap o_school_sidebar_label">University</span>
+          <div class="d-flex align-items-center overflow-hidden cursor-pointer" t-on-click="() => this.openDashboard()" title="University Portal Home">
+            <div class="o_school_crest me-2 flex-shrink-0">
+              <i class="fa fa-graduation-cap text-gold" aria-hidden="true"/>
+            </div>
+            <div class="overflow-hidden o_school_sidebar_label">
+              <span class="fw-bold text-white text-nowrap d-block lh-1">University</span>
+              <span class="text-white-50 text-nowrap" style="font-size: 0.72rem; letter-spacing: 0.04em;">PORTAL OPERATIONS</span>
+            </div>
           </div>
-          <button class="btn btn-sm o_school_collapse_btn d-none d-lg-inline-flex" t-on-click="() => this.toggleSidebar()" aria-label="Toggle sidebar">
+          <button class="btn btn-sm o_school_collapse_btn d-inline-flex" t-on-click="() => this.toggleSidebar()" aria-label="Toggle navigation sidebar">
             <i class="fa fa-bars" aria-hidden="true"/>
           </button>
         </div>
 
+        <!-- 2. Quick Search Filter (Expanded Mode Only) -->
+        <div t-if="!state.collapsed" class="px-2 pt-2 pb-1 o_school_search_wrapper">
+          <div class="position-relative">
+            <i class="fa fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-white-50 small" aria-hidden="true"/>
+            <input type="text"
+                   class="form-control form-control-sm ps-4 o_school_search_input"
+                   placeholder="Quick search..."
+                   t-model="state.searchQuery"
+                   aria-label="Filter sidebar navigation items"/>
+          </div>
+        </div>
+
+        <!-- 3. Scrollable Navigation Body -->
         <div class="o_school_sidebar_body flex-grow-1 overflow-auto p-2">
-          <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+          
+          <!-- Primary Dashboard Item -->
+          <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center mb-1"
                   t-att-class="{ 'active': this.isActive('dashboard') }"
                   t-att-aria-current="this.isActive('dashboard') ? 'page' : undefined"
                   t-on-click="() => this.openDashboard()"
+                  data-tooltip="Dashboard"
                   title="Dashboard">
             <i class="fa fa-dashboard fa-lg o_school_nav_icon" aria-hidden="true"/>
             <span class="ms-2 o_school_sidebar_label">Dashboard</span>
           </button>
 
-          <t t-foreach="state.visibleNavGroups" t-as="group" t-key="group.label">
-            <div class="o_school_nav_group" t-att-class="{ 'mt-1': group_index === 0, 'mt-2': group_index !== 0, 'o_school_nav_group_active': this.isGroupActive(group) }">
-              <div class="o_school_nav_group_label o_school_sidebar_label"><t t-out="group.label"/></div>
-              <t t-foreach="group.items" t-as="item" t-key="item.key">
-                <t t-if="!item.adminOnly || state.canBulkEnroll">
-                  <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                          t-att-class="{ 'active': this.isActive(item.key) }"
-                          t-att-aria-current="this.isActive(item.key) ? 'page' : undefined"
-                          t-on-click="() => this.navigate(item.actionXmlId, item.key)"
-                          t-att-title="item.label">
-                    <i class="o_school_nav_icon" t-att-class="item.icon" aria-hidden="true"/><span class="ms-2 o_school_sidebar_label"><t t-out="item.label"/></span>
-                  </button>
+          <!-- Group Sections -->
+          <t t-foreach="this.filteredNavGroups" t-as="group" t-key="group.label">
+            <div class="o_school_nav_group" t-att-class="{ 'mt-2': group_index !== 0, 'o_school_nav_group_active': this.isGroupActive(group) }">
+              
+              <!-- Group Label / Accordion Trigger -->
+              <div class="o_school_nav_group_header d-flex align-items-center justify-content-between"
+                   t-on-click="() => this.toggleGroup(group.label)"
+                   role="button"
+                   tabindex="0"
+                   t-att-aria-expanded="!this.isGroupCollapsed(group.label)">
+                <span class="o_school_nav_group_label o_school_sidebar_label"><t t-out="group.label"/></span>
+                <i t-if="!state.collapsed"
+                   class="fa small o_school_group_chevron me-2 text-white-50"
+                   t-att-class="this.isGroupCollapsed(group.label) ? 'fa-chevron-right' : 'fa-chevron-down'"
+                   aria-hidden="true"/>
+              </div>
+
+              <!-- Group Items -->
+              <div t-if="!this.isGroupCollapsed(group.label)" class="o_school_group_items">
+                <t t-foreach="group.items" t-as="item" t-key="item.key">
+                  <t t-if="!item.adminOnly || state.canBulkEnroll">
+                    <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                            t-att-class="{ 'active': this.isActive(item.key) }"
+                            t-att-aria-current="this.isActive(item.key) ? 'page' : undefined"
+                            t-on-click="() => this.navigate(item.actionXmlId, item.key)"
+                            t-att-data-tooltip="item.label"
+                            t-att-title="item.label">
+                      <i class="o_school_nav_icon" t-att-class="item.icon" aria-hidden="true"/>
+                      <span class="ms-2 o_school_sidebar_label"><t t-out="item.label"/></span>
+                    </button>
+                  </t>
                 </t>
-              </t>
+              </div>
+
             </div>
           </t>
+
         </div>
 
-        <div class="o_school_sidebar_footer p-2" t-if="state.canManageSettings || state.canManageModules">
-          <button t-if="state.canManageModules"
-                  class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
-                  t-att-class="{ 'active': this.isActive(appsItem.key) }"
-                  t-att-aria-current="this.isActive(appsItem.key) ? 'page' : undefined"
-                  t-on-click="() => this.openApps()"
-                  title="Apps">
-            <i class="fa fa-th-large fa-lg o_school_nav_icon" aria-hidden="true"/>
-            <span class="ms-2 o_school_sidebar_label">Apps</span>
-          </button>
+        <!-- 4. Footer with Apps, Settings & User Profile -->
+        <div class="o_school_sidebar_footer p-2 position-relative">
+          
+          <t t-if="state.canManageModules">
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-att-class="{ 'active': this.isActive(appsItem.key) }"
+                    t-on-click="() => this.openApps()"
+                    data-tooltip="Apps"
+                    title="Apps">
+              <i class="fa fa-th-large fa-lg o_school_nav_icon" aria-hidden="true"/>
+              <span class="ms-2 o_school_sidebar_label">Apps</span>
+            </button>
+          </t>
 
-          <button class="btn o_school_nav_btn o_school_settings_btn w-100 text-start d-flex align-items-center"
-                  t-if="state.canManageSettings"
-                  t-att-class="{ 'active': this.isActive(settingsItem.key) }"
-                  t-att-aria-current="this.isActive(settingsItem.key) ? 'page' : undefined"
-                  t-on-click="() => this.navigate(settingsItem.actionXmlId, settingsItem.key)"
-                  title="Settings">
-            <i class="fa fa-cog fa-lg o_school_nav_icon" aria-hidden="true"/>
-            <span class="ms-2 o_school_sidebar_label">Settings</span>
-          </button>
+          <t t-if="state.canManageSettings">
+            <button class="btn o_school_nav_btn o_school_settings_btn w-100 text-start d-flex align-items-center"
+                    t-att-class="{ 'active': this.isActive(settingsItem.key) }"
+                    t-on-click="() => this.navigate(settingsItem.actionXmlId, settingsItem.key)"
+                    data-tooltip="Settings"
+                    title="Settings">
+              <i class="fa fa-cog fa-lg o_school_nav_icon" aria-hidden="true"/>
+              <span class="ms-2 o_school_sidebar_label">Settings</span>
+            </button>
+          </t>
+
+          <t t-if="state.canManageRoadmap">
+            <button class="btn o_school_nav_btn w-100 text-start d-flex align-items-center"
+                    t-att-class="{ 'active': this.isActive(capabilityItem.key) }"
+                    t-att-aria-current="this.isActive(capabilityItem.key) ? 'page' : undefined"
+                    t-on-click="() => this.navigate(capabilityItem.actionXmlId, capabilityItem.key)"
+                    data-tooltip="Capabilities &amp; Roadmap"
+                    title="Capabilities &amp; Roadmap">
+              <i class="fa fa-cubes fa-lg o_school_nav_icon" aria-hidden="true"/>
+              <span class="ms-2 o_school_sidebar_label">Capabilities &amp; Roadmap</span>
+            </button>
+          </t>
+
+          <!-- User Profile Trigger Card -->
+          <div class="o_school_user_card position-relative mt-2 pt-2 border-top border-white border-opacity-10">
+            <div class="d-flex align-items-center p-2 rounded o_user_profile_trigger cursor-pointer"
+                 t-on-click="() => this.toggleUserMenu()"
+                 title="Current user menu"
+                 data-tooltip="User Account">
+              <div class="o_user_avatar flex-shrink-0" t-esc="state.userInitials"/>
+              <div class="ms-2 overflow-hidden o_school_sidebar_label flex-grow-1">
+                <div class="fw-bold text-white small text-truncate" t-esc="state.userName"/>
+                <div class="text-white-50 text-truncate" style="font-size: 0.72rem;" t-esc="state.userRole"/>
+              </div>
+              <i class="fa fa-ellipsis-v text-white-50 small ms-1 o_school_sidebar_label" aria-hidden="true"/>
+            </div>
+
+            <!-- Floating User Profile Popover -->
+            <div t-if="state.showUserMenu" class="o_school_user_menu shadow-lg position-absolute bottom-100 start-0 mb-2 rounded p-2" style="min-width: 200px; z-index: 1050;">
+              <div class="px-2 py-2 border-bottom border-white border-opacity-10 mb-1">
+                <div class="fw-bold text-white small" t-esc="state.userName"/>
+                <span class="badge bg-success text-white small px-2 py-0" style="font-size: 0.7rem;" t-esc="state.userRole"/>
+              </div>
+              <button class="btn btn-sm text-start text-white w-100 px-2 py-2 o_user_menu_item d-flex align-items-center gap-2" t-on-click="() => this.openProfile()">
+                <i class="fa fa-user-circle text-info" aria-hidden="true"/>My Profile
+              </button>
+              <button class="btn btn-sm text-start text-danger w-100 px-2 py-2 o_user_menu_item d-flex align-items-center gap-2" t-on-click="() => this.logout()">
+                <i class="fa fa-sign-out" aria-hidden="true"/>Log Out
+              </button>
+            </div>
+          </div>
+
         </div>
-      </div>
+      </aside>
 
+      <!-- ========================================================= -->
+      <!-- MAIN WORKSPACE CONTENT                                    -->
+      <!-- ========================================================= -->
       <div class="o_school_content flex-grow-1 d-flex flex-column overflow-auto">
-        <div class="o_school_topbar d-flex align-items-center justify-content-between px-4 py-3">
-          <div>
-            <h3 class="fw-bold mb-0 o_school_title">University Management</h3>
-            <div class="text-muted small">Overview of academic structure, people, subjects, and operations</div>
+        
+        <!-- Shared topbar: the view switch remains available above both dashboards. -->
+        <div t-if="!this.isActive('dashboard') || state.canSwitchStudentView"
+             class="o_school_topbar d-flex align-items-center justify-content-between gap-3 px-4 py-2">
+          <div t-if="!this.isActive('dashboard')" class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none"
+                    t-on-click="() => this.toggleSidebar()"
+                    title="Toggle Navigation Menu">
+              <i class="fa fa-bars" aria-hidden="true"/>
+            </button>
+            <div>
+              <h2 class="h5 fw-bold mb-0 o_school_title text-dark">University Operations</h2>
+              <div class="text-muted small">Academic structure, staff assignments, and record management</div>
+            </div>
+          </div>
+          <div t-else="" class="flex-grow-1"/>
+
+          <div t-if="state.canSwitchStudentView"
+               class="btn-group o_school_view_switcher"
+               role="group"
+               aria-label="Dashboard view">
+            <button type="button"
+                    class="btn btn-sm o_school_view_switch_btn"
+                    t-att-class="{ 'active': !state.isStudentView }"
+                    t-att-aria-pressed="!state.isStudentView"
+                    t-on-click="() => this.switchView('staff')"
+                    title="Show staff dashboard">
+              <i class="fa fa-briefcase me-1" aria-hidden="true"/>Staff View
+            </button>
+            <button type="button"
+                    class="btn btn-sm o_school_view_switch_btn"
+                    t-att-class="{ 'active': state.isStudentView }"
+                    t-att-aria-pressed="state.isStudentView"
+                    t-on-click="() => this.switchView('student')"
+                    title="Show my student dashboard">
+              <i class="fa fa-graduation-cap me-1" aria-hidden="true"/>Student View
+            </button>
           </div>
         </div>
 
+        <!-- Action / View Slot -->
         <div class="flex-grow-1 overflow-auto position-relative bg-view">
           <t t-slot="default"/>
         </div>
+
       </div>
+
     </div>
   </t>
 
