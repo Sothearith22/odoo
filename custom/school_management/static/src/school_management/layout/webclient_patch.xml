@@ -7,16 +7,15 @@
             <attribute name="t-if">!state.fullscreen</attribute>
         </xpath>
         
-        <!-- Conditionally wrap ActionContainer -->
+        <!-- Wrap ActionContainer in SchoolLayout unconditionally. The shell
+             shows/hides its own sidebar via the isActive prop so that the
+             ActionContainer component is never destroyed and re-created: it
+             would otherwise miss the ACTION_MANAGER:UPDATE bus event and
+             render an empty content area. -->
         <xpath expr="//ActionContainer" position="replace">
-            <t t-if="schoolState.isActive">
-                <SchoolLayout>
-                    <ActionContainer/>
-                </SchoolLayout>
-            </t>
-            <t t-else="">
+            <SchoolLayout isActive="schoolState.isActive">
                 <ActionContainer/>
-            </t>
+            </SchoolLayout>
         </xpath>
     </t>
 </templates>
