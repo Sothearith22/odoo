@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="grade_scale_standard_4" model="university.grade.scale">
+        <field name="name">Standard 4.0 GPA</field>
+    </record>
+    <record id="grade_scale_standard_4_a" model="university.grade.scale.line">
+        <field name="scale_id" ref="grade_scale_standard_4"/>
+        <field name="name">A</field>
+        <field name="min_score">90</field>
+        <field name="max_score">100</field>
+        <field name="grade_point">4.0</field>
+        <field name="is_passing" eval="True"/>
+    </record>
+    <record id="grade_scale_standard_4_b" model="university.grade.scale.line">
+        <field name="scale_id" ref="grade_scale_standard_4"/>
+        <field name="name">B</field>
+        <field name="min_score">80</field>
+        <field name="max_score">89.99</field>
+        <field name="grade_point">3.0</field>
+        <field name="is_passing" eval="True"/>
+    </record>
+    <record id="grade_scale_standard_4_c" model="university.grade.scale.line">
+        <field name="scale_id" ref="grade_scale_standard_4"/>
+        <field name="name">C</field>
+        <field name="min_score">70</field>
+        <field name="max_score">79.99</field>
+        <field name="grade_point">2.0</field>
+        <field name="is_passing" eval="True"/>
+    </record>
+    <record id="grade_scale_standard_4_d" model="university.grade.scale.line">
+        <field name="scale_id" ref="grade_scale_standard_4"/>
+        <field name="name">D</field>
+        <field name="min_score">60</field>
+        <field name="max_score">69.99</field>
+        <field name="grade_point">1.0</field>
+        <field name="is_passing" eval="True"/>
+    </record>
+    <record id="grade_scale_standard_4_f" model="university.grade.scale.line">
+        <field name="scale_id" ref="grade_scale_standard_4"/>
+        <field name="name">F</field>
+        <field name="min_score">0</field>
+        <field name="max_score">59.99</field>
+        <field name="grade_point">0.0</field>
+        <field name="is_passing" eval="False"/>
+    </record>
+
+    <record id="assessment_category_assignment" model="university.assessment.category">
+        <field name="sequence">10</field>
+        <field name="name">Assignments</field>
+        <field name="code">ASSIGNMENT</field>
+        <field name="weight">40</field>
+    </record>
+    <record id="assessment_category_attendance" model="university.assessment.category">
+        <field name="sequence">20</field>
+        <field name="name">Attendance</field>
+        <field name="code">ATTENDANCE</field>
+        <field name="weight">10</field>
+    </record>
+    <record id="assessment_category_exam" model="university.assessment.category">
+        <field name="sequence">30</field>
+        <field name="name">Exam</field>
+        <field name="code">EXAM</field>
+        <field name="weight">50</field>
+    </record>
+
+    <record id="timeslot_monday_0800" model="university.timeslot">
+        <field name="day_of_week">0</field>
+        <field name="start_hour">8.0</field>
+        <field name="end_hour">9.5</field>
+    </record>
+    <record id="timeslot_monday_1000" model="university.timeslot">
+        <field name="day_of_week">0</field>
+        <field name="start_hour">10.0</field>
+        <field name="end_hour">11.5</field>
+    </record>
+    <record id="timeslot_wednesday_0800" model="university.timeslot">
+        <field name="day_of_week">2</field>
+        <field name="start_hour">8.0</field>
+        <field name="end_hour">9.5</field>
+    </record>
+    <record id="timeslot_wednesday_1000" model="university.timeslot">
+        <field name="day_of_week">2</field>
+        <field name="start_hour">10.0</field>
+        <field name="end_hour">11.5</field>
+    </record>
+</odoo>

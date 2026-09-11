@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 
 class Teacher(models.Model):
@@ -177,4 +178,81 @@ class Teacher(models.Model):
             self.subject_ids = self.subject_ids.filtered(
                 lambda s: s.department_id == self.department_id
             )
+
+    def action_create_user(self):
+        self.ensure_one()
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can create teacher login accounts."))
+
+        email = (self.email or "").strip()
+        if not email:
+            raise UserError(_("Cannot create user: teacher %s has no email address.") % self.name)
+
+        if self.user_id:
+            raise UserError(_("Teacher %s is already linked to user account %s.") % (self.name, self.user_id.login))
+
+        Users = self.env["res.users"].sudo()
+        teacher_group = self.env.ref("school_management.group_school_teacher")
+        dashboard_group = self.env.ref("school_management.group_teacher_dashboard")
+        internal_group = self.env.ref("base.group_user")
+
+        existing_user = Users.search([("login", "=ilike", email)], limit=1)
+        if existing_user:
+            if existing_user.teacher_id and existing_user.teacher_id != self:
+                raise UserError(
+                    _("Email %(email)s is already linked to another teacher: %(teacher)s.")
+                    % {"email": email, "teacher": existing_user.teacher_id.name}
+                )
+            existing_user.write({
+                "teacher_id": self.id,
+                "group_ids": [
+                    (4, internal_group.id),
+                    (4, teacher_group.id),
+                    (4, dashboard_group.id),
+                ],
+                "password": "password123",
+            })
+            self.sudo().write({"user_id": existing_user.id})
+        else:
+            user = Users.create({
+                "name": self.name,
+                "login": email,
+                "email": email,
+                "password": "password123",
+                "teacher_id": self.id,
+                "group_ids": [(6, 0, [internal_group.id, teacher_group.id, dashboard_group.id])],
+            })
+            self.sudo().write({"user_id": user.id})
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("User Created"),
+                "message": _("Login account created for %s with email '%s' and default password 'password123'.")
+                % (self.name, email),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_reset_password(self):
+        self.ensure_one()
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can reset teacher passwords."))
+
+        if not self.user_id:
+            raise UserError(_("Teacher %s does not have a linked login account.") % self.name)
+
+        self.user_id.sudo().write({"password": "password123"})
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Password Reset"),
+                "message": _("Password for %s has been reset to 'password123'.") % self.name,
+                "type": "success",
+                "sticky": False,
+            },
+        }
 

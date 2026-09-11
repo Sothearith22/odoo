@@ -5,7 +5,7 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t t-set="fee" t-value="o.fee_id"/>
-                <t t-set="signature" t-value="fee and fee.signature_ids.filtered(lambda record: record.state == 'signed' and record.signature).sorted('signed_on', reverse=True)[:1]"/>
+                <t t-set="signature" t-value="fee and fee.sudo().signature_ids.filtered(lambda record: record.state == 'signed' and record.signature).sorted('signed_on', reverse=True)[:1]"/>
                 <t t-call="web.external_layout">
                     <div class="page">
 

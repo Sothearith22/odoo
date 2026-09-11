@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_university_report_card_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="card">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Report Card</h2>
+                        <p><strong>Student:</strong> <t t-esc="card.student_id.name"/></p>
+                        <p><strong>Program:</strong> <t t-esc="card.program_id.name or ''"/></p>
+                        <p><strong>Academic Year:</strong> <t t-esc="card.academic_year_id.name"/> / <strong>Semester:</strong> <t t-esc="card.semester_id.name"/></p>
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th class="text-end">Credits</th>
+                                    <th class="text-end">Score</th>
+                                    <th>Grade</th>
+                                    <th class="text-end">Point</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="card.line_ids" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.subject_id.display_name"/></td>
+                                        <td class="text-end"><t t-esc="line.credits"/></td>
+                                        <td class="text-end"><t t-esc="'%.2f' % line.final_score"/></td>
+                                        <td><t t-esc="line.grade or ''"/></td>
+                                        <td class="text-end"><t t-esc="'%.2f' % line.grade_point"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <p class="text-end"><strong>Term GPA:</strong> <t t-esc="'%.2f' % card.gpa"/></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_university_transcript_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="transcript">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Academic Transcript</h2>
+                        <p><strong>Student:</strong> <t t-esc="transcript.student_id.name"/></p>
+                        <p><strong>Program:</strong> <t t-esc="transcript.program_id.name or ''"/></p>
+                        <table class="table table-sm table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Academic Year</th>
+                                    <th>Semester</th>
+                                    <th>Subject</th>
+                                    <th class="text-end">Credits</th>
+                                    <th class="text-end">Score</th>
+                                    <th>Grade</th>
+                                    <th class="text-end">Point</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="transcript.line_ids" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.academic_year_id.name or ''"/></td>
+                                        <td><t t-esc="line.semester_id.name or ''"/></td>
+                                        <td><t t-esc="line.subject_id.display_name"/></td>
+                                        <td class="text-end"><t t-esc="line.credits"/></td>
+                                        <td class="text-end"><t t-esc="'%.2f' % line.final_score"/></td>
+                                        <td><t t-esc="line.grade or ''"/></td>
+                                        <td class="text-end"><t t-esc="'%.2f' % line.grade_point"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <p class="text-end"><strong>Cumulative GPA:</strong> <t t-esc="'%.2f' % transcript.cumulative_gpa"/></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

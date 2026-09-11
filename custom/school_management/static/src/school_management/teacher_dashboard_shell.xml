@@ -27,32 +27,32 @@
                     <div class="col-md-3">
                         <div class="card h-100 cursor-pointer" t-on-click="() => this.navigate('school_management.action_university_timetable_slot')">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2">Total Scheduled Classes</h6>
-                                <h3 t-esc="state.stats.totalClasses" class="mb-0"/>
+                                <span class="o_kpi_label d-block mb-2">Scheduled Classes</span>
+                                <div class="o_kpi_value" t-esc="state.stats.totalClasses"/>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card h-100 cursor-pointer" t-on-click="() => this.navigate('school_management.action_university_grade_assignment')">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2">Total Assigned Assignments</h6>
-                                <h3 t-esc="state.stats.assignedAssignments" class="mb-0"/>
+                                <span class="o_kpi_label d-block mb-2">Assigned Assignments</span>
+                                <div class="o_kpi_value" t-esc="state.stats.assignedAssignments"/>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card h-100 cursor-pointer" t-on-click="() => this.navigate('school_management.action_university_student_assignment')">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2">Total Student Assignments</h6>
-                                <h3 t-esc="state.stats.studentAssignments" class="mb-0"/>
+                                <span class="o_kpi_label d-block mb-2">Student Assignments</span>
+                                <div class="o_kpi_value" t-esc="state.stats.studentAssignments"/>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="card h-100">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2">Pending Service Hours</h6>
-                                <h3 t-esc="state.stats.pendingServiceHours" class="mb-0 text-warning"/>
+                                <span class="o_kpi_label d-block mb-2">Pending Service Hours</span>
+                                <div class="o_kpi_value text-warning" t-esc="state.stats.pendingServiceHours"/>
                             </div>
                         </div>
                     </div>
@@ -67,9 +67,7 @@
                                 <button class="btn btn-sm btn-link" t-on-click="openMyProfile">View Profile</button>
                             </div>
                             <div class="card-body d-flex align-items-center">
-                                <div class="me-4 rounded bg-primary text-white d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 36px;">
-                                    <t t-esc="state.teacher.name[0]"/>
-                                </div>
+                                <div class="o_teacher_avatar me-4" t-esc="state.teacher.name[0]"/>
                                 <div>
                                     <h4 t-esc="state.teacher.name" class="mb-1"/>
                                     <p class="text-muted mb-1"><i class="fa fa-envelope me-2"/> <t t-esc="state.teacher.email || 'N/A'"/></p>
@@ -98,27 +96,35 @@
                     <!-- Notice Board -->
                     <div class="col-md-6">
                         <div class="card h-100">
-                            <div class="card-header bg-white">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-white">
                                 <h5 class="mb-0">Notice Board</h5>
                             </div>
                             <div class="card-body p-0">
-                                <table class="table mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr t-foreach="state.noticeBoard" t-as="notice" t-key="notice.id">
-                                            <td t-esc="notice.name"/>
-                                            <td t-esc="notice.date"/>
-                                        </tr>
-                                        <tr t-if="state.noticeBoard.length === 0">
-                                            <td colspan="2" class="text-center text-muted">No notices</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <t t-if="state.noticeBoard.length">
+                                    <table class="table mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.noticeBoard" t-as="notice" t-key="notice.id">
+                                                <td t-esc="notice.name"/>
+                                                <td t-esc="notice.date"/>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_empty_state py-4">
+                                        <div class="o_empty_icon">
+                                            <i class="fa fa-bell-o" aria-hidden="true"/>
+                                        </div>
+                                        <div class="o_empty_title">No Notices Yet</div>
+                                        <div class="o_empty_desc">University notices will appear here as they are published.</div>
+                                    </div>
+                                </t>
                             </div>
                         </div>
                     </div>
@@ -131,23 +137,35 @@
                                 <button class="btn btn-sm btn-link" t-on-click="() => this.navigate('school_management.action_university_lesson_plan')">View All</button>
                             </div>
                             <div class="card-body p-0">
-                                <table class="table mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Subject</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr t-foreach="state.lessonPlans" t-as="plan" t-key="plan.id">
-                                            <td t-esc="plan.name"/>
-                                            <td t-esc="plan.subject_id[1]"/>
-                                        </tr>
-                                        <tr t-if="state.lessonPlans.length === 0">
-                                            <td colspan="2" class="text-center text-muted">No lesson plans found</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <t t-if="state.lessonPlans.length">
+                                    <table class="table mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Subject</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.lessonPlans" t-as="plan" t-key="plan.id">
+                                                <td t-esc="plan.name"/>
+                                                <td t-esc="plan.subject_id[1]"/>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_empty_state py-4">
+                                        <div class="o_empty_icon">
+                                            <i class="fa fa-file-text-o" aria-hidden="true"/>
+                                        </div>
+                                        <div class="o_empty_title">No Lesson Plans Yet</div>
+                                        <div class="o_empty_desc">Plan your subjects to keep every class on track.</div>
+                                        <button class="btn btn-sm btn-brand-primary mt-3"
+                                                t-on-click="() => this.navigate('school_management.action_university_lesson_plan')">
+                                            <i class="fa fa-plus me-1" aria-hidden="true"/>Create Lesson Plan
+                                        </button>
+                                    </div>
+                                </t>
                             </div>
                         </div>
                     </div>

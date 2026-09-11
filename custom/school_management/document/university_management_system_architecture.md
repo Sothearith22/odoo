@@ -1,5 +1,14 @@
 # 🎓 University Management System --- Full Architecture
 
+> **Implementation status (2026-09-10):** this document is the conceptual target
+> design. The current addon implements structure, people, academic calendar,
+> class sections, enrollment, timetables, lesson plans, assignments, attendance,
+> grading/assessment, report cards, transcripts, fees, payments, dashboards, and
+> role-based security. Not yet implemented: schedule `university.schedule`,
+> exams, scholarships, graduation/certificates, and the portal pages
+> (`views/portal_templates.xml` is a placeholder). For the authoritative, model
+> by-model status list use [`project_structure.md.md`](project_structure.md.md).
+
 The key idea is: **Student is not the whole system. Academic structure,
 enrollment, subjects, semesters, exams, results, fees, and users all
 interact.**

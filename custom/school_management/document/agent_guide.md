@@ -53,7 +53,7 @@ C:\Odoo\odoo\
 ├── ruff.toml              # Ruff linter config
 ├── setup.py               # Package setup
 ├── setup.cfg              # Flake8 config
-├── SETUP_GUIDE.md         # Windows setup guide
+├── start_odoo.ps1         # Windows launcher (adds wkhtmltopdf to PATH, starts server)
 ├── CONTRIBUTING.md        # Contribution guidelines
 └── LICENSE                # LGPL-3
 ```
@@ -392,25 +392,60 @@ order.write({'line_ids': [
 
 ## Custom Addons
 
-Custom addons go in `../..`. Currently contains `..` — a working School Management module.
+Custom addons live in `C:\Odoo\odoo\custom\`. The working module there is `school_management` ("University Management System").
 
-### `..` structure
+### `school_management` structure
 
 ```
 school_management/
-├── __manifest__.py          # name, version 19.0.1.0.0, depends ['base'], application: True
-├── __init__.py              # from . import models
-├── models/
-│   ├── __init__.py          # from . import student
-│   └── student.py           # school.student model (name, student_id, image_1920, date_of_birth, gender, email, phone, address, notes, active)
-├── views/
-│   ├── student_view.xml     # search, kanban (card template), form views + window action + menus
-│   └── menu_views.xml       # list view (school.student.list)
+├── __manifest__.py          # name, category Education, version 19.0.1.2.1,
+│                            # depends ['auth_signup','base','mail','portal','web'],
+│                            # application: True; data + web.assets_backend assets
+├── __init__.py              # (models are imported from models/__init__.py)
+├── models/                  # 27 ORM files (see models/__init__.py)
+│   ├── __init__.py          # one import per model file
+│   ├── res_users.py         # res.users extension -> teacher_id (record-rule backbone)
+│   ├── fee.py               # university.fee, fee.line, fee.structure, fee.structure.line
+│   ├── grading.py           # grade.scale(+line), assessment.category/result,
+│   │                        #   report.card(+line), transcript(+line)
+│   ├── timetable.py         # university.timeslot, university.timetable.slot
+│   └── ...                  # faculty, department, program, subject, classroom,
+│                            # academic_year, semester_subject, teacher, student,
+│                            # academic_assignment, enrollment, class_section,
+│                            # admission, attendance, capability, lesson_plan,
+│                            # assignment, notice_board, service_hour, payment,
+│                            # dashboard, document_signature, res_config_settings
+├── data/                    # cleanup_legacy_models, dashboard_data, fee_sequence,
+│   │                        # academic_defaults, mail_template, capability_data,
+│   │                        # fix_user_teacher_links (noupdate <function> migration)
+├── migrations/
+│   ├── 19.0.1.2.0/pre-migrate.py
+│   └── 19.0.1.2.1/pre-migrate.py  # data repair before schema reload
 ├── security/
-│   └── ir.model.access.csv  # access_school_student -> base.group_user (read/write/create/unlink)
-└── document/
-    └── project_structure.md.md
+│   ├── security.xml         # 8 role groups + res.groups.privilege "University Management"
+│   ├── ir.model.access.csv  # role-based grants (NOT broad base.group_user CRUD)
+│   ├── record_rules.xml     # teacher/hod/dean/student/portal record scoping
+│   └── fix_demo_staff_links.sql  # reference only; Odoo runs the XML <function> instead
+├── wizard/                  # student_enrollment, bulk_enrollment, populate_class,
+│                            # timetable_generation, teacher_account (+ views)
+├── reports/                 # payment (receipt), curriculum, academic (report card/transcript)
+├── views/                   # one XML per model + dashboard shells + menu_views + portal_templates (placeholder)
+├── static/src/school_management/
+│   ├── dashboard_shell.{js,xml,scss}
+│   ├── student_dashboard_shell.{js,xml,scss}
+│   ├── teacher_dashboard_shell.{js,xml,scss}
+│   └── layout/              # school_layout (OWL sidebar), webclient_patch, topbar_integration
+├── tests/
+│   └── test_payment.py      # focused payment tests
+├── seed/                    # run_seed.py + seed_data.sql (SQL demo data, not part of install)
+└── document/                # project_overview, project_structure, agent_guide,
+                             # local_configuration_guide, login_guide, architecture, QNA review
 ```
+
+### Security highlights
+
+- Groups form a chain `group_school_user → teacher → hod → dean → admin`; `group_teacher_dashboard` is standalone (implies `group_school_teacher`) so admins do **not** get the Teacher Dashboard automatically; `group_student_portal` implies `base.group_portal` for external read-only portal users.
+- Record rules scope through `res.users.teacher_id → teacher → department → faculty`.
 
 ### Notes / gotchas (Odoo 19 specifics)
 
@@ -428,4 +463,4 @@ school_management/
 - [Developer Tutorials](https://www.odoo.com/documentation/master/developer/howtos.html)
 - [Coding Guidelines](https://www.odoo.com/documentation/latest/contributing/development/coding_guidelines.html)
 - [CONTRIBUTING.md](../../../CONTRIBUTING.md)
-- [SETUP_GUIDE.md](SETUP_GUIDE.md) — detailed Windows setup instructions
+- [`local_configuration_guide.md`](local_configuration_guide.md) — install/upgrade/verify the addon; use `start_odoo.ps1` to launch Odoo with wkhtmltopdf on `PATH`.

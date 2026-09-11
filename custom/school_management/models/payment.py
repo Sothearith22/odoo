@@ -112,7 +112,7 @@ class UniversityPayment(models.Model):
             was_paid = bool(fee and fee.state == "paid")
             payment.with_context(bypass_payment_write_guard=True).write({"state": "posted"})
             if fee:
-                fee._compute_totals()
+                fee._update_state_from_balance()
                 if not was_paid and fee.state == "paid":
                     fee._send_payment_receipt_email(payment)
 
@@ -120,7 +120,7 @@ class UniversityPayment(models.Model):
         for payment in self:
             payment.with_context(bypass_payment_write_guard=True).write({"state": "canceled"})
             if payment.fee_id:
-                payment.fee_id._compute_totals()
+                payment.fee_id._update_state_from_balance()
 
     def action_draft(self):
         for payment in self:

@@ -8,6 +8,9 @@ class TestStudentSignup(TransactionCase):
         self.Users = self.env["res.users"].sudo()
         self.Student = self.env["university.student"].sudo()
         self.student_group = self.env.ref("school_management.group_school_student")
+        self.portal_group = self.env.ref("base.group_portal")
+        self.student_portal_group = self.env.ref("school_management.group_student_portal")
+        self.internal_group = self.env.ref("base.group_user")
 
     def test_signup_links_existing_student(self):
         student = self.Student.create(
@@ -28,8 +31,55 @@ class TestStudentSignup(TransactionCase):
         user = self.Users.search([("login", "=", login)], limit=1)
         self.assertEqual(password, "Student@123")
         self.assertEqual(student.user_id, user)
+        self.assertFalse(user.share, "Sign-up students must be internal backend users")
+        self.assertNotIn(self.portal_group, user.group_ids)
+        self.assertNotIn(self.student_portal_group, user.group_ids)
+        self.assertIn(self.internal_group, user.group_ids)
         self.assertIn(self.student_group, user.group_ids)
-        self.assertFalse(user.share)
+
+    def test_signup_student_reads_only_own_record(self):
+        student = self.Student.create(
+            {
+                "name": "Portal Student",
+                "email": "portal.student@example.com",
+            }
+        )
+        other = self.Student.create(
+            {
+                "name": "Other Student",
+                "email": "other.student@example.com",
+            }
+        )
+
+        login, _password = self.Users.signup(
+            {
+                "login": "portal.student@example.com",
+                "name": "Portal Student",
+                "password": "Student@123",
+            }
+        )
+        user = self.Users.search([("login", "=", login)], limit=1)
+
+        # Own record is readable through the student backend user environment.
+        own = self.Student.with_user(user).search(
+            [("id", "=", student.id)]
+        )
+        self.assertEqual(len(own), 1)
+
+        # Another student's record is neither readable...
+        others = self.Student.with_user(user).search(
+            [("id", "=", other.id)]
+        )
+        self.assertFalse(others, "A student must never see other student records")
+
+        # ...nor writable, even on their own record (read-only ACL).
+        with self.assertRaises(AccessError):
+            self.Student.with_user(user).browse(own.id).write({"notes": "hacked"})
+
+        with self.assertRaises(AccessError):
+            self.Student.with_user(user).create(
+                {"name": "Rogue Student", "email": "rogue@example.com"}
+            )
 
     def test_signup_requires_existing_student(self):
         with self.assertRaises(UserError):

@@ -95,6 +95,7 @@ class UniversityDashboard(models.Model):
             )
             return 0.0
 
+    @api.depends()
     def _compute_counts(self):
         for rec in self:
             rec.student_count = self._safe_count("university.student")

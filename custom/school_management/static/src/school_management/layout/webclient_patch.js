@@ -11,19 +11,25 @@ import { SchoolLayout } from "./school_layout";
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const STUDENT_APP_XMLID = "school_management.menu_school_student_portal_root";
 const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
+const TEACHER_ACTION_XMLID = "school_management.action_teacher_dashboard_shell";
 const STUDENT_ACTION_XMLID = "school_management.action_student_dashboard_shell";
 const SCHOOL_DASHBOARD_TAG = "school_dashboard_shell";
+const TEACHER_DASHBOARD_TAG = "teacher_dashboard_shell";
 const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STAFF_GROUP_XMLID = "school_management.group_school_teacher";
 
 const SCHOOL_APP_XMLIDS = new Set([SCHOOL_APP_XMLID, STUDENT_APP_XMLID]);
-const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID]);
-const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG]);
+const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID, TEACHER_ACTION_XMLID]);
+const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG]);
 const SCHOOL_MODELS = new Set([
     "school.dashboard",
     "university.academic.assignment",
     "university.academic.year",
+    "university.assessment.result",
+    "university.assignment",
+    "university.assignment.submission",
+    "university.attendance",
     "university.bulk.enrollment.wizard",
     "university.capability",
     "university.class.section",
@@ -35,12 +41,15 @@ const SCHOOL_MODELS = new Set([
     "university.fee",
     "university.payment",
     "university.program",
+    "university.report.card",
     "university.semester",
     "university.semester.subject",
     "university.student",
     "university.student.enrollment.wizard",
     "university.subject",
     "university.teacher",
+    "university.timetable.slot",
+    "university.transcript",
 ]);
 const STUDENT_SAFE_ACTION_TAGS = new Set([STUDENT_DASHBOARD_TAG]);
 const STUDENT_SAFE_MODELS = new Set([
@@ -48,6 +57,13 @@ const STUDENT_SAFE_MODELS = new Set([
     "university.enrollment",
     "university.fee",
     "university.payment",
+    "university.assignment",
+    "university.assignment.submission",
+    "university.assessment.result",
+    "university.attendance",
+    "university.report.card",
+    "university.timetable.slot",
+    "university.transcript",
 ]);
 
 function debugNavigation(...args) {
@@ -143,9 +159,16 @@ patch(WebClient.prototype, {
 
         const currentAction = this.actionService.currentController?.action || {};
         const routeAction = router.current.action;
+        const actionName = (currentAction.name || "").toLowerCase();
         const isDashboardAction =
             currentAction.tag === SCHOOL_DASHBOARD_TAG ||
-            currentAction.xml_id === SCHOOL_DASHBOARD_XMLID;
+            currentAction.xml_id === SCHOOL_DASHBOARD_XMLID ||
+            currentAction.tag === TEACHER_DASHBOARD_TAG ||
+            currentAction.xml_id === TEACHER_ACTION_XMLID ||
+            currentAction.tag === STUDENT_DASHBOARD_TAG ||
+            currentAction.xml_id === STUDENT_ACTION_XMLID ||
+            currentAction.res_model === "school.dashboard" ||
+            actionName.includes("dashboard");
 
         debugNavigation("[University WebClient] route check", {
             app: currentApp?.xmlid,
@@ -161,10 +184,20 @@ patch(WebClient.prototype, {
 
         this.dashboardRedirecting = true;
         try {
+            const isHod = await user.hasGroup("school_management.group_school_hod");
+            const isDean = await user.hasGroup("school_management.group_school_dean");
+            const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
+            const isTeacher = await user.hasGroup("school_management.group_school_teacher");
+
+            let targetAction = SCHOOL_DASHBOARD_XMLID;
+            if (isTeacher && !isAdmin && !isDean && !isHod) {
+                targetAction = TEACHER_ACTION_XMLID;
+            }
+
             debugNavigation("[University WebClient] opening Dashboard", {
-                action: SCHOOL_DASHBOARD_XMLID,
+                action: targetAction,
             });
-            await this.actionService.doAction(SCHOOL_DASHBOARD_XMLID, {
+            await this.actionService.doAction(targetAction, {
                 clearBreadcrumbs: true,
             });
         } finally {

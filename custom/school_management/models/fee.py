@@ -18,6 +18,15 @@ class UniversityFee(models.Model):
     student_id = fields.Many2one("university.student", string="Student", required=True)
     academic_year_id = fields.Many2one("university.academic.year", string="Academic Year")
     semester_id = fields.Many2one("university.semester", string="Semester")
+    fee_structure_id = fields.Many2one(
+        "university.fee.structure",
+        string="Fee Structure",
+    )
+    admission_application_id = fields.Many2one(
+        "university.admission.application",
+        string="Admission Application",
+        ondelete="set null",
+    )
     
     date = fields.Date(string="Invoice Date", default=fields.Date.context_today, required=True)
     due_date = fields.Date(string="Due Date")
@@ -29,10 +38,12 @@ class UniversityFee(models.Model):
         "university.document.signature",
         "fee_id",
         string="Document Signatures",
+        groups="base.group_system,school_management.group_school_admin",
     )
     signature_count = fields.Integer(
         string="Signature Count",
         compute="_compute_signature_count",
+        groups="base.group_system,school_management.group_school_admin",
     )
     
     total_amount = fields.Float(string="Total Amount", compute="_compute_totals", store=True)
@@ -66,7 +77,6 @@ class UniversityFee(models.Model):
         "line_ids.amount",
         "payment_ids.amount",
         "payment_ids.state",
-        "state",
     )
     def _compute_totals(self):
         for fee in self:
@@ -76,7 +86,15 @@ class UniversityFee(models.Model):
             fee.paid_amount = paid
             fee.balance = total - paid
 
-            if fee.state == "posted" and fee.balance <= 0 < total:
+    def _update_state_from_balance(self):
+        """Transition fee state based on payment balance.
+
+        Called after payments are posted/canceled so that the state
+        always reflects the actual balance without creating a
+        compute-dependency cycle on the ``state`` field.
+        """
+        for fee in self:
+            if fee.state == "posted" and fee.balance <= 0 and fee.total_amount > 0:
                 fee.state = "paid"
             elif fee.state == "paid" and fee.balance > 0:
                 fee.state = "posted"
@@ -189,3 +207,87 @@ class UniversityFeeLine(models.Model):
     fee_id = fields.Many2one("university.fee", string="Fee Invoice", required=True, ondelete="cascade")
     name = fields.Char(string="Description", required=True)
     amount = fields.Float(string="Amount", required=True)
+
+
+class UniversityFeeStructure(models.Model):
+    _name = "university.fee.structure"
+    _description = "Fee Structure"
+    _order = "name"
+
+    name = fields.Char(string="Fee Structure", required=True)
+    program_id = fields.Many2one(
+        "university.program",
+        string="Major / Program",
+        domain="[('active', '=', True)]",
+    )
+    academic_year_id = fields.Many2one(
+        "university.academic.year",
+        string="Academic Year",
+        domain="[('active', '=', True)]",
+    )
+    semester_id = fields.Many2one(
+        "university.semester",
+        string="Semester",
+        domain="[('active', '=', True), ('academic_year_id', '=', academic_year_id)]",
+    )
+    line_ids = fields.One2many(
+        "university.fee.structure.line",
+        "structure_id",
+        string="Fee Lines",
+    )
+    total_amount = fields.Float(
+        string="Total Amount",
+        compute="_compute_total_amount",
+        store=True,
+    )
+    active = fields.Boolean(string="Active", default=True)
+
+    @api.depends("line_ids.amount")
+    def _compute_total_amount(self):
+        for structure in self:
+            structure.total_amount = sum(structure.line_ids.mapped("amount"))
+
+    def _prepare_fee_vals(self, student, admission=None):
+        self.ensure_one()
+        return {
+            "student_id": student.id,
+            "academic_year_id": self.academic_year_id.id
+            or (admission.academic_year_id.id if admission else False),
+            "semester_id": self.semester_id.id
+            or (admission.semester_id.id if admission else False),
+            "fee_structure_id": self.id,
+            "admission_application_id": admission.id if admission else False,
+            "line_ids": [
+                (
+                    0,
+                    0,
+                    {
+                        "name": line.name,
+                        "amount": line.amount,
+                    },
+                )
+                for line in self.line_ids
+            ],
+        }
+
+
+class UniversityFeeStructureLine(models.Model):
+    _name = "university.fee.structure.line"
+    _description = "Fee Structure Line"
+    _order = "sequence, id"
+
+    sequence = fields.Integer(default=10)
+    structure_id = fields.Many2one(
+        "university.fee.structure",
+        string="Fee Structure",
+        required=True,
+        ondelete="cascade",
+    )
+    name = fields.Char(string="Description", required=True)
+    amount = fields.Float(string="Amount", required=True)
+
+    @api.constrains("amount")
+    def _check_amount(self):
+        for line in self:
+            if line.amount < 0:
+                raise ValidationError("Fee structure amounts cannot be negative.")

@@ -41,6 +41,7 @@ class UniversityClassSection(models.Model):
         compute="_compute_enrolled_student_count",
     )
 
+    @api.depends("enrollment_ids", "enrollment_ids.status")
     def _compute_enrolled_student_count(self):
         for section in self:
             section.enrolled_student_count = len(
@@ -128,5 +129,31 @@ class UniversityClassSection(models.Model):
                 "default_program_id": program.id,
                 "default_academic_year_id": self.semester_id.academic_year_id.id,
                 "default_semester_id": self.semester_id.id,
+            },
+        }
+
+    def action_open_populate_class_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Populate Class",
+            "res_model": "university.populate.class.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_section_id": self.id},
+        }
+
+    def action_open_timetable_generation_wizard(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Generate Timetable",
+            "res_model": "university.timetable.generation.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_academic_year_id": self.semester_id.academic_year_id.id,
+                "default_semester_id": self.semester_id.id,
+                "default_section_ids": [(6, 0, [self.id])],
             },
         }

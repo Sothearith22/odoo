@@ -6,6 +6,7 @@ from . import teacher
 from . import academic_assignment
 from . import res_users
 from . import classroom
+from . import admission
 from . import subject
 from . import semester_subject
 from . import class_section
@@ -13,6 +14,7 @@ from . import student
 from . import enrollment
 from . import fee
 from . import payment
+from . import grading
 from . import dashboard
 from . import res_config_settings
 from . import document_signature

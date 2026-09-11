@@ -6,6 +6,25 @@
 
 > **Important:** This is a review of the Word document. The complete Odoo addon source code was not supplied with this request, so code-specific statements are marked **Verify in source** rather than treated as confirmed defects.
 
+## Codebase Status Update (2026-09-10)
+
+This historical review was written against the Q&A document, not the codebase. The items below are now **verified in the current addon source** and change the review's findings:
+
+| Review issue | Current codebase status |
+|---|---|
+| ISSUE-001 — broad `base.group_user` CRUD | **Resolved in source.** `security/ir.model.access.csv` grants are role-based (`school_management.group_school_user/student/teacher/hod/dean/admin` and portal). The only `base.group_user`-style rows reference `base.group_system` (standard Odoo superuser), and many sensitive models use `perm_unlink = 0` for non-admin roles. |
+| ISSUE-002 — `security/security.xml` not loaded | **Resolved in source.** `__manifest__.py` loads `security/security.xml` as the first data entry. |
+| ISSUE-003 — no record rules | **Resolved in source.** `security/record_rules.xml` is loaded and contains role-scoped rules (teacher sees own sections/subjects, HOD/dean scoped by department/faculty, student sees own profile/enrollments/fees/payments, portal users see own records read-only). |
+| Odoo 19 compatibility (DOC-002) | **Verified.** Manifest is `version 19.0.1.2.1`, depends `auth_signup`, `base`, `mail`, `portal`, `web`; the addon upgrades with `-u school_management` on the local `odoo` database. |
+| Security XML loading order | **Verified.** The manifest orders `security/security.xml`, `ir.model.access.csv`, then `record_rules.xml` before data/views. |
+| Missing manifest entries (DOC-001 subset) | **Verified.** All manifest `data` entries resolve to existing files; `views/portal_templates.xml` exists as a placeholder. |
+| Enrollment/attendance status | Attendance is now an implemented model (`university.attendance`, no dedicated view file yet) rather than "planned". |
+| New since the review | Admission applications, capability, document signature, fee structures, grading/assessment/report card/transcript models, lesson plans, assignments/submissions, timetables, notice board, service hours, a Teacher Dashboard group/shell, and two student/portal roles (`group_school_student`, `group_student_portal`). |
+
+Remaining open items from the review that are still valid: enrollment-capacity concurrency, finance edge cases (refunds, overpayments, integration with `account`), multi-company behavior, portal page templates (currently a placeholder), and automated tests beyond `test_payment.py`.
+
+---
+
 ## 1. Overall Assessment
 
 The document is clear, readable, and useful as a high-level project overview. It explains the principal models, enrollment flow, finance workflow, dashboard, reports, and known security concerns.

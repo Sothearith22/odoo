@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 
@@ -87,6 +87,26 @@ class Student(models.Model):
         "student_id",
         string="Enrollments",
     )
+    admission_application_ids = fields.One2many(
+        "university.admission.application",
+        "student_id",
+        string="Admission Applications",
+    )
+    submission_ids = fields.One2many(
+        "university.assignment.submission",
+        "student_id",
+        string="Assignment Submissions",
+    )
+    report_card_ids = fields.One2many(
+        "university.report.card",
+        "student_id",
+        string="Report Cards",
+    )
+    transcript_ids = fields.One2many(
+        "university.transcript",
+        "student_id",
+        string="Transcripts",
+    )
     fee_ids = fields.One2many(
         "university.fee",
         "student_id",
@@ -172,6 +192,77 @@ class Student(models.Model):
             "context": {
                 "default_student_id": self.id,
                 "continue_student": True,
+            },
+        }
+
+    def action_create_user(self):
+        self.ensure_one()
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can create student login accounts."))
+
+        email = (self.email or "").strip()
+        if not email:
+            raise UserError(_("Cannot create account: student %s has no email address.") % self.name)
+
+        if self.user_id:
+            raise UserError(_("Student %s is already linked to user account %s.") % (self.name, self.user_id.login))
+
+        Users = self.env["res.users"].sudo()
+        student_group = self.env.ref("school_management.group_school_student")
+        internal_group = self.env.ref("base.group_user")
+
+        existing_user = Users.search([("login", "=ilike", email)], limit=1)
+        if existing_user:
+            other_student = self.sudo().search([("user_id", "=", existing_user.id), ("id", "!=", self.id)], limit=1)
+            if other_student:
+                raise UserError(
+                    _("Email %(email)s is already linked to another student: %(student)s.")
+                    % {"email": email, "student": other_student.name}
+                )
+            existing_user.write({
+                "group_ids": [(4, internal_group.id), (4, student_group.id)],
+                "password": "password123",
+            })
+            self.sudo().write({"user_id": existing_user.id})
+        else:
+            user = Users.create({
+                "name": self.name,
+                "login": email,
+                "email": email,
+                "password": "password123",
+                "group_ids": [(6, 0, [internal_group.id, student_group.id])],
+            })
+            self.sudo().write({"user_id": user.id})
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Account Created"),
+                "message": _("Login account created for %s with email '%s' and default password 'password123'.")
+                % (self.name, email),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_reset_password(self):
+        self.ensure_one()
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can reset student passwords."))
+
+        if not self.user_id:
+            raise UserError(_("Student %s does not have a linked login account.") % self.name)
+
+        self.user_id.sudo().write({"password": "password123"})
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Password Reset"),
+                "message": _("Password for %s has been reset to 'password123'.") % self.name,
+                "type": "success",
+                "sticky": False,
             },
         }
 

@@ -1,5 +1,5 @@
 from odoo import fields
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -64,3 +64,43 @@ class TestDocumentSignature(TransactionCase):
                 signature.write(vals)
 
         signature.write({"state": "signed", "signed_on": fields.Datetime.now()})
+
+    def test_student_user_can_read_own_fee_without_signature_access(self):
+        user = self.env["res.users"].create(
+            {
+                "name": "Fee Student Portal User",
+                "login": "fee_student_access_test",
+                "group_ids": [
+                    (
+                        6,
+                        0,
+                        [self.env.ref("school_management.group_school_student").id],
+                    )
+                ],
+            }
+        )
+        self.student.write({"user_id": user.id})
+
+        self.Signature.create({"student_id": self.student.id, "fee_id": self.fee.id})
+
+        fee_fields = [
+            "name",
+            "student_id",
+            "academic_year_id",
+            "semester_id",
+            "date",
+            "due_date",
+            "currency_id",
+            "line_ids",
+            "payment_ids",
+            "total_amount",
+            "paid_amount",
+            "balance",
+            "state",
+        ]
+        result = self.fee.with_user(user).read(fee_fields)[0]
+        self.assertEqual(result["name"], self.fee.name)
+        self.assertEqual(len(result["line_ids"]), 1)
+
+        with self.assertRaises(AccessError):
+            self.fee.with_user(user).read(["signature_ids"])

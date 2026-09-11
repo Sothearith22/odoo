@@ -7009,6 +7009,12 @@ class BaseModel(metaclass=MetaModel):
     def report_action(self, self1):
         pass
 
+    def _prepare_fee_vals(self, student, admission):
+        pass
+
+    def action_post(self):
+        pass
+
 
 collections.abc.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have index or count

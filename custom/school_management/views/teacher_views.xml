@@ -78,7 +78,29 @@
         <field name="model">university.teacher</field>
         <field name="arch" type="xml">
             <form string="Academic Staff">
-                <sheet>
+                <header>
+                    <button name="action_create_user"
+                            string="Create User"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-user-plus"
+                            groups="school_management.group_school_admin"
+                            invisible="user_id != False"/>
+                    <button name="action_reset_password"
+                            string="Reset Password"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-key"
+                            groups="school_management.group_school_admin"
+                            invisible="user_id == False"/>
+                    <button name="%(school_management.action_university_teacher_account_wizard)d"
+                            string="Advanced User Creation"
+                            type="action"
+                            class="btn-link"
+                            groups="school_management.group_school_admin"
+                            invisible="user_id != False"
+                            context="{'default_teacher_ids': [(6, 0, [id])]}"/>
+                </header>                <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
 
@@ -113,7 +135,7 @@
                             <field name="hire_date"/>
                         </group>
                         <group string="Access">
-                            <field name="user_id"/>
+                            <field name="user_id" readonly="1"/>
                         </group>
                         <group string="Status">
                             <field name="active" widget="boolean_toggle"/>
@@ -131,7 +153,8 @@
                                     <button name="%(school_management.action_university_academic_assignment)d"
                                             type="action" string="Open Head of Faculty Assignment"
                                             context="{'search_default_staff_id': id, 'search_default_filter_dean': 1}"
-                                            class="btn-link"/>
+                                            class="btn-link"
+                                            groups="school_management.group_school_dean"/>
                                 </group>
                                 <group string="Head of Department">
                                     <field name="is_hod" readonly="1"/>
@@ -141,7 +164,8 @@
                                     <button name="%(school_management.action_university_academic_assignment)d"
                                             type="action" string="Open HOD Assignment"
                                             context="{'search_default_staff_id': id, 'search_default_filter_hod': 1}"
-                                            class="btn-link"/>
+                                            class="btn-link"
+                                            groups="school_management.group_school_hod"/>
                                 </group>
                             </group>
                             <group string="Assignment History">
@@ -333,6 +357,16 @@
             <p class="o_view_nocontent_smiling_face">No heads of department assigned</p>
             <p>Heads of Department are academic staff members with an active HOD appointment.</p>
         </field>
+    </record>
+
+    <!-- ==================== TEACHER PROFILE WINDOW ACTION ==================== -->
+    <record id="action_university_teacher_profile" model="ir.actions.act_window">
+        <field name="name">My Profile</field>
+        <field name="res_model">university.teacher</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'create': False, 'delete': False}</field>
+        <field name="search_view_id" ref="view_university_teacher_search"/>
     </record>
 
 </odoo>

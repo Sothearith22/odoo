@@ -8,50 +8,9 @@
 // -------------------------------------------------------------
 
 .o_school_dashboard_layout {
-    // Design System Tokens
-    --brand-primary: #1b2a4a;
-    --brand-primary-hover: #29385c;
-    --brand-primary-soft: #edf2f9;
-
-    --brand-emerald: #1f7a5c;
-    --brand-emerald-hover: #19624a;
-    --brand-emerald-soft: #eaf6f1;
-
-    --brand-amber: #b8863f;
-    --brand-amber-hover: #986d30;
-    --brand-amber-soft: #fcf4e8;
-
-    --brand-sapphire: #3a6ea5;
-    --brand-sapphire-hover: #2b537f;
-    --brand-sapphire-soft: #edf4fb;
-
-    --color-success: #1f7a5c;
-    --color-success-bg: #e8f5f0;
-    --color-warning: #d97706;
-    --color-warning-bg: #fef3c7;
-    --color-danger: #dc2626;
-    --color-danger-bg: #fef2f2;
-    --color-info: #2563eb;
-    --color-info-bg: #eff6ff;
-
-    --bg-page: #f8f9fc;
-    --surface-card: #ffffff;
-    --border-color: #e2e8f0;
-    --border-subtle: #f1f5f9;
-
-    --text-heading: #0f172a;
-    --text-body: #334155;
-    --text-muted: #64748b;
-    --text-light: #94a3b8;
-
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-
-    --shadow-resting: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-    --shadow-elevated: 0 8px 24px rgba(27, 42, 74, 0.08), 0 2px 6px rgba(27, 42, 74, 0.04);
-    --shadow-focus: 0 0 0 3px rgba(27, 42, 74, 0.18);
+    // Design tokens (brand palette, semantic status colors, type scale, shape
+    // and elevation) are defined once on :root in design_tokens.scss and are
+    // shared with the Teacher/Student shells and backend kanban cards.
 
     background-color: var(--bg-page);
     color: var(--text-body);
@@ -133,7 +92,6 @@
     .o_kpi_card {
         background-color: var(--surface-card);
         border: 1px solid var(--border-color);
-        border-top: 3px solid var(--card-accent, var(--brand-primary));
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-resting);
         transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
@@ -178,22 +136,6 @@
             justify-content: center;
             font-size: 1.25rem;
             flex-shrink: 0;
-        }
-
-        .o_kpi_value {
-            color: var(--text-heading);
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1.1;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .o_kpi_label {
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .o_kpi_action_btn {
@@ -360,7 +302,7 @@
         }
 
         .o_bar_unpaid {
-            background-color: var(--color-danger);
+            background-color: var(--status-danger);
             transition: width 0.6s ease;
         }
     }
@@ -665,39 +607,6 @@
         }
     }
 
-    // Empty States
-    .o_empty_state {
-        text-align: center;
-        padding: 2.5rem 1.5rem;
-
-        .o_empty_icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background-color: #f1f5f9;
-            color: var(--text-muted);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .o_empty_title {
-            font-weight: 700;
-            color: var(--text-heading);
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .o_empty_desc {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            max-width: 320px;
-            margin: 0 auto;
-        }
-    }
-
     // Error State
     .o_dashboard_error {
         background-color: #fef2f2;
@@ -718,6 +627,60 @@
         background-size: 200% 100%;
         animation: o-skeleton-shimmer 1.5s infinite;
         border-radius: var(--radius-sm);
+    }
+}
+
+// -----------------------------------------------------------------------
+// Shared metric label / value + empty state components.
+// Used by the Admin, Teacher and Student dashboard shells.
+// -----------------------------------------------------------------------
+.o_kpi_label,
+.o_metric_label {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.o_kpi_value,
+.o_metric_value {
+    color: var(--text-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_empty_state {
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+
+    .o_empty_icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--status-neutral-bg);
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .o_empty_title {
+        font-weight: 700;
+        color: var(--text-heading);
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .o_empty_desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        max-width: 320px;
+        margin: 0 auto;
     }
 }
 
@@ -742,16 +705,17 @@
 
 // Responsive Breakpoints
 @media (max-width: 768px) {
+    .o_kpi_value,
+    .o_metric_value {
+        font-size: 1.6rem !important;
+    }
+
     .o_school_dashboard_layout {
         .dashboard-header {
             padding: 0.75rem 1rem !important;
             flex-direction: column;
             align-items: flex-start !important;
             gap: 0.75rem;
-        }
-
-        .o_kpi_value {
-            font-size: 1.6rem !important;
         }
 
         .o_finance_num {

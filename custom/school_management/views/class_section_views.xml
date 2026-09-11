@@ -28,6 +28,8 @@
             <form string="Class Section">
                 <header>
                     <button name="action_open_bulk_enroll_wizard" string="Enroll Multiple Students" type="object" class="oe_highlight"/>
+                    <button name="action_open_populate_class_wizard" string="Populate Class" type="object" class="btn-secondary"/>
+                    <button name="action_open_timetable_generation_wizard" string="Generate Timetable" type="object" class="btn-secondary"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>

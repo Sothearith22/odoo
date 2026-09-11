@@ -11,6 +11,10 @@
             │       └── school_hod  (Head of Department)
             │               └── school_dean (Head of Faculty)
             └── school_admin    (Administration - full control)
+
+    Standalone (not in the admin chain):
+        teacher_dashboard   (Teacher Dashboard – menu visibility only)
+            └── implies school_teacher
 -->
 <odoo>
 
@@ -43,6 +47,19 @@
         <field name="implied_ids" eval="[(4, ref('group_school_user'))]"/>
     </record>
 
+    <!--
+        Teacher Dashboard – isolated group for the Teacher Dashboard menu/action.
+        This group does NOT sit in the admin → dean → hod → teacher hierarchy,
+        so administrators (who inherit group_school_teacher via group_school_admin)
+        will NOT automatically gain access.  Only users explicitly assigned to this
+        group (or group_school_teacher AND this group) will see the dashboard.
+    -->
+    <record id="group_teacher_dashboard" model="res.groups">
+        <field name="name">Teacher Dashboard</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
+    </record>
+
     <record id="group_school_hod" model="res.groups">
         <field name="name">Head of Department</field>
         <field name="privilege_id" ref="school_management_privilege"/>
@@ -59,5 +76,25 @@
         <field name="name">University Administrator</field>
         <field name="privilege_id" ref="school_management_privilege"/>
         <field name="implied_ids" eval="[(4, ref('group_school_dean'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!--
+        Student Portal – external (portal) role for students.
+
+        This group implies base.group_portal (standard Odoo portal role) but
+        deliberately NOT group_school_user / base.group_user, so a student
+        signed up through the portal stays a real portal user (share = True)
+        with no backend access, no Apps menu and no internal copy of
+        base.group_user.
+
+        Portal READ-ONLY access to the student models is granted through this
+        group in ir.model.access.csv, and the matching record rules in
+        record_rules.xml restrict the portal user to their own records only.
+    -->
+    <record id="group_student_portal" model="res.groups">
+        <field name="name">Student Portal</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
     </record>
 </odoo>

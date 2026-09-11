@@ -42,31 +42,45 @@
                 <field name="program_id"/>
                 <field name="status"/>
                 <templates>
-                    <t t-name="card" class="flex-row">
-                        <aside class="o_kanban_aside_full o_kanban_image_fill">
-                            <field name="image_1920" widget="image" class="d-block w-100 h-100 object-fit-cover"/>
-                        </aside>
-                        <main class="ms-2">
-                            <strong class="fs-5"><field name="name"/></strong>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-id-card me-1" title="Student ID"/>
-                                <field name="student_id"/>
+                    <t t-name="card" class="o_university_kanban_card">
+                        <main class="p-3">
+                            <div class="o_kcard_head">
+                                <t t-if="record.image_1920.raw_value">
+                                    <img t-att-src="'/web/image/university.student/' + record.id.value + '/image_128'"
+                                         class="o_kcard_avatar"
+                                         alt="Student photo"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_kcard_avatar o_kcard_avatar_placeholder">
+                                        <i class="fa fa-user" aria-hidden="true"/>
+                                    </div>
+                                </t>
+                                <div class="o_kcard_title">
+                                    <span class="o_kcard_name text-truncate" title="Open this student"><field name="name"/></span>
+                                    <span class="o_kcard_id">
+                                        <i class="fa fa-id-card me-1" aria-hidden="true"/>
+                                        <field name="student_id"/>
+                                    </span>
+                                </div>
                             </div>
-                            <div class="text-muted small">
-                                <i class="fa fa-graduation-cap me-1" title="Program"/>
-                                <field name="program_id"/>
+                            <div class="o_kcard_meta" t-if="record.program_id.value">
+                                <i class="fa fa-graduation-cap" aria-hidden="true"/>
+                                <span><field name="program_id"/></span>
                             </div>
-                            <div class="text-muted small">
-                                <i class="fa fa-building me-1" title="Faculty"/>
-                                <field name="faculty_id"/>
-                            </div>
-                            <div class="mt-2">
-                                <span t-if="record.status.raw_value == 'active'" class="badge text-bg-success">Active</span>
-                                <span t-if="record.status.raw_value == 'suspended'" class="badge text-bg-warning">Suspended</span>
-                                <span t-if="record.status.raw_value == 'graduated'" class="badge text-bg-info">Graduated</span>
-                                <span t-if="record.status.raw_value == 'dropped'" class="badge text-bg-danger">Dropped</span>
+                            <div class="o_kcard_status">
+                                <span class="o_kstatus" t-att-class="'o_kstatus_' + (record.status.raw_value || 'none')">
+                                    <span class="o_kstatus_dot" aria-hidden="true"/>
+                                    <span class="o_kstatus_label" t-esc="record.status.value"/>
+                                </span>
                             </div>
                         </main>
+                        <footer class="o_kanban_footer o_kcard_footer d-flex justify-content-between align-items-center">
+                            <span class="o_kcard_footer_meta text-truncate" t-if="record.faculty_id.value">
+                                <i class="fa fa-building me-1" aria-hidden="true"/>
+                                <field name="faculty_id"/>
+                            </span>
+                            <span class="o_kcard_open text-truncate">Open <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></span>
+                        </footer>
                     </t>
                 </templates>
             </kanban>
@@ -80,10 +94,24 @@
         <field name="arch" type="xml">
             <form string="Student">
                 <header>
+                    <button name="action_create_user"
+                            string="Create Login Account"
+                            type="object"
+                            class="oe_highlight"
+                            icon="fa-user-plus"
+                            groups="school_management.group_school_admin"
+                            invisible="user_id != False"/>
+                    <button name="action_reset_password"
+                            string="Reset Password"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-key"
+                            groups="school_management.group_school_admin"
+                            invisible="user_id == False"/>
                     <button name="action_open_enrollment_registration"
                             string="Enroll in Classes"
                             type="object"
-                            class="oe_highlight"
+                            class="btn-secondary"
                             icon="fa-graduation-cap"
                             groups="school_management.group_school_admin"/>
                     <button name="action_continue_student"
@@ -150,7 +178,7 @@
                                     <field name="date_of_birth"/>
                                     <field name="active" widget="boolean_toggle"/>
                                 </group>
-                                <group string="System Access">
+                                <group string="System Access" groups="school_management.group_school_admin">
                                     <field name="user_id"/>
                                 </group>
                             </group>
@@ -172,7 +200,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Fees &amp; Payments" name="fees_tab">
+                        <page string="Fees &amp; Payments" name="fees_tab" groups="school_management.group_school_admin,school_management.group_school_student">
                             <group>
                                 <group string="Fee Summary">
                                     <field name="fee_total" widget="monetary"/>
@@ -204,6 +232,39 @@
                                     <field name="payment_method"/>
                                     <field name="amount" widget="monetary" sum="Total Payments"/>
                                     <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'" decoration-danger="state == 'canceled'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Academic Results" name="academic_results_tab" groups="school_management.group_school_admin,school_management.group_school_student">
+                            <separator string="Report Cards"/>
+                            <field name="report_card_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="academic_year_id"/>
+                                    <field name="semester_id"/>
+                                    <field name="gpa"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'" decoration-warning="state == 'generated'"/>
+                                </list>
+                            </field>
+                            <separator string="Transcripts"/>
+                            <field name="transcript_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="total_credits"/>
+                                    <field name="cumulative_gpa"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'" decoration-warning="state == 'generated'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Submissions" name="submissions_tab">
+                            <field name="submission_ids" readonly="1">
+                                <list>
+                                    <field name="assignment_id"/>
+                                    <field name="subject_id"/>
+                                    <field name="section_id"/>
+                                    <field name="submitted_on"/>
+                                    <field name="score"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'submitted'" decoration-success="state == 'evaluated'" decoration-warning="state == 'returned'"/>
                                 </list>
                             </field>
                         </page>
@@ -261,4 +322,14 @@
         </field>
     </record>
 
+
+
+    <record id="action_university_student_profile" model="ir.actions.act_window">
+        <field name="name">My Profile</field>
+        <field name="res_model">university.student</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="search_view_id" ref="view_university_student_search"/>
+    </record>
 </odoo>

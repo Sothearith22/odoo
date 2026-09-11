@@ -16,6 +16,7 @@ const GROUP_ADMIN = "school_management.group_school_admin";
 const GROUP_DEAN = "school_management.group_school_dean";
 const GROUP_HOD = "school_management.group_school_hod";
 const GROUP_TEACHER = "school_management.group_school_teacher";
+const GROUP_TEACHER_DASHBOARD = "school_management.group_teacher_dashboard";
 const STUDENT_DASHBOARD_XMLID = "school_management.action_student_dashboard_shell";
 
 function debugNavigation(...args) {
@@ -27,6 +28,7 @@ function debugNavigation(...args) {
 const ACTION_ACTIVE_KEY = {
     [DASHBOARD_XMLID]: "dashboard",
     [STUDENT_DASHBOARD_XMLID]: "dashboard",
+    "school_management.action_teacher_dashboard_shell": "dashboard",
     "school_management.action_university_faculty": "faculty",
     "school_management.action_university_department": "department",
     "school_management.action_university_program": "program",
@@ -34,10 +36,12 @@ const ACTION_ACTIVE_KEY = {
     "school_management.action_university_class_section": "class_section",
     "school_management.action_university_classroom": "classroom",
     "school_management.action_university_student": "student",
+    "school_management.action_university_student_profile": "student_profile",
     "school_management.action_university_enrollment": "enrollment",
-    "school_management.action_university_enrollment_student": "enrollment",
+    "school_management.action_university_enrollment_student": "student_enrollment",
     "school_management.action_university_bulk_enrollment_wizard": "bulk_enrollment",
     "school_management.action_university_teacher": "teacher",
+    "school_management.action_university_teacher_profile": "teacher_profile",
     "school_management.action_university_hod": "hod",
     "school_management.action_university_dean": "dean",
     "school_management.action_university_academic_assignment": "assignment",
@@ -45,11 +49,22 @@ const ACTION_ACTIVE_KEY = {
     "school_management.action_university_semester": "semester",
     "school_management.action_university_semester_subject": "semester_subject",
     "school_management.action_university_fee": "fee",
-    "school_management.action_university_fee_student": "fee",
+    "school_management.action_university_fee_student": "student_fee",
     "school_management.action_university_payment": "payment",
-    "school_management.action_university_payment_student": "payment",
+    "school_management.action_university_payment_student": "student_payment",
+    "school_management.action_university_assessment_result_student": "assessment_result",
+    "school_management.action_university_report_card_student": "report_card",
+    "school_management.action_university_transcript_student": "transcript",
     [CAPABILITY_XMLID]: "capability",
     "school_management.action_university_document_signature": "document_signature",
+    // Teacher Portal
+    "school_management.action_university_timetable_slot": "timetable",
+    "school_management.action_university_timetable_slot_student": "student_timetable",
+    "school_management.action_university_lesson_plan": "lesson_plan",
+    "school_management.action_university_grade_assignment": "grade_assignment",
+    "school_management.action_university_student_assignment": "student_assignment",
+    "school_management.action_university_assignment_my": "my_assignment",
+    "school_management.action_university_assignment_submission_student": "my_submission",
 };
 
 const MODEL_ACTIVE_KEY = {
@@ -72,6 +87,13 @@ const MODEL_ACTIVE_KEY = {
     "university.payment": "payment",
     "university.capability": "capability",
     "university.document.signature": "document_signature",
+    // Teacher Portal
+    "university.timetable.slot": "timetable",
+    "university.lesson.plan": "lesson_plan",
+    "university.assignment": "grade_assignment",
+    "university.notice.board": "notice_board",
+    "university.service.hour": "service_hour",
+    "university.attendance": "attendance",
 };
 
 const ITEM_GROUP = {
@@ -94,6 +116,23 @@ const ITEM_GROUP = {
     fee: GROUP_ADMIN,
     payment: GROUP_ADMIN,
     document_signature: GROUP_ADMIN,
+    student_profile: GROUP_STUDENT,
+    student_enrollment: GROUP_STUDENT,
+    student_fee: GROUP_STUDENT,
+    student_payment: GROUP_STUDENT,
+    student_timetable: GROUP_STUDENT,
+    my_assignment: GROUP_STUDENT,
+    my_submission: GROUP_STUDENT,
+    assessment_result: GROUP_STUDENT,
+    report_card: GROUP_STUDENT,
+    transcript: GROUP_STUDENT,
+    // Teacher Portal
+    teacher_dashboard: GROUP_TEACHER_DASHBOARD,
+    teacher_profile: GROUP_TEACHER,
+    timetable: GROUP_TEACHER,
+    lesson_plan: GROUP_TEACHER,
+    grade_assignment: GROUP_TEACHER,
+    student_assignment: GROUP_TEACHER,
 };
 
 function navGroup(label, items) {
@@ -112,7 +151,9 @@ export class SchoolLayout extends Component {
 
     setup() {
         this.action = useService("action");
+        this.orm = useService("orm");
 
+        const TEACHER_DASHBOARD_XMLID = "school_management.action_teacher_dashboard_shell";
         this.navGroups = [
             navGroup("Structure", [
                 navItem("faculty", "Faculties", "fa fa-university", "school_management.action_university_faculty"),
@@ -124,10 +165,13 @@ export class SchoolLayout extends Component {
             ]),
             navGroup("Students", [
                 navItem("student", "All Students", "fa fa-graduation-cap", "school_management.action_university_student"),
+                navItem("student_profile", "My Profile", "fa fa-id-card", "school_management.action_university_student_profile"),
                 navItem("enrollment", "Student Enrollment", "fa fa-clipboard", "school_management.action_university_enrollment"),
+                navItem("student_enrollment", "My Enrollments", "fa fa-clipboard", "school_management.action_university_enrollment_student"),
                 navItem("bulk_enrollment", "Enroll Multiple Students", "fa fa-users", "school_management.action_university_bulk_enrollment_wizard", true),
             ]),
             navGroup("Academic Staff", [
+                navItem("teacher_profile", "My Profile", "fa fa-id-card", "school_management.action_university_teacher_profile"),
                 navItem("teacher", "Teachers", "fa fa-user", "school_management.action_university_teacher"),
                 navItem("hod", "Heads of Department", "fa fa-users", "school_management.action_university_hod"),
                 navItem("dean", "Heads of Faculty", "fa fa-star", "school_management.action_university_dean"),
@@ -137,10 +181,24 @@ export class SchoolLayout extends Component {
                 navItem("academic_year", "Academic Years", "fa fa-calendar", "school_management.action_university_academic_year"),
                 navItem("semester", "Semesters", "fa fa-calendar-check-o", "school_management.action_university_semester"),
                 navItem("semester_subject", "Semester Subjects", "fa fa-bookmark", "school_management.action_university_semester_subject"),
+                navItem("timetable", "Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot"),
+                navItem("student_timetable", "My Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot_student"),
+                navItem("assessment_result", "My Results", "fa fa-check-square-o", "school_management.action_university_assessment_result_student"),
+                navItem("report_card", "My Report Cards", "fa fa-bar-chart", "school_management.action_university_report_card_student"),
+                navItem("transcript", "My Transcript", "fa fa-file-text-o", "school_management.action_university_transcript_student"),
+            ]),
+            navGroup("Assignments", [
+                navItem("lesson_plan", "Lesson Plans", "fa fa-file-text", "school_management.action_university_lesson_plan"),
+                navItem("grade_assignment", "Grade Assignments", "fa fa-tasks", "school_management.action_university_grade_assignment"),
+                navItem("student_assignment", "Student Assignments", "fa fa-user-plus", "school_management.action_university_student_assignment"),
+                navItem("my_assignment", "My Assignments", "fa fa-tasks", "school_management.action_university_assignment_my"),
+                navItem("my_submission", "My Submissions", "fa fa-inbox", "school_management.action_university_assignment_submission_student"),
             ]),
             navGroup("Finance", [
                 navItem("fee", "Fee Invoices", "fa fa-money", "school_management.action_university_fee"),
+                navItem("student_fee", "My Fees", "fa fa-money", "school_management.action_university_fee_student"),
                 navItem("payment", "Payments & Receipts", "fa fa-credit-card", "school_management.action_university_payment"),
+                navItem("student_payment", "My Payments", "fa fa-credit-card", "school_management.action_university_payment_student"),
                 navItem("document_signature", "Document Signatures", "fa fa-pencil-square-o", "school_management.action_university_document_signature"),
             ]),
         ];
@@ -165,6 +223,9 @@ export class SchoolLayout extends Component {
             canManageRoadmap: false,
             canSwitchStudentView: false,
             isStudentView: false,
+            isTeacher: false,
+            isStudent: false,
+            isTeacherDashboardVisible: false,
             visibleNavGroups: [],
             searchQuery: "",
             collapsedGroups: {},
@@ -191,6 +252,14 @@ export class SchoolLayout extends Component {
             const isDean = await user.hasGroup(GROUP_DEAN);
             const isHod = await user.hasGroup(GROUP_HOD);
             const isTeacher = await user.hasGroup(GROUP_TEACHER);
+            const isStudent = await user.hasGroup(GROUP_STUDENT);
+
+            this.state.isAdmin = isAdmin;
+            this.state.isDean = isDean;
+            this.state.isHod = isHod;
+            this.state.isTeacher = isTeacher;
+            this.state.isStudent = isStudent;
+            this.state.isTeacherDashboardVisible = false;
 
             if (isAdmin) {
                 this.state.userRole = "Administrator";
@@ -200,8 +269,41 @@ export class SchoolLayout extends Component {
                 this.state.userRole = "Head of Department";
             } else if (isTeacher) {
                 this.state.userRole = "Teacher";
+            } else if (isStudent) {
+                this.state.userRole = "Student";
             } else {
                 this.state.userRole = "Staff";
+            }
+
+            if (isTeacher) {
+                try {
+                    const teachers = await this.orm.searchRead(
+                        "university.teacher",
+                        ["|", ["user_id", "=", user.userId], ["id", "=", user.teacher_id ? user.teacher_id[0] : 0]],
+                        ["id", "name"],
+                        { limit: 1 }
+                    );
+                    if (teachers.length) {
+                        this.state.teacherId = teachers[0].id;
+                    }
+                } catch (e) {
+                    console.error("Could not fetch teacher profile id", e);
+                }
+            }
+            if (isStudent) {
+                try {
+                    const students = await this.orm.searchRead(
+                        "university.student",
+                        [["user_id", "=", user.userId]],
+                        ["id", "name"],
+                        { limit: 1 }
+                    );
+                    if (students.length) {
+                        this.state.studentId = students[0].id;
+                    }
+                } catch (e) {
+                    console.error("Could not fetch student profile id", e);
+                }
             }
 
             const check = async (key) => {
@@ -277,12 +379,30 @@ export class SchoolLayout extends Component {
             const currentAction = this.action.currentController?.action || {};
             const xmlid = currentAction.xml_id || null;
             const tag = currentAction.tag || null;
+            const actionId = currentAction.id || null;
+            const actionName = (currentAction.name || "").toLowerCase();
 
-            this.state.isStudentView =
-                tag === "student_dashboard_shell" || xmlid === STUDENT_DASHBOARD_XMLID;
+            const isStudentDashboard =
+                tag === "student_dashboard_shell" ||
+                xmlid === STUDENT_DASHBOARD_XMLID ||
+                actionId === 198 ||
+                actionName === "student dashboard";
+
+            this.state.isStudentView = isStudentDashboard;
             this.state.activeKey = null;
 
-            if (tag === "school_dashboard_shell" || tag === "student_dashboard_shell") {
+            const isDashboard =
+                isStudentDashboard ||
+                tag === "school_dashboard_shell" ||
+                tag === "teacher_dashboard_shell" ||
+                xmlid === DASHBOARD_XMLID ||
+                xmlid === "school_management.action_teacher_dashboard_shell" ||
+                actionId === 193 ||
+                actionId === 212 ||
+                currentAction.res_model === "school.dashboard" ||
+                actionName.includes("dashboard");
+
+            if (isDashboard) {
                 this.state.activeKey = "dashboard";
                 this._expandGroupForActive();
                 return;
@@ -364,7 +484,15 @@ export class SchoolLayout extends Component {
             name: "Dashboard",
             actionXmlId: DASHBOARD_XMLID,
         });
-        await this.action.doAction(DASHBOARD_XMLID, { clearBreadcrumbs: true });
+        let dashboardXmlId = DASHBOARD_XMLID;
+        if (this.state.isStudentView) {
+            dashboardXmlId = STUDENT_DASHBOARD_XMLID;
+        } else if (this.state.isStudent && !this.state.isTeacher && !this.state.isAdmin && !this.state.isDean && !this.state.isHod) {
+            dashboardXmlId = STUDENT_DASHBOARD_XMLID;
+        } else if (this.state.isTeacher && !this.state.isAdmin && !this.state.isDean && !this.state.isHod) {
+            dashboardXmlId = "school_management.action_teacher_dashboard_shell";
+        }
+        await this.action.doAction(dashboardXmlId, { clearBreadcrumbs: true });
         this.refreshActive();
     }
 
@@ -374,8 +502,14 @@ export class SchoolLayout extends Component {
         }
         this.closeMobileDrawer();
         this.state.isStudentView = view === "student";
+        let targetAction = STUDENT_DASHBOARD_XMLID;
+        if (view !== "student") {
+            targetAction = (this.state.isTeacher && !this.state.isAdmin && !this.state.isDean && !this.state.isHod)
+                ? "school_management.action_teacher_dashboard_shell"
+                : DASHBOARD_XMLID;
+        }
         await this.action.doAction(
-            view === "student" ? STUDENT_DASHBOARD_XMLID : DASHBOARD_XMLID,
+            targetAction,
             { clearBreadcrumbs: true },
         );
         this.refreshActive();
@@ -397,9 +531,42 @@ export class SchoolLayout extends Component {
         this.navigate(APPS_XMLID, this.appsItem.key);
     }
 
-    openProfile() {
+    async openProfile() {
         this.state.showUserMenu = false;
-        this.action.doAction("base.action_res_users_my");
+        if (this.state.isTeacher && this.state.teacherId) {
+            await this.action.doAction({
+                type: "ir.actions.act_window",
+                name: "My Profile",
+                res_model: "university.teacher",
+                res_id: this.state.teacherId,
+                views: [[false, "form"]],
+                view_mode: "form",
+                context: { create: false, delete: false },
+            });
+        } else if (this.state.isTeacher) {
+            await this.action.doAction("school_management.action_university_teacher_profile");
+        } else if (this.state.isStudent && this.state.studentId) {
+            await this.action.doAction({
+                type: "ir.actions.act_window",
+                name: "My Profile",
+                res_model: "university.student",
+                res_id: this.state.studentId,
+                views: [[false, "form"]],
+                view_mode: "form",
+                context: { create: false, edit: false, delete: false },
+            });
+        } else if (this.state.isStudent) {
+            await this.action.doAction("school_management.action_university_student_profile");
+        } else {
+            await this.action.doAction({
+                type: "ir.actions.act_window",
+                name: "My Profile",
+                res_model: "res.users",
+                res_id: user.userId,
+                views: [[false, "form"]],
+                view_mode: "form",
+            });
+        }
     }
 
     logout() {

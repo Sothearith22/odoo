@@ -27,6 +27,11 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_submissions" type="object" class="oe_stat_button" icon="fa-inbox">
+                            <field name="submission_count" widget="statinfo" string="Submissions"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" placeholder="Assignment Name"/>
@@ -41,6 +46,8 @@
                         <group>
                             <field name="teacher_id"/>
                             <field name="due_date"/>
+                            <field name="category_id"/>
+                            <field name="max_score"/>
                             <field name="student_id" invisible="assignment_type == 'class'"/>
                         </group>
                     </group>
@@ -48,13 +55,19 @@
                         <page string="Description" name="description">
                             <field name="description"/>
                         </page>
+                        <page string="Submissions" name="submissions">
+                            <field name="submission_ids" readonly="1">
+                                <list>
+                                    <field name="student_id"/>
+                                    <field name="submitted_on"/>
+                                    <field name="score"/>
+                                    <field name="state" widget="badge" decoration-info="state == 'submitted'" decoration-success="state == 'evaluated'" decoration-warning="state == 'returned'"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -62,13 +75,13 @@
     <record id="action_university_assignment" model="ir.actions.act_window">
         <field name="name">Assignments</field>
         <field name="res_model">university.assignment</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     
     <record id="action_university_grade_assignment" model="ir.actions.act_window">
         <field name="name">Grade Assignments</field>
         <field name="res_model">university.assignment</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('assignment_type', '=', 'class')]</field>
         <field name="context">{'default_assignment_type': 'class'}</field>
     </record>
@@ -76,8 +89,95 @@
     <record id="action_university_student_assignment" model="ir.actions.act_window">
         <field name="name">Student Assignments</field>
         <field name="res_model">university.assignment</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="domain">[('assignment_type', '=', 'student')]</field>
         <field name="context">{'default_assignment_type': 'student'}</field>
+    </record>
+
+
+
+    <record id="action_university_assignment_my" model="ir.actions.act_window">
+        <field name="name">My Assignments</field>
+        <field name="res_model">university.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">['|', ('student_id.user_id', '=', uid), ('section_id.enrollment_ids.student_id.user_id', '=', uid)]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+    <record id="view_university_assignment_submission_list" model="ir.ui.view">
+        <field name="name">university.assignment.submission.list</field>
+        <field name="model">university.assignment.submission</field>
+        <field name="arch" type="xml">
+            <list string="Assignment Submissions">
+                <field name="assignment_id"/>
+                <field name="student_id"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="teacher_id"/>
+                <field name="submitted_on"/>
+                <field name="score"/>
+                <field name="state" widget="badge" decoration-info="state == 'submitted'" decoration-success="state == 'evaluated'" decoration-warning="state == 'returned'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_assignment_submission_form" model="ir.ui.view">
+        <field name="name">university.assignment.submission.form</field>
+        <field name="model">university.assignment.submission</field>
+        <field name="arch" type="xml">
+            <form string="Assignment Submission">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_evaluate" type="object" string="Evaluate" class="oe_highlight" invisible="state not in ('submitted', 'returned')" groups="school_management.group_school_teacher"/>
+                    <button name="action_return" type="object" string="Return" invisible="state != 'submitted'" groups="school_management.group_school_teacher"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,evaluated"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="assignment_id"/>
+                            <field name="student_id"/>
+                            <field name="section_id"/>
+                            <field name="subject_id"/>
+                        </group>
+                        <group>
+                            <field name="teacher_id"/>
+                            <field name="category_id"/>
+                            <field name="submitted_on" readonly="1"/>
+                            <field name="score" groups="school_management.group_school_teacher"/>
+                            <field name="max_score"/>
+                            <field name="assessment_result_id" readonly="1" groups="school_management.group_school_teacher"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Submission" name="submission">
+                            <field name="answer_text"/>
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Feedback" name="feedback">
+                            <field name="feedback"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_university_assignment_submission" model="ir.actions.act_window">
+        <field name="name">Assignment Submissions</field>
+        <field name="res_model">university.assignment.submission</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+    <record id="action_university_assignment_submission_student" model="ir.actions.act_window">
+        <field name="name">My Submissions</field>
+        <field name="res_model">university.assignment.submission</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('student_id.user_id', '=', uid)]</field>
+        <field name="context">{'delete': False}</field>
     </record>
 </odoo>

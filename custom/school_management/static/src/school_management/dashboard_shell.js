@@ -61,6 +61,42 @@ const CAPABILITY_STATUS = {
 };
 const LIVE_STATUSES = new Set(["active", "beta"]);
 
+// Semantic status color tokens, mirrored from design_tokens.scss. Chart.js
+// draws on canvas so CSS variables are resolved to concrete values at render.
+const STATUS_TOKENS = {
+    active: "var(--status-success)",
+    suspended: "var(--status-warning)",
+    graduated: "var(--status-info)",
+    dropped: "var(--status-danger)",
+};
+
+// Small inline plugin drawing the total count in the centre of a doughnut.
+const doughnutCenterText = {
+    id: "doughnutCenterText",
+    afterDraw(chart) {
+        const opts = chart.options?.plugins?.centerText;
+        if (!opts || !chart.data?.datasets?.length) return;
+        const first = chart.getDatasetMeta(0)?.data?.[0];
+        if (!first) return;
+        const values = chart.data.datasets[0].data || [];
+        const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0);
+        const { x, y } = first.tooltipPosition();
+        const { ctx } = chart;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = opts.valueColor || "#0f172a";
+        ctx.font = `700 ${opts.valueSize || 24}px system-ui, -apple-system, sans-serif`;
+        ctx.fillText(String(total), x, y - (opts.label ? 9 : 0));
+        if (opts.label) {
+            ctx.fillStyle = opts.labelColor || "#64748b";
+            ctx.font = "500 12px system-ui, -apple-system, sans-serif";
+            ctx.fillText(opts.label, x, y + 15);
+        }
+        ctx.restore();
+    },
+};
+
 class SchoolDashboardShell extends Component {
     static template = "school_management.DashboardShell";
     static props = ["*"];
@@ -102,7 +138,22 @@ class SchoolDashboardShell extends Component {
         onWillStart(async () => {
             try {
                 const isSystem = await user.hasGroup(GROUP_SYSTEM);
-                this.state.isFullAccess = isSystem || await user.hasGroup(GROUP_ADMIN);
+                const isAdmin = isSystem || (await user.hasGroup(GROUP_ADMIN));
+                const isDean = await user.hasGroup("school_management.group_school_dean");
+                const isHod = await user.hasGroup(GROUP_HOD);
+                const isTeacher = await user.hasGroup("school_management.group_school_teacher");
+                const isStudent = await user.hasGroup("school_management.group_school_student");
+
+                if (isStudent && !isTeacher && !isAdmin && !isDean && !isHod) {
+                    await this.action.doAction("school_management.action_student_dashboard_shell", { clearBreadcrumbs: true });
+                    return;
+                }
+                if (isTeacher && !isAdmin && !isDean && !isHod) {
+                    await this.action.doAction("school_management.action_teacher_dashboard_shell", { clearBreadcrumbs: true });
+                    return;
+                }
+
+                this.state.isFullAccess = isAdmin;
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
                     this.loadDashboardData(),
@@ -357,21 +408,33 @@ class SchoolDashboardShell extends Component {
         return false;
     }
 
+    getToken(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
     renderCharts() {
         this.destroyCharts();
         if (!this.state.chartData || !window.Chart) return;
 
         // 1. Student Status Doughnut Chart
         if (this.chartStatusRef.el && this.hasChartData("status")) {
+            const labels = this.state.chartData.student_status?.labels || [];
+            const values = this.state.chartData.student_status?.data || [];
+            const colors = labels.map(
+                (label) =>
+                    this.getToken(STATUS_TOKENS[String(label).toLowerCase()]) ||
+                    this.getToken("--brand-sapphire") ||
+                    "#3a6ea5"
+            );
+            const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0) || 1;
             const ctxStatus = this.chartStatusRef.el.getContext("2d");
             this.charts.push(new window.Chart(ctxStatus, {
                 type: 'doughnut',
                 data: {
-                    labels: this.state.chartData.student_status?.labels || [],
+                    labels,
                     datasets: [{
-                        data: this.state.chartData.student_status?.data || [],
-                        backgroundColor: ['#1f7a5c', '#2563eb', '#d97706', '#dc2626'],
-                        hoverBackgroundColor: ['#19624a', '#1d4ed8', '#b45309', '#b91c1c'],
+                        data: values,
+                        backgroundColor: colors,
                         borderWidth: 2,
                         borderColor: '#ffffff',
                     }]
@@ -379,32 +442,49 @@ class SchoolDashboardShell extends Component {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '72%',
                     plugins: {
+                        centerText: { label: 'Students' },
                         legend: {
                             position: 'bottom',
                             labels: {
-                                boxWidth: 12,
-                                boxHeight: 12,
+                                boxWidth: 10,
+                                boxHeight: 10,
                                 usePointStyle: true,
                                 pointStyle: 'circle',
-                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
-                                padding: 16,
+                                padding: 12,
+                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
+                                generateLabels: (chart) =>
+                                    (chart.data.labels || []).map((label, index) => ({
+                                        text: `${label} · ${values[index]} (${Math.round((Number(values[index]) / total) * 100)}%)`,
+                                        fillStyle: chart.data.datasets[0].backgroundColor[index],
+                                        strokeStyle: chart.data.datasets[0].backgroundColor[index],
+                                        lineWidth: 0,
+                                        hidden: false,
+                                        index,
+                                    })),
                             }
                         },
                         tooltip: {
-                            backgroundColor: '#1b2a4a',
+                            backgroundColor: this.getToken("--brand-primary") || '#1b2a4a',
                             titleFont: { size: 13, weight: '600' },
                             bodyFont: { size: 12 },
                             padding: 10,
                             cornerRadius: 8,
+                            callbacks: {
+                                label: (ctx) => {
+                                    const value = Number(ctx.parsed) || 0;
+                                    return ` ${ctx.label}: ${value} (${Math.round((value / total) * 100)}%)`;
+                                },
+                            },
                         }
                     },
-                    cutout: '72%'
-                }
+                },
+                plugins: [doughnutCenterText]
             }));
         }
 
-        // 2. Program Distribution Horizontal / Bar Chart
+        // 2. Program Distribution Bar Chart
         if (this.chartProgramRef.el && this.hasChartData("program")) {
             const ctxProgram = this.chartProgramRef.el.getContext("2d");
             this.charts.push(new window.Chart(ctxProgram, {
@@ -414,10 +494,12 @@ class SchoolDashboardShell extends Component {
                     datasets: [{
                         label: 'Enrolled Students',
                         data: this.state.chartData.program_distribution?.data || [],
-                        backgroundColor: '#3a6ea5',
-                        hoverBackgroundColor: '#2b527d',
-                        borderRadius: 6,
-                        maxBarThickness: 32,
+                        backgroundColor: this.getToken("--brand-sapphire") || '#3a6ea5',
+                        hoverBackgroundColor: this.getToken("--brand-sapphire-hover") || '#2b537f',
+                        borderRadius: 4,
+                        maxBarThickness: 28,
+                        barPercentage: 0.72,
+                        categoryPercentage: 0.62,
                     }]
                 },
                 options: {
@@ -426,7 +508,7 @@ class SchoolDashboardShell extends Component {
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#1b2a4a',
+                            backgroundColor: this.getToken("--brand-primary") || '#1b2a4a',
                             titleFont: { size: 13, weight: '600' },
                             bodyFont: { size: 12 },
                             padding: 10,
@@ -436,12 +518,25 @@ class SchoolDashboardShell extends Component {
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { precision: 0, font: { size: 11 } },
-                            grid: { color: 'rgba(0, 0, 0, 0.04)' }
+                            ticks: {
+                                precision: 0,
+                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
+                            },
+                            grid: { color: 'rgba(15, 23, 42, 0.05)', drawTicks: false },
+                            border: { display: false },
                         },
                         x: {
-                            ticks: { font: { size: 11 } },
-                            grid: { display: false }
+                            ticks: {
+                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
+                                maxRotation: 0,
+                                autoSkip: false,
+                                callback: function (val) {
+                                    const label = this.getLabelForValue(val);
+                                    const text = String(label || "");
+                                    return text.length > 12 ? `${text.slice(0, 11)}…` : text;
+                                },
+                            },
+                            grid: { display: false },
                         }
                     }
                 }

@@ -49,15 +49,50 @@ class ResUsers(models.Model):
         email = values.get("email") or values.get("login")
         student = self._get_signup_student(email)
         student_group = self.env.ref("school_management.group_school_student")
-        portal_group = self.env.ref("base.group_portal", raise_if_not_found=False)
+        internal_group = self.env.ref("base.group_user")
 
         signup_values = dict(values)
-        group_commands = [(4, student_group.id)]
-        if portal_group:
-            group_commands.append((3, portal_group.id))
-        signup_values["group_ids"] = group_commands
+        # Default student sign-up creates an internal school user so the
+        # student can access the backend Student Portal app. Portal-only
+        # students remain supported by group_student_portal when assigned
+        # explicitly through the normal portal flow.
+        signup_values["group_ids"] = [(6, 0, [internal_group.id, student_group.id])]
         signup_values["share"] = False
 
         user = super()._signup_create_user(signup_values)
         student.write({"user_id": user.id})
         return user
+
+    @api.model
+    def _fix_demo_staff_links(self):
+        """One-time data migration: make res.users.teacher_id and
+        university.teacher.user_id reciprocal for the seeded demo logins,
+        pointing each login at the teacher record that actually holds the
+        matching active role assignment. Idempotent; no-op when the demo
+        records are absent."""
+        mapping = [
+            ("hod", "Dr. Sarah Jenkins"),
+            ("dean", "Prof. Charles Xavier"),
+            ("teacher", "Dr. Gregory Hous"),
+        ]
+        teacher_model = self.env["university.teacher"].sudo()
+        users = {
+            login: user.sudo()
+            for login, _ in mapping
+            for user in self.search([("login", "=", login)], limit=1)
+        }
+
+        for teacher in teacher_model.search(
+            [("user_id", "in", list(users.values()).ids)]
+        ):
+            teacher.write({"user_id": False})
+
+        for login, teacher_name in mapping:
+            user = users.get(login)
+            teacher = teacher_model.search(
+                [("name", "=", teacher_name)], limit=1
+            )
+            if not user or not teacher:
+                continue
+            teacher.write({"user_id": user.id})
+            user.write({"teacher_id": teacher.id})

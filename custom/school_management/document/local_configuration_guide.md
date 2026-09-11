@@ -99,19 +99,24 @@ To configure a real user:
 3. Assign the appropriate school group(s).
 4. For a teacher, HOD, or Dean, set the user’s `teacher_id` link to the matching teacher record.
 5. For a Dean, ensure that the linked teacher is the dean of the intended faculty.
-6. Save, sign out, and test with the target user![img.png](img.png) account.
+6. Save, sign out, and test with the target user account.
 
-The verified local demo accounts are documented in [`test_credentials.md`](test_credentials.md). Change those passwords before sharing the database or exposing the server beyond the local machine.
+For the **Teacher Dashboard** menu to appear, the user must be a member of `group_teacher_dashboard`; being in `group_school_teacher` alone is not enough, and administrator (`admin`) is intentionally excluded. For the **Student Portal** portal pages, a user signed up through `auth_signup` is placed in `group_student_portal` (read-only backend access, portal page templates are currently a placeholder).
 
-llllllll/';
+The verified local demo accounts are documented in [`login_guide.md`](login_guide.md). Change those passwords before sharing the database or exposing the server beyond the local machine.
+
+## 7. Use the application menus
+
 Use the application menus in this order so required relationships are available:
 
 1. **Structure**: faculties, departments, programs, subjects, and classrooms.
 2. **Academic**: academic years, semesters, and semester subjects.
 3. **Teachers** and **Students**.
-4. **Academic**: class sections and academic assignments.
+4. **Academic**: class sections, academic assignments, and timetables.
 5. **Enrollment**: enroll students into class sections, either directly or through the enrollment wizard.
-6. **Finance**: create fee invoices, add fee lines, post the invoice, then create and post payments.
+6. **Grading**: grade scales, assessment categories, assessment results, report cards, and transcripts.
+7. **Attendance**, **Lesson Plans**, **Assignments**, and **Notice Board** for day-to-day academic operations.
+8. **Finance**: create fee invoices (optionally from a fee structure), add fee lines, post the invoice, then create and post payments.
 
 For finance testing, a payment must have a positive amount. If a fee is linked, its student must match the payment student. Posted and canceled payments are protected from direct edits.
 
@@ -120,8 +125,10 @@ For finance testing, a payment must have a positive amount. If a fee is linked, 
 Check these application areas while logged in as the administrator:
 
 - The **Dashboard** opens and displays student, teacher, department, enrollment, fee, and payment KPIs.
-- The **Structure**, **Academic**, **Students**, **Teachers**, **Enrollment**, and **Finance** menus are visible.
+- The **Structure**, **Academic**, **Students**, **Teachers**, **Enrollment**, **Grading**, **Attendance**, and **Finance** menus are visible.
+- The **Teacher Dashboard** menu is visible to a user with `group_teacher_dashboard`; hidden from `admin`.
 - A payment receipt can be generated from a posted payment.
+- An academic report (report card, transcript) can be generated from the grading menu.
 - A curriculum report can be opened from the relevant academic records.
 - A teacher, HOD, Dean, and Student user can only see the records allowed by their assigned role and links.
 
@@ -169,10 +176,9 @@ Check the user’s assigned groups and `teacher_id` first. Also verify the teach
 ### A report fails to render
 
 Install wkhtmltopdf and verify that `C:\Program Files\wkhtmltopdf\bin` exists. The supplied `start_odoo.ps1` adds that directory to `PATH`.
-11
 
 ## Related project documents
 
 - [`project_overview.md`](project_overview.md): implemented features, models, security flow, and known boundaries.
 - [`agent_guide.md`](agent_guide.md): repository-level Odoo development conventions.
-- [`test_credentials.md`](test_credentials.md): local demo accounts.
+- [`login_guide.md`](login_guide.md): local demo accounts and password reset.

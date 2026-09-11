@@ -46,11 +46,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="activity_ids"/>
-                    <field name="message_ids"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -58,6 +54,6 @@
     <record id="action_university_lesson_plan" model="ir.actions.act_window">
         <field name="name">Lesson Plans</field>
         <field name="res_model">university.lesson.plan</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>

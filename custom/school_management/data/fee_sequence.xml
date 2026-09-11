@@ -21,4 +21,25 @@
         <field name="padding" eval="4"/>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="seq_university_admission_application" model="ir.sequence">
+        <field name="name">University Admission Application</field>
+        <field name="code">university.admission.application</field>
+        <field name="prefix">ADM-</field>
+        <field name="padding" eval="4"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_university_report_card" model="ir.sequence">
+        <field name="name">University Report Card</field>
+        <field name="code">university.report.card</field>
+        <field name="prefix">RC-</field>
+        <field name="padding" eval="4"/>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_university_transcript" model="ir.sequence">
+        <field name="name">University Transcript</field>
+        <field name="code">university.transcript</field>
+        <field name="prefix">TRN-</field>
+        <field name="padding" eval="4"/>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

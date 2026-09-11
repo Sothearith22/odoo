@@ -21,7 +21,24 @@ class StudentDashboardShell extends Component {
             paymentCount: 0,
         });
 
-        onWillStart(() => this.loadStudentData());
+        onWillStart(async () => {
+            const isStudent = await user.hasGroup("school_management.group_school_student");
+            const isTeacher = await user.hasGroup("school_management.group_school_teacher");
+            const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
+            const isDean = await user.hasGroup("school_management.group_school_dean");
+            const isHod = await user.hasGroup("school_management.group_school_hod");
+
+            if (!isStudent) {
+                if (isTeacher && !isAdmin && !isDean && !isHod) {
+                    await this.action.doAction("school_management.action_teacher_dashboard_shell", { clearBreadcrumbs: true });
+                    return;
+                } else if (isAdmin || isDean || isHod) {
+                    await this.action.doAction("school_management.action_school_dashboard_shell", { clearBreadcrumbs: true });
+                    return;
+                }
+            }
+            await this.loadStudentData();
+        });
     }
 
     async loadStudentData() {

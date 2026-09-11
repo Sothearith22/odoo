@@ -1,6 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="view_university_fee_structure_list" model="ir.ui.view">
+        <field name="name">university.fee.structure.list</field>
+        <field name="model">university.fee.structure</field>
+        <field name="arch" type="xml">
+            <list string="Fee Structures">
+                <field name="name"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="semester_id"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_fee_structure_form" model="ir.ui.view">
+        <field name="name">university.fee.structure.form</field>
+        <field name="model">university.fee.structure</field>
+        <field name="arch" type="xml">
+            <form string="Fee Structure">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Year 1 Admission Fees"/></h1>
+                    </div>
+                    <group>
+                        <field name="program_id"/>
+                        <field name="academic_year_id"/>
+                        <field name="semester_id"/>
+                        <field name="active" widget="boolean_toggle"/>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="amount" sum="Total"/>
+                        </list>
+                    </field>
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="total_amount"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_university_fee_structure" model="ir.actions.act_window">
+        <field name="name">Fee Structures</field>
+        <field name="res_model">university.fee.structure</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
     <!-- LIST VIEW -->
     <record id="view_university_fee_list" model="ir.ui.view">
         <field name="name">university.fee.list</field>
@@ -9,6 +60,7 @@
             <list string="Fee Invoices" multi_edit="1">
                 <field name="name"/>
                 <field name="student_id"/>
+                <field name="fee_structure_id" optional="hide"/>
                 <field name="date" optional="show"/>
                 <field name="due_date" optional="hide"/>
                 <field name="total_amount" sum="Total"/>
@@ -39,7 +91,7 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,posted,paid"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
+                    <div class="oe_button_box" name="button_box" groups="base.group_system,school_management.group_school_admin">
                         <button name="action_view_signatures" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
                             <field name="signature_count" widget="statinfo" string="Signatures"/>
                         </button>
@@ -52,6 +104,8 @@
                     <group>
                         <group>
                             <field name="student_id"/>
+                            <field name="fee_structure_id"/>
+                            <field name="admission_application_id"/>
                             <field name="academic_year_id"/>
                             <field name="semester_id"/>
                         </group>

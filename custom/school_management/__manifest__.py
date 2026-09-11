@@ -9,6 +9,7 @@
         "auth_signup",
         "base",
         "mail",
+        "portal",
         "web",
     ],"data": [
     # Security
@@ -16,16 +17,23 @@
     "security/ir.model.access.csv",
     "security/record_rules.xml",
 
+    # Portal
+    "views/portal_templates.xml",
+
     # Data
     "data/cleanup_legacy_models.xml",
     "data/dashboard_data.xml",
     "data/fee_sequence.xml",
+    "data/academic_defaults.xml",
     "data/mail_template.xml",
     "data/university_capability_data.xml",
+    "data/fix_user_teacher_links.xml",
 
     # Wizards
     "wizard/student_enrollment_wizard_views.xml",
     "wizard/bulk_enrollment_wizard_views.xml",
+    "wizard/populate_class_wizard_views.xml",
+    "wizard/teacher_account_wizard_views.xml",
 
     # Core Views
     "views/faculty_views.xml",
@@ -34,6 +42,7 @@
     "views/academic_year_views.xml",
     "views/semester_subject_views.xml",
     "views/classroom_views.xml",
+    "views/admission_views.xml",
     "views/subject_views.xml",
     "views/class_section_views.xml",
     "views/academic_assignment_views.xml",
@@ -43,6 +52,7 @@
     # Configuration
     "views/res_config_settings_views.xml",
     "views/capability_views.xml",
+    "views/grading_views.xml",
 
     # Reports
     "reports/payment_report_template.xml",
@@ -66,11 +76,16 @@
     "views/assignment_views.xml",
     "views/timetable_views.xml",
 
+    # Academic Reports
+    "reports/academic_report_templates.xml",
+    "reports/academic_reports.xml",
+
     # Menu must load after actions
     "views/menu_views.xml",
 ],
     "assets": {
         "web.assets_backend": [
+            "school_management/static/src/school_management/design_tokens.scss",
             "school_management/static/src/school_management/backend.scss",
             "school_management/static/src/school_management/dashboard_shell.js",
             "school_management/static/src/school_management/dashboard_shell.xml",
