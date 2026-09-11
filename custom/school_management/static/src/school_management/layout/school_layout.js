@@ -146,6 +146,7 @@ function navItem(key, label, icon, actionXmlId, adminOnly = false) {
 export class SchoolLayout extends Component {
     static template = "school_management.SchoolLayout";
     static props = {
+        isActive: { type: Boolean, optional: true },
         slots: { type: Object, optional: true },
     };
 

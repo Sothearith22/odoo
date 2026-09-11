@@ -17,6 +17,16 @@
     position: relative;
     overflow: hidden;
 
+    // When the University app is not active, the shell chrome (sidebar /
+    // topbar) is not rendered. The wrapper boxes are neutralised so the
+    // ActionContainer participates directly in the webclient flex layout,
+    // matching Odoo's default `.o_web_client > .o_action_manager` rules.
+    &.o_school_shell_hidden,
+    &.o_school_shell_hidden .o_school_content,
+    &.o_school_shell_hidden .o_school_action_slot {
+        display: contents;
+    }
+
     // ---------------------------------------------------------
     // Sidebar Base
     // ---------------------------------------------------------
@@ -226,6 +236,38 @@
         border-bottom: 1px solid var(--border);
     }
 
+    .o_school_content {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .o_school_action_slot {
+        min-width: 0;
+        min-height: 0;
+        width: 100%;
+        overflow: hidden;
+
+        > .o_action_manager {
+            display: flex;
+            flex: 1 1 auto;
+            flex-flow: column nowrap;
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+
+            > .o_action {
+                display: flex;
+                flex: 1 1 auto;
+                flex-flow: column nowrap;
+                min-width: 0;
+                min-height: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+        }
+    }
     .o_school_view_switcher {
         flex-shrink: 0;
         border: 1px solid var(--border);

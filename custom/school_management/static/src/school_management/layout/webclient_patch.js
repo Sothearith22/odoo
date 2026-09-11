@@ -160,6 +160,7 @@ patch(WebClient.prototype, {
         const currentAction = this.actionService.currentController?.action || {};
         const routeAction = router.current.action;
         const actionName = (currentAction.name || "").toLowerCase();
+        const actionLoaded = hasLoadedAction(currentAction);
         const isDashboardAction =
             currentAction.tag === SCHOOL_DASHBOARD_TAG ||
             currentAction.xml_id === SCHOOL_DASHBOARD_XMLID ||
@@ -174,11 +175,14 @@ patch(WebClient.prototype, {
             app: currentApp?.xmlid,
             currentAction: currentAction.xml_id || currentAction.tag || currentAction.id,
             routeAction,
+            actionLoaded,
         });
 
-        // A route action means another page is being restored. Only repair a
-        // genuinely action-less University route after a full browser reload.
-        if (isDashboardAction || currentAction.type || routeAction) {
+        // A real loaded action or an explicit dashboard action owns the route.
+        // During app selection Odoo can expose a stale router action before the
+        // ActionContainer has mounted; in that state the University app would
+        // render the shell with an empty content slot and never recover.
+        if (isDashboardAction || actionLoaded) {
             return;
         }
 

@@ -2,15 +2,15 @@
 <templates xml:space="preserve">
 
   <t t-name="school_management.SchoolLayout" owl="1">
-    <div class="o_school_shell d-flex w-100 h-100" t-att-class="{ 'o_school_shell_collapsed': state.collapsed, 'o_school_mobile_open': state.mobileOpen }">
+    <div class="o_school_shell d-flex w-100 h-100" t-att-class="{ 'o_school_shell_collapsed': state.collapsed, 'o_school_mobile_open': state.mobileOpen, 'o_school_shell_hidden': !props.isActive }">
 
       <!-- Mobile Touch Backdrop -->
-      <div t-if="state.mobileOpen" class="o_school_sidebar_backdrop d-lg-none" t-on-click="() => this.closeMobileDrawer()"/>
+      <div t-if="props.isActive and state.mobileOpen" class="o_school_sidebar_backdrop d-lg-none" t-on-click="() => this.closeMobileDrawer()"/>
 
       <!-- ========================================================= -->
       <!-- SIDEBAR CONTAINER                                         -->
       <!-- ========================================================= -->
-      <aside class="o_school_sidebar d-flex flex-column" aria-label="University Navigation">
+      <aside t-if="props.isActive" class="o_school_sidebar d-flex flex-column" aria-label="University Navigation">
         
         <!-- 1. Header with Brand Crest & Title -->
         <div class="o_school_sidebar_header d-flex align-items-center justify-content-between p-3">
@@ -165,10 +165,10 @@
       <!-- ========================================================= -->
       <!-- MAIN WORKSPACE CONTENT                                    -->
       <!-- ========================================================= -->
-      <div class="o_school_content flex-grow-1 d-flex flex-column overflow-auto">
+      <div class="o_school_content flex-grow-1 d-flex flex-column overflow-hidden">
         
         <!-- Shared topbar: the view switch remains available above both dashboards. -->
-        <div t-if="!this.isActive('dashboard') || state.canSwitchStudentView"
+        <div t-if="props.isActive and (!this.isActive('dashboard') || state.canSwitchStudentView)"
              class="o_school_topbar d-flex align-items-center justify-content-between gap-3 px-4 py-2">
           <div t-if="!this.isActive('dashboard')" class="d-flex align-items-center gap-3">
             <button class="btn btn-sm btn-outline-secondary d-lg-none"
@@ -207,7 +207,7 @@
         </div>
 
         <!-- Action / View Slot -->
-        <div class="flex-grow-1 overflow-auto position-relative bg-view">
+        <div class="o_school_action_slot flex-grow-1 d-flex flex-column overflow-hidden position-relative bg-view">
           <t t-slot="default"/>
         </div>
 

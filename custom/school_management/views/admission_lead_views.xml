@@ -1,0 +1,50 @@
+<odoo>
+    <record id="admission_lead_view_kanban" model="ir.ui.view">
+        <field name="name">admission.lead.kanban</field>
+        <field name="model">admission.lead</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" records_draggable="1">
+                <field name="stage_id"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="student_name"/>
+                        <field name="program_id"/>
+                        <button name="action_set_won" type="object"
+                                string="Accept" class="btn-success"/>
+                        <button name="action_set_lost" type="object"
+                                string="Reject" class="btn-danger"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="admission_lead_view_form" model="ir.ui.view">
+        <field name="name">admission.lead.form</field>
+        <field name="model">admission.lead</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="student_name"/>
+                        <field name="email"/>
+                        <field name="phone"/>
+                        <field name="program_id"/>
+                        <field name="stage_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="admission_lead_action" model="ir.actions.act_window">
+        <field name="name">Admissions</field>
+        <field name="res_model">admission.lead</field>
+        <field name="view_mode">kanban,form</field>
+    </record>
+
+    <menuitem id="menu_admission_root" name="Admissions" sequence="15"/>
+    <menuitem id="menu_admission_lead" name="Applicants"
+              parent="menu_admission_root" action="admission_lead_action"
+              sequence="10"/>
+</odoo>
