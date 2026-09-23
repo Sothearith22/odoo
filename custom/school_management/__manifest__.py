@@ -1,6 +1,6 @@
 {
     "name": "University Management System",
-    "version": "19.0.1.2.1",
+    "version": "19.0.1.2.2",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -11,6 +11,7 @@
         "mail",
         "portal",
         "web",
+        "web_hierarchy",
     ],"data": [
     # Security
     "security/security.xml",
@@ -40,6 +41,7 @@
     "views/department_views.xml",
     "views/program_views.xml",
     "views/academic_year_views.xml",
+    "views/academic_hierarchy_views.xml",
     "views/semester_subject_views.xml",
     "views/classroom_views.xml",
     "views/admission_views.xml",
@@ -82,6 +84,10 @@
 
     # Menu must load after actions
     "views/menu_views.xml",
+
+    # Admissions Pipeline
+    "data/admission_stage_data.xml",
+    "views/admission_lead_views.xml",
 ],
     "assets": {
         "web.assets_backend": [
@@ -93,12 +99,8 @@
             "school_management/static/src/school_management/student_dashboard_shell.js",
             "school_management/static/src/school_management/student_dashboard_shell.xml",
             "school_management/static/src/school_management/student_dashboard_shell.scss",
-            "school_management/static/src/school_management/layout/school_layout.js",
-            "school_management/static/src/school_management/layout/school_layout.xml",
-            "school_management/static/src/school_management/layout/school_layout.scss",
             "school_management/static/src/school_management/layout/webclient_patch.js",
             "school_management/static/src/school_management/layout/webclient_patch.xml",
-            "school_management/static/src/school_management/layout/topbar_integration.scss",
             "school_management/static/src/school_management/teacher_dashboard_shell.js",
             "school_management/static/src/school_management/teacher_dashboard_shell.xml",
             "school_management/static/src/school_management/teacher_dashboard_shell.scss",

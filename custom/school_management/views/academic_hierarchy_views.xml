@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_university_academic_hierarchy" model="ir.ui.view">
+        <field name="name">university.academic.hierarchy</field>
+        <field name="model">university.academic.hierarchy</field>
+        <field name="arch" type="xml">
+            <hierarchy child_field="child_ids" icon="fa-sitemap">
+                <field name="child_ids" invisible="1"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="node_type"/>
+                <templates>
+                    <t t-name="hierarchy-box">
+                        <div class="o_hierarchy_node_header d-flex justify-content-center align-items-center">
+                            <field name="node_type"/>
+                        </div>
+                        <div class="d-flex flex-column text-center">
+                            <field name="name" class="fw-bold"/>
+                            <field name="code" class="text-muted"/>
+                            <button name="action_open_source" type="object" class="btn btn-link">
+                                Open record
+                            </button>
+                        </div>
+                    </t>
+                </templates>
+            </hierarchy>
+        </field>
+    </record>
+
+    <record id="action_university_academic_hierarchy" model="ir.actions.act_window">
+        <field name="name">Academic Structure</field>
+        <field name="res_model">university.academic.hierarchy</field>
+        <field name="view_mode">hierarchy</field>
+        <field name="view_id" ref="view_university_academic_hierarchy"/>
+        <field name="domain">[('active', '=', True)]</field>
+    </record>
+</odoo>

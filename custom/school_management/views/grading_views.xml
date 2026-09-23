@@ -109,7 +109,8 @@
                         <group>
                             <field name="student_id"/>
                             <field name="section_id"/>
-                            <field name="subject_id"/>
+                            <field name="subject_id"
+                                   domain="['|', ('program_ids', '=', False), ('program_ids', 'in', [student_id.program_id])]"/>
                             <field name="teacher_id"/>
                         </group>
                         <group>

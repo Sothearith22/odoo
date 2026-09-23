@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools.float_utils import float_compare
 
 
 class UniversityFee(models.Model):
@@ -30,6 +31,7 @@ class UniversityFee(models.Model):
     
     date = fields.Date(string="Invoice Date", default=fields.Date.context_today, required=True)
     due_date = fields.Date(string="Due Date")
+    notes = fields.Text(string="Notes")
     
     currency_id = fields.Many2one("res.currency", string="Currency", compute="_compute_currency_id")
     line_ids = fields.One2many("university.fee.line", "fee_id", string="Fee Lines")
@@ -45,6 +47,7 @@ class UniversityFee(models.Model):
         compute="_compute_signature_count",
         groups="base.group_system,school_management.group_school_admin",
     )
+    payment_count = fields.Integer(string="Payment Count", compute="_compute_payment_count")
     
     total_amount = fields.Float(string="Total Amount", compute="_compute_totals", store=True)
     paid_amount = fields.Float(string="Paid Amount", compute="_compute_totals", store=True)
@@ -74,13 +77,13 @@ class UniversityFee(models.Model):
             fee.currency_id = currency
 
     @api.depends(
-        "line_ids.amount",
+        "line_ids.total_amount",
         "payment_ids.amount",
         "payment_ids.state",
     )
     def _compute_totals(self):
         for fee in self:
-            total = sum(fee.line_ids.mapped("amount"))
+            total = sum(fee.line_ids.mapped("total_amount"))
             paid = sum(fee.payment_ids.filtered(lambda p: p.state == "posted").mapped("amount"))
             fee.total_amount = total
             fee.paid_amount = paid
@@ -94,9 +97,19 @@ class UniversityFee(models.Model):
         compute-dependency cycle on the ``state`` field.
         """
         for fee in self:
-            if fee.state == "posted" and fee.balance <= 0 and fee.total_amount > 0:
+            rounding = fee.currency_id.rounding or 0.01
+            fully_paid = (
+                fee.total_amount > 0
+                and float_compare(fee.balance, 0.0, precision_rounding=rounding) == 0
+                and float_compare(
+                    fee.paid_amount,
+                    fee.total_amount,
+                    precision_rounding=rounding,
+                ) == 0
+            )
+            if fee.state == "posted" and fully_paid:
                 fee.state = "paid"
-            elif fee.state == "paid" and fee.balance > 0:
+            elif fee.state == "paid" and not fully_paid:
                 fee.state = "posted"
 
     def _send_payment_receipt_email(self, payment):
@@ -132,6 +145,10 @@ class UniversityFee(models.Model):
     def _compute_signature_count(self):
         for fee in self:
             fee.signature_count = len(fee.signature_ids)
+
+    def _compute_payment_count(self):
+        for fee in self:
+            fee.payment_count = len(fee.payment_ids)
 
     def action_request_signature(self):
         self.ensure_one()
@@ -199,15 +216,114 @@ class UniversityFee(models.Model):
             "school_management.action_report_university_payment_receipt"
         ).report_action(payment)
 
+    def action_view_student(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Student",
+            "res_model": "university.student",
+            "view_mode": "form",
+            "res_id": self.student_id.id,
+        }
+
+    def action_view_payments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Payments",
+            "res_model": "university.payment",
+            "view_mode": "list,form",
+            "domain": [("fee_id", "=", self.id)],
+            "context": {"default_fee_id": self.id},
+        }
+
 
 class UniversityFeeLine(models.Model):
     _name = "university.fee.line"
     _description = "Fee Line"
 
     fee_id = fields.Many2one("university.fee", string="Fee Invoice", required=True, ondelete="cascade")
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        related="fee_id.currency_id",
+        readonly=True,
+    )
     name = fields.Char(string="Description", required=True)
-    amount = fields.Float(string="Amount", required=True)
+    fee_type = fields.Selection(
+        [
+            ("tuition", "Tuition"),
+            ("lab", "Laboratory"),
+            ("library", "Library"),
+            ("dormitory", "Dormitory"),
+            ("registration", "Registration"),
+            ("other", "Other"),
+        ],
+        string="Fee Type",
+        default="tuition",
+    )
+    quantity = fields.Float(string="Quantity", default=1.0, required=True)
+    unit_price = fields.Float(string="Unit Price", default=0.0)
+    discount_type = fields.Selection(
+        [
+            ("percent", "Percentage"),
+            ("fixed", "Fixed Amount"),
+        ],
+        string="Discount Type",
+        default="percent",
+        required=True,
+    )
+    discount = fields.Float(string="Discount", default=0.0)
+    discount_amount = fields.Float(
+        string="Discount Amount",
+        compute="_compute_amounts",
+        store=True,
+    )
+    amount = fields.Float(string="Subtotal", compute="_compute_amounts", store=True)
+    total_amount = fields.Float(
+        string="Line Total",
+        compute="_compute_amounts",
+        store=True,
+    )
+    due_date = fields.Date(string="Due Date")
 
+    @api.depends("quantity", "unit_price", "discount_type", "discount")
+    def _compute_amounts(self):
+        for line in self:
+            subtotal = line.quantity * line.unit_price
+            if line.discount_type == "fixed":
+                line.discount_amount = min(max(line.discount, 0.0), subtotal)
+            else:
+                line.discount_amount = min(
+                    max(subtotal * line.discount / 100.0, 0.0),
+                    subtotal,
+                )
+            line.amount = subtotal
+            line.total_amount = subtotal - line.discount_amount
+
+    @api.constrains("quantity", "unit_price", "discount")
+    def _check_amount_values(self):
+        for line in self:
+            if line.quantity <= 0:
+                raise ValidationError(_("Fee line quantity must be greater than zero."))
+            if line.unit_price < 0:
+                raise ValidationError(_("Fee line unit price cannot be negative."))
+            if line.discount < 0:
+                raise ValidationError(_("Fee line discount cannot be negative."))
+            if line.discount_type == "percent" and line.discount > 100:
+                raise ValidationError(_("Percentage discounts cannot exceed 100%."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if (
+                "amount" in vals
+                and "unit_price" not in vals
+                and vals.get("amount") is not None
+            ):
+                quantity = vals.get("quantity", 1.0) or 1.0
+                vals["unit_price"] = vals["amount"] / quantity
+        return super().create(vals_list)
 
 class UniversityFeeStructure(models.Model):
     _name = "university.fee.structure"
@@ -242,10 +358,12 @@ class UniversityFeeStructure(models.Model):
     )
     active = fields.Boolean(string="Active", default=True)
 
-    @api.depends("line_ids.amount")
+    @api.depends("line_ids.total_amount")
     def _compute_total_amount(self):
         for structure in self:
-            structure.total_amount = sum(structure.line_ids.mapped("amount"))
+            structure.total_amount = sum(
+                structure.line_ids.mapped("total_amount")
+            )
 
     def _prepare_fee_vals(self, student, admission=None):
         self.ensure_one()
@@ -263,7 +381,11 @@ class UniversityFeeStructure(models.Model):
                     0,
                     {
                         "name": line.name,
-                        "amount": line.amount,
+                        "fee_type": line.fee_type,
+                        "quantity": line.quantity,
+                        "unit_price": line.unit_price,
+                        "discount_type": line.discount_type,
+                        "discount": line.discount,
                     },
                 )
                 for line in self.line_ids
@@ -284,10 +406,68 @@ class UniversityFeeStructureLine(models.Model):
         ondelete="cascade",
     )
     name = fields.Char(string="Description", required=True)
-    amount = fields.Float(string="Amount", required=True)
+    fee_type = fields.Selection(
+        [
+            ("tuition", "Tuition"),
+            ("lab", "Laboratory"),
+            ("library", "Library"),
+            ("dormitory", "Dormitory"),
+            ("registration", "Registration"),
+            ("other", "Other"),
+        ],
+        string="Fee Type",
+        default="tuition",
+    )
+    quantity = fields.Float(string="Quantity", default=1.0, required=True)
+    unit_price = fields.Float(string="Unit Price", default=0.0)
+    discount_type = fields.Selection(
+        [
+            ("percent", "Percentage"),
+            ("fixed", "Fixed Amount"),
+        ],
+        string="Discount Type",
+        default="percent",
+        required=True,
+    )
+    discount = fields.Float(default=0.0)
+    discount_amount = fields.Float(compute="_compute_amounts", store=True)
+    amount = fields.Float(compute="_compute_amounts", store=True)
+    total_amount = fields.Float(compute="_compute_amounts", store=True)
 
-    @api.constrains("amount")
-    def _check_amount(self):
+    @api.depends("quantity", "unit_price", "discount_type", "discount")
+    def _compute_amounts(self):
         for line in self:
-            if line.amount < 0:
-                raise ValidationError("Fee structure amounts cannot be negative.")
+            subtotal = line.quantity * line.unit_price
+            if line.discount_type == "fixed":
+                line.discount_amount = min(max(line.discount, 0.0), subtotal)
+            else:
+                line.discount_amount = min(
+                    max(subtotal * line.discount / 100.0, 0.0),
+                    subtotal,
+                )
+            line.amount = subtotal
+            line.total_amount = subtotal - line.discount_amount
+
+    @api.constrains("quantity", "unit_price", "discount")
+    def _check_amount_values(self):
+        for line in self:
+            if line.quantity <= 0:
+                raise ValidationError(_("Fee structure quantity must be greater than zero."))
+            if line.unit_price < 0:
+                raise ValidationError(_("Fee structure unit price cannot be negative."))
+            if line.discount < 0:
+                raise ValidationError(_("Fee structure discount cannot be negative."))
+            if line.discount_type == "percent" and line.discount > 100:
+                raise ValidationError(_("Percentage discounts cannot exceed 100%."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if (
+                "amount" in vals
+                and "unit_price" not in vals
+                and vals.get("amount") is not None
+            ):
+                quantity = vals.get("quantity", 1.0) or 1.0
+                vals["unit_price"] = vals["amount"] / quantity
+        return super().create(vals_list)

@@ -72,6 +72,8 @@ class TestEnrollment(TransactionCase):
         )
         self.assertEqual(enrollment.department_id, self.department)
         self.assertEqual(enrollment.faculty_id, self.faculty)
+        self.assertEqual(enrollment.status, "draft")
+        enrollment.action_confirm()
         self.assertEqual(enrollment.status, "enrolled")
 
     def test_student_wizard_enrolls_without_class_section(self):
@@ -240,6 +242,7 @@ class TestEnrollment(TransactionCase):
         self.Enrollment.create(
             {
                 "student_id": s1.id,
+                "status": "enrolled",
                 "program_id": self.program.id,
                 "section_id": self.section.id,
                 "academic_year_id": self.year.id,
@@ -288,6 +291,7 @@ class TestEnrollment(TransactionCase):
         self.Enrollment.create(
             {
                 "student_id": s1.id,
+                "status": "enrolled",
                 "program_id": self.program.id,
                 "academic_year_id": self.year.id,
                 "semester_id": self.semester.id,
@@ -330,6 +334,109 @@ class TestEnrollment(TransactionCase):
         )
         with self.assertRaises(UserError):
             wizard.action_enroll_students()
+
+
+    def _enrollment_vals(self, student, **overrides):
+        values = {
+            "student_id": student.id,
+            "program_id": self.program.id,
+            "academic_year_id": self.year.id,
+            "semester_id": self.semester.id,
+        }
+        return dict(values, **overrides)
+
+    def test_drafts_do_not_take_seats_and_batch_confirmation_is_atomic(self):
+        drafts = self.Enrollment.create([
+            self._enrollment_vals(self._make_student(), section_id=self.section.id)
+            for _ in range(3)
+        ])
+        with self.assertRaises(ValidationError):
+            drafts.action_confirm()
+        self.assertEqual(drafts.mapped("status"), ["draft"] * 3)
+        drafts[:2].action_confirm()
+        with self.assertRaises(ValidationError):
+            drafts[2:].action_confirm()
+        drafts[:1].action_cancel()
+        drafts[2:].action_confirm()
+        self.assertEqual(drafts[2].status, "enrolled")
+
+    def test_create_resolves_context_defaults_before_capacity_validation(self):
+        enrollments = self.Enrollment.with_context(
+            default_section_id=self.section.id, default_status="enrolled",
+        )
+        enrollments.create([
+            self._enrollment_vals(self._make_student()) for _ in range(2)
+        ])
+        with self.assertRaises(ValidationError):
+            enrollments.create(self._enrollment_vals(self._make_student()))
+
+    def test_duplicate_batch_is_rejected_before_creating_records(self):
+        student = self._make_student()
+        values = self._enrollment_vals(student)
+        with self.assertRaises(ValidationError):
+            self.Enrollment.create([values, dict(values, status="enrolled")])
+        self.assertFalse(self.Enrollment.search([("student_id", "=", student.id)]))
+
+    def test_sectionless_confirmation_excludes_itself_and_reset_checks_duplicates(self):
+        values = self._enrollment_vals(self._make_student())
+        first = self.Enrollment.create(values)
+        first.action_confirm()
+        first.action_cancel()
+        second = self.Enrollment.create(values)
+        with self.assertRaises(ValidationError):
+            first.action_draft()
+        self.assertEqual(first.status, "cancelled")
+        self.assertEqual(second.status, "draft")
+
+    def test_context_defaults_cannot_bypass_duplicate_validation(self):
+        values = self._enrollment_vals(self._make_student())
+        model = self.Enrollment.with_context(**{
+            "default_" + name: value for name, value in values.items()
+        })
+        model.create({})
+        with self.assertRaises(ValidationError):
+            model.create({})
+
+    def test_batch_write_rejects_duplicate_keys(self):
+        drafts = self.Enrollment.create([
+            self._enrollment_vals(self._make_student()) for _ in range(2)
+        ])
+        with self.assertRaises(ValidationError):
+            drafts.write({"student_id": drafts[0].student_id.id})
+
+    def test_admission_generates_enrollment_and_fee_with_currency(self):
+        structure = self.env["university.fee.structure"].create({
+            "name": "Integration fees",
+            "program_id": self.program.id,
+            "line_ids": [(0, 0, {
+                "name": "Laboratory", "fee_type": "lab", "quantity": 2,
+                "unit_price": 50.0, "amount": 100.0,
+            })],
+        })
+        application = self.env["university.admission.application"].create({
+            "applicant_name": "Integration applicant",
+            "program_id": self.program.id,
+            "academic_year_id": self.year.id,
+            "semester_id": self.semester.id,
+            "section_id": self.section.id,
+            "fee_structure_id": structure.id,
+        })
+        application.action_approve()
+        application.action_confirm()
+        self.assertEqual(application.enrollment_id.status, "enrolled")
+        fee = application.fee_ids
+        self.assertEqual(len(fee), 1)
+        self.assertEqual(fee.state, "posted")
+        self.assertEqual(fee.total_amount, 100.0)
+        self.assertEqual(fee.academic_year_id, self.year)
+        self.assertEqual(fee.semester_id, self.semester)
+        line = fee.line_ids
+        self.assertEqual(line.currency_id, fee.currency_id)
+        self.assertEqual(line.fee_type, "lab")
+        self.assertEqual(line.quantity, 2)
+        self.assertEqual(line.unit_price, 50.0)
+        self.assertFalse(line.due_date)
+        self.assertFalse(application._generate_required_fee(application.student_id))
 
 
 class TestBulkWizardEligibility(TransactionCase):

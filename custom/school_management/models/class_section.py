@@ -89,10 +89,7 @@ class UniversityClassSection(models.Model):
         for section in self:
             if not section.subject_id or not section.teacher_id:
                 continue
-            if (
-                section.subject_id.teacher_ids
-                and section.teacher_id not in section.subject_id.teacher_ids
-            ):
+            if section.subject_id.teacher_id and section.teacher_id != section.subject_id.teacher_id:
                 raise ValidationError(
                     "The selected instructor is not assigned to teach this subject."
                 )
@@ -111,6 +108,16 @@ class UniversityClassSection(models.Model):
                 raise ValidationError(
                     "The selected subject does not belong to the chosen major/program."
                 )
+
+    @api.onchange("program_id")
+    def _onchange_program_id(self):
+        if (
+            self.subject_id
+            and self.program_id
+            and self.subject_id.program_ids
+            and self.program_id not in self.subject_id.program_ids
+        ):
+            self.subject_id = False
 
     def action_open_bulk_enroll_wizard(self):
         self.ensure_one()

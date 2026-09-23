@@ -114,11 +114,14 @@
             .o_kcard_id {
                 display: flex;
                 align-items: center;
+                gap: 0.3rem;
                 font-size: 0.75rem;
                 color: var(--text-muted);
+                white-space: nowrap;
 
                 .fa {
                     width: 14px;
+                    flex: 0 0 14px;
                     text-align: center;
                     color: var(--text-light);
                 }

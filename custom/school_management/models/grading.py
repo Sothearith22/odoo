@@ -117,6 +117,16 @@ class UniversityAssessmentResult(models.Model):
         default="draft",
     )
 
+    @api.onchange("student_id")
+    def _onchange_student_id(self):
+        if (
+            self.subject_id
+            and self.student_id.program_id
+            and self.subject_id.program_ids
+            and self.student_id.program_id not in self.subject_id.program_ids
+        ):
+            self.subject_id = False
+
     @api.depends("score", "max_score", "category_id.weight")
     def _compute_scores(self):
         for result in self:

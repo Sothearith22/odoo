@@ -178,7 +178,7 @@
                         </page>
                         <page string="Reports" name="reports_tab">
                             <div class="alert alert-info" role="status">
-                                <i class="fa fa-info-circle me-1" aria-hidden="true"/>
+                                <i class="fa fa-info-circle me-1" aria-hidden="true" title="Information"/>
                                 Faculty-level reporting (e.g. headcount, enrolment summaries, financial) will be
                                 made available here. Use the Departments/Teachers/Students tabs for current data.
                             </div>

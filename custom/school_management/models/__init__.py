@@ -25,3 +25,6 @@ from . import timetable
 from . import notice_board
 from . import service_hour
 from . import attendance
+from . import academic_hierarchy
+from . import admission_stage
+from . import admission_lead

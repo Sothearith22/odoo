@@ -122,6 +122,17 @@ class UniversityTimetableSlot(models.Model):
         if self.classroom_id and not self.location:
             self.location = self.classroom_id.name
 
+    @api.onchange("section_id")
+    def _onchange_section_id(self):
+        if (
+            self.subject_id
+            and self.section_id
+            and self.section_id.program_id
+            and self.subject_id.program_ids
+            and self.section_id.program_id not in self.subject_id.program_ids
+        ):
+            self.subject_id = False
+
     @api.depends("start_time", "end_time")
     def _compute_state(self):
         now = fields.Datetime.now()

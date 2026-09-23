@@ -5,8 +5,7 @@ import { user } from "@web/core/user";
 import { router } from "@web/core/browser/router";
 import { patch } from "@web/core/utils/patch";
 import { useService, useBus } from "@web/core/utils/hooks";
-import { onMounted, useState } from "@odoo/owl";
-import { SchoolLayout } from "./school_layout";
+import { onMounted } from "@odoo/owl";
 
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const STUDENT_APP_XMLID = "school_management.menu_school_student_portal_root";
@@ -92,59 +91,25 @@ function isSchoolAction(action = {}) {
     );
 }
 
-WebClient.components = {
-    ...WebClient.components,
-    SchoolLayout,
-};
-
 patch(WebClient.prototype, {
     setup() {
         super.setup();
         this.menuService = useService("menu");
-        this.schoolState = useState({ isActive: false });
         this.studentRedirecting = false;
 
-        const checkSchoolApp = () => {
-            const currentApp = this.menuService.getCurrentApp();
-            const currentAction = this.actionService.currentController?.action || {};
-            const actionLoaded = hasLoadedAction(currentAction);
-            const schoolAction = isSchoolAction(currentAction);
-            const routeAction = router.current.action;
-            const schoolRouteWithoutAction =
-                !actionLoaded && !routeAction && SCHOOL_APP_XMLIDS.has(currentApp?.xmlid);
-
-            this.schoolState.isActive = Boolean(schoolAction || schoolRouteWithoutAction);
-
-            document.body.classList.toggle(
-                "o_school_management_active",
-                this.schoolState.isActive
-            );
-
-            debugNavigation("[University WebClient] layout state", {
-                app: currentApp?.xmlid,
-                action: currentAction.xml_id || currentAction.tag || currentAction.id,
-                model: currentAction.res_model,
-                enabled: this.schoolState.isActive,
-            });
-        };
-
         const refreshSchoolRoute = async () => {
-            checkSchoolApp();
             await this.redirectStudentToDashboard();
         };
 
         useBus(this.env.bus, "MENUS:APP-CHANGED", async () => {
-            checkSchoolApp();
             await this.ensureSchoolDashboardRoute();
             await this.redirectStudentToDashboard();
         });
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", refreshSchoolRoute);
         onMounted(() => {
-            setTimeout(checkSchoolApp);
             setTimeout(() => this.ensureSchoolDashboardRoute());
             setTimeout(() => this.redirectStudentToDashboard());
         });
-        checkSchoolApp();
     },
 
     async ensureSchoolDashboardRoute() {

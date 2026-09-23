@@ -63,6 +63,7 @@
 #     university.fee.structure                      *
 #     university.fee.structure.line                 *
 #     university.payment                            *
+#     Native Purchase / Inventory / Accounting flow  documented separately
 
 # Miscellaneous
 #     university.capability                         *
@@ -100,3 +101,6 @@
 #     security/fix_demo_staff_links.sql     standalone SQL equivalent (reference)
 #     migrations/19.0.1.2.0/pre-migrate.py
 #     migrations/19.0.1.2.1/pre-migrate.py  student placement / dean-head / student id
+#
+# Native procurement documentation
+#     document/purchase_inventory_flow.md            RFQ -> PO -> Receipt -> Bill -> Payment

@@ -26,12 +26,11 @@ class UniversitySubject(models.Model):
              "(e.g. 1, 2, 3 …). Used to order subjects in the curriculum report.",
     )
     description = fields.Text(string="Description")
-    teacher_ids = fields.Many2many(
+    teacher_id = fields.Many2one(
         "university.teacher",
-        "university_teacher_subject_rel",
-        "subject_id",
-        "teacher_id",
-        string="Teachers",
+        string="Teacher",
+        domain="[('department_id', '=', department_id)]",
+        ondelete="set null",
     )
     section_ids = fields.One2many(
         "university.class.section",

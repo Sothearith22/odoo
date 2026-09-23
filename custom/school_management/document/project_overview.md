@@ -4,7 +4,7 @@ Updated to match the codebase on 2026-09-10.
 
 ## Summary
 
-`custom/school_management/` is an Odoo 19 application addon for university operations. It covers structure, academics, admissions, students, teachers, enrollments, class sections, timetables, assignments/lesson plans, grading and assessment, two dashboards (operational + teacher), attendance, and a lightweight finance flow built on standalone fee and payment models rather than the Odoo `account` module.
+`custom/school_management/` is an Odoo 19 application addon for university operations. It covers structure, academics, admissions, students, teachers, enrollments, class sections, timetables, assignments/lesson plans, grading and assessment, two dashboards (operational + teacher), attendance, and a lightweight finance flow built on standalone fee and payment models rather than the Odoo `account` module. The native Purchase, Inventory, and Accounting workflow is documented separately for organizational procurement.
 
 Manifest facts from `__manifest__.py`:
 
@@ -224,6 +224,14 @@ This is not a full accounting ledger. It does not yet implement:
 - accounting journal entries
 - currency conversion
 
+### Native procurement flow
+
+Organizational purchases such as laboratory equipment, library materials, and office supplies should use Odoo's native Purchase, Inventory, and Accounting apps:
+
+`RFQ -> Purchase Order -> Receipt -> Vendor Bill -> Payment`
+
+This flow is separate from student enrollment, `university.fee`, and `university.payment`. See [`purchase_inventory_flow.md`](purchase_inventory_flow.md) for the Odoo 19 workflow, native model map, roles, configuration, and troubleshooting guidance.
+
 ## Student Flow
 
 `university.student` is the identity and aggregation record, not the place where every academic transaction is stored directly.
@@ -397,5 +405,6 @@ school_management/
     |-- local_configuration_guide.md
     |-- login_guide.md
     |-- university_management_system_architecture.md
+    |-- purchase_inventory_flow.md
     `-- SCHOOL_MANAGEMENT_QNA_REVIEW_9b9dd9a6.md
 ```

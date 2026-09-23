@@ -88,7 +88,7 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
                 skipped.append("%s has no subjects" % section.display_name)
                 continue
             for subject in subjects:
-                teacher = section.teacher_id or subject.teacher_ids[:1]
+                teacher = section.teacher_id or subject.teacher_id
                 if not teacher:
                     skipped.append("%s / %s has no teacher" % (section.display_name, subject.display_name))
                     continue

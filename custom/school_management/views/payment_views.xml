@@ -12,7 +12,8 @@
                 <field name="fee_id" optional="hide"/>
                 <field name="date" optional="show"/>
                 <field name="payment_method"/>
-                <field name="amount" sum="Total Amount"/>
+                <field name="amount" sum="Total Amount" widget="monetary"/>
+                <field name="reference" optional="hide"/>
                 <field name="state"
                        widget="badge"
                        decoration-info="state == 'draft'"
@@ -33,9 +34,17 @@
                     <button name="action_print_receipt" string="Print Receipt" type="object" invisible="state != 'posted'" class="oe_highlight"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state == 'canceled'"/>
                     <button name="action_draft" string="Reset to Draft" type="object" invisible="state != 'canceled'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted,canceled"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_student" type="object" class="oe_stat_button" icon="fa-user-graduate">
+                            <field name="student_id" widget="statinfo" string="Student"/>
+                        </button>
+                        <button name="action_view_fee" type="object" class="oe_stat_button" icon="fa-money" invisible="not fee_id">
+                            <field name="fee_id" widget="statinfo" string="Fee Invoice"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name"/>
@@ -45,7 +54,7 @@
                         <group string="Payment Details">
                             <field name="student_id" readonly="state != 'draft'"/>
                             <field name="fee_id" readonly="state != 'draft'"/>
-                            <field name="amount" readonly="state != 'draft'"/>
+                            <field name="amount" readonly="state != 'draft'" widget="monetary"/>
                         </group>
                         <group string="Processing">
                             <field name="date" readonly="state != 'draft'"/>
@@ -54,7 +63,35 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Payment Details" name="details_tab">
+                            <group>
+                                <group string="Payment Information">
+                                    <field name="student_id" readonly="1"/>
+                                    <field name="fee_id" readonly="1"/>
+                                    <field name="amount" readonly="1" widget="monetary"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="payment_method" readonly="1"/>
+                                    <field name="date" readonly="1"/>
+                                    <field name="reference" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Receipt" name="receipt_tab" groups="school_management.group_school_admin">
+                            <group>
+                                <field name="name" string="Receipt Reference" readonly="1"/>
+                                <field name="date" string="Payment Date" readonly="1"/>
+                                <field name="amount" string="Amount Paid" readonly="1" widget="monetary"/>
+                                <field name="payment_method" readonly="1"/>
+                                <field name="reference" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes_tab">
+                            <field name="notes" nolabel="1" placeholder="Add notes about this payment..."/>
+                        </page>
+                    </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -64,17 +101,20 @@
         <field name="name">university.payment.search</field>
         <field name="model">university.payment</field>
         <field name="arch" type="xml">
-            <search string="Search Payments">
+            <search string="Payment Search">
                 <field name="name"/>
                 <field name="student_id"/>
                 <field name="fee_id"/>
-                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="Posted" name="posted" domain="[('state', '=', 'posted')]"/>
-                <group>
-                    <filter string="Student" name="student" context="{'group_by': 'student_id'}"/>
-                    <filter string="Payment Method" name="method" context="{'group_by': 'payment_method'}"/>
-                    <filter string="Status" name="status" context="{'group_by': 'state'}"/>
-                </group>
+                <field name="payment_method"/>
+                <field name="state"/>
+                <field name="date"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <filter name="filter_canceled" string="Canceled" domain="[('state', '=', 'canceled')]"/>
+                <separator/>
+                <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                <filter name="group_by_method" string="Payment Method" context="{'group_by': 'payment_method'}"/>
+                <filter name="group_by_date" string="Date" context="{'group_by': 'date'}"/>
             </search>
         </field>
     </record>

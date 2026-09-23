@@ -1,27 +1,22 @@
 from collections import Counter
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError, UserError
 
 
 class UniversityEnrollment(models.Model):
     _name = "university.enrollment"
     _description = "University Enrollment"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "enrollment_date desc, id desc"
 
-    # A student can be enrolled in one subject-based class section at a time
-    # (legacy subject enrollment flow keeps one section per record).
     _student_section_unique = models.UniqueIndex(
         "(student_id, section_id)",
         "This student is already enrolled in this class section.",
     )
-    # A student can have only ONE active MAJOR enrollment per program, academic
-    # year and semester. Subject-based section enrollments (which carry a
-    # section_id) are intentionally excluded so the legacy subject workflow is
-    # not blocked.
     _student_program_period_unique = models.UniqueIndex(
         "(student_id, program_id, academic_year_id, semester_id) "
-        "WHERE status = 'enrolled' AND section_id IS NULL",
+        "WHERE status IN ('draft', 'enrolled') AND section_id IS NULL",
         "This student already has an active major enrollment in this program "
         "for the selected academic year and semester.",
     )
@@ -93,21 +88,42 @@ class UniversityEnrollment(models.Model):
     )
     status = fields.Selection(
         [
+            ("draft", "Draft"),
             ("enrolled", "Enrolled"),
             ("completed", "Completed"),
-            ("dropped", "Dropped"),
+            ("cancelled", "Cancelled"),
         ],
         string="Status",
-        default="enrolled",
+        default="draft",
+        tracking=True,
     )
 
     @api.model_create_multi
     def create(self, vals_list):
+        validation_fields = (
+            "student_id", "program_id", "academic_year_id", "semester_id",
+            "section_id", "status",
+        )
+        missing = [name for name in validation_fields if any(name not in vals for vals in vals_list)]
+        defaults = self.default_get(missing)
+        vals_list = [dict(defaults, **vals) for vals in vals_list]
         self._check_capacity_for_vals(vals_list)
         self._check_active_program_period_duplicates(vals_list)
         return super().create(vals_list)
 
     def write(self, vals):
+        duplicate_fields = (
+            "student_id", "program_id", "academic_year_id", "semester_id",
+            "section_id", "status",
+        )
+        if set(duplicate_fields) & set(vals):
+            self._check_active_program_period_duplicates([
+                {
+                    name: vals.get(name, enrollment[name].id if name != "status" else enrollment.status)
+                    for name in duplicate_fields
+                }
+                for enrollment in self
+            ], excluded_ids=self.ids)
         if {"section_id", "status"} & set(vals):
             self._check_capacity_for_vals([
                 {
@@ -213,40 +229,37 @@ class UniversityEnrollment(models.Model):
             ]
         return {"domain": {"section_id": domain}}
 
-    def _check_active_program_period_duplicates(self, vals_list):
-        """Refuse to create an ACTIVE major enrollment for a student who is
-        already actively enrolled in the same program, academic year and
-        semester (sectionless major enrollments). The partial unique index
-        `_student_program_period_unique` remains as the DB-level backstop."""
+    def _check_active_program_period_duplicates(self, vals_list, excluded_ids=None):
+        """Match the partial unique index, including duplicates within a batch."""
+        key_fields = ("student_id", "program_id", "academic_year_id", "semester_id")
+        seen = set()
         for vals in vals_list:
-            if vals.get("status", "enrolled") != "enrolled":
-                continue
-            if "program_id" not in vals or "academic_year_id" not in vals:
+            if vals.get("status", "draft") not in ("draft", "enrolled"):
                 continue
             if vals.get("section_id"):
                 # Subject/section-bound legacy enrollments are unique per section.
                 continue
-            if not vals.get("student_id"):
+            key = tuple(vals.get(name) for name in key_fields)
+            if not all(key):
                 continue
-            exists = self.search_count([
-                ("student_id", "=", vals["student_id"]),
-                ("program_id", "=", vals["program_id"]),
-                ("academic_year_id", "=", vals["academic_year_id"]),
-                ("semester_id", "=", vals["semester_id"]),
-                ("status", "=", "enrolled"),
+            domain = [(name, "=", value) for name, value in zip(key_fields, key)] + [
+                ("status", "in", ("draft", "enrolled")),
                 ("section_id", "=", False),
-            ])
-            if exists:
+            ]
+            if excluded_ids:
+                domain.append(("id", "not in", excluded_ids))
+            if key in seen or self.search_count(domain, limit=1):
                 raise ValidationError(
                     "This student already has an active major enrollment in this "
                     "program for the selected academic year and semester."
                 )
+            seen.add(key)
 
     def _check_capacity_for_vals(self, vals_list, excluded_ids=None):
         enrolled_section_ids = [
             vals.get("section_id")
             for vals in vals_list
-            if vals.get("section_id") and vals.get("status", "enrolled") == "enrolled"
+            if vals.get("section_id") and vals.get("status", "draft") == "enrolled"
         ]
         if not enrolled_section_ids:
             return
@@ -292,3 +305,66 @@ class UniversityEnrollment(models.Model):
         if subject.program_ids:
             return program in subject.program_ids
         return subject.department_id == program.department_id
+
+    def action_confirm(self):
+        """Confirm the enrollment (draft -> enrolled)."""
+        if any(enrollment.status != "draft" for enrollment in self):
+            raise UserError(_("Only draft enrollments can be confirmed."))
+        self.write({"status": "enrolled"})
+        return True
+
+    def action_cancel(self):
+        """Cancel the enrollment (enrolled/draft -> cancelled)."""
+        for enrollment in self:
+            if enrollment.status not in ("draft", "enrolled"):
+                raise UserError(_("Only draft or enrolled enrollments can be cancelled."))
+            enrollment.status = "cancelled"
+        return True
+
+    def action_draft(self):
+        """Reset to draft (cancelled -> draft)."""
+        for enrollment in self:
+            if enrollment.status != "cancelled":
+                raise UserError(_("Only cancelled enrollments can be reset to draft."))
+            enrollment.status = "draft"
+        return True
+
+    def action_view_student(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Student",
+            "res_model": "university.student",
+            "view_mode": "form",
+            "res_id": self.student_id.id,
+        }
+
+    def action_view_section(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Class Section",
+            "res_model": "university.class.section",
+            "view_mode": "form",
+            "res_id": self.section_id.id,
+        }
+
+    def action_view_subject(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Subject",
+            "res_model": "university.subject",
+            "view_mode": "form",
+            "res_id": self.subject_id.id,
+        }
+
+    def action_view_teacher(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Teacher",
+            "res_model": "university.teacher",
+            "view_mode": "form",
+            "res_id": self.teacher_id.id,
+        }

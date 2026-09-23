@@ -28,11 +28,16 @@ class Student(models.Model):
         string="Gender",
         default="male",
     )
+    nationality = fields.Char(string="Nationality")
+    national_id = fields.Char(string="National ID / Passport", copy=False)
 
     # Contact Information
     email = fields.Char(string="Email")
     phone = fields.Char(string="Phone")
     address = fields.Text(string="Address")
+    province = fields.Char(string="Province")
+    district = fields.Char(string="District")
+    commune = fields.Char(string="Commune")
     emergency_contact_name = fields.Char(string="Emergency Contact Name")
     emergency_contact_phone = fields.Char(string="Emergency Contact Phone")
 
@@ -67,16 +72,24 @@ class Student(models.Model):
         string="Current Semester",
     )
 
+    advisor_id = fields.Many2one(
+        "university.teacher",
+        string="Academic Advisor",
+    )
+    graduation_date = fields.Date(string="Graduation Date")
+
     # Status
     status = fields.Selection(
         [
+            ("draft", "Draft"),
             ("active", "Active"),
             ("suspended", "Suspended"),
             ("graduated", "Graduated"),
             ("dropped", "Dropped"),
         ],
         string="Status",
-        default="active",
+        default="draft",
+        tracking=True,
     )
     active = fields.Boolean(string="Active", default=True)
 
@@ -117,6 +130,16 @@ class Student(models.Model):
         "student_id",
         string="Payments",
     )
+    attendance_ids = fields.One2many(
+        "university.attendance",
+        "student_id",
+        string="Attendance Records",
+    )
+    assignment_ids = fields.One2many(
+        "university.assignment",
+        "student_id",
+        string="Assignments",
+    )
     currency_id = fields.Many2one(
         "res.currency",
         string="Currency",
@@ -137,6 +160,23 @@ class Student(models.Model):
         compute="_compute_fee_totals",
         currency_field="currency_id",
     )
+    payment_status = fields.Selection(
+        [
+            ("none", "No Fees"),
+            ("unpaid", "Unpaid"),
+            ("partial", "Partially Paid"),
+            ("paid", "Fully Paid"),
+            ("overpaid", "Overpaid"),
+        ],
+        string="Payment Status",
+        compute="_compute_payment_status",
+        store=True,
+    )
+    enrollment_count = fields.Integer(string="Enrollment Count", compute="_compute_counts")
+    fee_count = fields.Integer(string="Fee Count", compute="_compute_counts")
+    payment_count = fields.Integer(string="Payment Count", compute="_compute_counts")
+    attendance_count = fields.Integer(string="Attendance Count", compute="_compute_counts")
+    assignment_count = fields.Integer(string="Assignment Count", compute="_compute_counts")
 
     _unique_student_id = models.UniqueIndex(
         "(student_id) WHERE student_id IS NOT NULL",
@@ -274,7 +314,88 @@ class Student(models.Model):
     )
     def _compute_fee_totals(self):
         for rec in self:
-            confirmed = rec.fee_ids.filtered(lambda fee: fee.state in ("posted", "paid"))
-            rec.fee_total = sum(confirmed.mapped("total_amount"))
-            rec.fee_paid = sum(confirmed.mapped("paid_amount"))
-            rec.fee_balance = sum(confirmed.mapped("balance"))
+            total, paid, balance = rec._get_confirmed_fee_totals()
+            rec.fee_total = total
+            rec.fee_paid = paid
+            rec.fee_balance = balance
+
+    def _get_confirmed_fee_totals(self):
+        self.ensure_one()
+        confirmed = self.fee_ids.filtered(lambda fee: fee.state in ("posted", "paid"))
+        return tuple(sum(confirmed.mapped(name)) for name in ("total_amount", "paid_amount", "balance"))
+
+    @api.depends("fee_ids.total_amount", "fee_ids.paid_amount", "fee_ids.balance", "fee_ids.state")
+    def _compute_payment_status(self):
+        for rec in self:
+            total, paid, balance = rec._get_confirmed_fee_totals()
+            if total <= 0:
+                rec.payment_status = "none"
+            elif balance <= 0:
+                rec.payment_status = "paid" if abs(balance) < 0.01 else "overpaid"
+            elif paid > 0:
+                rec.payment_status = "partial"
+            else:
+                rec.payment_status = "unpaid"
+
+    def _compute_counts(self):
+        for rec in self:
+            rec.enrollment_count = self.env["university.enrollment"].search_count([("student_id", "=", rec.id)])
+            rec.fee_count = self.env["university.fee"].search_count([("student_id", "=", rec.id)])
+            rec.payment_count = self.env["university.payment"].search_count([("student_id", "=", rec.id)])
+            rec.attendance_count = self.env["university.attendance"].search_count([("student_id", "=", rec.id)])
+            rec.assignment_count = self.env["university.assignment"].search_count([("student_id", "=", rec.id)])
+
+    def action_view_enrollments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Enrollments",
+            "res_model": "university.enrollment",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_fees(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Fee Invoices",
+            "res_model": "university.fee",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_payments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Payments",
+            "res_model": "university.payment",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_attendance(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Attendance",
+            "res_model": "university.attendance",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_assignments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Assignments",
+            "res_model": "university.assignment",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }

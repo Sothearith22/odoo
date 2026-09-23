@@ -33,6 +33,8 @@ class UniversityPayment(models.Model):
     )
     reference = fields.Char(string="Transaction Reference")
 
+    notes = fields.Text(string="Notes")
+
     state = fields.Selection(
         [
             ("draft", "Draft"),
@@ -131,3 +133,23 @@ class UniversityPayment(models.Model):
         return self.env.ref(
             "school_management.action_report_university_payment_receipt"
         ).report_action(self)
+
+    def action_view_student(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Student",
+            "res_model": "university.student",
+            "view_mode": "form",
+            "res_id": self.student_id.id,
+        }
+
+    def action_view_fee(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Fee Invoice",
+            "res_model": "university.fee",
+            "view_mode": "form",
+            "res_id": self.fee_id.id,
+        }

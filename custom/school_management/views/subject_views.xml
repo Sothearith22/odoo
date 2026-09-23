@@ -92,16 +92,7 @@
 
                     <notebook>
                         <page string="Teachers" name="teachers_tab">
-                            <field name="teacher_ids"
-                                   widget="many2many"
-                                   domain="[('department_id', '=', department_id)]">
-                                <list>
-                                    <field name="teacher_id"/>
-                                    <field name="name"/>
-                                    <field name="department_id"/>
-                                    <field name="specialization"/>
-                                </list>
-                            </field>
+                            <field name="teacher_id"/>
                         </page>
                         <page string="Class Sections" name="sections_tab">
                             <field name="section_ids">

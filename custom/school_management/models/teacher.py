@@ -6,6 +6,7 @@ class Teacher(models.Model):
     _name = "university.teacher"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "University Teacher"
+    _parent_store = True
 
     # Personal Information
     name = fields.Char(string="Teacher Name", required=True)
@@ -49,6 +50,20 @@ class Teacher(models.Model):
         "university.department",
         string="Department",
     )
+    parent_id = fields.Many2one(
+        "university.teacher",
+        string="Manager",
+        index=True,
+        ondelete="restrict",
+        tracking=True,
+        help="Teacher or academic leader this staff member reports to.",
+    )
+    child_ids = fields.One2many(
+        "university.teacher",
+        "parent_id",
+        string="Direct Reports",
+    )
+    parent_path = fields.Char(index=True)
     position = fields.Selection(
         [
             ("professor", "Professor"),
@@ -65,14 +80,23 @@ class Teacher(models.Model):
     hire_date = fields.Date(string="Hire Date")
 
     # Status
+    status = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("active", "Active"),
+            ("inactive", "Inactive"),
+            ("resigned", "Resigned"),
+        ],
+        string="Status",
+        default="draft",
+        tracking=True,
+    )
     active = fields.Boolean(string="Active", default=True)
 
     # Teaching
-    subject_ids = fields.Many2many(
+    subject_ids = fields.One2many(
         "university.subject",
-        "university_teacher_subject_rel",
         "teacher_id",
-        "subject_id",
         string="Subjects",
     )
     section_ids = fields.One2many(
@@ -80,6 +104,41 @@ class Teacher(models.Model):
         "teacher_id",
         string="Class Sections",
     )
+    assignment_ids_teaching = fields.One2many(
+        "university.assignment",
+        "teacher_id",
+        string="Teaching Assignments",
+    )
+    lesson_plan_ids = fields.One2many(
+        "university.lesson.plan",
+        "teacher_id",
+        string="Lesson Plans",
+    )
+    attendance_ids = fields.One2many(
+        "university.attendance",
+        "teacher_id",
+        string="Attendance Records",
+    )
+
+    @api.constrains("parent_id")
+    def _check_manager_hierarchy(self):
+        for teacher in self:
+            manager = teacher.parent_id
+            visited = self.env["university.teacher"]
+            while manager:
+                if manager == teacher or manager in visited:
+                    raise ValidationError(
+                        "A teacher cannot report to themselves or to one of their reports."
+                    )
+                visited |= manager
+                manager = manager.parent_id
+
+    # Smart button counts
+    section_count = fields.Integer(string="Section Count", compute="_compute_counts")
+    subject_count = fields.Integer(string="Subject Count", compute="_compute_counts")
+    assignment_count = fields.Integer(string="Assignment Count", compute="_compute_counts")
+    attendance_count = fields.Integer(string="Attendance Count", compute="_compute_counts")
+    timetable_count = fields.Integer(string="Timetable Count", compute="_compute_counts")
 
     # Administrative responsibilities (derived from role assignments)
     assignment_ids = fields.One2many(
@@ -256,3 +315,52 @@ class Teacher(models.Model):
             },
         }
 
+    def action_view_sections(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Class Sections",
+            "res_model": "university.class.section",
+            "view_mode": "list,form",
+            "domain": [("teacher_id", "=", self.id)],
+            "context": {"default_teacher_id": self.id},
+        }
+
+    def action_view_assignments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Assignments",
+            "res_model": "university.assignment",
+            "view_mode": "list,form",
+            "domain": [("teacher_id", "=", self.id)],
+            "context": {"default_teacher_id": self.id},
+        }
+
+    def action_view_attendance(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Attendance",
+            "res_model": "university.attendance",
+            "view_mode": "list,form",
+            "domain": [("section_id.teacher_id", "=", self.id)],
+        }
+
+    def action_view_timetable(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Timetable",
+            "res_model": "university.timetable.slot",
+            "view_mode": "list,form",
+            "domain": [("section_id.teacher_id", "=", self.id)],
+        }
+
+    def _compute_counts(self):
+        for rec in self:
+            rec.section_count = self.env["university.class.section"].search_count([("teacher_id", "=", rec.id)])
+            rec.subject_count = len(rec.subject_ids)
+            rec.assignment_count = self.env["university.assignment"].search_count([("teacher_id", "=", rec.id)])
+            rec.attendance_count = self.env["university.attendance"].search_count([("section_id.teacher_id", "=", rec.id)])
+            rec.timetable_count = self.env["university.timetable.slot"].search_count([("section_id.teacher_id", "=", rec.id)])

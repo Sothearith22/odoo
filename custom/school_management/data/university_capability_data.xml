@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!--
-        Default System Capabilities & Roadmap.
-
-        These drive the dashboard "System Capabilities & Roadmap" panel. Update
-        status/phase/version here or via Settings -> System -> Capabilities &
-        Roadmap (admin only, all school staff read-only).
-    -->
-
-    <!-- ==================== PHASE 1 — LIVE ==================== -->
     <record id="capability_academic_structure" model="university.capability">
         <field name="name">Academic Structure (Faculties, Departments, Programs)</field>
         <field name="category">structure</field>

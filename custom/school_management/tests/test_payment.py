@@ -31,6 +31,32 @@ class TestUniversityPayment(TransactionCase):
                 }
             )
 
+    def test_student_fee_summary_tracks_payments_and_cancellations(self):
+        self.assertEqual(self.student.payment_status, "unpaid")
+        self.assertEqual(self.student.fee_total, 100.0)
+        payment = self.Payment.create({
+            "student_id": self.student.id,
+            "fee_id": self.fee.id,
+            "amount": 25.0,
+        })
+        payment.action_post()
+        self.assertEqual(self.student.payment_status, "partial")
+        self.assertEqual(self.student.fee_paid, 25.0)
+        self.assertEqual(self.student.fee_balance, 75.0)
+        remainder = self.Payment.create({
+            "student_id": self.student.id,
+            "fee_id": self.fee.id,
+            "amount": 75.0,
+        })
+        remainder.action_post()
+        self.assertEqual(self.student.payment_status, "paid")
+        self.assertEqual(self.student.fee_balance, 0.0)
+        (payment | remainder).action_cancel()
+        self.fee.action_cancel()
+        self.assertEqual(self.student.payment_status, "none")
+        self.assertEqual(self.student.fee_total, 0.0)
+        self.env.flush_all()
+
     def test_payment_fee_must_match_student(self):
         with self.assertRaises(ValidationError):
             self.Payment.create(

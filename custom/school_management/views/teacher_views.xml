@@ -20,9 +20,11 @@
                 <field name="position" widget="badge" optional="hide"/>
                 <field name="faculty_id"/>
                 <field name="department_id"/>
+                <field name="parent_id" string="Manager" optional="hide"/>
                 <field name="specialization" optional="show"/>
                 <field name="email" widget="email"/>
                 <field name="phone" widget="phone"/>
+                <field name="status" widget="badge" decoration-muted="status == 'draft'" decoration-success="status == 'active'" decoration-danger="status == 'inactive'"/>
                 <field name="is_dean" widget="badge" decoration-info="is_dean" string="Head of Faculty"/>
                 <field name="is_hod" widget="badge" decoration-success="is_hod" string="HOD"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
@@ -100,9 +102,44 @@
                             groups="school_management.group_school_admin"
                             invisible="user_id != False"
                             context="{'default_teacher_ids': [(6, 0, [id])]}"/>
-                </header>                <sheet>
+                    <field name="status"
+                           widget="statusbar"
+                           statusbar_visible="draft,active,inactive"
+                           groups="school_management.group_school_user"/>
+                </header>
+                <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sections"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users">
+                            <field name="section_count" widget="statinfo" string="Class Sections"/>
+                        </button>
+                        <button name="action_view_assignments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tasks">
+                            <field name="assignment_count" widget="statinfo" string="Assignments"/>
+                        </button>
+                        <button name="action_view_attendance"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar-check-o">
+                            <field name="attendance_count" widget="statinfo" string="Attendance"/>
+                        </button>
+                        <button name="action_view_timetable"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="timetable_count" widget="statinfo" string="Timetable"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-book">
+                            <field name="subject_count" widget="statinfo" string="Subjects"/>
+                        </button>
+                    </div>
 
                     <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
                     <div class="oe_title">
@@ -116,95 +153,106 @@
                         </div>
                     </div>
 
-                    <group>
-                        <group string="Personal Information">
-                            <field name="gender" widget="radio" options="{'horizontal': true}"/>
-                            <field name="date_of_birth"/>
-                        </group>
-                        <group string="Contact Information">
-                            <field name="email" widget="email"/>
-                            <field name="phone" widget="phone"/>
-                            <field name="address"/>
-                        </group>
-                        <group string="Academic Information">
-                            <field name="faculty_id" readonly="1"/>
-                            <field name="department_id"/>
-                            <field name="position"/>
-                            <field name="specialization"/>
-                            <field name="qualification"/>
-                            <field name="hire_date"/>
-                        </group>
-                        <group string="Access">
-                            <field name="user_id" readonly="1"/>
-                        </group>
-                        <group string="Status">
-                            <field name="active" widget="boolean_toggle"/>
-                        </group>
-                    </group>
-
                     <notebook>
-                        <page string="Administrative Responsibilities" name="admin_responsibilities_tab">
+                        <page string="Personal Information" name="personal_tab">
                             <group>
-                                <group string="Head of Faculty">
-                                    <field name="is_dean" readonly="1"/>
-                                    <field name="managed_faculty_id" readonly="1"/>
-                                    <field name="dean_appointment_start" readonly="1"/>
-                                    <field name="dean_appointment_end" readonly="1"/>
-                                    <button name="%(school_management.action_university_academic_assignment)d"
-                                            type="action" string="Open Head of Faculty Assignment"
-                                            context="{'search_default_staff_id': id, 'search_default_filter_dean': 1}"
-                                            class="btn-link"
-                                            groups="school_management.group_school_dean"/>
+                                <group string="Identity">
+                                    <field name="gender" widget="radio" options="{'horizontal': true}"/>
+                                    <field name="date_of_birth"/>
                                 </group>
-                                <group string="Head of Department">
-                                    <field name="is_hod" readonly="1"/>
-                                    <field name="managed_department_id" readonly="1"/>
-                                    <field name="hod_appointment_start" readonly="1"/>
-                                    <field name="hod_appointment_end" readonly="1"/>
-                                    <button name="%(school_management.action_university_academic_assignment)d"
-                                            type="action" string="Open HOD Assignment"
-                                            context="{'search_default_staff_id': id, 'search_default_filter_hod': 1}"
-                                            class="btn-link"
-                                            groups="school_management.group_school_hod"/>
+                                <group string="Contact Information">
+                                    <field name="email" widget="email"/>
+                                    <field name="phone" widget="phone"/>
+                                    <field name="address"/>
                                 </group>
-                            </group>
-                            <group string="Assignment History">
-                                <field name="assignment_ids">
-                                    <list>
-                                        <field name="role" widget="badge"
-                                               decoration-info="role == 'dean'"
-                                               decoration-primary="role == 'vice_dean'"
-                                               decoration-success="role == 'department_head'"/>
-                                        <field name="faculty_id"/>
-                                        <field name="department_id"/>
-                                        <field name="start_date"/>
-                                        <field name="end_date"/>
-                                        <field name="active" widget="boolean_toggle"/>
-                                    </list>
-                                </field>
+                                <group string="System Access" groups="school_management.group_school_admin">
+                                    <field name="user_id" readonly="1"/>
+                                </group>
                             </group>
                         </page>
-                        <page string="Teaching" name="teaching_tab">
-                            <group string="Subjects">
+
+                        <page string="Employment Information" name="employment_tab">
+                            <group>
+                                <group string="Academic Position">
+                                    <field name="position"/>
+                                    <field name="specialization"/>
+                                    <field name="qualification"/>
+                                    <field name="hire_date"/>
+                                </group>
+                                <group string="Department &amp; Faculty">
+                                    <field name="department_id" readonly="status == 'active'"/>
+                                    <field name="faculty_id" readonly="1"/>
+                                    <field name="parent_id" domain="[('id', '!=', id)]"/>
+                                </group>
+                                <group string="Administrative Roles" groups="school_management.group_school_admin">
+                                    <field name="is_dean" readonly="1"/>
+                                    <field name="is_hod" readonly="1"/>
+                                    <field name="managed_faculty_id" readonly="1" invisible="not is_dean"/>
+                                    <field name="managed_department_id" readonly="1" invisible="not is_hod"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Teaching Information" name="teaching_tab">
+                            <group string="Subjects Taught">
                                 <field name="subject_ids"
-                                       widget="many2many"
-                                       domain="[('department_id', '=', department_id)]">
+                                       domain="['&amp;', ('department_id', '=', department_id), '|', ('teacher_id', '=', False), ('teacher_id', '=', id)]">
                                     <list>
                                         <field name="code"/>
                                         <field name="name"/>
                                         <field name="program_ids" widget="many2many_tags"/>
                                         <field name="credits"/>
+                                        <field name="teacher_id" column_invisible="1"/>
                                     </list>
                                 </field>
                             </group>
-                            <group string="Class Sections">
-                                <field name="section_ids">
+                            <separator string="Class Sections"/>
+                            <field name="section_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="subject_id"/>
+                                    <field name="semester_id"/>
+                                    <field name="classroom_id"/>
+                                    <field name="capacity"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Teaching Assignments" name="assignments_tab">
+                            <field name="assignment_ids_teaching">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="subject_id"/>
+                                    <field name="section_id"/>
+                                    <field name="due_date"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Lesson Plans" name="lesson_plans_tab">
+                            <field name="lesson_plan_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="subject_id"/>
+                                    <field name="section_id"/>
+                                    <field name="share_to"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Internal Notes" name="notes_tab">
+                            <group>
+                                <field name="assignment_ids" readonly="1" string="Role Appointments">
                                     <list>
                                         <field name="name"/>
-                                        <field name="subject_id"/>
-                                        <field name="semester_id"/>
-                                        <field name="classroom_id"/>
-                                        <field name="capacity"/>
+                                        <field name="role" widget="badge"/>
+                                        <field name="faculty_id"/>
+                                        <field name="department_id"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="active" widget="boolean_toggle"/>
                                     </list>
                                 </field>
                             </group>
@@ -221,24 +269,56 @@
         <field name="name">university.teacher.search</field>
         <field name="model">university.teacher</field>
         <field name="arch" type="xml">
-            <search string="Search Teachers">
+            <search string="Teacher Search">
+                <field name="name" string="Teacher Name"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="department_id"/>
+                <field name="faculty_id"/>
+                <field name="position"/>
+                <field name="qualification"/>
+                <field name="gender"/>
+                <field name="status"/>
+                <filter name="filter_active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="filter_is_dean" string="Dean" domain="[('is_dean', '=', True)]"/>
+                <filter name="filter_is_hod" string="Head of Department" domain="[('is_hod', '=', True)]"/>
+                <separator/>
+                <filter name="group_by_department" string="Department" context="{'group_by': 'department_id'}"/>
+                <filter name="group_by_faculty" string="Faculty" context="{'group_by': 'faculty_id'}"/>
+                <filter name="group_by_position" string="Position" context="{'group_by': 'position'}"/>
+                <filter name="group_by_gender" string="Gender" context="{'group_by': 'gender'}"/>
+                <filter name="group_by_qualification" string="Qualification" context="{'group_by': 'qualification'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_university_teacher_hierarchy" model="ir.ui.view">
+        <field name="name">university.teacher.hierarchy</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <hierarchy child_field="child_ids" draggable="1" icon="fa-users">
+                <field name="child_ids" invisible="1"/>
                 <field name="name"/>
                 <field name="teacher_id"/>
-                <field name="email"/>
-                <field name="faculty_id" string="Faculty"/>
+                <field name="image_1920"/>
+                <field name="position"/>
                 <field name="department_id"/>
-                <separator/>
-                <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
-                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
-                <filter string="Head of Faculty" name="filter_dean" domain="[('is_dean', '=', True)]"/>
-                <filter string="Head of Department" name="filter_hod" domain="[('is_hod', '=', True)]"/>
-                <group>
-                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
-                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
-                    <filter string="Position" name="group_by_position" context="{'group_by': 'position'}"/>
-                    <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
-                </group>
-            </search>
+                <templates>
+                    <t t-name="hierarchy-box">
+                        <div class="o_hierarchy_node_header d-flex justify-content-center align-items-center">
+                            <field name="image_1920" widget="image" class="rounded-circle" options="{'size': [64, 64]}"/>
+                        </div>
+                        <div class="d-flex flex-column text-center">
+                            <field name="name" class="fw-bold"/>
+                            <field name="position"/>
+                            <field name="department_id" class="text-muted"/>
+                            <field name="teacher_id" class="text-muted"/>
+                        </div>
+                    </t>
+                </templates>
+            </hierarchy>
         </field>
     </record>
 
@@ -246,11 +326,32 @@
     <record id="action_university_teacher" model="ir.actions.act_window">
         <field name="name">Teachers</field>
         <field name="res_model">university.teacher</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,hierarchy</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
         <field name="search_view_id" ref="view_university_teacher_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first teacher record</p>
             <p>Add academic staff and assign them to departments, positions, subjects, and class sections.</p>
+        </field>
+    </record>
+
+    <record id="action_university_teacher_hierarchy_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="15"/>
+        <field name="view_mode">hierarchy</field>
+        <field name="view_id" ref="view_university_teacher_hierarchy"/>
+        <field name="act_window_id" ref="action_university_teacher"/>
+    </record>
+
+    <record id="action_university_teacher_hierarchy" model="ir.actions.act_window">
+        <field name="name">Teacher Hierarchy</field>
+        <field name="res_model">university.teacher</field>
+        <field name="view_mode">hierarchy</field>
+        <field name="view_id" ref="view_university_teacher_hierarchy"/>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Set up the teacher hierarchy</p>
+            <p>Assign a Manager on each teacher record to build the reporting structure.</p>
         </field>
     </record>
 
@@ -365,7 +466,7 @@
         <field name="res_model">university.teacher</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'create': False, 'delete': False}</field>
+        <field name="context">{'create': False, 'delete': False, 'search_default_filter_active': 1}</field>
         <field name="search_view_id" ref="view_university_teacher_search"/>
     </record>
 

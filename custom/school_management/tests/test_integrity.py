@@ -387,6 +387,7 @@ class TestBulkEnrollmentWizard(TransactionCase):
                     "section_id": self.section.id,
                     "academic_year_id": self.year.id,
                     "semester_id": self.semester.id,
+                    "status": "enrolled",
                 }
             )
         with self.assertRaises(UserError):

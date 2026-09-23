@@ -27,7 +27,7 @@
                         <div class="alert alert-info mb-2" role="alert">
                             Select students manually from the list, or use
                             <strong>Select All Eligible Students</strong> to add
-                            every active student matching the selected major,
+                            every active student matching the <select></select>ed major,
                             academic year, semester and section.
                         </div>
                         <group>
@@ -68,7 +68,7 @@
                     <div invisible="not capacity_blocked"
                          class="alert alert-warning mb-0"
                          role="alert">
-                        <i class="fa fa-exclamation-triangle me-1"/>
+                        <i class="fa fa-exclamation-triangle me-1" title="Warning"/>
                         The selected class section is already full or will be
                         over capacity with the currently selected students.
                     </div>

@@ -33,7 +33,7 @@ addons_path = C:\Odoo\odoo\addons,C:\Odoo\odoo\odoo\addons,C:\Odoo\odoo\custom
 http_port = 8070
 ```
 
-The configuration also restricts Odoo to the `odoo` database with `dbfilter = ^odoo$` and hides the database selector with `list_db = False`. Keep the `admin_passwd` value private; it controls database-management operations and is separate from the normal Odoo administrator login.
+The configuration restricts Odoo to the `odoo` database with `dbfilter = ^odoo$` and enables the local database manager with `list_db = True`. Keep the `admin_passwd` value private; it controls database-management operations and is separate from the normal Odoo administrator login.
 
 If your PostgreSQL username, password, database name, or ports differ, update `odoo.conf` and the seed script connection settings before continuing.
 
@@ -167,7 +167,7 @@ Confirm the PostgreSQL service is running, the `odoo` role can connect to databa
 
 ### The database selector or database manager is unavailable
 
-This is expected with `list_db = False` and the locked `dbfilter`. Use the configured `odoo` database, or temporarily change those settings only for controlled local administration.
+Verify that `list_db = True` is present for local database-manager access and that `dbfilter = ^odoo$` matches the configured database. Keep the database manager disabled in environments where database administration must not be exposed.
 
 ### A role sees too many or too few records
 
@@ -180,5 +180,6 @@ Install wkhtmltopdf and verify that `C:\Program Files\wkhtmltopdf\bin` exists. T
 ## Related project documents
 
 - [`project_overview.md`](project_overview.md): implemented features, models, security flow, and known boundaries.
+- [`purchase_inventory_flow.md`](purchase_inventory_flow.md): native Purchase, Inventory, and Accounting workflow for organizational procurement.
 - [`agent_guide.md`](agent_guide.md): repository-level Odoo development conventions.
 - [`login_guide.md`](login_guide.md): local demo accounts and password reset.
