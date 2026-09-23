@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-inherit="web.WebClient" t-inherit-mode="extension" owl="1">
-        <!-- The school app uses the native Odoo NavBar and ActionContainer so
-             navigation and the sidebar work exactly like every other module.
-             No custom shell/wrapper is injected here. -->
+        <!-- Keep the standard navbar (module menus, app switcher, systray/User
+             menu) visible inside the school app; only fullscreen hides it. -->
+        <xpath expr="//NavBar" position="attributes">
+            <attribute name="t-if">!state.fullscreen</attribute>
+        </xpath>
+        
+        <!-- Conditionally wrap ActionContainer -->
+        <xpath expr="//ActionContainer" position="replace">
+            <t t-if="schoolState.isActive">
+                <SchoolLayout>
+                    <ActionContainer/>
+                </SchoolLayout>
+            </t>
+            <t t-else="">
+                <ActionContainer/>
+            </t>
+        </xpath>
     </t>
 </templates>
