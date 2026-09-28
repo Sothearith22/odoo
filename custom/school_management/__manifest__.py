@@ -75,6 +75,7 @@
     "views/lesson_plan_views.xml",
     "views/assignment_views.xml",
     "views/timetable_views.xml",
+    "views/attendance_views.xml",
 
     # Academic Reports
     "reports/academic_report_templates.xml",

@@ -24,6 +24,8 @@ const ACTION_ROLE = {
     academic_year: "school_management.group_school_admin",
     fee: "school_management.group_school_admin",
     payment: "school_management.group_school_admin",
+    admission: "school_management.group_school_admin",
+    attendance: "school_management.group_school_teacher",
 };
 
 // Key -> action_id (XMLID) to open for the dashboard quick links.
@@ -40,6 +42,8 @@ const ACTION_XMLID = {
     academic_year: "school_management.action_university_academic_year",
     fee: "school_management.action_university_fee",
     payment: "school_management.action_university_payment",
+    admission: "school_management.action_university_admission_application",
+    attendance: "school_management.action_university_attendance",
 };
 
 // Catalog metadata for the System Capabilities & Roadmap panel.
@@ -64,10 +68,10 @@ const LIVE_STATUSES = new Set(["active", "beta"]);
 // Semantic status color tokens, mirrored from design_tokens.scss. Chart.js
 // draws on canvas so CSS variables are resolved to concrete values at render.
 const STATUS_TOKENS = {
-    active: "var(--status-success)",
-    suspended: "var(--status-warning)",
-    graduated: "var(--status-info)",
-    dropped: "var(--status-danger)",
+    active: "#10b981",     // vibrant emerald
+    suspended: "#f59e0b",  // warm amber
+    graduated: "#3b82f6",  // clean sapphire blue
+    dropped: "#ef4444",    // coral red
 };
 
 // Small inline plugin drawing the total count in the centre of a doughnut.
@@ -107,6 +111,8 @@ class SchoolDashboardShell extends Component {
 
         this.chartStatusRef = useRef("chart_status");
         this.chartProgramRef = useRef("chart_program");
+        this.chartEnrollmentRef = useRef("chart_enrollment");
+        this.chartFeesRef = useRef("chart_fees");
         this.charts = [];
 
         this.state = useState({
@@ -132,7 +138,42 @@ class SchoolDashboardShell extends Component {
                 academic_year: false,
                 fee: false,
                 payment: false,
+                admission: false,
+                attendance: false,
             },
+            stats: {
+                student: {
+                    universityStudents: 0,
+                    activeStudents: 0,
+                    graduatedStudents: 0,
+                    droppedStudents: 0,
+                    suspendedStudents: 0,
+                },
+                teacher: {
+                    universityTeachers: 0,
+                    activeTeachers: 0,
+                },
+                academic: {
+                    universityPrograms: 0,
+                    universityDepartments: 0,
+                    universitySections: 0,
+                    universityClassrooms: 0,
+                },
+            },
+            academicPeriod: {
+                year: "",
+                semester: "",
+                label: "",
+            },
+            filters: {
+                yearId: false,
+                semesterId: false,
+            },
+            filterOptions: {
+                academicYears: [],
+                semesters: [],
+            },
+            isMoreOpen: false,
         });
 
         onWillStart(async () => {
@@ -156,10 +197,11 @@ class SchoolDashboardShell extends Component {
                 this.state.isFullAccess = isAdmin;
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
-                    this.loadDashboardData(),
+                    this.loadFilterOptions(),
                     this.loadCapabilities(),
                     this.loadRoadmapData(),
                 ]);
+                await this.loadDashboardData();
             } catch (error) {
                 console.error("Failed to load school dashboard", error);
                 this.state.error = error.message || "Unable to load dashboard data.";
@@ -314,6 +356,21 @@ class SchoolDashboardShell extends Component {
         }
     }
 
+    async quickCreate(resModel, name) {
+        try {
+            await this.action.doAction({
+                type: "ir.actions.act_window",
+                name,
+                res_model: resModel,
+                view_mode: "form",
+                target: "current",
+            });
+        } catch (error) {
+            console.error(`Failed to open ${name} form`, error);
+            this.state.error = error.message || `Unable to open ${name}.`;
+        }
+    }
+
     async openCapability(cap) {
         if (!this.state.isFullAccess || !cap?.id) {
             return;
@@ -356,28 +413,64 @@ class SchoolDashboardShell extends Component {
         }
     }
 
-    async loadDashboardData() {
-        const records = await this.orm.searchRead(
-            "school.dashboard",
-            [],
-            [
-                "student_count", "teacher_count", "program_count", "department_count",
-                "faculty_count", "subject_count", "section_count", "classroom_count",
-                "active_student_count", "graduated_student_count",
-                "suspended_student_count", "dropped_student_count",
-                "fee_count", "total_paid_fees", "total_unpaid_fees", "total_scholarships",
-            ],
-            { limit: 1 }
+    async loadFilterOptions() {
+        const options = await this.orm.call("school.dashboard", "get_filter_options", []);
+        this.state.filterOptions.academicYears = options.academic_years || [];
+        this.state.filterOptions.semesters = options.semesters || [];
+        this.state.filters.yearId = options.selected_year_id || false;
+        this.state.filters.semesterId = options.selected_semester_id || false;
+        this.updateAcademicPeriodLabel();
+    }
+
+    updateAcademicPeriodLabel() {
+        const year = this.state.filterOptions.academicYears.find(
+            (item) => item.id === Number(this.state.filters.yearId)
         );
-        const chartData = await this.orm.call("school.dashboard", "get_chart_data", []);
-        
-        this.state.dashboard = records[0] || null;
-        this.state.chartData = chartData || null;
+        const semester = this.state.filterOptions.semesters.find(
+            (item) => item.id === Number(this.state.filters.semesterId)
+        );
+        this.state.academicPeriod.year = year?.name || "";
+        this.state.academicPeriod.semester = semester?.name || "";
+        this.state.academicPeriod.label = [semester?.name, year?.name].filter(Boolean).join(" · ");
+    }
+
+    semestersForSelectedYear() {
+        const yearId = Number(this.state.filters.yearId);
+        return this.state.filterOptions.semesters.filter(
+            (item) => !yearId || item.academic_year_id?.[0] === yearId
+        );
+    }
+
+    async changeFilter(name, value) {
+        this.state.filters[name] = Number(value) || false;
+        if (name === "yearId") {
+            const validSemester = this.semestersForSelectedYear().some(
+                (item) => item.id === Number(this.state.filters.semesterId)
+            );
+            if (!validSemester) {
+                this.state.filters.semesterId = false;
+            }
+        }
+        this.updateAcademicPeriodLabel();
+        await this.reload();
+    }
+
+    async loadDashboardData() {
+        const result = await this.orm.call("school.dashboard", "get_dashboard_data", [
+            this.state.filters.yearId || false,
+            this.state.filters.semesterId || false,
+        ]);
+        this.state.dashboard = result.dashboard || null;
+        this.state.chartData = result.chart_data || null;
+        this.state.filters.yearId = result.selected_year_id || false;
+        this.state.filters.semesterId = result.selected_semester_id || false;
+        this.updateAcademicPeriodLabel();
     }
 
     formatCurrency(amount) {
         const val = Number(amount) || 0;
-        return "$" + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const symbol = this.state.dashboard?.currency_symbol || "";
+        return symbol + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     getStudentInitials(name) {
@@ -395,6 +488,17 @@ class SchoolDashboardShell extends Component {
         return Math.round((paid / total) * 100);
     }
 
+    toggleMoreDropdown(ev) {
+        ev?.stopPropagation();
+        this.state.isMoreOpen = !this.state.isMoreOpen;
+    }
+
+    async closeMoreDropdown() {
+        if (!this.state.isMoreOpen) return;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        this.state.isMoreOpen = false;
+    }
+
     hasChartData(type) {
         if (!this.state.chartData) return false;
         if (type === "status") {
@@ -405,11 +509,22 @@ class SchoolDashboardShell extends Component {
             const data = this.state.chartData.program_distribution?.data || [];
             return data.some((v) => Number(v) > 0);
         }
+        if (type === "enrollment") {
+            const data = this.state.chartData.enrollment_trend?.data || [];
+            return data.some((v) => Number(v) > 0);
+        }
+        if (type === "fees") {
+            const data = this.state.chartData.monthly_fee_collection?.data || [];
+            return data.some((v) => Number(v) > 0);
+        }
         return false;
     }
 
     getToken(name) {
-        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        const root = this.el?.closest?.(".o_school_dashboard_layout") || document.documentElement;
+        const tokenName = String(name || "").replace(/^var\((--[^,)]+).*\)$/, "$1");
+        return getComputedStyle(root).getPropertyValue(tokenName).trim()
+            || getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
     }
 
     renderCharts() {
@@ -422,7 +537,7 @@ class SchoolDashboardShell extends Component {
             const values = this.state.chartData.student_status?.data || [];
             const colors = labels.map(
                 (label) =>
-                    this.getToken(STATUS_TOKENS[String(label).toLowerCase()]) ||
+                    STATUS_TOKENS[String(label).toLowerCase()] ||
                     this.getToken("--brand-sapphire") ||
                     "#3a6ea5"
             );
@@ -442,9 +557,13 @@ class SchoolDashboardShell extends Component {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '72%',
+                    cutout: '70%',
                     plugins: {
-                        centerText: { label: 'Students' },
+                        centerText: {
+                            label: 'Students',
+                            valueColor: '#0f172a',
+                            labelColor: '#64748b',
+                        },
                         legend: {
                             position: 'bottom',
                             labels: {
@@ -452,8 +571,9 @@ class SchoolDashboardShell extends Component {
                                 boxHeight: 10,
                                 usePointStyle: true,
                                 pointStyle: 'circle',
-                                padding: 12,
-                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
+                                padding: 14,
+                                color: '#64748b',
+                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
                                 generateLabels: (chart) =>
                                     (chart.data.labels || []).map((label, index) => ({
                                         text: `${label} · ${values[index]} (${Math.round((Number(values[index]) / total) * 100)}%)`,
@@ -466,7 +586,7 @@ class SchoolDashboardShell extends Component {
                             }
                         },
                         tooltip: {
-                            backgroundColor: this.getToken("--brand-primary") || '#1b2a4a',
+                            backgroundColor: '#1b2a4a',
                             titleFont: { size: 13, weight: '600' },
                             bodyFont: { size: 12 },
                             padding: 10,
@@ -494,10 +614,10 @@ class SchoolDashboardShell extends Component {
                     datasets: [{
                         label: 'Enrolled Students',
                         data: this.state.chartData.program_distribution?.data || [],
-                        backgroundColor: this.getToken("--brand-sapphire") || '#3a6ea5',
-                        hoverBackgroundColor: this.getToken("--brand-sapphire-hover") || '#2b537f',
-                        borderRadius: 4,
-                        maxBarThickness: 28,
+                        backgroundColor: '#3a6ea5',
+                        hoverBackgroundColor: '#2b537f',
+                        borderRadius: 6,
+                        maxBarThickness: 24,
                         barPercentage: 0.72,
                         categoryPercentage: 0.62,
                     }]
@@ -508,38 +628,86 @@ class SchoolDashboardShell extends Component {
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: this.getToken("--brand-primary") || '#1b2a4a',
+                            backgroundColor: '#1b2a4a',
                             titleFont: { size: 13, weight: '600' },
                             bodyFont: { size: 12 },
                             padding: 10,
                             cornerRadius: 8,
                         }
                     },
+                    indexAxis: "y",
                     scales: {
                         y: {
-                            beginAtZero: true,
                             ticks: {
-                                precision: 0,
-                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
+                                color: "#334155",
+                                font: { size: 12, weight: '500', family: 'system-ui, -apple-system, sans-serif' },
                             },
-                            grid: { color: 'rgba(15, 23, 42, 0.05)', drawTicks: false },
+                            grid: { display: false },
                             border: { display: false },
                         },
                         x: {
+                            beginAtZero: true,
                             ticks: {
-                                font: { size: 11, family: 'system-ui, -apple-system, sans-serif' },
-                                maxRotation: 0,
-                                autoSkip: false,
-                                callback: function (val) {
-                                    const label = this.getLabelForValue(val);
-                                    const text = String(label || "");
-                                    return text.length > 12 ? `${text.slice(0, 11)}…` : text;
-                                },
+                                precision: 0,
+                                color: "#64748b",
+                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
                             },
-                            grid: { display: false },
+                            grid: {
+                                color: "rgba(15, 23, 42, 0.06)",
+                                drawTicks: false,
+                            },
+                            border: { display: false },
                         }
                     }
                 }
+            }));
+        }
+
+        if (this.chartEnrollmentRef.el && this.hasChartData("enrollment")) {
+            const data = this.state.chartData.enrollment_trend;
+            this.charts.push(new window.Chart(this.chartEnrollmentRef.el.getContext("2d"), {
+                type: "line",
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: "Enrollments",
+                        data: data.data || [],
+                        borderColor: "#2563eb",
+                        backgroundColor: "rgba(37, 99, 235, 0.12)",
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                },
+            }));
+        }
+
+        if (this.chartFeesRef.el && this.hasChartData("fees")) {
+            const data = this.state.chartData.monthly_fee_collection;
+            this.charts.push(new window.Chart(this.chartFeesRef.el.getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: "Collected",
+                        data: data.data || [],
+                        backgroundColor: "#059669",
+                        borderRadius: 5,
+                        maxBarThickness: 28,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } },
+                },
             }));
         }
     }

@@ -1,5 +1,6 @@
-from odoo import _, api, fields, models
+from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError
+from odoo.fields import Domain
 
 class ResUsers(models.Model):
     """Extend the user to link them to an academic staff record, enabling
@@ -17,6 +18,13 @@ class ResUsers(models.Model):
         "(teacher_id) WHERE teacher_id IS NOT NULL",
         "An academic staff record can only be linked to one user.",
     )
+
+    @api.model
+    def _get_login_domain(self, login):
+        normalized_login = (login or "").strip()
+        if "@" in normalized_login:
+            return Domain("login", "=ilike", tools.escape_psql(normalized_login))
+        return super()._get_login_domain(login)
 
     def _get_signup_student(self, email):
         normalized_email = (email or "").strip()

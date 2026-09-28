@@ -104,7 +104,7 @@ patch(WebClient.prototype, {
         this.schoolState = useState({ isActive: false });
         this.studentRedirecting = false;
 
-        const checkSchoolApp = () => {
+        const checkSchoolApp = async () => {
             const currentApp = this.menuService.getCurrentApp();
             const currentAction = this.actionService.currentController?.action || {};
             const actionLoaded = hasLoadedAction(currentAction);
@@ -129,18 +129,18 @@ patch(WebClient.prototype, {
         };
 
         const refreshSchoolRoute = async () => {
-            checkSchoolApp();
+            await checkSchoolApp();
             await this.redirectStudentToDashboard();
         };
 
         useBus(this.env.bus, "MENUS:APP-CHANGED", async () => {
-            checkSchoolApp();
+            await checkSchoolApp();
             await this.ensureSchoolDashboardRoute();
             await this.redirectStudentToDashboard();
         });
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", refreshSchoolRoute);
         onMounted(() => {
-            setTimeout(checkSchoolApp);
+            setTimeout(() => checkSchoolApp());
             setTimeout(() => this.ensureSchoolDashboardRoute());
             setTimeout(() => this.redirectStudentToDashboard());
         });

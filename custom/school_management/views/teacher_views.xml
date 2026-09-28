@@ -13,7 +13,7 @@
         <field name="name">university.teacher.list</field>
         <field name="model">university.teacher</field>
         <field name="arch" type="xml">
-            <list string="Teachers" sample="1">
+            <list string="Academic Staff" sample="1">
                 <field name="image_1920" widget="image" options="{'size': [32, 32]}" string="Photo"/>
                 <field name="teacher_id" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
@@ -25,7 +25,7 @@
                 <field name="phone" widget="phone"/>
                 <field name="is_dean" widget="badge" decoration-info="is_dean" string="Head of Faculty"/>
                 <field name="is_hod" widget="badge" decoration-success="is_hod" string="HOD"/>
-                <field name="active" widget="boolean_toggle" optional="hide"/>
+                <field name="active" widget="boolean_toggle" optional="show" string="Status"/>
             </list>
         </field>
     </record>
@@ -244,13 +244,13 @@
 
     <!-- ==================== WINDOW ACTION ==================== -->
     <record id="action_university_teacher" model="ir.actions.act_window">
-        <field name="name">Teachers</field>
+        <field name="name">Academic Staff</field>
         <field name="res_model">university.teacher</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_teacher_search"/>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Create your first teacher record</p>
-            <p>Add academic staff and assign them to departments, positions, subjects, and class sections.</p>
+            <p class="o_view_nocontent_smiling_face">No academic staff found. Click Add Teacher to create a staff record.</p>
+            <p>Manage staff IDs, positions, departments, contact details, and status from this directory.</p>
         </field>
     </record>
 

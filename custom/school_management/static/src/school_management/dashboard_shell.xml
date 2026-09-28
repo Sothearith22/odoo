@@ -96,61 +96,122 @@
         </div>
 
         <!-- TOP EXECUTIVE HEADER -->
-        <header class="px-4 py-3 d-flex flex-wrap justify-content-between align-items-center sticky-top z-1 dashboard-header bg-view">
-          <div class="d-flex align-items-center gap-3">
-            <div>
-              <div class="d-flex align-items-center gap-2">
-                <h1 class="h4 fw-bold mb-0 dashboard-title">University Operations</h1>
-                <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1 small fw-semibold">
-                  <i class="fa fa-circle small me-1" aria-hidden="true"/>Active Semester
+        <header class="o_dashboard_topbar sticky-top z-1">
+          <div class="o_dashboard_header_main">
+            <div class="o_dashboard_header_identity">
+              <div class="o_dashboard_eyebrow">UNIVERSITY MANAGEMENT</div>
+              <div class="o_dashboard_title_row">
+                <h1 class="dashboard-title">University Operations</h1>
+                <span class="o_dashboard_status_badge" t-if="state.dashboard.active_semester_name">
+                  <span class="o_status_pulse" aria-hidden="true"/><t t-esc="state.dashboard.active_semester_name"/>
                 </span>
               </div>
-              <div class="text-muted small d-none d-md-flex align-items-center gap-2 mt-1">
+              <div class="o_dashboard_subtitle">
                 <span>Academic structure, enrollments, and operational finances</span>
-                <span>•</span>
-                <span class="text-secondary">Refreshed <t t-esc="state.lastUpdated"/></span>
+                <span class="o_dashboard_meta_separator">•</span>
+                <span t-if="state.academicPeriod.label" t-esc="state.academicPeriod.label"/>
+                <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
+                <span>Refreshed <t t-esc="state.lastUpdated"/></span>
               </div>
             </div>
-          </div>
 
-          <!-- Action Buttons Group -->
-          <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-            <button class="btn btn-sm btn-refresh px-2 py-1"
-                    t-att-class="{ 'is-refreshing': state.isRefreshing }"
-                    t-on-click="() => this.reload()"
-                    title="Refresh data"
-                    aria-label="Refresh dashboard data">
-              <i class="fa fa-refresh fa-fw" aria-hidden="true"/>
-            </button>
+            <!-- Action Buttons Group -->
+            <div class="o_dashboard_header_actions">
+              <div class="o_dashboard_period_filters" role="group" aria-label="Dashboard filters">
+                <label class="visually-hidden" for="school_dashboard_year">Academic year</label>
+                <select id="school_dashboard_year"
+                        class="form-select form-select-sm"
+                        t-att-value="state.filters.yearId || ''"
+                        t-on-change="(ev) => this.changeFilter('yearId', ev.target.value)">
+                  <option value="">All academic years</option>
+                  <t t-foreach="state.filterOptions.academicYears" t-as="year" t-key="year.id">
+                    <option t-att-value="year.id" t-esc="year.name"/>
+                  </t>
+                </select>
+                <label class="visually-hidden" for="school_dashboard_semester">Semester</label>
+                <select id="school_dashboard_semester"
+                        class="form-select form-select-sm"
+                        t-att-value="state.filters.semesterId || ''"
+                        t-on-change="(ev) => this.changeFilter('semesterId', ev.target.value)">
+                  <option value="">All semesters</option>
+                  <t t-foreach="this.semestersForSelectedYear()" t-as="semester" t-key="semester.id">
+                    <option t-att-value="semester.id" t-esc="semester.name"/>
+                  </t>
+                </select>
+              </div>
+              <button class="btn btn-sm o_dashboard_notifications"
+                      type="button"
+                      title="Pending notifications"
+                      aria-label="Pending notifications">
+                <i class="fa fa-bell-o" aria-hidden="true"/>
+                <span t-if="state.dashboard.pending_admission_count" class="badge rounded-pill" t-esc="state.dashboard.pending_admission_count"/>
+              </button>
+              <button class="btn btn-refresh"
+                      t-att-class="{ 'is-refreshing': state.isRefreshing }"
+                      t-on-click="() => this.reload()"
+                      title="Refresh data"
+                      aria-label="Refresh dashboard data">
+                <i class="fa fa-refresh fa-fw" aria-hidden="true"/>
+              </button>
 
-            <button t-if="this.canOpen('student')"
-                    t-on-click="() => this.navigate('school_management.action_university_student')"
-                    class="btn btn-sm px-3 btn-brand-primary d-flex align-items-center gap-1 shadow-sm"
-                    title="Register a new student in the system">
-              <i class="fa fa-user-plus" aria-hidden="true"/>
-              <span>Register Student</span>
-            </button>
+              <div class="o_dashboard_action_group">
+                <span class="o_dashboard_action_label">Quick actions</span>
+                <div class="o_dashboard_action_buttons">
+                   <button t-if="this.canOpen('student')"
+                       t-on-click="() => this.quickCreate('university.student', 'Add Student')"
+                       class="btn btn-brand-primary d-flex align-items-center gap-2"
+                       title="Register a new student in the system">
+                     <i class="fa fa-user-plus" aria-hidden="true"/>
+                     <span>Add Student</span>
+                   </button>
 
-            <button t-if="this.canOpen('enrollment')"
-                    t-on-click="() => this.navigate('school_management.action_university_enrollment')"
-                    class="btn btn-sm px-3 btn-brand-outline d-none d-md-inline-flex align-items-center gap-1"
-                    title="Enroll students into class sections">
-              <i class="fa fa-clipboard" aria-hidden="true"/>
-              <span>Enroll in Section</span>
-            </button>
+                   <button t-if="this.canOpen('teacher')"
+                       t-on-click="() => this.quickCreate('university.teacher', 'Add Teacher')"
+                       class="btn btn-brand-outline d-none d-md-inline-flex align-items-center gap-2"
+                       title="Create an academic staff record">
+                     <i class="fa fa-user-plus" aria-hidden="true"/>
+                     <span>Add Teacher</span>
+                   </button>
 
-            <button t-if="this.canOpen('fee')"
-                    t-on-click="() => this.navigate('school_management.action_university_fee')"
-                    class="btn btn-sm px-3 btn-brand-outline d-none d-lg-inline-flex align-items-center gap-1"
-                    title="Create student tuition or fee invoice">
-              <i class="fa fa-file-text-o" aria-hidden="true"/>
-              <span>Create Invoice</span>
-            </button>
+                   <button t-if="this.canOpen('program')"
+                       t-on-click="() => this.quickCreate('university.program', 'Create Program')"
+                       class="btn btn-brand-outline d-none d-lg-inline-flex align-items-center gap-2"
+                       title="Create an academic program">
+                     <i class="fa fa-certificate" aria-hidden="true"/>
+                     <span>Create Program</span>
+                   </button>
+
+                   <button t-if="this.canOpen('enrollment')"
+                       t-on-click="() => this.navigate('school_management.action_university_enrollment')"
+                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
+                       title="Enroll students into class sections">
+                     <i class="fa fa-clipboard" aria-hidden="true"/>
+                     <span>Enroll Students</span>
+                   </button>
+
+                   <button t-if="this.canOpen('payment')"
+                       t-on-click="() => this.quickCreate('university.payment', 'Record Payment')"
+                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
+                       title="Record a student payment">
+                     <i class="fa fa-credit-card" aria-hidden="true"/>
+                     <span>Record Payment</span>
+                   </button>
+
+                   <button t-if="state.isFullAccess"
+                       t-on-click="() => this.navigate('school_management.action_university_report_card')"
+                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
+                       title="Open academic reports">
+                     <i class="fa fa-bar-chart" aria-hidden="true"/>
+                     <span>Generate Report</span>
+                   </button>
+                 </div>
+               </div>
+            </div>
           </div>
         </header>
 
         <!-- DASHBOARD CANVAS -->
-        <div class="p-4 flex-grow-1 overflow-auto dashboard-canvas">
+        <div class="p-4 flex-grow-1 overflow-auto dashboard-canvas o_dashboard_content">
           
           <!-- ===================================================== -->
           <!-- TIER 1: PRIMARY ORGANIZATIONAL METRICS (4 KPI CARDS)   -->
@@ -161,23 +222,21 @@
               
               <!-- 1. Students KPI -->
               <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card o_kpi_card h-100 p-3"
-                     style="--card-accent: var(--brand-primary); --card-accent-soft: var(--brand-primary-soft);"
->
-                  <div class="d-flex align-items-start justify-content-between mb-2">
+                <div class="o_kpi_card o_kpi_students">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="o_kpi_label">Students</span>
                     <div class="o_kpi_icon_box" aria-hidden="true">
                       <i class="fa fa-graduation-cap"/>
                     </div>
                   </div>
-                  <div class="o_kpi_value mb-2" t-esc="state.dashboard.student_count"/>
-                  <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
+                  <div class="o_kpi_value" t-esc="state.dashboard.student_count"/>
+                  <div class="o_kpi_footer">
                     <span class="badge rounded-pill bg-success-subtle text-success small px-2 py-1">
                       <t t-esc="state.dashboard.active_student_count"/> Active
                     </span>
                     <button t-if="this.canOpen('student')"
                             type="button"
-                            class="btn btn-sm o_kpi_action_btn"
+                            class="o_kpi_action_btn"
                             t-on-click="() => this.go('student')"
                             title="Open Students">
                       View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
@@ -188,23 +247,21 @@
 
               <!-- 2. Teachers KPI -->
               <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card o_kpi_card h-100 p-3"
-                     style="--card-accent: var(--brand-emerald); --card-accent-soft: var(--brand-emerald-soft);"
->
-                  <div class="d-flex align-items-start justify-content-between mb-2">
+                <div class="o_kpi_card o_kpi_teachers">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="o_kpi_label">Teachers</span>
                     <div class="o_kpi_icon_box" aria-hidden="true">
                       <i class="fa fa-user"/>
                     </div>
                   </div>
-                  <div class="o_kpi_value mb-2" t-esc="state.dashboard.teacher_count"/>
-                  <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
+                  <div class="o_kpi_value" t-esc="state.dashboard.teacher_count"/>
+                  <div class="o_kpi_footer">
                     <span class="badge rounded-pill bg-info-subtle text-info small px-2 py-1">
                       Active Faculty
                     </span>
                     <button t-if="this.canOpen('teacher')"
                             type="button"
-                            class="btn btn-sm o_kpi_action_btn"
+                            class="o_kpi_action_btn"
                             t-on-click="() => this.go('teacher')"
                             title="Open Teachers">
                       View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
@@ -215,23 +272,21 @@
 
               <!-- 3. Programs KPI -->
               <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card o_kpi_card h-100 p-3"
-                     style="--card-accent: var(--brand-amber); --card-accent-soft: var(--brand-amber-soft);"
->
-                  <div class="d-flex align-items-start justify-content-between mb-2">
+                <div class="o_kpi_card o_kpi_programs">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="o_kpi_label">Programs</span>
                     <div class="o_kpi_icon_box" aria-hidden="true">
                       <i class="fa fa-certificate"/>
                     </div>
                   </div>
-                  <div class="o_kpi_value mb-2" t-esc="state.dashboard.program_count"/>
-                  <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
+                  <div class="o_kpi_value" t-esc="state.dashboard.program_count"/>
+                  <div class="o_kpi_footer">
                     <span class="badge rounded-pill bg-warning-subtle text-warning small px-2 py-1">
                       Degree Majors
                     </span>
                     <button t-if="this.canOpen('program')"
                             type="button"
-                            class="btn btn-sm o_kpi_action_btn"
+                            class="o_kpi_action_btn"
                             t-on-click="() => this.go('program')"
                             title="Open Programs">
                       View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
@@ -242,26 +297,96 @@
 
               <!-- 4. Departments KPI -->
               <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card o_kpi_card h-100 p-3"
-                     style="--card-accent: var(--brand-sapphire); --card-accent-soft: var(--brand-sapphire-soft);"
->
-                  <div class="d-flex align-items-start justify-content-between mb-2">
+                <div class="o_kpi_card o_kpi_departments">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="o_kpi_label">Departments</span>
                     <div class="o_kpi_icon_box" aria-hidden="true">
                       <i class="fa fa-building"/>
                     </div>
                   </div>
-                  <div class="o_kpi_value mb-2" t-esc="state.dashboard.department_count"/>
-                  <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
+                  <div class="o_kpi_value" t-esc="state.dashboard.department_count"/>
+                  <div class="o_kpi_footer">
                     <span class="badge rounded-pill bg-secondary-subtle text-secondary small px-2 py-1">
                       Academic Units
                     </span>
                     <button t-if="this.canOpen('department')"
                             type="button"
-                            class="btn btn-sm o_kpi_action_btn"
+                            class="o_kpi_action_btn"
                             t-on-click="() => this.go('department')"
                             title="Open Departments">
                       View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Operations KPIs are role-filtered to keep protected data out of the DOM. -->
+              <div t-if="this.canOpen('admission')" class="col-12 col-sm-6 col-xl-3">
+                <div class="o_kpi_card o_kpi_admissions">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="o_kpi_label">Pending Admissions</span>
+                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-inbox"/></div>
+                  </div>
+                  <div class="o_kpi_value" t-esc="state.dashboard.pending_admission_count"/>
+                  <div class="o_kpi_footer">
+                    <span class="badge rounded-pill bg-warning-subtle text-warning small px-2 py-1">Awaiting review</span>
+                    <button type="button" class="o_kpi_action_btn"
+                            t-on-click="() => this.navigate('school_management.action_university_admission_application')"
+                            title="Open admission applications">
+                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div t-if="this.canOpen('fee')" class="col-12 col-sm-6 col-xl-3">
+                <div class="o_kpi_card o_kpi_fees">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="o_kpi_label">Unpaid Fees</span>
+                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-money"/></div>
+                  </div>
+                  <div class="o_kpi_value" t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
+                  <div class="o_kpi_footer">
+                    <span class="badge rounded-pill bg-danger-subtle text-danger small px-2 py-1">Outstanding</span>
+                    <button type="button" class="o_kpi_action_btn"
+                            t-on-click="() => this.navigate('school_management.action_university_fee')"
+                            title="Open fee invoices">
+                      Review <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div t-if="this.canOpen('attendance')" class="col-12 col-sm-6 col-xl-3">
+                <div class="o_kpi_card o_kpi_attendance">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="o_kpi_label">Attendance Rate</span>
+                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-check-circle"/></div>
+                  </div>
+                  <div class="o_kpi_value"><t t-esc="state.dashboard.attendance_rate || 0"/>%</div>
+                  <div class="o_kpi_footer">
+                    <span class="badge rounded-pill bg-info-subtle text-info small px-2 py-1">Present records</span>
+                    <button type="button" class="o_kpi_action_btn"
+                            t-on-click="() => this.navigate('school_management.action_university_attendance')"
+                            title="Open attendance">
+                      Review <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div t-if="this.canOpen('academic_year')" class="col-12 col-sm-6 col-xl-3">
+                <div class="o_kpi_card o_kpi_semester">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="o_kpi_label">Active Semester</span>
+                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-calendar-check-o"/></div>
+                  </div>
+                  <div class="o_kpi_value o_kpi_value_text" t-esc="state.dashboard.active_semester_name"/>
+                  <div class="o_kpi_footer">
+                    <span class="badge rounded-pill bg-primary-subtle text-primary small px-2 py-1">Selected period</span>
+                    <button type="button" class="o_kpi_action_btn"
+                            t-on-click="() => this.go('academic_year')" title="Open academic years">
+                      Manage <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
                     </button>
                   </div>
                 </div>
@@ -274,74 +399,76 @@
           <!-- TIER 2: SECONDARY ACADEMIC INFRASTRUCTURE RIBBON       -->
           <!-- ===================================================== -->
           <section aria-label="Academic Infrastructure Summary" class="mb-4">
-            <div class="o_secondary_kpi_bar">
-              <div class="row g-2 align-items-center">
-                
-                <div class="col-6 col-md-3">
-                  <div class="o_sec_item d-flex align-items-center justify-content-between"
->
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="fa fa-university o_sec_icon" aria-hidden="true"/>
-                      <span class="o_sec_label">Faculties</span>
+            <div class="row g-3">
+              
+              <div class="col-12 col-sm-6 col-xl-3">
+                <div class="o_sec_kpi_card">
+                  <div class="o_sec_left">
+                    <div class="o_sec_icon_wrap" aria-hidden="true">
+                      <i class="fa fa-university"/>
                     </div>
-                                        <div class="d-flex align-items-center gap-2">
-                      <span class="o_sec_count" t-esc="state.dashboard.faculty_count"/>
-                      <button t-if="this.canOpen('faculty')" type="button" class="btn btn-sm o_sec_action_btn" t-on-click="() => this.go('faculty')" title="Open Faculties" aria-label="Open Faculties">
-                        <i class="fa fa-arrow-right" aria-hidden="true"/>
-                      </button>
-                    </div>
+                    <span class="o_sec_label">Faculties</span>
+                  </div>
+                  <div class="o_sec_right">
+                    <span class="o_sec_count" t-esc="state.dashboard.faculty_count"/>
+                    <button t-if="this.canOpen('faculty')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('faculty')" title="Open Faculties" aria-label="Open Faculties">
+                      <i class="fa fa-arrow-right" aria-hidden="true"/>
+                    </button>
                   </div>
                 </div>
-
-                <div class="col-6 col-md-3">
-                  <div class="o_sec_item d-flex align-items-center justify-content-between"
->
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="fa fa-book o_sec_icon" aria-hidden="true"/>
-                      <span class="o_sec_label">Subjects</span>
-                    </div>
-                                        <div class="d-flex align-items-center gap-2">
-                      <span class="o_sec_count" t-esc="state.dashboard.subject_count"/>
-                      <button t-if="this.canOpen('subject')" type="button" class="btn btn-sm o_sec_action_btn" t-on-click="() => this.go('subject')" title="Open Subjects" aria-label="Open Subjects">
-                        <i class="fa fa-arrow-right" aria-hidden="true"/>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                  <div class="o_sec_item d-flex align-items-center justify-content-between"
->
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="fa fa-users o_sec_icon" aria-hidden="true"/>
-                      <span class="o_sec_label">Class Sections</span>
-                    </div>
-                                        <div class="d-flex align-items-center gap-2">
-                      <span class="o_sec_count" t-esc="state.dashboard.section_count"/>
-                      <button t-if="this.canOpen('section')" type="button" class="btn btn-sm o_sec_action_btn" t-on-click="() => this.go('section')" title="Open Class Sections" aria-label="Open Class Sections">
-                        <i class="fa fa-arrow-right" aria-hidden="true"/>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                  <div class="o_sec_item d-flex align-items-center justify-content-between"
->
-                    <div class="d-flex align-items-center gap-2">
-                      <i class="fa fa-th o_sec_icon" aria-hidden="true"/>
-                      <span class="o_sec_label">Classrooms</span>
-                    </div>
-                                        <div class="d-flex align-items-center gap-2">
-                      <span class="o_sec_count" t-esc="state.dashboard.classroom_count"/>
-                      <button t-if="this.canOpen('classroom')" type="button" class="btn btn-sm o_sec_action_btn" t-on-click="() => this.go('classroom')" title="Open Classrooms" aria-label="Open Classrooms">
-                        <i class="fa fa-arrow-right" aria-hidden="true"/>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
               </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <div class="o_sec_kpi_card">
+                  <div class="o_sec_left">
+                    <div class="o_sec_icon_wrap" aria-hidden="true">
+                      <i class="fa fa-book"/>
+                    </div>
+                    <span class="o_sec_label">Subjects</span>
+                  </div>
+                  <div class="o_sec_right">
+                    <span class="o_sec_count" t-esc="state.dashboard.subject_count"/>
+                    <button t-if="this.canOpen('subject')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('subject')" title="Open Subjects" aria-label="Open Subjects">
+                      <i class="fa fa-arrow-right" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <div class="o_sec_kpi_card">
+                  <div class="o_sec_left">
+                    <div class="o_sec_icon_wrap" aria-hidden="true">
+                      <i class="fa fa-users"/>
+                    </div>
+                    <span class="o_sec_label">Class Sections</span>
+                  </div>
+                  <div class="o_sec_right">
+                    <span class="o_sec_count" t-esc="state.dashboard.section_count"/>
+                    <button t-if="this.canOpen('section')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('section')" title="Open Class Sections" aria-label="Open Class Sections">
+                      <i class="fa fa-arrow-right" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <div class="o_sec_kpi_card">
+                  <div class="o_sec_left">
+                    <div class="o_sec_icon_wrap" aria-hidden="true">
+                      <i class="fa fa-th"/>
+                    </div>
+                    <span class="o_sec_label">Classrooms</span>
+                  </div>
+                  <div class="o_sec_right">
+                    <span class="o_sec_count" t-esc="state.dashboard.classroom_count"/>
+                    <button t-if="this.canOpen('classroom')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('classroom')" title="Open Classrooms" aria-label="Open Classrooms">
+                      <i class="fa fa-arrow-right" aria-hidden="true"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </section>
 
@@ -366,9 +493,9 @@
                       Manage <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
                     </button>
                   </div>
-                  <div class="o_panel_body d-flex flex-column justify-content-center" style="min-height: 280px; position: relative;">
+                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-center">
                     <t t-if="this.hasChartData('status')">
-                      <div style="position: relative; height: 260px;">
+                      <div class="o_chart_canvas o_chart_canvas_donut">
                         <canvas t-ref="chart_status"/>
                       </div>
                     </t>
@@ -399,9 +526,9 @@
                       Programs <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
                     </button>
                   </div>
-                  <div class="o_panel_body d-flex flex-column justify-content-center" style="min-height: 280px; position: relative;">
+                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-center">
                     <t t-if="this.hasChartData('program')">
-                      <div style="position: relative; height: 260px;">
+                      <div class="o_chart_canvas o_chart_canvas_bar">
                         <canvas t-ref="chart_program"/>
                       </div>
                     </t>
@@ -421,10 +548,48 @@
             </div>
           </section>
 
+          <!-- Period-aware operations analytics. -->
+          <section aria-labelledby="sec_operations_analytics_title" class="mb-4">
+            <h2 id="sec_operations_analytics_title" class="visually-hidden">Enrollment and attendance analytics</h2>
+            <div class="row g-3">
+              <div class="col-12 col-lg-7">
+                <div class="card o_dashboard_panel h-100">
+                  <div class="o_panel_header">
+                    <h3 class="o_panel_title"><i class="fa fa-line-chart text-primary" aria-hidden="true"/><span>Enrollment Trend</span></h3>
+                  </div>
+                  <div class="o_panel_body o_chart_panel_body">
+                    <t t-if="this.hasChartData('enrollment')">
+                      <div class="o_chart_canvas"><canvas t-ref="chart_enrollment"/></div>
+                    </t>
+                    <t t-else="">
+                      <div class="o_empty_state"><div class="o_empty_icon"><i class="fa fa-line-chart" aria-hidden="true"/></div><div class="o_empty_title">No enrollment activity</div><div class="o_empty_desc">Enrollment records for the selected period will appear here.</div></div>
+                    </t>
+                  </div>
+                </div>
+              </div>
+              <div t-if="this.canOpen('attendance')" class="col-12 col-lg-5">
+                <div class="card o_dashboard_panel h-100">
+                  <div class="o_panel_header">
+                    <h3 class="o_panel_title"><i class="fa fa-check-circle text-success" aria-hidden="true"/><span>Attendance Summary</span></h3>
+                    <button type="button" t-on-click="() => this.navigate('school_management.action_university_attendance')" class="btn p-0 border-0 o_panel_link">Open <i class="fa fa-angle-right ms-1" aria-hidden="true"/></button>
+                  </div>
+                  <div class="o_panel_body">
+                    <div class="o_attendance_rate"><span t-esc="state.chartData.attendance_summary?.rate || 0"/>%</div>
+                    <div class="text-muted small mb-3">Present attendance for the selected period</div>
+                    <div class="row g-2 text-center">
+                      <div class="col-6"><div class="o_finance_stat border rounded"><div class="o_finance_label text-success">Present</div><div class="o_finance_num text-success" t-esc="state.chartData.attendance_summary?.present || 0"/></div></div>
+                      <div class="col-6"><div class="o_finance_stat border rounded"><div class="o_finance_label text-danger">Absent</div><div class="o_finance_num text-danger" t-esc="state.chartData.attendance_summary?.absent || 0"/></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- ===================================================== -->
           <!-- TIER 4: FINANCIAL HEALTH & RECENT TRANSACTIONS        -->
           <!-- ===================================================== -->
-          <section aria-labelledby="sec_finance_title" class="mb-4">
+          <section t-if="this.canOpen('fee')" aria-labelledby="sec_finance_title" class="mb-4">
             <h2 id="sec_finance_title" class="visually-hidden">Financial Overview and Activity</h2>
             <div class="row g-3">
               
@@ -535,6 +700,40 @@
                 </div>
               </div>
 
+            </div>
+          </section>
+
+          <section t-if="this.canOpen('fee')" aria-labelledby="sec_collection_title" class="mb-4">
+            <h2 id="sec_collection_title" class="visually-hidden">Monthly fee collection</h2>
+            <div class="card o_dashboard_panel">
+              <div class="o_panel_header">
+                <h3 class="o_panel_title"><i class="fa fa-area-chart text-success" aria-hidden="true"/><span>Monthly Fee Collection</span></h3>
+              </div>
+              <div class="o_panel_body o_chart_panel_body">
+                <t t-if="this.hasChartData('fees')"><div class="o_chart_canvas"><canvas t-ref="chart_fees"/></div></t>
+                <t t-else=""><div class="o_empty_state"><div class="o_empty_icon"><i class="fa fa-area-chart" aria-hidden="true"/></div><div class="o_empty_title">No payment collection yet</div><div class="o_empty_desc">Posted payments for the selected period will appear here.</div></div></t>
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="sec_activity_title" class="mb-4">
+            <h2 id="sec_activity_title" class="visually-hidden">Admissions approvals and system activity</h2>
+            <div class="row g-3">
+              <div t-if="this.canOpen('admission')" class="col-12 col-lg-6">
+                <div class="card o_dashboard_panel h-100">
+                  <div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-inbox text-warning" aria-hidden="true"/><span>Recent Admissions</span></h3><button type="button" t-on-click="() => this.navigate('school_management.action_university_admission_application')" class="btn p-0 border-0 o_panel_link">All applications <i class="fa fa-angle-right ms-1" aria-hidden="true"/></button></div>
+                  <div class="o_panel_body p-0">
+                    <t t-if="state.chartData.recent_admissions?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.recent_admissions" t-as="admission" t-key="admission.id"><li><div><strong t-esc="admission.applicant_name"/><div class="text-muted small"><t t-esc="admission.name"/> · <t t-esc="admission.application_date"/></div></div><span class="badge text-bg-light border" t-esc="admission.state"/></li></t></ul></t>
+                    <t t-else=""><div class="o_empty_state py-4"><div class="o_empty_icon"><i class="fa fa-inbox" aria-hidden="true"/></div><div class="o_empty_title">No recent admissions</div><div class="o_empty_desc">New applications will appear here after they are submitted.</div></div></t>
+                  </div>
+                </div>
+              </div>
+              <div t-if="this.canOpen('admission')" class="col-12 col-lg-3">
+                <div class="card o_dashboard_panel h-100"><div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-clock-o text-warning" aria-hidden="true"/><span>Pending Approvals</span></h3></div><div class="o_panel_body p-0"><t t-if="state.chartData.pending_approvals?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.pending_approvals" t-as="approval" t-key="approval.id"><li><div><strong t-esc="approval.applicant_name"/><div class="text-muted small" t-esc="approval.application_date"/></div><i class="fa fa-chevron-right text-muted" aria-hidden="true"/></li></t></ul></t><t t-else=""><div class="o_empty_state py-4"><div class="o_empty_title">Nothing pending</div><div class="o_empty_desc">Approval work is up to date.</div></div></t></div></div>
+              </div>
+              <div class="col-12 col-lg-3">
+                <div class="card o_dashboard_panel h-100"><div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-history text-primary" aria-hidden="true"/><span>System Activity</span></h3></div><div class="o_panel_body p-0"><t t-if="state.chartData.recent_activity?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.recent_activity" t-as="activity" t-key="activity.id"><li><div><strong t-esc="activity.summary || 'Scheduled activity'"/><div class="text-muted small"><t t-esc="activity.res_model"/> · <t t-esc="activity.date_deadline"/></div></div></li></t></ul></t><t t-else=""><div class="o_empty_state py-4"><div class="o_empty_title">No recent activity</div><div class="o_empty_desc">Assigned activities will appear here.</div></div></t></div></div>
+              </div>
             </div>
           </section>
 

@@ -1,729 +1,919 @@
-// University Management System - Dashboard Stylesheet
-// Cohesive Design System Tokens, Animations, and Layout Utilities
-
-
-
-// -------------------------------------------------------------
-// Executive Dashboard Layout & Component Tokens
-// -------------------------------------------------------------
+// =============================================================================
+// University Management System - Executive Dashboard Shell (Clean Light Design)
+// -----------------------------------------------------------------------------
+// Scoped strictly to `.o_school_dashboard_layout`. Clean modern styling with
+// crisp alignment, distinct color badges, and responsive Bootstrap grid cards.
+// =============================================================================
 
 .o_school_dashboard_layout {
-    // Design tokens (brand palette, semantic status colors, type scale, shape
-    // and elevation) are defined once on :root in design_tokens.scss and are
-    // shared with the Teacher/Student shells and backend kanban cards.
+    // ---- Scoped Enterprise Design Tokens ------------------------------------
+    --brand-navy: #1b2a4a;
+    --brand-navy-hover: #29385c;
+    --brand-navy-subtle: #edf2f9;
 
-    background-color: var(--bg-page);
+    --kpi-blue: #2563eb;
+    --kpi-blue-bg: #eff6ff;
+    --kpi-blue-border: #bfdbfe;
+
+    --kpi-emerald: #059669;
+    --kpi-emerald-bg: #ecfdf5;
+    --kpi-emerald-border: #a7f3d0;
+
+    --kpi-amber: #d97706;
+    --kpi-amber-bg: #fffbeb;
+    --kpi-amber-border: #fde68a;
+
+    --kpi-indigo: #4f46e5;
+    --kpi-indigo-bg: #eef2ff;
+    --kpi-indigo-border: #c7d2fe;
+
+    --surface-bg: #f8f9fc;
+    --surface-card: #ffffff;
+    --border-color: #e2e8f0;
+    --border-subtle: #f1f5f9;
+
+    --text-heading: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+
+    --radius-card: 12px;
+    --radius-sm: 8px;
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-hover: 0 8px 20px -4px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+
+    background-color: var(--surface-bg);
     color: var(--text-body);
     font-family: inherit;
+    min-height: 100%;
 
-    // Header & Actions
-    .dashboard-header {
-        background-color: var(--surface-card);
+    // -------------------------------------------------------------------------
+    // Topbar & Header
+    // -------------------------------------------------------------------------
+    .o_dashboard_topbar {
+        background: #ffffff;
         border-bottom: 1px solid var(--border-color);
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+        padding: 16px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .o_dashboard_header_main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .o_dashboard_header_identity {
+        min-width: 0;
+    }
+
+    .o_dashboard_eyebrow {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+
+    .o_dashboard_title_row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
     .dashboard-title {
-        color: var(--text-heading);
+        font-size: 1.5rem;
         font-weight: 700;
+        color: var(--text-heading);
+        margin: 0;
+        line-height: 1.25;
         letter-spacing: -0.02em;
     }
 
-    .btn-brand-primary {
-        background-color: var(--brand-primary);
-        color: #ffffff;
-        border: 1px solid var(--brand-primary);
+    .o_dashboard_status_badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
         font-weight: 600;
-        border-radius: var(--radius-md);
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .o_status_pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: status-pulse-anim 2s infinite;
+    }
+
+    @keyframes status-pulse-anim {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+    }
+
+    .o_dashboard_subtitle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+        flex-wrap: wrap;
+    }
+
+    .o_dashboard_meta_separator {
+        color: #cbd5e1;
+    }
+
+    .o_dashboard_header_actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .o_dashboard_period_filters {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .form-select {
+            min-width: 132px;
+            max-width: 180px;
+            font-size: 0.78rem;
+            border-color: var(--border-color);
+        }
+    }
+
+    .o_dashboard_notifications {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: #ffffff;
+            font-size: 0.65rem;
+        }
+    }
+
+    .btn-refresh {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        padding: 0;
+
+        &:hover {
+            background: #f8fafc;
+            color: var(--text-heading);
+            border-color: #cbd5e1;
+        }
+
+        &.is-refreshing i {
+            animation: spin 1s infinite linear;
+        }
+    }
+
+    .o_dashboard_action_group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .o_dashboard_action_label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: none;
+    }
+    @media (min-width: 1200px) {
+        .o_dashboard_action_label {
+            display: inline-block;
+        }
+    }
+
+    .o_dashboard_action_buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-brand-primary {
+        background-color: var(--brand-navy);
+        border-color: var(--brand-navy);
+        color: #ffffff;
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        padding: 6px 14px;
+        font-size: 0.8125rem;
         transition: all 0.15s ease;
 
         &:hover, &:focus {
-            background-color: var(--brand-primary-hover);
-            border-color: var(--brand-primary-hover);
+            background-color: var(--brand-navy-hover);
+            border-color: var(--brand-navy-hover);
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(27, 42, 74, 0.15);
-        }
-
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--shadow-focus);
+            box-shadow: 0 2px 6px rgba(27, 42, 74, 0.25);
         }
     }
 
     .btn-brand-outline {
         background-color: #ffffff;
-        color: var(--text-heading);
         border: 1px solid var(--border-color);
-        font-weight: 500;
-        border-radius: var(--radius-md);
+        color: var(--text-body);
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        padding: 6px 14px;
+        font-size: 0.8125rem;
         transition: all 0.15s ease;
 
-        &:hover {
+        &:hover, &:focus {
             background-color: #f8fafc;
             border-color: #cbd5e1;
-            color: var(--brand-primary);
-        }
-
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--shadow-focus);
+            color: var(--text-heading);
         }
     }
 
-    .btn-refresh {
-        color: var(--text-muted);
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        transition: all 0.15s ease;
-
-        &:hover {
-            color: var(--brand-primary);
-            background-color: #f8fafc;
-            border-color: #cbd5e1;
-        }
-
-        &.is-refreshing i {
-            animation: o-spin 0.8s linear infinite;
-        }
+    // -------------------------------------------------------------------------
+    // Canvas & Main Container
+    // -------------------------------------------------------------------------
+    .o_dashboard_content {
+        max-width: 1600px;
+        margin: 0 auto;
+        width: 100%;
+        overflow-x: hidden;
     }
 
-    // Interactive KPI Cards (Tier 1)
+    // -------------------------------------------------------------------------
+    // TIER 1: Primary KPI Cards
+    // -------------------------------------------------------------------------
     .o_kpi_card {
-        background-color: var(--surface-card);
+        background: var(--surface-card);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-resting);
-        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-        outline: none;
-        cursor: default;
-
-        &:hover {
-            transform: none;
-            box-shadow: var(--shadow-elevated);
-            border-color: #cbd5e1;
-
-            .o_kpi_action_hint {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        &:focus-visible {
-            box-shadow: var(--shadow-focus);
-            border-color: var(--card-accent, var(--brand-primary));
-        }
-
-        &.o_disabled {
-            cursor: default;
-            transform: none !important;
-            box-shadow: var(--shadow-resting) !important;
-            opacity: 0.7;
-
-            .o_kpi_action_hint {
-                display: none;
-            }
-        }
-
-        .o_kpi_icon_box {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background-color: var(--card-accent-soft, var(--brand-primary-soft));
-            color: var(--card-accent, var(--brand-primary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            flex-shrink: 0;
-        }
-
-        .o_kpi_action_btn {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--card-accent, var(--brand-primary));
-            border: 1px solid transparent;
-            border-radius: var(--radius-sm);
-            padding: 0.2rem 0.45rem;
-
-            &:hover,
-            &:focus {
-                background-color: var(--card-accent-soft, var(--brand-primary-soft));
-                border-color: var(--card-accent-soft, var(--brand-primary-soft));
-                color: var(--card-accent, var(--brand-primary));
-            }
-        }
-    }
-
-    // Secondary Academic Metrics Ribbon (Tier 2)
-    .o_secondary_kpi_bar {
-        background-color: var(--surface-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-resting);
-        padding: 0.75rem 1rem;
-
-        .o_sec_item {
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-md);
-            transition: background-color 0.15s ease;
-            cursor: default;
-
-            &:hover {
-                background-color: #f8fafc;
-            }
-
-            &:focus-visible {
-                outline: none;
-                box-shadow: var(--shadow-focus);
-            }
-
-            .o_sec_action_btn {
-                color: var(--brand-primary);
-                border-radius: var(--radius-sm);
-                padding: 0.15rem 0.4rem;
-
-                &:hover,
-                &:focus {
-                    background-color: var(--brand-primary-soft);
-                    color: var(--brand-primary-hover);
-                }
-            }
-
-            .o_sec_icon {
-                font-size: 1.1rem;
-                color: var(--text-muted);
-                width: 24px;
-                text-align: center;
-            }
-
-            .o_sec_label {
-                font-size: 0.8rem;
-                color: var(--text-muted);
-                font-weight: 500;
-            }
-
-            .o_sec_count {
-                font-size: 1.15rem;
-                font-weight: 700;
-                color: var(--text-heading);
-                font-variant-numeric: tabular-nums;
-            }
-        }
-    }
-
-    // Panels (Charts, Finance, Operations)
-    .o_dashboard_panel {
-        background-color: var(--surface-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-resting);
+        border-radius: var(--radius-card);
+        padding: 20px;
+        box-shadow: var(--shadow-card);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        height: 100%;
 
-        .o_panel_header {
-            background-color: var(--surface-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            .o_panel_title {
-                font-size: 0.95rem;
-                font-weight: 700;
-                color: var(--text-heading);
-                margin: 0;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .o_panel_link {
-                font-size: 0.82rem;
-                font-weight: 600;
-                color: var(--brand-primary);
-                text-decoration: none;
-                padding: 0.25rem 0.5rem;
-                border-radius: var(--radius-sm);
-                transition: all 0.15s ease;
-
-                &:hover {
-                    color: var(--brand-emerald);
-                    background-color: var(--brand-emerald-soft);
-                }
-
-                &:focus-visible {
-                    outline: none;
-                    box-shadow: var(--shadow-focus);
-                }
-            }
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            border-color: #cbd5e1;
         }
 
-        .o_panel_body {
-            padding: 1.25rem;
-            flex-grow: 1;
-        }
-    }
-
-    // Financial Health Meter
-    .o_finance_stat {
-        padding: 0.75rem 0.5rem;
-        text-align: center;
-
-        .o_finance_label {
-            font-size: 0.75rem;
+        .o_kpi_label {
+            font-size: 0.8125rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: var(--text-muted);
-            margin-bottom: 0.35rem;
         }
 
-        .o_finance_num {
-            font-size: 1.45rem;
+        .o_kpi_icon_box {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+
+        &.o_kpi_students .o_kpi_icon_box {
+            background-color: var(--kpi-blue-bg);
+            color: var(--kpi-blue);
+            border: 1px solid var(--kpi-blue-border);
+        }
+
+        &.o_kpi_teachers .o_kpi_icon_box {
+            background-color: var(--kpi-emerald-bg);
+            color: var(--kpi-emerald);
+            border: 1px solid var(--kpi-emerald-border);
+        }
+
+        &.o_kpi_programs .o_kpi_icon_box {
+            background-color: var(--kpi-amber-bg);
+            color: var(--kpi-amber);
+            border: 1px solid var(--kpi-amber-border);
+        }
+
+        &.o_kpi_departments .o_kpi_icon_box {
+            background-color: var(--kpi-indigo-bg);
+            color: var(--kpi-indigo);
+            border: 1px solid var(--kpi-indigo-border);
+        }
+
+        .o_kpi_value {
+            font-size: 2.125rem;
             font-weight: 700;
+            color: var(--text-heading);
+            line-height: 1.15;
             font-variant-numeric: tabular-nums;
-            line-height: 1.2;
-        }
-    }
-
-    .o_finance_progress_bar {
-        height: 10px;
-        border-radius: var(--radius-full, 9999px);
-        background-color: #f1f5f9;
-        overflow: hidden;
-        display: flex;
-
-        .o_bar_paid {
-            background-color: var(--brand-emerald);
-            transition: width 0.6s ease;
+            margin-top: 6px;
+            margin-bottom: 12px;
         }
 
-        .o_bar_unpaid {
-            background-color: var(--status-danger);
-            transition: width 0.6s ease;
-        }
-    }
-
-    // Recent Payments Feed
-    .o_payment_list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-
-        .o_payment_item {
-            padding: 0.85rem 1.25rem;
+        .o_kpi_footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
-            transition: background-color 0.15s ease;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+        }
 
-            &:last-child {
-                border-bottom: none;
-            }
+        .o_kpi_action_btn {
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--kpi-blue);
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            text-decoration: none;
 
             &:hover {
-                background-color: #fbfcfe;
-            }
-
-            .o_student_avatar {
-                width: 38px;
-                height: 38px;
-                border-radius: 50%;
-                background-color: var(--brand-primary-soft);
-                color: var(--brand-primary);
-                font-weight: 700;
-                font-size: 0.85rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-shrink: 0;
-            }
-
-            .o_payment_name {
-                font-weight: 600;
-                color: var(--text-heading);
-                font-size: 0.9rem;
-            }
-
-            .o_payment_date {
-                font-size: 0.78rem;
-                color: var(--text-muted);
-            }
-
-            .o_payment_amount {
-                font-weight: 700;
-                font-size: 0.95rem;
-                color: var(--brand-emerald);
-                font-variant-numeric: tabular-nums;
+                background: var(--kpi-blue-bg);
+                color: #1d4ed8;
             }
         }
     }
 
-    // Quick Operations Buttons
-    .o_quick_op_btn {
-        background-color: #ffffff;
+    // -------------------------------------------------------------------------
+    // TIER 2: Secondary Academic Infrastructure Ribbon
+    // -------------------------------------------------------------------------
+    .o_sec_kpi_card {
+        background: var(--surface-card);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: var(--shadow-card);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        color: var(--text-heading);
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-align: left;
-        width: 100%;
         transition: all 0.15s ease;
+        height: 100%;
 
         &:hover {
             border-color: #cbd5e1;
-            background-color: #f8fafc;
-            color: var(--brand-primary);
-
-            .fa-chevron-right {
-                transform: translateX(4px);
-                color: var(--brand-primary) !important;
-            }
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
         }
 
-        &:focus-visible {
-            outline: none;
-            box-shadow: var(--shadow-focus);
-            border-color: var(--brand-primary);
+        .o_sec_left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
 
-        .fa-chevron-right {
-            transition: transform 0.15s ease, color 0.15s ease;
+        .o_sec_icon_wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
         }
-    }
 
-    // System Capabilities & Roadmap Panel
-    .o_capability_body {
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-
-        // Overall / category progress bars
-        .o_cap_progress {
-            height: 7px;
-            border-radius: 9999px;
-            background-color: #f1f5f9;
+        .o_sec_label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-body);
+            white-space: nowrap;
             overflow: hidden;
-
-            .o_cap_progress_fill {
-                height: 100%;
-                border-radius: 9999px;
-                background-color: var(--brand-emerald);
-                transition: width 0.6s ease;
-            }
-
-            .o_cap_fill_empty {
-                background-color: #cbd5e1;
-            }
+            text-overflow: ellipsis;
         }
 
-        .o_cap_progress_sm {
-            height: 5px;
-            margin-top: 0.25rem;
+        .o_sec_right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
         }
 
-        .o_cap_pct {
+        .o_sec_count {
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--text-heading);
             font-variant-numeric: tabular-nums;
         }
 
-        .o_cap_categories {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-subtle);
-
-            .o_cap_cat_head {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 0.5rem;
-
-                .o_cap_cat_label {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                    color: var(--text-body);
-                    font-weight: 600;
-
-                    .fa {
-                        width: 14px;
-                        text-align: center;
-                        color: var(--brand-sapphire);
-                    }
-                }
-
-                .o_cap_cat_count {
-                    font-variant-numeric: tabular-nums;
-                    font-weight: 600;
-                }
-            }
-        }
-
-        // Phase stepper chips
-        .o_cap_phases {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .o_cap_phase_chip {
+        .o_sec_action_btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-muted);
             display: inline-flex;
             align-items: center;
-            gap: 0.35rem;
-            font-size: 0.72rem;
-            font-weight: 600;
-            padding: 0.28rem 0.55rem;
-            border-radius: 9999px;
-            border: 1px solid var(--border-color);
-
-            &.o_cap_phase_done {
-                background-color: var(--brand-emerald-soft);
-                border-color: var(--brand-emerald);
-                color: var(--brand-emerald);
-            }
-
-            &.o_cap_phase_todo {
-                background-color: #ffffff;
-                color: var(--text-muted);
-            }
-
-            .o_cap_phase_count {
-                background-color: rgba(255, 255, 255, 0.7);
-                border: 1px solid currentColor;
-                color: inherit;
-                font-size: 0.68rem;
-                line-height: 1;
-                padding: 0.1rem 0.35rem;
-            }
-
-            .o_cap_phase_check {
-                font-size: 0.7rem;
-            }
-        }
-
-        // Scrollable capability feed
-        .o_cap_items_scroll {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-subtle);
-            max-height: 210px;
-            overflow-y: auto;
-        }
-
-        .o_cap_item {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.4rem 0.25rem;
-            border-bottom: 1px solid var(--border-subtle);
-            border-radius: var(--radius-sm);
-            transition: background-color 0.15s ease;
-            text-decoration: none;
-
-            &:last-child {
-                border-bottom: none;
-            }
+            justify-content: center;
+            font-size: 0.75rem;
+            padding: 0;
+            transition: all 0.15s ease;
 
             &:hover {
-                background-color: #fbfcfe;
+                background: var(--brand-navy);
+                color: #ffffff;
+                border-color: var(--brand-navy);
+            }
+        }
+    }
 
-                .o_cap_item_edit {
-                    opacity: 1;
-                    color: var(--brand-emerald);
-                }
+    // -------------------------------------------------------------------------
+    // TIER 3 & 4: Dashboard Panels & Cards
+    // -------------------------------------------------------------------------
+    .o_dashboard_panel {
+        background: var(--surface-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .o_panel_header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: #ffffff;
+        }
+
+        .o_panel_title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .o_panel_link {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--kpi-blue);
+            text-decoration: none;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            padding: 0;
+
+            &:hover {
+                color: #1d4ed8;
+                text-decoration: underline;
+            }
+        }
+
+        .o_panel_body {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .o_chart_panel_body {
+            padding: 16px 20px 20px 20px;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Canvas & Chart Constraints (Fixes Ellipse Distortion)
+    // -------------------------------------------------------------------------
+    .o_chart_canvas {
+        position: relative;
+        width: 100%;
+        height: 250px;
+        max-height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        canvas {
+            max-height: 250px;
+            width: 100% !important;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Financial Metrics & Receipts Stream
+    // -------------------------------------------------------------------------
+    .o_finance_stat {
+        padding: 12px 8px;
+        text-align: center;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+    }
+
+    .o_finance_label {
+        font-size: 0.725rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 4px;
+        color: var(--text-muted);
+    }
+
+    .o_finance_num {
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .o_attendance_rate {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--kpi-emerald);
+        line-height: 1;
+    }
+
+    .o_activity_list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+
+            &:last-child {
+                border-bottom: 0;
             }
 
-            &.o_cap_item_clickable {
-                cursor: pointer;
-
-                &:hover {
-                    background-color: var(--brand-emerald-soft);
-                }
-
-                &:focus-visible {
-                    outline: none;
-                    background-color: var(--brand-emerald-soft);
-                    box-shadow: var(--shadow-focus);
-                }
-            }
-
-            .o_cap_item_icon {
-                width: 18px;
-                text-align: center;
-                flex-shrink: 0;
-                font-size: 0.9rem;
-            }
-
-            .o_cap_item_text {
-                flex-grow: 1;
+            > div {
                 min-width: 0;
             }
+        }
+    }
 
-            .o_cap_item_name {
-                font-size: 0.84rem;
-                font-weight: 600;
-                color: var(--text-heading);
-            }
+    .o_finance_progress_bar {
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 9999px;
+        overflow: hidden;
 
-            .o_cap_item_meta {
-                font-size: 0.72rem;
-                display: flex;
-                align-items: center;
-                gap: 0.25rem;
+        .o_bar_paid {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            border-radius: 9999px;
+            transition: width 0.4s ease;
+        }
+    }
 
-                .o_cap_item_meta_sep {
-                    opacity: 0.6;
-                }
-            }
+    .o_payment_list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
 
-            .o_cap_item_edit {
-                flex-shrink: 0;
-                font-size: 0.75rem;
-                color: var(--text-muted);
-                opacity: 0;
-                transition: opacity 0.15s ease, color 0.15s ease;
-            }
+    .o_payment_item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+        transition: background 0.15s ease;
 
-            .o_cap_item_badge {
-                flex-shrink: 0;
-                font-size: 0.7rem;
-                font-weight: 600;
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:hover {
+            background: #f8fafc;
+        }
+    }
+
+    .o_student_avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #e0e7ff;
+        color: #4338ca;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .o_payment_name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-heading);
+    }
+
+    .o_payment_date {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .o_payment_amount {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        color: #059669;
+        font-variant-numeric: tabular-nums;
+    }
+
+    // -------------------------------------------------------------------------
+    // TIER 5: Quick Operations & Roadmap
+    // -------------------------------------------------------------------------
+    .o_quick_op_btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+        color: var(--text-body);
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover {
+            border-color: #93c5fd;
+            background: #f8fafc;
+            color: #1d4ed8;
+            transform: translateX(2px);
+        }
+    }
+
+    .o_cap_body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .o_cap_overview {
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .o_cap_pct {
+        font-size: 1.5rem;
+        color: var(--text-heading);
+        font-weight: 700;
+    }
+
+    .o_cap_progress {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 9999px;
+        overflow: hidden;
+
+        .o_cap_progress_fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+
+            &.o_cap_fill_empty {
+                background: #cbd5e1;
             }
         }
     }
 
-    // Error State
-    .o_dashboard_error {
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        margin: 1.5rem;
+    .o_cap_categories {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+    }
 
-        .o_error_icon {
-            color: #dc2626;
-            font-size: 1.75rem;
+    .o_cap_cat {
+        padding: 10px;
+        background: #f8fafc;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .o_cap_cat_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .o_cap_phases {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+    }
+
+    .o_cap_phase_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+
+        &.o_cap_phase_done {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .o_cap_phase_count {
+            background: #f1f5f9;
+            color: #475569;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
         }
     }
 
-    // Skeleton Shimmer Loading State
+    .o_cap_items_scroll {
+        max-height: 220px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+    }
+
+    .o_cap_item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+        transition: background 0.15s ease;
+
+        &.o_cap_item_clickable {
+            cursor: pointer;
+            &:hover {
+                background: #f1f5f9;
+            }
+        }
+
+        .o_cap_item_icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .o_cap_item_text {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .o_cap_item_name {
+            font-weight: 500;
+        }
+
+        .o_cap_item_meta {
+            font-size: 0.7rem;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Empty & Shimmer States
+    // -------------------------------------------------------------------------
+    .o_empty_state {
+        text-align: center;
+        padding: 32px 16px;
+
+        .o_empty_icon {
+            font-size: 2.25rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .o_empty_title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+
+        .o_empty_desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            max-width: 280px;
+            margin: 0 auto;
+        }
+    }
+
     .o_skeleton_box {
         background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
         background-size: 200% 100%;
-        animation: o-skeleton-shimmer 1.5s infinite;
-        border-radius: var(--radius-sm);
-    }
-}
-
-// -----------------------------------------------------------------------
-// Shared metric label / value + empty state components.
-// Used by the Admin, Teacher and Student dashboard shells.
-// -----------------------------------------------------------------------
-.o_kpi_label,
-.o_metric_label {
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.o_kpi_value,
-.o_metric_value {
-    color: var(--text-heading);
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-}
-
-.o_empty_state {
-    text-align: center;
-    padding: 2.5rem 1.5rem;
-
-    .o_empty_icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background-color: var(--status-neutral-bg);
-        color: var(--text-muted);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+        animation: skeleton-shimmer 1.5s infinite;
+        border-radius: 6px;
     }
 
-    .o_empty_title {
-        font-weight: 700;
-        color: var(--text-heading);
-        font-size: 1rem;
-        margin-bottom: 0.25rem;
+    @keyframes skeleton-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
 
-    .o_empty_desc {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        max-width: 320px;
-        margin: 0 auto;
-    }
-}
-
-// Keyframe Animations
-@keyframes o-skeleton-shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-@keyframes o-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-// Responsive Breakpoints
-@media (max-width: 768px) {
-    .o_kpi_value,
-    .o_metric_value {
-        font-size: 1.6rem !important;
-    }
-
-    .o_school_dashboard_layout {
-        .dashboard-header {
-            padding: 0.75rem 1rem !important;
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 0.75rem;
+    @media (max-width: 767.98px) {
+        .o_dashboard_topbar {
+            padding: 12px 16px;
         }
 
-        .o_finance_num {
-            font-size: 1.2rem !important;
+        .o_dashboard_header_main,
+        .o_dashboard_header_actions {
+            align-items: stretch;
         }
 
-        .dashboard-canvas {
-            padding: 1rem !important;
+        .o_dashboard_period_filters {
+            width: 100%;
+
+            .form-select {
+                flex: 1 1 0;
+                min-width: 0;
+                max-width: none;
+            }
+        }
+
+        .o_dashboard_notifications,
+        .btn-refresh {
+            flex: 0 0 36px;
+        }
+
+        .o_dashboard_action_group {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .o_dashboard_action_buttons {
+            width: 100%;
+
+            .btn {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
         }
     }
 }

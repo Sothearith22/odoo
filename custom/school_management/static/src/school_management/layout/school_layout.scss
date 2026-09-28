@@ -15,7 +15,7 @@
     width: 100%;
     background-color: var(--bg);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 
     // When the University app is not active, the shell chrome (sidebar /
     // topbar) is not rendered. The wrapper boxes are neutralised so the
@@ -37,7 +37,7 @@
         background-color: var(--brand-900);
         background: linear-gradient(180deg, #1b2a4a 0%, #15223c 100%);
         transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s ease;
-        overflow: hidden;
+        overflow: visible;
         z-index: 1030;
         border-right: 1px solid rgba(255, 255, 255, 0.08);
     }

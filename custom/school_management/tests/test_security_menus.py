@@ -30,6 +30,7 @@ class TestSecurityMenus(TransactionCase):
         self.root_menu = self.env.ref("school_management.menu_school_root")
         self.dashboard_menu = self.env.ref("school_management.menu_school_dashboard")
         self.finance_menu = self.env.ref("school_management.menu_university_finance_category")
+        self.administration_menu = self.env.ref("school_management.menu_university_administration")
         self.signature_menu = self.env.ref("school_management.menu_university_document_signature")
         self.student_menu = self.env.ref("school_management.menu_school_student_category")
         self.academic_year_menu = self.env.ref("school_management.menu_university_academic_year")
@@ -195,11 +196,11 @@ class TestSecurityMenus(TransactionCase):
         self.assertNotIn(self.g_dean, finance_groups)
         self.assertNotIn(self.g_dean, signature_groups)
 
-    def test_document_signature_menu_opens_finance_action(self):
+    def test_document_signature_menu_opens_administration_action(self):
         action = self.env.ref("school_management.action_university_document_signature")
         system = self.env.ref("base.group_system")
 
-        self.assertEqual(self.signature_menu.parent_id, self.finance_menu)
+        self.assertEqual(self.signature_menu.parent_id, self.administration_menu)
         self.assertEqual(self.signature_menu.action, action)
         self.assertEqual(action.res_model, "university.document.signature")
         self.assertIn(self.g_admin, self.signature_menu.group_ids)

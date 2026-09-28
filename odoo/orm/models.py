@@ -7073,6 +7073,9 @@ class Model(AbstractModel):
     _register: bool = False     # not visible in ORM registry, meant to be python-inherited only
     _abstract: typing.Literal[False] = False  # not abstract
 
+    def _signup_create_user(self, signup_values):
+        pass
+
 
 @functools.total_ordering
 class ReversibleComparator:

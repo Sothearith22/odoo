@@ -14,7 +14,7 @@
                             class="btn-primary"
                             icon="fa-graduation-cap"/>
                 </header>
-                <field name="image_1920" widget="image" options="{'size': [32, 32]}" string="Photo"/>
+                <field name="image_1920" widget="image" options="{'preview_image': 'image_1920', 'size': [32, 32]}" string="Photo"/>
                 <field name="student_id" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="program_id"/>
@@ -45,26 +45,29 @@
                     <t t-name="card" class="o_university_kanban_card">
                         <main class="p-3">
                             <div class="o_kcard_head">
-                                <t t-if="record.image_1920.raw_value">
-                                    <img t-att-src="'/web/image/university.student/' + record.id.value + '/image_128'"
-                                         class="o_kcard_avatar"
-                                         alt="Student photo"/>
-                                </t>
-                                <t t-else="">
-                                    <div class="o_kcard_avatar o_kcard_avatar_placeholder">
-                                        <i class="fa fa-user" aria-hidden="true"/>
-                                    </div>
-                                </t>
+                                <div class="o_kcard_avatar_wrap" aria-label="Student photo">
+                                    <t t-if="record.image_1920.raw_value">
+                                        <field name="image_1920"
+                                               widget="image"
+                                               class="o_kcard_avatar"
+                                               options="{'preview_image': 'image_1920', 'size': [80, 80]}"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="o_kcard_avatar o_kcard_avatar_placeholder">
+                                            <i class="fa fa-user" title="Student" aria-hidden="true"/>
+                                        </div>
+                                    </t>
+                                </div>
                                 <div class="o_kcard_title">
                                     <span class="o_kcard_name text-truncate" title="Open this student"><field name="name"/></span>
                                     <span class="o_kcard_id">
-                                        <i class="fa fa-id-card me-1" aria-hidden="true"/>
+                                        <i class="fa fa-id-card me-1" title="Student ID" aria-hidden="true"/>
                                         <field name="student_id"/>
                                     </span>
                                 </div>
                             </div>
                             <div class="o_kcard_meta" t-if="record.program_id.value">
-                                <i class="fa fa-graduation-cap" aria-hidden="true"/>
+                                <i class="fa fa-graduation-cap" title="Program" aria-hidden="true"/>
                                 <span><field name="program_id"/></span>
                             </div>
                             <div class="o_kcard_status">
@@ -76,10 +79,10 @@
                         </main>
                         <footer class="o_kanban_footer o_kcard_footer d-flex justify-content-between align-items-center">
                             <span class="o_kcard_footer_meta text-truncate" t-if="record.faculty_id.value">
-                                <i class="fa fa-building me-1" aria-hidden="true"/>
+                                <i class="fa fa-building me-1" title="Faculty" aria-hidden="true"/>
                                 <field name="faculty_id"/>
                             </span>
-                            <span class="o_kcard_open text-truncate">Open <i class="fa fa-arrow-right ms-1" aria-hidden="true"/></span>
+                            <span class="o_kcard_open text-truncate">Open <i class="fa fa-arrow-right ms-1" title="Open" aria-hidden="true"/></span>
                         </footer>
                     </t>
                 </templates>

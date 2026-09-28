@@ -56,6 +56,7 @@ const ACTION_ACTIVE_KEY = {
     "school_management.action_university_report_card_student": "report_card",
     "school_management.action_university_transcript_student": "transcript",
     [CAPABILITY_XMLID]: "capability",
+    [SETTINGS_XMLID]: "settings",
     "school_management.action_university_document_signature": "document_signature",
     // Teacher Portal
     "school_management.action_university_timetable_slot": "timetable",
@@ -109,6 +110,11 @@ const ITEM_GROUP = {
     teacher: GROUP_TEACHER,
     hod: GROUP_HOD,
     dean: GROUP_DEAN,
+    admission: GROUP_ADMIN,
+    attendance: GROUP_TEACHER,
+    fee_structure: GROUP_ADMIN,
+    capability: GROUP_ADMIN,
+    settings: GROUP_SYSTEM,
     assignment: GROUP_HOD,
     academic_year: GROUP_ADMIN,
     semester: GROUP_ADMIN,
@@ -154,55 +160,43 @@ export class SchoolLayout extends Component {
         this.action = useService("action");
         this.orm = useService("orm");
 
-        const TEACHER_DASHBOARD_XMLID = "school_management.action_teacher_dashboard_shell";
         this.navGroups = [
-            navGroup("Structure", [
+            navGroup("Academic Structure", [
                 navItem("faculty", "Faculties", "fa fa-university", "school_management.action_university_faculty"),
                 navItem("department", "Departments", "fa fa-building", "school_management.action_university_department"),
-                navItem("program", "Programs / Majors", "fa fa-certificate", "school_management.action_university_program"),
-                navItem("subject", "Subjects", "fa fa-book", "school_management.action_university_subject"),
-                navItem("class_section", "Class Sections", "fa fa-users", "school_management.action_university_class_section"),
-                navItem("classroom", "Classrooms", "fa fa-th", "school_management.action_university_classroom"),
+                navItem("program", "Programs", "fa fa-certificate", "school_management.action_university_program"),
+                navItem("academic_year", "Academic Years", "fa fa-calendar", "school_management.action_university_academic_year"),
             ]),
-            navGroup("Students", [
-                navItem("student", "All Students", "fa fa-graduation-cap", "school_management.action_university_student"),
-                navItem("student_profile", "My Profile", "fa fa-id-card", "school_management.action_university_student_profile"),
-                navItem("enrollment", "Student Enrollment", "fa fa-clipboard", "school_management.action_university_enrollment"),
-                navItem("student_enrollment", "My Enrollments", "fa fa-clipboard", "school_management.action_university_enrollment_student"),
-                navItem("bulk_enrollment", "Enroll Multiple Students", "fa fa-users", "school_management.action_university_bulk_enrollment_wizard", true),
-            ]),
-            navGroup("Academic Staff", [
-                navItem("teacher_profile", "My Profile", "fa fa-id-card", "school_management.action_university_teacher_profile"),
-                navItem("teacher", "Teachers", "fa fa-user", "school_management.action_university_teacher"),
+            navGroup("People", [
+                navItem("student", "Students", "fa fa-graduation-cap", "school_management.action_university_student"),
+                navItem("teacher", "Academic Staff", "fa fa-user", "school_management.action_university_teacher"),
                 navItem("hod", "Heads of Department", "fa fa-users", "school_management.action_university_hod"),
                 navItem("dean", "Heads of Faculty", "fa fa-star", "school_management.action_university_dean"),
-                navItem("assignment", "Role Assignments", "fa fa-id-card-o", "school_management.action_university_academic_assignment"),
             ]),
-            navGroup("Academic", [
-                navItem("academic_year", "Academic Years", "fa fa-calendar", "school_management.action_university_academic_year"),
-                navItem("semester", "Semesters", "fa fa-calendar-check-o", "school_management.action_university_semester"),
-                navItem("semester_subject", "Semester Subjects", "fa fa-bookmark", "school_management.action_university_semester_subject"),
-                navItem("timetable", "Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot"),
-                navItem("student_timetable", "My Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot_student"),
-                navItem("assessment_result", "My Results", "fa fa-check-square-o", "school_management.action_university_assessment_result_student"),
-                navItem("report_card", "My Report Cards", "fa fa-bar-chart", "school_management.action_university_report_card_student"),
-                navItem("transcript", "My Transcript", "fa fa-file-text-o", "school_management.action_university_transcript_student"),
-            ]),
-            navGroup("Assignments", [
+            navGroup("Teaching & Learning", [
                 navItem("lesson_plan", "Lesson Plans", "fa fa-file-text", "school_management.action_university_lesson_plan"),
-                navItem("grade_assignment", "Grade Assignments", "fa fa-tasks", "school_management.action_university_grade_assignment"),
-                navItem("student_assignment", "Student Assignments", "fa fa-user-plus", "school_management.action_university_student_assignment"),
-                navItem("my_assignment", "My Assignments", "fa fa-tasks", "school_management.action_university_assignment_my"),
-                navItem("my_submission", "My Submissions", "fa fa-inbox", "school_management.action_university_assignment_submission_student"),
+                navItem("assignment", "Assignments", "fa fa-tasks", "school_management.action_university_student_assignment"),
+                navItem("attendance", "Attendance", "fa fa-check-square-o", "school_management.action_university_attendance"),
+                navItem("timetable", "Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot"),
+                navItem("grade_assignment", "Grading", "fa fa-bar-chart", "school_management.action_university_grade_assignment"),
+            ]),
+            navGroup("Admissions & Enrollment", [
+                navItem("admission", "Admission Applications", "fa fa-inbox", "school_management.action_university_admission_application"),
+                navItem("enrollment", "Enrollment", "fa fa-clipboard", "school_management.action_university_enrollment"),
+                navItem("bulk_enrollment", "Bulk Enrollment", "fa fa-users", "school_management.action_university_bulk_enrollment_wizard"),
+                navItem("class_section", "Class Sections", "fa fa-th-large", "school_management.action_university_class_section"),
             ]),
             navGroup("Finance", [
+                navItem("fee_structure", "Fee Structures", "fa fa-list-alt", "school_management.action_university_fee_structure"),
                 navItem("fee", "Fee Invoices", "fa fa-money", "school_management.action_university_fee"),
-                navItem("student_fee", "My Fees", "fa fa-money", "school_management.action_university_fee_student"),
-                navItem("payment", "Payments & Receipts", "fa fa-credit-card", "school_management.action_university_payment"),
-                navItem("student_payment", "My Payments", "fa fa-credit-card", "school_management.action_university_payment_student"),
-                navItem("document_signature", "Document Signatures", "fa fa-pencil-square-o", "school_management.action_university_document_signature"),
+                navItem("payment", "Payments", "fa fa-credit-card", "school_management.action_university_payment"),
             ]),
-        ];
+            navGroup("Administration", [
+                navItem("capability", "System", "fa fa-cubes", CAPABILITY_XMLID, true),
+                navItem("settings", "Settings", "fa fa-cog", SETTINGS_XMLID, true),
+                navItem("document_signature", "Document Signatures", "fa fa-pencil-square-o", "school_management.action_university_document_signature", true),
+            ]),
+        ]; 
 
         this.settingsItem = navItem("settings", "Settings", "fa fa-cog", SETTINGS_XMLID);
         this.appsItem = navItem("apps", "Apps", "fa fa-th-large", APPS_XMLID, true);
@@ -333,10 +327,27 @@ export class SchoolLayout extends Component {
 
         useBus(this.env.bus, "MENUS:APP-CHANGED", this.refreshActive.bind(this));
         useBus(this.env.bus, "ACTION_MANAGER:UI-UPDATED", this.refreshActive.bind(this));
-        onMounted(() => this.refreshActive());
+        this._onDocumentClick = (ev) => {
+            if (this.state.showUserMenu && !ev.target.closest(".o_school_user_card")) {
+                this.state.showUserMenu = false;
+            }
+        };
+        this._onDocumentKeydown = (ev) => {
+            if (ev.key === "Escape") {
+                this.state.showUserMenu = false;
+                this.state.mobileOpen = false;
+            }
+        };
+        onMounted(() => {
+            document.addEventListener("click", this._onDocumentClick);
+            document.addEventListener("keydown", this._onDocumentKeydown);
+            this.refreshActive();
+        });
         this._destroyed = false;
         onWillUnmount(() => {
             this._destroyed = true;
+            document.removeEventListener("click", this._onDocumentClick);
+            document.removeEventListener("keydown", this._onDocumentKeydown);
         });
     }
 
@@ -467,6 +478,13 @@ export class SchoolLayout extends Component {
 
     toggleGroup(groupLabel) {
         this.state.collapsedGroups[groupLabel] = !this.state.collapsedGroups[groupLabel];
+    }
+
+    toggleGroupKeyboard(ev, groupLabel) {
+        if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            this.toggleGroup(groupLabel);
+        }
     }
 
     isGroupCollapsed(groupLabel) {
