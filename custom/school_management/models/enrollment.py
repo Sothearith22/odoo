@@ -6,26 +6,16 @@ from odoo.exceptions import ValidationError
 
 class UniversityEnrollment(models.Model):
     _name = "university.enrollment"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "University Enrollment"
     _order = "enrollment_date desc, id desc"
 
     # A student can be enrolled in one subject-based class section at a time
     # (legacy subject enrollment flow keeps one section per record).
-    _student_section_unique = models.UniqueIndex(
-        "(student_id, section_id)",
+    _student_section_constraint = models.Constraint(
+        "unique (student_id, section_id)",
         "This student is already enrolled in this class section.",
     )
-    # A student can have only ONE active MAJOR enrollment per program, academic
-    # year and semester. Subject-based section enrollments (which carry a
-    # section_id) are intentionally excluded so the legacy subject workflow is
-    # not blocked.
-    _student_program_period_unique = models.UniqueIndex(
-        "(student_id, program_id, academic_year_id, semester_id) "
-        "WHERE status = 'enrolled' AND section_id IS NULL",
-        "This student already has an active major enrollment in this program "
-        "for the selected academic year and semester.",
-    )
-
     student_id = fields.Many2one(
         "university.student",
         string="Student",
@@ -93,12 +83,20 @@ class UniversityEnrollment(models.Model):
     )
     status = fields.Selection(
         [
+            ("draft", "Draft"),
             ("enrolled", "Enrolled"),
+            ("withdrawn", "Withdrawn"),
             ("completed", "Completed"),
             ("dropped", "Dropped"),
         ],
         string="Status",
-        default="enrolled",
+        default="draft",
+        tracking=True,
+    )
+    possible_duplicate = fields.Boolean(
+        string="Possible Duplicate",
+        compute="_compute_possible_duplicate",
+        search="_search_possible_duplicate",
     )
 
     @api.model_create_multi
@@ -117,6 +115,68 @@ class UniversityEnrollment(models.Model):
                 for enrollment in self
             ], excluded_ids=self.ids)
         return super().write(vals)
+
+    def action_withdraw(self):
+        for enrollment in self:
+            enrollment.status = "withdrawn"
+            enrollment.message_post(body="Enrollment withdrawn.")
+        return True
+
+    @api.constrains("student_id", "program_id", "academic_year_id", "semester_id", "status")
+    def _check_duplicate_program_period(self):
+        for enrollment in self:
+            if not (
+                enrollment.student_id
+                and enrollment.program_id
+                and enrollment.academic_year_id
+                and enrollment.semester_id
+            ):
+                continue
+            if enrollment.status in ("withdrawn", "dropped"):
+                continue
+            duplicate = self.search([
+                ("id", "!=", enrollment.id),
+                ("student_id", "=", enrollment.student_id.id),
+                ("program_id", "=", enrollment.program_id.id),
+                ("academic_year_id", "=", enrollment.academic_year_id.id),
+                ("semester_id", "=", enrollment.semester_id.id),
+                ("status", "not in", ["withdrawn", "dropped"]),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(
+                    "This student is already enrolled in the same program, "
+                    "academic year and semester. Withdraw the earlier "
+                    "enrollment before creating another one."
+                )
+
+    def _duplicate_group_domain(self):
+        return [("status", "not in", ["withdrawn", "dropped"])]
+
+    def _duplicate_enrollment_ids(self):
+        groups = self.read_group(
+            self._duplicate_group_domain(),
+            ["student_id", "program_id", "academic_year_id", "semester_id"],
+            ["student_id", "program_id", "academic_year_id", "semester_id"],
+            lazy=False,
+        )
+        duplicate_ids = []
+        for group in groups:
+            if group["__count"] <= 1:
+                continue
+            duplicate_ids.extend(self.search(group["__domain"]).ids)
+        return duplicate_ids
+
+    def _compute_possible_duplicate(self):
+        duplicate_ids = set(self._duplicate_enrollment_ids())
+        for enrollment in self:
+            enrollment.possible_duplicate = enrollment.id in duplicate_ids
+
+    def _search_possible_duplicate(self, operator, value):
+        duplicate_ids = self._duplicate_enrollment_ids()
+        is_positive = (operator in ("=", "==") and value) or (operator in ("!=", "<>") and not value)
+        if is_positive:
+            return [("id", "in", duplicate_ids or [0])]
+        return [("id", "not in", duplicate_ids or [0])]
 
     @api.constrains("student_id", "program_id", "section_id")
     def _check_program_section_fit(self):
@@ -216,10 +276,9 @@ class UniversityEnrollment(models.Model):
     def _check_active_program_period_duplicates(self, vals_list):
         """Refuse to create an ACTIVE major enrollment for a student who is
         already actively enrolled in the same program, academic year and
-        semester (sectionless major enrollments). The partial unique index
-        `_student_program_period_unique` remains as the DB-level backstop."""
+        semester (sectionless major enrollments)."""
         for vals in vals_list:
-            if vals.get("status", "enrolled") != "enrolled":
+            if vals.get("status", "draft") != "enrolled":
                 continue
             if "program_id" not in vals or "academic_year_id" not in vals:
                 continue
@@ -246,7 +305,7 @@ class UniversityEnrollment(models.Model):
         enrolled_section_ids = [
             vals.get("section_id")
             for vals in vals_list
-            if vals.get("section_id") and vals.get("status", "enrolled") == "enrolled"
+            if vals.get("section_id") and vals.get("status", "draft") == "enrolled"
         ]
         if not enrolled_section_ids:
             return

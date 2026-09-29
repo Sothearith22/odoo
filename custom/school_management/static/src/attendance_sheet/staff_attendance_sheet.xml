@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+<t t-name="school_management.StaffAttendanceSheet">
+    <t t-set="visibleRows" t-value="visibleLines"/>
+    <t t-set="tally"       t-value="counts"/>
+
+    <div class="o_satt_sheet" t-ref="root">
+        <div class="o_satt_shell">
+
+            <!-- ==================== Header ==================== -->
+            <header class="o_satt_hdr">
+                <div class="o_satt_hdr_main">
+                    <div class="o_satt_title_row">
+                        <button type="button" class="btn btn-outline-secondary btn-sm o_satt_back_btn shadow-sm"
+                                title="Back to Attendance List"
+                                t-on-click="onBack">
+                            <i class="fa fa-arrow-left me-1.5" aria-hidden="true"/> Attendance List
+                        </button>
+                        <h1 class="o_satt_h1">Track Staff Attendance</h1>
+                        <span t-att-class="'o_satt_badge ' + (state.taken ? 'o_satt_badge--recorded' : 'o_satt_badge--pending')">
+                            <span class="o_satt_badge_dot" aria-hidden="true"/>
+                            <span t-esc="state.taken ? 'Recorded' : 'Not recorded'"/>
+                        </span>
+                    </div>
+                    <p class="o_satt_meta">
+                        <t t-if="state.lastSaved">
+                            <i class="fa fa-check-circle text-success me-1"/> Last saved at <strong t-esc="state.lastSaved"/>
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-clock-o text-muted me-1"/> Not saved yet
+                        </t>
+                    </p>
+                </div>
+
+                <!-- Right Controls: Independent floating pills matching reference -->
+                <div class="o_satt_controls">
+                    <div class="o_satt_control_group">
+                        <span class="o_satt_control_label">Taking attendance for</span>
+                        <div class="o_satt_pill_box shadow-sm">
+                            <input id="satt_date" type="date" class="o_satt_pill_input"
+                                   t-att-value="state.date"
+                                   t-on-change="onDateChange"/>
+                            <i class="fa fa-calendar o_satt_pill_icon" aria-hidden="true"/>
+                        </div>
+                    </div>
+                    <div class="o_satt_control_group">
+                        <span class="o_satt_control_label">Department</span>
+                        <div class="o_satt_pill_box shadow-sm">
+                            <i class="fa fa-building-o o_satt_pill_icon me-1" aria-hidden="true"/>
+                            <select id="satt_dept" class="o_satt_pill_select" t-on-change="onDepartmentChange">
+                                <option value="" t-att-selected="!state.departmentId">Select department...</option>
+                                <option value="all" t-att-selected="state.departmentId === 'all'">All Departments</option>
+                                <option t-foreach="state.departments" t-as="dept" t-key="dept.id"
+                                        t-att-value="dept.id"
+                                        t-att-selected="dept.id === state.departmentId"
+                                        t-esc="dept.display_name"/>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Read-Only Notice for non-admin -->
+            <div t-if="!state.isAdmin" class="alert alert-info d-flex align-items-center gap-2 shadow-sm mb-3" role="status">
+                <i class="fa fa-info-circle fa-lg text-info" aria-hidden="true"/>
+                <span><strong>View-only mode:</strong> Only School Administrators have permission to record or modify staff attendance.</span>
+            </div>
+
+            <!-- Error Banner -->
+            <div t-if="state.error" class="o_satt_error shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa fa-exclamation-triangle fa-lg text-danger" aria-hidden="true"/>
+                    <span class="fw-medium text-danger" t-esc="state.error"/>
+                </div>
+            </div>
+
+            <!-- ==================== 4 KPI Stat Cards ==================== -->
+            <section class="o_satt_stats" aria-label="Staff attendance summary">
+                <div class="o_satt_stat o_satt_stat--present">
+                    <div class="o_satt_stat_icon_wrap bg-success-subtle text-success">
+                        <i class="fa fa-check" aria-hidden="true"/>
+                    </div>
+                    <div class="o_satt_stat_body">
+                        <span class="o_satt_stat_value" t-esc="tally.present"/>
+                        <span class="o_satt_stat_label">Present</span>
+                    </div>
+                </div>
+                <div class="o_satt_stat o_satt_stat--absent">
+                    <div class="o_satt_stat_icon_wrap bg-danger-subtle text-danger">
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </div>
+                    <div class="o_satt_stat_body">
+                        <span class="o_satt_stat_value" t-esc="tally.absent"/>
+                        <span class="o_satt_stat_label">Absent</span>
+                    </div>
+                </div>
+                <div class="o_satt_stat o_satt_stat--late">
+                    <div class="o_satt_stat_icon_wrap bg-warning-subtle text-warning">
+                        <i class="fa fa-clock-o" aria-hidden="true"/>
+                    </div>
+                    <div class="o_satt_stat_body">
+                        <span class="o_satt_stat_value" t-esc="tally.late"/>
+                        <span class="o_satt_stat_label">Late</span>
+                    </div>
+                </div>
+                <div class="o_satt_stat o_satt_stat--leave">
+                    <div class="o_satt_stat_icon_wrap bg-info-subtle text-info">
+                        <i class="fa fa-plane" aria-hidden="true"/>
+                    </div>
+                    <div class="o_satt_stat_body">
+                        <span class="o_satt_stat_value" t-esc="tally.leave"/>
+                        <span class="o_satt_stat_label">On Leave</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== Main Attendance Card ==================== -->
+            <section class="o_satt_card shadow-sm" aria-label="Staff attendance list">
+
+                <!-- Toolbar: Left Search + Right Filter Tabs -->
+                <div class="o_satt_toolbar">
+                    <div class="o_satt_search">
+                        <i class="fa fa-search o_satt_search_icon" aria-hidden="true"/>
+                        <input type="search"
+                               t-att-value="state.query"
+                               class="o_satt_search_input"
+                               placeholder="Search staff by name or ID..."
+                               aria-label="Search staff by name or ID"
+                               t-on-input="onSearchInput"/>
+                    </div>
+                    <div class="o_satt_filter" role="group" aria-label="Filter staff">
+                        <button t-foreach="filters" t-as="opt" t-key="opt.value"
+                                type="button"
+                                t-att-class="'o_satt_filter_btn' + (state.filter === opt.value ? ' o_satt_filter_btn--active' : '')"
+                                t-att-aria-pressed="state.filter === opt.value ? 'true' : 'false'"
+                                t-on-click="() => this.setFilter(opt.value)">
+                            <span t-esc="opt.label"/>
+                            <span class="o_satt_filter_count" t-esc="filterCount(opt.value)"/>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Column Headings -->
+                <div class="o_satt_listhead" t-if="visibleRows.length" aria-hidden="true">
+                    <span class="o_satt_listhead_label">Staff Member</span>
+                    <span class="o_satt_listhead_label o_satt_listhead_label--center">Attendance Status</span>
+                    <span class="o_satt_listhead_label o_satt_listhead_label--center">Check-In</span>
+                    <span class="o_satt_listhead_label o_satt_listhead_label--center">Check-Out</span>
+                    <span class="o_satt_listhead_label o_satt_listhead_label--center">Hours</span>
+                    <span class="o_satt_listhead_label o_satt_listhead_label--center">Note</span>
+                </div>
+
+                <!-- Staff Rows -->
+                <ul class="o_satt_rows" t-if="visibleRows.length">
+                    <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
+                        <li t-att-class="'o_satt_row' + (line.teacher_id === state.activeId ? ' o_satt_row--active' : '')">
+
+                            <!-- Staff member column -->
+                            <div class="o_satt_staff" t-on-click="() => this.setActive(line)">
+                                <t t-if="line.has_image">
+                                    <img class="o_satt_avatar" t-att-src="'/web/image/university.teacher/' + line.teacher_id + '/image_1920'" alt=""/>
+                                </t>
+                                <t t-else="">
+                                    <span t-att-class="'o_satt_avatar o_satt_avatar--' + teacherTone(line)"
+                                          aria-hidden="true"
+                                          t-esc="teacherInitial(line)"/>
+                                </t>
+                                <span class="o_satt_staff_text">
+                                    <span class="o_satt_staff_name" t-esc="line.name"/>
+                                    <span class="o_satt_staff_meta">
+                                        <span class="o_satt_code" t-esc="line.code || 'No ID'"/>
+                                        <span class="o_satt_staff_sep" aria-hidden="true">·</span>
+                                        <span t-if="line.department" class="o_satt_chip" t-esc="line.department"/>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <!-- Status segmented buttons -->
+                            <div class="o_satt_seg_cell">
+                                <div class="o_satt_seg" role="radiogroup"
+                                     t-att-aria-label="'Status for ' + line.name">
+                                    <button t-foreach="statusOptions" t-as="opt" t-key="opt.value"
+                                            type="button"
+                                            t-att-class="'o_satt_seg__btn o_satt_seg__btn--' + opt.value + (line.status === opt.value ? ' o_satt_seg__btn--on' : '')"
+                                            role="radio"
+                                            t-att-data-teacher="line.teacher_id"
+                                            t-att-data-status="opt.value"
+                                            t-att-aria-checked="line.status === opt.value ? 'true' : 'false'"
+                                            t-att-title="opt.label"
+                                            t-att-disabled="!state.isAdmin"
+                                            t-on-click="() => this.setStatus(line, opt.value)">
+                                        <i t-if="line.status === opt.value" class="fa fa-check me-1" aria-hidden="true"/>
+                                        <span t-esc="opt.label"/>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Check-in time -->
+                            <div class="o_satt_timecell">
+                                <div t-att-class="'o_satt_time_wrap' + (line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_satt_time_wrap--disabled' : '')">
+                                    <i class="fa fa-sign-in text-success o_satt_time_icon" aria-hidden="true"/>
+                                    <input type="time"
+                                           class="o_satt_time_input"
+                                           t-att-value="line.check_in"
+                                           t-att-disabled="line.status === 'absent' || line.status === 'leave' || !state.isAdmin"
+                                           t-att-aria-label="'Check-in for ' + line.name"
+                                           t-on-change="(ev) => this.onCheckInChange(line, ev)"/>
+                                </div>
+                            </div>
+
+                            <!-- Check-out time -->
+                            <div class="o_satt_timecell">
+                                <div t-att-class="'o_satt_time_wrap' + (line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_satt_time_wrap--disabled' : '')">
+                                    <i class="fa fa-sign-out text-danger o_satt_time_icon" aria-hidden="true"/>
+                                    <input type="time"
+                                           class="o_satt_time_input"
+                                           t-att-value="line.check_out"
+                                           t-att-disabled="line.status === 'absent' || line.status === 'leave' || !state.isAdmin"
+                                           t-att-aria-label="'Check-out for ' + line.name"
+                                           t-on-change="(ev) => this.onCheckOutChange(line, ev)"/>
+                                </div>
+                            </div>
+
+                            <!-- Worked hours -->
+                            <div class="o_satt_hourscell">
+                                <span t-att-class="'o_satt_hours_badge' + (line.worked_hours > 0 ? ' o_satt_hours_badge--filled' : '')"
+                                      t-esc="fmtHours(line.worked_hours)"/>
+                            </div>
+
+                            <!-- Note button -->
+                            <div class="o_satt_notecell">
+                                <button type="button"
+                                        t-att-class="'o_satt_notebtn' + (line.remark ? ' o_satt_notebtn--has-note' : (state.openNoteId === line.teacher_id ? ' o_satt_notebtn--open' : ''))"
+                                        t-att-aria-expanded="state.openNoteId === line.teacher_id ? 'true' : 'false'"
+                                        t-att-aria-label="(line.remark ? 'Edit note' : 'Add note') + ' for ' + line.name"
+                                        t-on-click="() => this.toggleNote(line)">
+                                    <i class="fa fa-comment-o" aria-hidden="true"/>
+                                    <span t-if="line.remark" class="o_satt_notebtn_dot" aria-hidden="true"/>
+                                </button>
+                            </div>
+                        </li>
+
+                        <!-- Inline Note Drawer -->
+                        <li t-if="state.openNoteId === line.teacher_id" class="o_satt_row o_satt_noterow">
+                            <div class="o_satt_noterow_inner">
+                                <div class="o_satt_noterow_field">
+                                    <input type="text"
+                                           class="o_satt_note_input"
+                                           t-att-value="line.remark"
+                                           t-att-disabled="!state.isAdmin"
+                                           t-att-placeholder="'Add an attendance note for ' + line.name + '...'"
+                                           t-on-input="(ev) => this.updateNote(line, ev)"
+                                           t-on-keydown="(ev) => ev.key === 'Enter' || ev.key === 'Escape' ? this.closeNote() : null"/>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary o_satt_linkbtn" t-on-click="closeNote">Done</button>
+                                <button t-if="line.remark and state.isAdmin" type="button" class="btn btn-sm btn-outline-danger o_satt_linkbtn"
+                                        t-on-click="() => this.clearNote(line)">Clear</button>
+                            </div>
+                        </li>
+                    </t>
+                </ul>
+
+                <!-- ==================== Polished Empty States ==================== -->
+                <div t-if="state.loading" class="o_satt_empty py-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem;"/>
+                    <h5 class="o_satt_empty_title fw-bold text-dark mb-1">Loading staff roster...</h5>
+                    <p class="text-muted small">Fetching teachers and attendance records</p>
+                </div>
+
+                <div t-elif="isEmpty" class="o_satt_empty py-5">
+                    <div class="o_satt_empty_icon rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fa fa-building-o fa-2x text-muted" aria-hidden="true"/>
+                    </div>
+                    <h5 class="o_satt_empty_title fw-bold text-dark mb-1">Select a Department</h5>
+                    <p class="text-muted small mb-0">Choose a department from the dropdown above to view staff members and track attendance.</p>
+                </div>
+
+                <div t-elif="noStaff" class="o_satt_empty py-5">
+                    <div class="o_satt_empty_icon rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fa fa-user-plus fa-2x text-muted" aria-hidden="true"/>
+                    </div>
+                    <h5 class="o_satt_empty_title fw-bold text-dark mb-1">No Active Staff Found</h5>
+                    <p class="text-muted small mb-3" style="max-width: 420px; margin: 0 auto;">
+                        There are currently no active academic staff members in <strong class="text-dark" t-esc="currentDepartmentName"/>.
+                    </p>
+                </div>
+
+                <div t-elif="hasNoMatch" class="o_satt_empty py-5">
+                    <div class="o_satt_empty_icon rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fa fa-search fa-2x text-muted" aria-hidden="true"/>
+                    </div>
+                    <h5 class="o_satt_empty_title fw-bold text-dark mb-1">No Staff Match Your Filter</h5>
+                    <p class="text-muted small mb-3">Try searching with a different name or reset your search query.</p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            t-on-click="clearFilters">
+                        <i class="fa fa-times me-1"/> Clear Filters
+                    </button>
+                </div>
+            </section>
+
+            <!-- ==================== Sticky Footer Action Bar ==================== -->
+            <footer class="o_satt_actionbar">
+                <p t-att-class="'o_satt_hint ' + (isDirty ? 'o_satt_hint--dirty' : 'o_satt_hint--clean')" aria-live="polite">
+                    <span class="o_satt_hint_dot" aria-hidden="true"/>
+                    <span t-if="!state.isAdmin">View only · Administrator privileges required to edit</span>
+                    <span t-elif="isDirty">Unsaved changes</span>
+                    <span t-elif="state.lastSaved">All changes saved</span>
+                    <span t-else="">Draft (not saved)</span>
+                </p>
+                <div class="o_satt_actions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary o_satt_btn_ghost shadow-sm"
+                            title="Set all staff members to Present"
+                            t-att-disabled="!state.isAdmin || !state.lines.length || state.loading || state.saving"
+                            t-on-click="markAllPresent">
+                        <i class="fa fa-check-square-o me-1.5" aria-hidden="true"/> Mark all present
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary o_satt_btn_save shadow-sm"
+                            t-att-disabled="!state.isAdmin || !state.lines.length || state.loading || state.saving"
+                            t-on-click="saveAttendance">
+                        <t t-if="state.saving">
+                            <span class="spinner-border spinner-border-sm me-1.5" aria-hidden="true"/>
+                            Saving...
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-floppy-o me-1.5" aria-hidden="true"/> Save attendance
+                        </t>
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
+</t>
+</templates>

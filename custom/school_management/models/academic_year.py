@@ -53,10 +53,28 @@ class UniversitySemester(models.Model):
     )
     date_start = fields.Date(string="Start Date")
     date_end = fields.Date(string="End Date")
+    is_active = fields.Boolean(
+        string="Active Period",
+        compute="_compute_is_active",
+        help="True when today's date falls within the semester start and end dates.",
+    )
     semester_subject_ids = fields.One2many(
         "university.semester.subject", "semester_id", string="Offered Subjects"
     )
     active = fields.Boolean(string="Active", default=True)
+
+    @api.depends("date_start", "date_end")
+    def _compute_is_active(self):
+        today = fields.Date.context_today(self)
+        for semester in self:
+            if semester.date_start and semester.date_end:
+                semester.is_active = semester.date_start <= today <= semester.date_end
+            elif semester.date_start:
+                semester.is_active = semester.date_start <= today
+            elif semester.date_end:
+                semester.is_active = today <= semester.date_end
+            else:
+                semester.is_active = True
 
     @api.constrains("date_start", "date_end", "academic_year_id")
     def _check_date_range(self):

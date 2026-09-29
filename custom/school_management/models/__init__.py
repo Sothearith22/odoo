@@ -7,6 +7,8 @@ from . import academic_assignment
 from . import res_users
 from . import classroom
 from . import admission
+from . import admission_stage
+from . import admission_lead
 from . import subject
 from . import semester_subject
 from . import class_section
@@ -25,3 +27,5 @@ from . import timetable
 from . import notice_board
 from . import service_hour
 from . import attendance
+from . import staff_attendance
+from . import exam

@@ -50,6 +50,8 @@ const SCHOOL_MODELS = new Set([
     "university.teacher",
     "university.timetable.slot",
     "university.transcript",
+    "university.exam",
+    "university.exam.score",
 ]);
 const STUDENT_SAFE_ACTION_TAGS = new Set([STUDENT_DASHBOARD_TAG]);
 const STUDENT_SAFE_MODELS = new Set([
@@ -64,6 +66,7 @@ const STUDENT_SAFE_MODELS = new Set([
     "university.report.card",
     "university.timetable.slot",
     "university.transcript",
+    "university.exam.score",
 ]);
 
 function debugNavigation(...args) {

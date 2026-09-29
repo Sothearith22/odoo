@@ -106,6 +106,7 @@ class UniversityAssessmentResult(models.Model):
     )
     assignment_id = fields.Many2one("university.assignment", string="Assignment")
     submission_id = fields.Many2one("university.assignment.submission", string="Submission")
+    exam_id = fields.Many2one("university.exam", string="Examination", ondelete="set null")
     date = fields.Date(string="Assessment Date", default=fields.Date.context_today)
     score = fields.Float(string="Score", required=True)
     max_score = fields.Float(string="Max Score", default=100.0, required=True)
@@ -168,6 +169,26 @@ class UniversityReportCard(models.Model):
     line_ids = fields.One2many("university.report.card.line", "report_card_id", string="Subjects")
     gpa = fields.Float(string="GPA", compute="_compute_gpa", store=True)
     total_credits = fields.Integer(string="Total Credits", compute="_compute_gpa", store=True)
+    passed_credits = fields.Integer(string="Passed Credits", compute="_compute_gpa", store=True)
+    academic_standing = fields.Selection(
+        [
+            ("dean_list", "Dean's List"),
+            ("good", "Good Standing"),
+            ("probation", "Academic Probation"),
+        ],
+        string="Academic Standing",
+        compute="_compute_gpa",
+        store=True,
+    )
+    evaluation_status = fields.Selection(
+        [
+            ("in_progress", "In Progress"),
+            ("completed", "Completed"),
+        ],
+        string="Status Overview",
+        compute="_compute_evaluation_status",
+        store=True,
+    )
     state = fields.Selection(
         [("draft", "Draft"), ("generated", "Generated"), ("approved", "Approved")],
         string="Status",
@@ -181,35 +202,145 @@ class UniversityReportCard(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("university.report.card") or "New"
         return super().create(vals_list)
 
-    @api.depends("line_ids.credits", "line_ids.grade_point")
+    @api.depends("line_ids.credits", "line_ids.grade_point", "line_ids.is_passing")
     def _compute_gpa(self):
         for card in self:
             credits = sum(card.line_ids.mapped("credits"))
+            passed = sum(line.credits for line in card.line_ids if line.is_passing)
             quality = sum(line.credits * line.grade_point for line in card.line_ids)
             card.total_credits = credits
-            card.gpa = quality / credits if credits else 0.0
+            card.passed_credits = passed
+            card.gpa = round(quality / credits, 2) if credits else 0.0
+
+            if not card.line_ids:
+                card.academic_standing = "good"
+            elif card.gpa >= 3.5:
+                card.academic_standing = "dean_list"
+            elif card.gpa >= 2.0:
+                card.academic_standing = "good"
+            else:
+                card.academic_standing = "probation"
+
+    @api.depends("line_ids.evaluation_status")
+    def _compute_evaluation_status(self):
+        for card in self:
+            if not card.line_ids or any(line.evaluation_status == "in_progress" for line in card.line_ids):
+                card.evaluation_status = "in_progress"
+            else:
+                card.evaluation_status = "completed"
 
     def action_generate_lines(self):
         for card in self:
-            results = self.env["university.assessment.result"].search(
-                [
-                    ("student_id", "=", card.student_id.id),
-                    ("academic_year_id", "=", card.academic_year_id.id),
-                    ("semester_id", "=", card.semester_id.id),
-                    ("state", "=", "published"),
-                ]
-            )
-            by_subject = defaultdict(lambda: {"weighted": 0.0, "weight": 0.0})
-            for result in results:
-                item = by_subject[result.subject_id]
-                item["weighted"] += result.weighted_score
-                item["weight"] += result.category_id.weight
+            # 1. Identify enrolled subjects for this student in the target semester
+            enrollments = self.env["university.enrollment"].search([
+                ("student_id", "=", card.student_id.id),
+                ("semester_id", "=", card.semester_id.id),
+                ("status", "in", ["enrolled", "completed"]),
+            ])
+
+            subjects = self.env["university.subject"]
+            for enroll in enrollments:
+                if enroll.section_id:
+                    if enroll.section_id.subject_id:
+                        subjects |= enroll.section_id.subject_id
+                    slots = self.env["university.timetable.slot"].search([
+                        ("section_id", "=", enroll.section_id.id),
+                    ])
+                    subjects |= slots.mapped("subject_id")
+                if enroll.subject_id:
+                    subjects |= enroll.subject_id
+
+            published_results = self.env["university.assessment.result"].search([
+                ("student_id", "=", card.student_id.id),
+                ("academic_year_id", "=", card.academic_year_id.id),
+                ("semester_id", "=", card.semester_id.id),
+                ("state", "=", "published"),
+            ])
+            subjects |= published_results.mapped("subject_id")
+
             lines = [(5, 0, 0)]
-            for subject, values in by_subject.items():
-                score = values["weighted"]
-                if values["weight"] and values["weight"] < 100.0:
-                    score = score / values["weight"] * 100.0
-                grade_line = card.grade_scale_id.get_grade_line(score)
+            for subject in subjects:
+                # A. Attendance Calculation (Grading_GPA_Policy.md §3.3)
+                subject_sections = enrollments.mapped("section_id").filtered(
+                    lambda s: s.subject_id == subject or subject in self.env["university.timetable.slot"].search([("section_id", "=", s.id)]).mapped("subject_id")
+                )
+                att_domain = [("student_id", "=", card.student_id.id)]
+                if subject_sections:
+                    att_domain.append(("section_id", "in", subject_sections.ids))
+
+                att_records = self.env["university.attendance"].search(att_domain)
+                actual_absents = len(att_records.filtered(lambda a: a.status == "absent"))
+                total_permissions = len(att_records.filtered(lambda a: a.status == "permission"))
+                total_lates = len(att_records.filtered(lambda a: a.status == "late"))
+
+                effective_absences = actual_absents + (total_permissions // 2) + (total_lates // 4)
+                attendance_score = max(0.0, 10.0 - (effective_absences * 1.0))
+
+                # B. Component Results from published assessment results
+                sub_results = published_results.filtered(lambda r: r.subject_id == subject)
+
+                # Quiz (10%) - multi-quiz averaging
+                quiz_res = sub_results.filtered(
+                    lambda r: (r.category_id.code and "QUIZ" in r.category_id.code.upper())
+                    or (r.category_id.name and "QUIZ" in r.category_id.name.upper())
+                    or (r.exam_id and r.exam_id.exam_type == "quiz")
+                )
+                if quiz_res:
+                    avg_quiz_pct = sum(r.percentage for r in quiz_res) / len(quiz_res)
+                    quiz_score = round(avg_quiz_pct * 0.10, 2)
+                else:
+                    quiz_score = 0.0
+
+                # Midterm Exam (20%)
+                midterm_res = sub_results.filtered(
+                    lambda r: (r.category_id.code and "MID" in r.category_id.code.upper())
+                    or (r.category_id.name and "MID" in r.category_id.name.upper())
+                    or (r.exam_id and r.exam_id.exam_type == "midterm")
+                )
+                if midterm_res:
+                    avg_midterm_pct = sum(r.percentage for r in midterm_res) / len(midterm_res)
+                    midterm_score = round(avg_midterm_pct * 0.20, 2)
+                else:
+                    midterm_score = 0.0
+
+                # Assignments (10%) - multi-assignment averaging
+                assign_res = sub_results.filtered(
+                    lambda r: (r.category_id.code and "ASSIGN" in r.category_id.code.upper())
+                    or (r.category_id.name and "ASSIGN" in r.category_id.name.upper())
+                )
+                if assign_res:
+                    avg_assign_pct = sum(r.percentage for r in assign_res) / len(assign_res)
+                    assignment_score = round(avg_assign_pct * 0.10, 2)
+                else:
+                    assignment_score = 0.0
+
+                # Final Exam (50%)
+                final_res = sub_results.filtered(
+                    lambda r: (r.category_id.code and "FINAL" in r.category_id.code.upper())
+                    or (r.category_id.name and "FINAL" in r.category_id.name.upper())
+                    or (r.exam_id and r.exam_id.exam_type == "final")
+                )
+                if final_res:
+                    avg_final_pct = sum(r.percentage for r in final_res) / len(final_res)
+                    final_exam_score = round(avg_final_pct * 0.50, 2)
+                else:
+                    final_exam_score = 0.0
+
+                # Other custom categories (if any)
+                classified = quiz_res | midterm_res | assign_res | final_res
+                other_res = sub_results - classified
+                other_score = sum(r.weighted_score for r in other_res)
+
+                # Total final score
+                total_final_score = round(
+                    attendance_score + quiz_score + midterm_score + assignment_score + final_exam_score + other_score,
+                    2
+                )
+                total_final_score = min(100.0, max(0.0, total_final_score))
+
+                grade_line = card.grade_scale_id.get_grade_line(total_final_score)
+                is_completed = bool(final_res and midterm_res)
+
                 lines.append(
                     (
                         0,
@@ -217,13 +348,20 @@ class UniversityReportCard(models.Model):
                         {
                             "subject_id": subject.id,
                             "credits": subject.credits,
-                            "final_score": score,
+                            "attendance_score": attendance_score,
+                            "quiz_score": quiz_score,
+                            "midterm_score": midterm_score,
+                            "assignment_score": assignment_score,
+                            "final_exam_score": final_exam_score,
+                            "final_score": total_final_score,
                             "grade": grade_line.name if grade_line else False,
                             "grade_point": grade_line.grade_point if grade_line else 0.0,
                             "is_passing": grade_line.is_passing if grade_line else False,
+                            "evaluation_status": "completed" if is_completed else "in_progress",
                         },
                     )
                 )
+
             card.write({"line_ids": lines, "state": "generated"})
 
     def action_approve(self):
@@ -249,10 +387,23 @@ class UniversityReportCardLine(models.Model):
     semester_id = fields.Many2one("university.semester", related="report_card_id.semester_id", store=True)
     subject_id = fields.Many2one("university.subject", string="Subject", required=True)
     credits = fields.Integer(string="Credits")
-    final_score = fields.Float(string="Final Score")
+    attendance_score = fields.Float(string="Attendance (10%)", digits=(5, 2))
+    quiz_score = fields.Float(string="Quiz (10%)", digits=(5, 2))
+    midterm_score = fields.Float(string="Midterm (20%)", digits=(5, 2))
+    assignment_score = fields.Float(string="Assignment (10%)", digits=(5, 2))
+    final_exam_score = fields.Float(string="Final Exam (50%)", digits=(5, 2))
+    final_score = fields.Float(string="Total Score (%)", digits=(5, 2))
     grade = fields.Char(string="Grade")
-    grade_point = fields.Float(string="Grade Point")
+    grade_point = fields.Float(string="Grade Point", digits=(3, 2))
     is_passing = fields.Boolean(string="Passing")
+    evaluation_status = fields.Selection(
+        [
+            ("in_progress", "In Progress"),
+            ("completed", "Completed"),
+        ],
+        string="Status",
+        default="completed",
+    )
 
 
 class UniversityTranscript(models.Model):
@@ -317,6 +468,7 @@ class UniversityTranscript(models.Model):
                                 "final_score": card_line.final_score,
                                 "grade": card_line.grade,
                                 "grade_point": card_line.grade_point,
+                                "is_passing": card_line.is_passing,
                             },
                         )
                     )
@@ -347,3 +499,4 @@ class UniversityTranscriptLine(models.Model):
     final_score = fields.Float(string="Final Score")
     grade = fields.Char(string="Grade")
     grade_point = fields.Float(string="Grade Point")
+    is_passing = fields.Boolean(string="Passing")

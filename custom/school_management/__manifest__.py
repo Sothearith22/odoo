@@ -1,6 +1,6 @@
 {
     "name": "University Management System",
-    "version": "19.0.1.2.1",
+    "version": "19.0.1.2.2",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -25,9 +25,11 @@
     "data/dashboard_data.xml",
     "data/fee_sequence.xml",
     "data/academic_defaults.xml",
+    "data/admission_stage_data.xml",
     "data/mail_template.xml",
     "data/university_capability_data.xml",
     "data/fix_user_teacher_links.xml",
+    "data/exam_cron_data.xml",
 
     # Wizards
     "wizard/student_enrollment_wizard_views.xml",
@@ -43,6 +45,7 @@
     "views/semester_subject_views.xml",
     "views/classroom_views.xml",
     "views/admission_views.xml",
+    "views/admission_lead_views.xml",
     "views/subject_views.xml",
     "views/class_section_views.xml",
     "views/academic_assignment_views.xml",
@@ -75,7 +78,10 @@
     "views/lesson_plan_views.xml",
     "views/assignment_views.xml",
     "views/timetable_views.xml",
+    "views/attendance_sheet_views.xml",
     "views/attendance_views.xml",
+    "views/staff_attendance_views.xml",
+    "views/exam_views.xml",
 
     # Academic Reports
     "reports/academic_report_templates.xml",
@@ -88,6 +94,16 @@
         "web.assets_backend": [
             "school_management/static/src/school_management/design_tokens.scss",
             "school_management/static/src/school_management/backend.scss",
+            "school_management/static/src/scss/status_badge.scss",
+            "school_management/static/src/scss/student_kanban.scss",
+            "school_management/static/src/scss/admission_ui.scss",
+            "school_management/static/src/attendance_sheet/attendance_sheet.js",
+            "school_management/static/src/attendance_sheet/attendance_sheet.xml",
+            "school_management/static/src/attendance_sheet/attendance_sheet.scss",
+            "school_management/static/src/attendance_sheet/attendance_list_view.js",
+            "school_management/static/src/attendance_sheet/staff_attendance_sheet.js",
+            "school_management/static/src/attendance_sheet/staff_attendance_sheet.xml",
+            "school_management/static/src/attendance_sheet/staff_attendance_sheet.scss",
             "school_management/static/src/school_management/dashboard_shell.js",
             "school_management/static/src/school_management/dashboard_shell.xml",
             "school_management/static/src/school_management/dashboard_shell.scss",

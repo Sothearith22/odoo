@@ -174,18 +174,43 @@ class UniversityFee(models.Model):
 
     def action_post(self):
         for fee in self:
+            if fee.state != "draft":
+                raise ValidationError(
+                    _("Only draft fee invoices can be posted.")
+                )
             if not fee.line_ids:
-                raise ValidationError("You cannot post a fee invoice without lines.")
+                raise ValidationError(_("You cannot post a fee invoice without lines."))
             fee.state = "posted"
 
     def action_cancel(self):
         for fee in self:
+            if fee.state not in ("draft", "posted"):
+                raise ValidationError(
+                    _("Only draft or posted fee invoices can be canceled.")
+                )
             if fee.payment_ids.filtered(lambda p: p.state == "posted"):
-                raise ValidationError("You cannot cancel a fee invoice that has posted payments. Cancel the payments first.")
+                raise ValidationError(
+                    _(
+                        "You cannot cancel a fee invoice that has posted payments. "
+                        "Cancel the payments first."
+                    )
+                )
             fee.state = "canceled"
             
     def action_draft(self):
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise ValidationError(
+                _("Only University Administrators can reset fee invoices to draft.")
+            )
         for fee in self:
+            if fee.state not in ("posted", "canceled"):
+                raise ValidationError(
+                    _("Only posted or canceled fee invoices can be reset to draft.")
+                )
+            if fee.payment_ids.filtered(lambda p: p.state == "posted"):
+                raise ValidationError(
+                    _("You cannot reset a fee invoice with posted payments to draft.")
+                )
             fee.state = "draft"
 
     def action_print_receipt(self):
@@ -207,6 +232,12 @@ class UniversityFeeLine(models.Model):
     fee_id = fields.Many2one("university.fee", string="Fee Invoice", required=True, ondelete="cascade")
     name = fields.Char(string="Description", required=True)
     amount = fields.Float(string="Amount", required=True)
+
+    @api.constrains("amount")
+    def _check_amount(self):
+        for line in self:
+            if line.amount < 0:
+                raise ValidationError(_("Fee invoice line amounts cannot be negative."))
 
 
 class UniversityFeeStructure(models.Model):

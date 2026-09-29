@@ -12,14 +12,6 @@ class UniversityTeacherAccountWizard(models.TransientModel):
         required=True,
         domain="[('email', '!=', False)]",
     )
-    temporary_password = fields.Char(string="Temporary Password", required=True, default="password123")
-    force_password_reset = fields.Boolean(
-        string="Send Password Reset Email",
-        default=False,
-        help="If enabled, Odoo will also send a reset email so teachers can set their own password.",
-    )
-
-
     def default_get(self, fields_list):
         defaults = super().default_get(fields_list)
         if "teacher_ids" in fields_list and not defaults.get("teacher_ids"):
@@ -80,15 +72,12 @@ class UniversityTeacherAccountWizard(models.TransientModel):
                 "name": teacher.name,
                 "login": email,
                 "email": email,
-                "password": self.temporary_password,
                 "teacher_id": teacher.id,
                 "group_ids": [(6, 0, [internal_group.id, teacher_group.id, dashboard_group.id])],
             })
             teacher.sudo().write({"user_id": user.id})
             created.append(email)
-
-            if self.force_password_reset:
-                user.action_reset_password()
+            user.with_context(create_user=1).action_reset_password()
 
         message_parts = []
         if created:

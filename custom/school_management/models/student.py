@@ -221,25 +221,25 @@ class Student(models.Model):
                 )
             existing_user.write({
                 "group_ids": [(4, internal_group.id), (4, student_group.id)],
-                "password": "password123",
             })
             self.sudo().write({"user_id": existing_user.id})
+            existing_user.action_reset_password()
         else:
             user = Users.create({
                 "name": self.name,
                 "login": email,
                 "email": email,
-                "password": "password123",
                 "group_ids": [(6, 0, [internal_group.id, student_group.id])],
             })
             self.sudo().write({"user_id": user.id})
+            user.with_context(create_user=1).action_reset_password()
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Account Created"),
-                "message": _("Login account created for %s with email '%s' and default password 'password123'.")
+                "message": _("Login account created for %s with email '%s'. A password setup email was sent.")
                 % (self.name, email),
                 "type": "success",
                 "sticky": False,
@@ -254,13 +254,13 @@ class Student(models.Model):
         if not self.user_id:
             raise UserError(_("Student %s does not have a linked login account.") % self.name)
 
-        self.user_id.sudo().write({"password": "password123"})
+        self.user_id.sudo().action_reset_password()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Password Reset"),
-                "message": _("Password for %s has been reset to 'password123'.") % self.name,
+                "message": _("A password reset email was sent to %s.") % self.user_id.login,
                 "type": "success",
                 "sticky": False,
             },

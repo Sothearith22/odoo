@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState, onMounted, useRef } from "@odoo/owl";
+import { Component, onWillStart, onWillUnmount, useState, onMounted, useRef } from "@odoo/owl";
 import { loadBundle } from "@web/core/assets";
 import { user } from "@web/core/user";
 import { registry } from "@web/core/registry";
@@ -22,18 +22,18 @@ const doughnutCenterText = {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = opts.valueColor || "#0f172a";
-        ctx.font = `700 ${opts.valueSize || 24}px system-ui, -apple-system, sans-serif`;
-        ctx.fillText(String(total), x, y - (opts.label ? 9 : 0));
+        ctx.font = `700 ${opts.valueSize || 22}px system-ui, -apple-system, sans-serif`;
+        ctx.fillText(String(total), x, y - (opts.label ? 8 : 0));
         if (opts.label) {
             ctx.fillStyle = opts.labelColor || "#64748b";
-            ctx.font = "500 12px system-ui, -apple-system, sans-serif";
-            ctx.fillText(opts.label, x, y + 15);
+            ctx.font = "500 11px system-ui, -apple-system, sans-serif";
+            ctx.fillText(opts.label, x, y + 14);
         }
         ctx.restore();
     },
 };
 
-class TeacherDashboardShell extends Component {
+export class TeacherDashboardShell extends Component {
     static template = "school_management.TeacherDashboardShell";
     static props = ["*"];
 
@@ -41,21 +41,28 @@ class TeacherDashboardShell extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.chartRef = useRef("attendanceChart");
+        this.chartInstance = null;
+
         this.state = useState({
             loading: true,
             error: null,
             teacher: null,
             stats: {
                 totalClasses: 0,
-                assignedAssignments: 0,
-                studentAssignments: 0,
+                totalAssignments: 0,
+                pendingReviews: 0,
                 pendingServiceHours: 0,
             },
             noticeBoard: [],
             lessonPlans: [],
             schedule: [],
+            pendingSubmissions: [],
             presentCount: 0,
             absentCount: 0,
+            lateCount: 0,
+            totalAttendance: 0,
+            hasAttendanceData: false,
+            attendanceRate: 0,
         });
 
         onWillStart(async () => {
@@ -68,7 +75,15 @@ class TeacherDashboardShell extends Component {
             await loadBundle("web.chartjs_lib");
             await this.loadData();
         });
+
         onMounted(() => this.renderChart());
+
+        onWillUnmount(() => {
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+                this.chartInstance = null;
+            }
+        });
     }
 
     async loadData() {
@@ -76,30 +91,55 @@ class TeacherDashboardShell extends Component {
             const teachers = await this.orm.searchRead(
                 "university.teacher",
                 ["|", ["user_id", "=", user.userId], ["id", "=", user.teacher_id ? user.teacher_id[0] : 0]],
-                ["name", "email", "phone", "subject_ids", "section_ids"],
+                ["name", "email", "phone", "subject_ids", "section_ids", "department_id"],
                 { limit: 1 },
             );
             this.state.teacher = teachers[0] || null;
 
             if (this.state.teacher) {
                 const teacherId = this.state.teacher.id;
-                
-                // Fetch stats
-                const [totalClasses, assignedAssignments, studentAssignments, pendingServiceHours] = await Promise.all([
+
+                // 1. Fetch KPI counts
+                const [totalClasses, totalAssignments, pendingSubmissionsCount, pendingServiceHours] = await Promise.all([
                     this.orm.searchCount("university.timetable.slot", [["teacher_id", "=", teacherId]]),
-                    this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId], ["assignment_type", "=", "class"]]),
-                    this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId], ["assignment_type", "=", "student"]]),
-                    this.orm.searchCount("university.service.hour", [["teacher_id", "=", teacherId], ["state", "=", "pending"]]),
+                    this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId]]),
+                    this.orm.searchCount("university.assignment.submission", [
+                        ["assignment_id.teacher_id", "=", teacherId],
+                        ["state", "=", "submitted"],
+                    ]),
+                    this.orm.searchCount("university.service.hour", [
+                        ["teacher_id", "=", teacherId],
+                        ["state", "=", "pending"],
+                    ]),
                 ]);
-                
+
                 this.state.stats = {
                     totalClasses,
-                    assignedAssignments,
-                    studentAssignments,
+                    totalAssignments,
+                    pendingReviews: pendingSubmissionsCount + pendingServiceHours,
                     pendingServiceHours,
                 };
 
-                // Fetch Lists
+                // 2. Fetch All Slots for teacher (upcoming + recent), sorted by start_time
+                this.state.schedule = await this.orm.searchRead(
+                    "university.timetable.slot",
+                    [["teacher_id", "=", teacherId]],
+                    ["name", "section_id", "subject_id", "classroom_id", "start_time", "end_time", "location", "state"],
+                    { limit: 8, order: "start_time desc" }
+                );
+
+                // 3. Fetch Pending Submissions for quick review
+                this.state.pendingSubmissions = await this.orm.searchRead(
+                    "university.assignment.submission",
+                    [
+                        ["assignment_id.teacher_id", "=", teacherId],
+                        ["state", "=", "submitted"],
+                    ],
+                    ["name", "assignment_id", "student_id", "create_date", "state"],
+                    { limit: 5, order: "create_date desc" }
+                );
+
+                // 4. Fetch Notice Board
                 this.state.noticeBoard = await this.orm.searchRead(
                     "university.notice.board",
                     [["active", "=", true]],
@@ -107,26 +147,29 @@ class TeacherDashboardShell extends Component {
                     { limit: 5, order: "date desc" }
                 );
 
+                // 5. Fetch Lesson Plans
                 this.state.lessonPlans = await this.orm.searchRead(
                     "university.lesson.plan",
                     [["teacher_id", "=", teacherId]],
-                    ["name", "subject_id"],
+                    ["name", "subject_id", "create_date"],
                     { limit: 5, order: "create_date desc" }
                 );
 
-                this.state.schedule = await this.orm.searchRead(
-                    "university.timetable.slot",
-                    [["teacher_id", "=", teacherId]],
-                    ["name", "section_id", "start_time", "location", "state"],
-                    { limit: 5, order: "start_time asc" }
-                );
+                // 6. Fetch Attendance stats
+                const [presentCount, absentCount, lateCount] = await Promise.all([
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "late"]]),
+                ]);
 
-                // Fetch Attendance
-                const presentCount = await this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]);
-                const absentCount = await this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]);
-                
                 this.state.presentCount = presentCount;
                 this.state.absentCount = absentCount;
+                this.state.lateCount = lateCount;
+
+                const total = presentCount + absentCount + lateCount;
+                this.state.totalAttendance = total;
+                this.state.hasAttendanceData = total > 0;
+                this.state.attendanceRate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
             }
         } catch (error) {
             this.state.error = error.message || "Unable to load your teacher dashboard.";
@@ -137,31 +180,45 @@ class TeacherDashboardShell extends Component {
 
     renderChart() {
         if (!this.chartRef.el || !window.Chart) return;
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+        }
 
-        const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        if (!this.state.hasAttendanceData) {
+            return;
+        }
+
         const present = Number(this.state.presentCount) || 0;
+        const late = Number(this.state.lateCount) || 0;
         const absent = Number(this.state.absentCount) || 0;
 
-        new window.Chart(this.chartRef.el, {
+        this.chartInstance = new window.Chart(this.chartRef.el, {
             type: "doughnut",
             data: {
-                labels: ["Present", "Absent"],
+                labels: ["Present", "Late", "Absent"],
                 datasets: [{
-                    data: [present, absent],
+                    data: [present, late, absent],
                     backgroundColor: [
-                        token("--status-success") || "#1f7a5c",
-                        token("--status-danger") || "#dc2626",
+                        "#10b981", // Emerald
+                        "#f59e0b", // Amber
+                        "#ef4444", // Crimson
                     ],
                     borderWidth: 2,
                     borderColor: "#ffffff",
+                    hoverOffset: 4,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: "72%",
+                cutout: "70%",
                 plugins: {
-                    centerText: { label: "Attendance" },
+                    centerText: {
+                        label: "Total Logged",
+                        valueColor: "#1e293b",
+                        labelColor: "#64748b",
+                    },
                     legend: {
                         position: "bottom",
                         labels: {
@@ -169,12 +226,12 @@ class TeacherDashboardShell extends Component {
                             boxHeight: 10,
                             usePointStyle: true,
                             pointStyle: "circle",
-                            padding: 12,
-                            font: { size: 11, family: "system-ui, -apple-system, sans-serif" },
+                            padding: 14,
+                            font: { size: 12, weight: "500", family: "system-ui, -apple-system, sans-serif" },
                         }
                     },
                     tooltip: {
-                        backgroundColor: token("--brand-primary") || "#1b2a4a",
+                        backgroundColor: "#1e293b",
                         titleFont: { size: 13, weight: "600" },
                         bodyFont: { size: 12 },
                         padding: 10,
@@ -186,10 +243,66 @@ class TeacherDashboardShell extends Component {
         });
     }
 
-    navigate(actionXmlId, domain = []) {
-        this.action.doAction(actionXmlId, {
-            additionalContext: { search_default_teacher_id: this.state.teacher?.id },
-            clearBreadcrumbs: true,
+    // Direct Actionable Attendance Trigger
+    trackAttendanceForSlot(slot) {
+        // Use today's date for attendance (slots may have historical dates)
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+        const sectionId = slot.section_id ? slot.section_id[0] : false;
+        this.action.doAction("school_management.action_university_attendance_sheet", {
+            additionalContext: {
+                default_section_id: sectionId,
+                section_id: sectionId,
+                default_date: todayStr,
+                date: todayStr,
+            }
+        });
+    }
+
+    openAttendanceSheet() {
+        this.action.doAction("school_management.action_university_attendance_sheet");
+    }
+
+    openAttendanceRecords() {
+        this.action.doAction("school_management.action_university_attendance");
+    }
+
+    openTimetable() {
+        this.action.doAction("school_management.action_university_timetable_slot");
+    }
+
+    openAssignments() {
+        this.action.doAction("school_management.action_university_grade_assignment");
+    }
+
+    openSubmissions() {
+        this.action.doAction("school_management.action_university_assignment_submission");
+    }
+
+    openSubmission(submissionId) {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.assignment.submission",
+            res_id: submissionId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openLessonPlans() {
+        this.action.doAction("school_management.action_university_lesson_plan");
+    }
+
+    createLessonPlan() {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.lesson.plan",
+            views: [[false, "form"]],
+            target: "current",
+            context: {
+                default_teacher_id: this.state.teacher?.id,
+            },
         });
     }
 
@@ -204,6 +317,31 @@ class TeacherDashboardShell extends Component {
             view_mode: "form",
             context: { create: false, delete: false },
         });
+    }
+
+    formatTime(dateTimeStr) {
+        if (!dateTimeStr) return "";
+        try {
+            const d = new Date(dateTimeStr.replace(" ", "T") + "Z");
+            return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+        } catch {
+            return dateTimeStr.split(" ")[1]?.substring(0, 5) || dateTimeStr;
+        }
+    }
+
+    formatDate(dateStr) {
+        if (!dateStr) return "";
+        try {
+            const d = new Date(dateStr.replace(" ", "T"));
+            const now = new Date();
+            const opts = { month: "short", day: "numeric" };
+            if (d.getFullYear() !== now.getFullYear()) {
+                opts.year = "numeric";
+            }
+            return d.toLocaleDateString([], opts);
+        } catch {
+            return dateStr;
+        }
     }
 }
 

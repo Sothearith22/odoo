@@ -8,8 +8,6 @@
             <form string="Create Teacher Login Accounts">
                 <group>
                     <field name="teacher_ids" widget="many2many_tags"/>
-                    <field name="temporary_password" password="True"/>
-                    <field name="force_password_reset"/>
                 </group>
                 <footer>
                     <button name="action_create_accounts" string="Create Accounts" type="object" class="btn-primary"/>

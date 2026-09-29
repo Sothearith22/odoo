@@ -7,3 +7,4 @@ from . import test_settings
 from . import test_document_signature
 from . import test_capability
 from . import test_user_provisioning
+from . import test_grading_integration

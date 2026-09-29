@@ -1,0 +1,37 @@
+---
+title: Exam and grading pipeline
+---
+flowchart LR
+    SLOT["university.timetable.slot"] -.->|start_time reached + semester active + auto_quiz_per_session| AUTO["Auto-create cron"]
+    AUTO -.->|creates session quiz| EXAM["university.exam"]
+
+    EXAM -->|state| DRAFT["draft"] --> SCHEDULED["scheduled"] --> OPEN["open"] --> CLOSED["closed"] --> GRADING["grading"] --> PUBLISHED["published"]
+    EXAM -->|one row per student| SCORE["university.exam.score"]
+    SCORE -->|unique exam_id + student_id| SCORE_ROW["Student exam result"]
+
+    SCORE_ROW -->|submitted_at <= end_time| ON_TIME["On time"]
+    SCORE_ROW -->|submitted_at > end_time| LATE["is_late = True"]
+    LATE -.->|late_submission_allowed = True| PENALTY["Late penalty applied"]
+    LATE -.->|late_submission_allowed = False| REJECTED["Late submission rejected<br/>(explicit rejection is planned / not implemented)"]
+
+    ATTENDANCE["university.attendance"] -->|absent, permission, late counts| ATT_COMPONENT["Attendance component<br/>10%"]
+    ATTENDANCE_RULE["2 permissions = 1 absent<br/>4 lates = 1 absent<br/>score floor 0, ceiling 10"] -.-> ATT_COMPONENT
+    ASSESSMENT["university.assessment.result"] -->|category results| COMPONENTS["Grading components"]
+    SCORE_ROW -.->|published exam result| ASSESSMENT
+    ASSIGNMENT["university.assignment.submission"] -.->|assessment result when implemented| ASSESSMENT
+
+    ATT_COMPONENT --> COMPONENTS
+    COMPONENTS -->|weighted roll-up| REPORT_LINE["university.report.card.line"]
+    WEIGHTS["Policy weights: Attendance 10% + Quiz/Midterm 30% + Assignment 10% + Final Exam 50%<br/>Current grading.py computes 10% + 20% + 10% + 50%; exam defaults are quiz 20%, midterm 30%, final 50%."] -.-> COMPONENTS
+    REPORT_LINE --> FINAL_SCORE["Final course score"] --> LETTER["Letter grade"] --> GPA["GPA"] --> REPORT_CARD["university.report.card"] --> TRANSCRIPT["university.transcript"]
+
+    STATUS_NOTE["Implemented: exam states, score uniqueness, late flag, allowed-late penalty, attendance formula, report-card components.<br/>Needs alignment: published/completeness gates and the requested 30% quiz+midterm policy."] -.-> REPORT_CARD
+
+    classDef model fill:#edf8ef,stroke:#39804b,color:#17351d
+    classDef process fill:#fff4dc,stroke:#b77a00,color:#4a3200
+    classDef state fill:#e8f1ff,stroke:#356ae6,color:#12213f
+    classDef warning fill:#fff0f0,stroke:#b33a3a,color:#4a1616
+    class SLOT,EXAM,SCORE,ASSESSMENT,ATTENDANCE,ASSIGNMENT,REPORT_CARD,TRANSCRIPT model
+    class AUTO,PENALTY,COMPONENTS,REPORT_LINE,FINAL_SCORE,LETTER,GPA process
+    class DRAFT,SCHEDULED,OPEN,CLOSED,GRADING,PUBLISHED,ON_TIME,LATE,SCORE_ROW state
+    class REJECTED,WEIGHTS,STATUS_NOTE,ATTENDANCE_RULE warning

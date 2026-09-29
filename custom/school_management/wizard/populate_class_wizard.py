@@ -14,7 +14,7 @@ class UniversityPopulateClassWizard(models.TransientModel):
     )
     program_id = fields.Many2one(
         "university.program",
-        string="Major / Program",
+        string="Major",
         related="section_id.program_id",
         readonly=True,
     )

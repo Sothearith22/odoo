@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- OWL client action: daily attendance sheet for admin -->
+    <record id="action_university_staff_attendance_sheet" model="ir.actions.client">
+        <field name="name">Track Staff Attendance</field>
+        <field name="tag">university_staff_attendance_sheet</field>
+        <field name="target">current</field>
+    </record>
+
+    <record id="view_university_staff_attendance_list" model="ir.ui.view">
+        <field name="name">university.staff.attendance.list</field>
+        <field name="model">university.staff.attendance</field>
+        <field name="arch" type="xml">
+            <list string="Staff Attendance" editable="bottom" sample="1">
+                <header>
+                    <button name="%(action_university_staff_attendance_sheet)d" string="Track Staff Attendance" type="action" class="btn-primary" icon="fa-calendar-check-o"/>
+                </header>
+                <field name="date"/>
+                <field name="staff_id"/>
+                <field name="department_id" optional="hide"/>
+                <field name="faculty_id" optional="hide"/>
+                <field name="check_in"/>
+                <field name="check_out"/>
+                <field name="worked_hours" widget="float_time"/>
+                <field name="status"
+                       widget="badge"
+                       decoration-success="status == 'present'"
+                       decoration-danger="status == 'absent'"
+                       decoration-warning="status == 'late'"
+                       decoration-info="status == 'leave'"/>
+                <field name="remark" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_staff_attendance_form" model="ir.ui.view">
+        <field name="name">university.staff.attendance.form</field>
+        <field name="model">university.staff.attendance</field>
+        <field name="arch" type="xml">
+            <form string="Staff Attendance">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Staff / Date">
+                            <field name="staff_id"/>
+                            <field name="date"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="faculty_id" readonly="1"/>
+                        </group>
+                        <group string="Attendance Details">
+                            <field name="check_in"/>
+                            <field name="check_out"/>
+                            <field name="worked_hours" widget="float_time" readonly="1"/>
+                            <field name="status" widget="badge"/>
+                            <field name="remark"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_university_staff_attendance_search" model="ir.ui.view">
+        <field name="name">university.staff.attendance.search</field>
+        <field name="model">university.staff.attendance</field>
+        <field name="arch" type="xml">
+            <search string="Search Staff Attendance">
+                <field name="staff_id"/>
+                <field name="department_id"/>
+                <field name="faculty_id"/>
+                <field name="date"/>
+                <separator/>
+                <filter string="Present" name="filter_present" domain="[('status', '=', 'present')]"/>
+                <filter string="Absent" name="filter_absent" domain="[('status', '=', 'absent')]"/>
+                <filter string="On Leave" name="filter_leave" domain="[('status', '=', 'leave')]"/>
+                <filter string="Late" name="filter_late" domain="[('status', '=', 'late')]"/>
+                <group>
+                    <filter string="Staff" name="group_by_staff" context="{'group_by': 'staff_id'}"/>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
+                    <filter string="Month" name="group_by_month" context="{'group_by': 'date:month'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_university_staff_attendance_pivot" model="ir.ui.view">
+        <field name="name">university.staff.attendance.pivot</field>
+        <field name="model">university.staff.attendance</field>
+        <field name="arch" type="xml">
+            <pivot string="Staff Attendance Summary">
+                <field name="staff_id" type="row"/>
+                <field name="status" type="col"/>
+                <field name="date" type="col" interval="month"/>
+                <field name="worked_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+
+    <record id="action_university_staff_attendance" model="ir.actions.act_window">
+        <field name="name">Staff Attendance</field>
+        <field name="res_model">university.staff.attendance</field>
+        <field name="view_mode">list,form,pivot</field>
+        <field name="search_view_id" ref="view_university_staff_attendance_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No staff attendance records found.</p>
+            <p>Record daily attendance for academic staff.</p>
+        </field>
+    </record>
+</odoo>
+

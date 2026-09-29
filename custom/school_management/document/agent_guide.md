@@ -398,17 +398,19 @@ Custom addons live in `C:\Odoo\odoo\custom\`. The working module there is `schoo
 
 ```
 school_management/
-├── __manifest__.py          # name, category Education, version 19.0.1.2.1,
+├── __manifest__.py          # name, category Education, version 19.0.1.2.2,
 │                            # depends ['auth_signup','base','mail','portal','web'],
 │                            # application: True; data + web.assets_backend assets
 ├── __init__.py              # (models are imported from models/__init__.py)
-├── models/                  # 27 ORM files (see models/__init__.py)
+├── models/                  # ORM model files imported by models/__init__.py
 │   ├── __init__.py          # one import per model file
 │   ├── res_users.py         # res.users extension -> teacher_id (record-rule backbone)
 │   ├── fee.py               # university.fee, fee.line, fee.structure, fee.structure.line
 │   ├── grading.py           # grade.scale(+line), assessment.category/result,
 │   │                        #   report.card(+line), transcript(+line)
 │   ├── timetable.py         # university.timeslot, university.timetable.slot
+│   ├── exam.py              # university.exam and university.exam.score
+│   ├── staff_attendance.py  # university.staff.attendance
 │   └── ...                  # faculty, department, program, subject, classroom,
 │                            # academic_year, semester_subject, teacher, student,
 │                            # academic_assignment, enrollment, class_section,
@@ -427,9 +429,10 @@ school_management/
 │   ├── record_rules.xml     # teacher/hod/dean/student/portal record scoping
 │   └── fix_demo_staff_links.sql  # reference only; Odoo runs the XML <function> instead
 ├── wizard/                  # student_enrollment, bulk_enrollment, populate_class,
-│                            # timetable_generation, teacher_account (+ views)
+│                            # timetable_generation, teacher_account (+ related views)
 ├── reports/                 # payment (receipt), curriculum, academic (report card/transcript)
-├── views/                   # one XML per model + dashboard shells + menu_views + portal_templates (placeholder)
+├── views/                   # model views, timetable wizard form, dashboards, menus,
+│                            # attendance sheets, reports/actions, and portal placeholder
 ├── static/src/school_management/
 │   ├── dashboard_shell.{js,xml,scss}
 │   ├── student_dashboard_shell.{js,xml,scss}
@@ -446,6 +449,35 @@ school_management/
 
 - Groups form a chain `group_school_user → teacher → hod → dean → admin`; `group_teacher_dashboard` is standalone (implies `group_school_teacher`) so admins do **not** get the Teacher Dashboard automatically; `group_student_portal` implies `base.group_portal` for external read-only portal users.
 - Record rules scope through `res.users.teacher_id → teacher → department → faculty`.
+- Staff attendance uses `university.teacher` as its staff model. Admin has full access;
+  teachers are scoped to their own linked staff record; department and faculty leaders
+  are scoped through the department/faculty leadership links.
+- The group hierarchy is `teacher → hod → dean → admin`. Because access rights are
+  additive for inherited groups, staff-attendance write restrictions for HOD/Dean are
+  enforced by both ACL/rule definitions and the model guard in
+  `models/staff_attendance.py`.
+
+### Timetable generation workflow
+
+- Wizard model: `university.timetable.generation.wizard` in
+  `wizard/timetable_generation_wizard.py`.
+- The wizard form and action are defined in `views/timetable_views.xml` as
+  `view_university_timetable_generation_wizard_form` and
+  `action_university_timetable_generation_wizard`; there is no separate
+  `wizard/timetable_generation_wizard_views.xml` file.
+- Required inputs are an active academic year, matching active semester, one or more
+  active class sections, one or more active timeslots, a week-start date, and 1–20 weeks.
+- The wizard normalizes the entered start date to Monday, creates
+  `university.timetable.slot` records, assigns the section teacher or the first teacher
+  assigned to the subject, and reports missing subjects, missing teachers, and timetable
+  conflicts in a notification.
+- Generated slots inherit the section's semester and academic year through related fields
+  on `university.timetable.slot`. Resource conflicts are validated for teacher, section,
+  and classroom overlap.
+- Current boundary: the wizard does not explicitly validate that the generated dates stay
+  inside the semester date range, and it does not prevent selecting an unrelated active
+  timeslot. Treat those as validation improvements before relying on the wizard for a
+  production calendar.
 
 ### Notes / gotchas (Odoo 19 specifics)
 
@@ -453,6 +485,8 @@ school_management/
 - Kanban images use `<field name="image_1920" widget="image" .../>` — the legacy `kanban_image()` JS helper was removed in Odoo 19.
 - `<group>` inside a `<search>` view does **not** accept `expand` or `string` attributes.
 - Manifest `data` must list **every** XML file (e.g. `menu_views.xml`), or those views silently won't load.
+- The current manifest loads `views/timetable_views.xml`; that file contains both the
+  timetable views and the timetable-generation wizard form/action.
 - `<i class="fa-...">` icons must have a `title` attribute (accessibility warning otherwise).
 
 ---

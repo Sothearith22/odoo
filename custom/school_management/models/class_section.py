@@ -7,9 +7,18 @@ class UniversityClassSection(models.Model):
     _description = "Class Section"
 
     name = fields.Char(string="Section Name", required=True)
+    section_type = fields.Selection(
+        [
+            ("cohort", "Cohort"),
+            ("course", "Course"),
+        ],
+        string="Section Type",
+        default="cohort",
+        help="Cohort sections are program/year groups. Course sections are subject-based classes.",
+    )
     program_id = fields.Many2one(
         "university.program",
-        string="Major / Program",
+        string="Major",
         help="Optional: link the section to a major/program (program-level "
              "cohort sections such as 'GM-Y1-A'). Preferred over Subject for "
              "the main major enrollment flow.",
@@ -36,9 +45,22 @@ class UniversityClassSection(models.Model):
         "university.enrollment", "section_id", string="Enrolled Students"
     )
     active = fields.Boolean(string="Active", default=True)
+    auto_quiz_per_session = fields.Boolean(
+        string="Auto-Quiz per Session",
+        default=False,
+        help="If enabled, the system automatically creates a quiz when a timetable session starts.",
+    )
     enrolled_student_count = fields.Integer(
         string="Enrolled Count",
         compute="_compute_enrolled_student_count",
+    )
+    capacity_used_percent = fields.Integer(
+        string="Capacity Used",
+        compute="_compute_capacity_status",
+    )
+    is_full = fields.Boolean(
+        string="Full",
+        compute="_compute_capacity_status",
     )
 
     @api.depends("enrollment_ids", "enrollment_ids.status")
@@ -47,6 +69,19 @@ class UniversityClassSection(models.Model):
             section.enrolled_student_count = len(
                 section.enrollment_ids.filtered(lambda e: e.status == "enrolled")
             )
+
+    @api.depends("capacity", "enrolled_student_count")
+    def _compute_capacity_status(self):
+        for section in self:
+            if section.capacity:
+                section.capacity_used_percent = min(
+                    100,
+                    round(section.enrolled_student_count * 100 / section.capacity),
+                )
+                section.is_full = section.enrolled_student_count >= section.capacity
+            else:
+                section.capacity_used_percent = 0
+                section.is_full = False
 
     @api.constrains("capacity")
     def _check_capacity_positive(self):
@@ -71,6 +106,8 @@ class UniversityClassSection(models.Model):
                 raise ValidationError(
                     "A class section must be linked to a Major/Program or a Subject."
                 )
+            if not vals.get("section_type"):
+                vals["section_type"] = "course" if vals.get("subject_id") else "cohort"
         return super().create(vals_list)
 
     def write(self, vals):

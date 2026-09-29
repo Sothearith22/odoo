@@ -74,6 +74,7 @@
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
             <list string="Timetable">
+                <button name="action_track_attendance" type="object" string="Track Attendance" icon="fa-calendar-check-o"/>
                 <field name="name"/>
                 <field name="section_id"/>
                 <field name="subject_id"/>
@@ -97,6 +98,9 @@
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
             <form string="Timetable Slot">
+                <header>
+                    <button name="action_track_attendance" type="object" string="Track Attendance" class="btn-primary" icon="fa-calendar-check-o"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>

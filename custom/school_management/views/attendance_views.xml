@@ -4,14 +4,17 @@
         <field name="name">university.attendance.list</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
-            <list string="Attendance" sample="1">
+            <list string="Attendance" sample="1" js_class="university_attendance_list">
                 <field name="date"/>
                 <field name="student_id"/>
                 <field name="section_id"/>
                 <field name="teacher_id"/>
                 <field name="status" widget="badge"
+                       class="o_attendance_status_badge"
                        decoration-success="status == 'present'"
-                       decoration-danger="status == 'absent'"/>
+                       decoration-danger="status == 'absent'"
+                       decoration-warning="status == 'late'"/>
+                <field name="remark" optional="hide"/>
             </list>
         </field>
     </record>
@@ -20,13 +23,18 @@
         <field name="name">university.attendance.form</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
-            <form string="Attendance">
+            <form string="Attendance" js_class="university_attendance_form">
                 <sheet>
                     <group>
                         <group>
                             <field name="date"/>
                             <field name="student_id"/>
-                            <field name="status"/>
+                            <field name="status"
+                                   widget="badge"
+                                   decoration-success="status == 'present'"
+                                   decoration-danger="status == 'absent'"
+                                   decoration-warning="status == 'late'"/>
+                            <field name="remark"/>
                         </group>
                         <group>
                             <field name="section_id"/>
@@ -48,6 +56,7 @@
                 <field name="teacher_id"/>
                 <filter string="Present" name="filter_present" domain="[('status', '=', 'present')]"/>
                 <filter string="Absent" name="filter_absent" domain="[('status', '=', 'absent')]"/>
+                <filter string="Late" name="filter_late" domain="[('status', '=', 'late')]"/>
                 <group>
                     <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
                     <filter string="Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
@@ -67,13 +76,5 @@
             <p>Record attendance for students in their class sections.</p>
         </field>
     </record>
-
-    <menuitem
-        id="menu_university_attendance"
-        name="Attendance"
-        parent="menu_university_academic_category"
-        action="action_university_attendance"
-        sequence="35"
-        groups="school_management.group_school_teacher"
-    />
 </odoo>
+

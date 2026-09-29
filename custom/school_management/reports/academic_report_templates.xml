@@ -4,34 +4,123 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="card">
                 <t t-call="web.external_layout">
-                    <div class="page">
-                        <h2>Report Card</h2>
-                        <p><strong>Student:</strong> <t t-esc="card.student_id.name"/></p>
-                        <p><strong>Program:</strong> <t t-esc="card.program_id.name or ''"/></p>
-                        <p><strong>Academic Year:</strong> <t t-esc="card.academic_year_id.name"/> / <strong>Semester:</strong> <t t-esc="card.semester_id.name"/></p>
-                        <table class="table table-sm table-bordered mt-3">
-                            <thead>
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #212529;">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <div>
+                                <h2 class="fw-bold mb-0 text-dark">Student Grade Report Card</h2>
+                                <span class="text-muted"><t t-esc="card.program_id.name or 'Academic Program'"/></span>
+                            </div>
+                            <div class="text-end">
+                                <span t-if="card.evaluation_status == 'completed'" class="badge bg-success fs-6 px-3 py-1">Completed</span>
+                                <span t-else="" class="badge bg-warning text-dark fs-6 px-3 py-1">In Progress</span>
+                            </div>
+                        </div>
+
+                        <!-- Student & Term Information Box -->
+                        <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                            <div class="col-6">
+                                <div><strong class="text-secondary">Student Name:</strong> <span class="fw-bold fs-6"><t t-esc="card.student_id.name"/></span></div>
+                                <div class="mt-1"><strong class="text-secondary">Student ID:</strong> <t t-esc="card.student_id.student_id or '—'"/></div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <div><strong class="text-secondary">Academic Year:</strong> <t t-esc="card.academic_year_id.name"/></div>
+                                <div class="mt-1"><strong class="text-secondary">Semester:</strong> <t t-esc="card.semester_id.name"/></div>
+                            </div>
+                        </div>
+
+                        <!-- KPI Summary Cards -->
+                        <div class="row g-3 mb-4 text-center">
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-white shadow-sm">
+                                    <small class="text-uppercase text-muted fw-semibold">Term GPA</small>
+                                    <div class="fs-4 fw-bold text-primary"><t t-esc="'%.2f' % card.gpa"/></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-white shadow-sm">
+                                    <small class="text-uppercase text-muted fw-semibold">Total Credits</small>
+                                    <div class="fs-4 fw-bold text-secondary"><t t-esc="card.total_credits"/></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-white shadow-sm">
+                                    <small class="text-uppercase text-muted fw-semibold">Passed Credits</small>
+                                    <div class="fs-4 fw-bold text-success"><t t-esc="card.passed_credits"/></div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="p-2 border rounded bg-white shadow-sm">
+                                    <small class="text-uppercase text-muted fw-semibold">Standing</small>
+                                    <div class="fs-5 fw-bold mt-1">
+                                        <span t-if="card.academic_standing == 'dean_list'" class="text-success">Dean's List</span>
+                                        <span t-elif="card.academic_standing == 'good'" class="text-primary">Good Standing</span>
+                                        <span t-else="" class="text-danger">Academic Probation</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grades & Component Breakdown Table -->
+                        <h6 class="fw-bold mb-2 text-dark">Course Evaluation &amp; Grade Breakdown</h6>
+                        <table class="table table-sm table-bordered align-middle mb-4">
+                            <thead class="table-light text-center small">
                                 <tr>
-                                    <th>Subject</th>
-                                    <th class="text-end">Credits</th>
-                                    <th class="text-end">Score</th>
-                                    <th>Grade</th>
-                                    <th class="text-end">Point</th>
+                                    <th class="text-start" style="width: 32%;">Subject</th>
+                                    <th style="width: 7%;">Credits</th>
+                                    <th style="width: 9%;">Attendance<br/><small class="text-muted">(10%)</small></th>
+                                    <th style="width: 8%;">Quiz<br/><small class="text-muted">(10%)</small></th>
+                                    <th style="width: 9%;">Midterm<br/><small class="text-muted">(20%)</small></th>
+                                    <th style="width: 9%;">Assign<br/><small class="text-muted">(10%)</small></th>
+                                    <th style="width: 9%;">Final<br/><small class="text-muted">(50%)</small></th>
+                                    <th style="width: 9%;">Total<br/><small class="text-muted">(100%)</small></th>
+                                    <th style="width: 8%;">Grade</th>
+                                    <th style="width: 9%;">Grade Pt</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="text-center">
                                 <t t-foreach="card.line_ids" t-as="line">
                                     <tr>
-                                        <td><t t-esc="line.subject_id.display_name"/></td>
-                                        <td class="text-end"><t t-esc="line.credits"/></td>
-                                        <td class="text-end"><t t-esc="'%.2f' % line.final_score"/></td>
-                                        <td><t t-esc="line.grade or ''"/></td>
-                                        <td class="text-end"><t t-esc="'%.2f' % line.grade_point"/></td>
+                                        <td class="text-start">
+                                            <strong><t t-esc="line.subject_id.display_name"/></strong>
+                                            <div t-if="line.evaluation_status == 'in_progress'" class="small text-warning">
+                                                <em>Evaluation pending final score</em>
+                                            </div>
+                                        </td>
+                                        <td><t t-esc="line.credits"/></td>
+                                        <td><t t-esc="'%.1f' % line.attendance_score"/></td>
+                                        <td><t t-esc="'%.1f' % line.quiz_score"/></td>
+                                        <td><t t-esc="'%.1f' % line.midterm_score"/></td>
+                                        <td><t t-esc="'%.1f' % line.assignment_score"/></td>
+                                        <td><t t-esc="'%.1f' % line.final_exam_score"/></td>
+                                        <td><strong><t t-esc="'%.2f' % line.final_score"/></strong></td>
+                                        <td>
+                                            <span t-if="line.grade in ['A+', 'A', 'A-', 'B+', 'B', 'B-']" class="fw-bold text-success"><t t-esc="line.grade or '-'"/></span>
+                                            <span t-elif="line.grade in ['C+', 'C', 'C-']" class="fw-bold text-primary"><t t-esc="line.grade or '-'"/></span>
+                                            <span t-elif="line.grade in ['D+', 'D']" class="fw-bold text-warning"><t t-esc="line.grade or '-'"/></span>
+                                            <span t-else="" class="fw-bold text-danger"><t t-esc="line.grade or '-'"/></span>
+                                        </td>
+                                        <td><t t-esc="'%.2f' % line.grade_point"/></td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
-                        <p class="text-end"><strong>Term GPA:</strong> <t t-esc="'%.2f' % card.gpa"/></p>
+
+                        <!-- Grading Scale Legend & Signatures -->
+                        <div class="row mt-4 pt-3 border-top small text-muted">
+                            <div class="col-8">
+                                <small>
+                                    <strong>Grading Scale:</strong>
+                                    A+ (4.00, 95-100) | A (4.00, 90-94) | A- (3.67, 85-89) | B+ (3.33, 80-84) | B (3.00, 75-79) | B- (2.67, 70-74) | C+ (2.33, 65-69) | C (2.00, 60-64) | C- (1.67, 55-59) | D+ (1.33, 50-54) | D (1.00, 45-49) | F (0.00, 0-44).<br/>
+                                    <em>Passing Grade: Minimum C (2.00) / 60% for core degree requirements.</em>
+                                </small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div style="height: 45px;"></div>
+                                <div class="border-top pt-1">
+                                    <strong>Registrar / Academic Dean</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </t>
             </t>
@@ -42,37 +131,65 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="transcript">
                 <t t-call="web.external_layout">
-                    <div class="page">
-                        <h2>Academic Transcript</h2>
-                        <p><strong>Student:</strong> <t t-esc="transcript.student_id.name"/></p>
-                        <p><strong>Program:</strong> <t t-esc="transcript.program_id.name or ''"/></p>
-                        <table class="table table-sm table-bordered mt-3">
-                            <thead>
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #212529;">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <div>
+                                <h2 class="fw-bold mb-0 text-dark">Official Academic Transcript</h2>
+                                <span class="text-muted"><t t-esc="transcript.program_id.name or 'Degree Program'"/></span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary fs-6 px-3 py-1">Official Record</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                            <div class="col-6">
+                                <div><strong class="text-secondary">Student Name:</strong> <span class="fw-bold fs-6"><t t-esc="transcript.student_id.name"/></span></div>
+                                <div class="mt-1"><strong class="text-secondary">Student ID:</strong> <t t-esc="transcript.student_id.student_id or '—'"/></div>
+                            </div>
+                            <div class="col-6 text-end">
+                                <div><strong class="text-secondary">Cumulative GPA:</strong> <span class="fs-5 fw-bold text-primary"><t t-esc="'%.2f' % transcript.cumulative_gpa"/></span></div>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm table-bordered align-middle mt-3">
+                            <thead class="table-light small text-center">
                                 <tr>
-                                    <th>Academic Year</th>
-                                    <th>Semester</th>
-                                    <th>Subject</th>
-                                    <th class="text-end">Credits</th>
-                                    <th class="text-end">Score</th>
-                                    <th>Grade</th>
-                                    <th class="text-end">Point</th>
+                                    <th style="width: 15%;">Academic Year</th>
+                                    <th style="width: 15%;">Semester</th>
+                                    <th class="text-start" style="width: 35%;">Subject</th>
+                                    <th style="width: 7%;">Credits</th>
+                                    <th style="width: 9%;">Score</th>
+                                    <th style="width: 9%;">Grade</th>
+                                    <th style="width: 10%;">Grade Pt</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="text-center">
                                 <t t-foreach="transcript.line_ids" t-as="line">
                                     <tr>
                                         <td><t t-esc="line.academic_year_id.name or ''"/></td>
                                         <td><t t-esc="line.semester_id.name or ''"/></td>
-                                        <td><t t-esc="line.subject_id.display_name"/></td>
-                                        <td class="text-end"><t t-esc="line.credits"/></td>
-                                        <td class="text-end"><t t-esc="'%.2f' % line.final_score"/></td>
-                                        <td><t t-esc="line.grade or ''"/></td>
-                                        <td class="text-end"><t t-esc="'%.2f' % line.grade_point"/></td>
+                                        <td class="text-start"><strong><t t-esc="line.subject_id.display_name"/></strong></td>
+                                        <td><t t-esc="line.credits"/></td>
+                                        <td><t t-esc="'%.2f' % line.final_score"/></td>
+                                        <td>
+                                            <span t-if="line.is_passing" class="fw-bold text-success"><t t-esc="line.grade or ''"/></span>
+                                            <span t-else="" class="fw-bold text-danger"><t t-esc="line.grade or ''"/></span>
+                                        </td>
+                                        <td><t t-esc="'%.2f' % line.grade_point"/></td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
-                        <p class="text-end"><strong>Cumulative GPA:</strong> <t t-esc="'%.2f' % transcript.cumulative_gpa"/></p>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <div class="small text-muted">
+                                <em>This document is an official academic transcript generated by the University Information System.</em>
+                            </div>
+                            <div class="text-end">
+                                <h4><strong>Cumulative GPA:</strong> <span class="text-primary"><t t-esc="'%.2f' % transcript.cumulative_gpa"/></span></h4>
+                            </div>
+                        </div>
                     </div>
                 </t>
             </t>

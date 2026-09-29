@@ -44,6 +44,11 @@ class UniversitySubject(models.Model):
         string="Semester Offerings",
     )
     active = fields.Boolean(string="Active", default=True)
+    auto_quiz_per_session = fields.Boolean(
+        string="Auto-Quiz per Session",
+        default=False,
+        help="If enabled, timetable sessions for this subject automatically generate a quiz when class begins.",
+    )
 
     @api.onchange("program_ids")
     def _onchange_program_ids(self):

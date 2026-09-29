@@ -47,6 +47,11 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         string="Students",
         domain="[('active', '=', True)]",
     )
+    line_ids = fields.One2many(
+        "university.bulk.enrollment.wizard.line",
+        "wizard_id",
+        string="Student Checklist",
+    )
     eligible_student_ids = fields.Many2many(
         "university.student",
         string="Eligible Students",
@@ -58,7 +63,9 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
     )
     status = fields.Selection(
         [
+            ("draft", "Draft"),
             ("enrolled", "Enrolled"),
+            ("withdrawn", "Withdrawn"),
             ("completed", "Completed"),
             ("dropped", "Dropped"),
         ],
@@ -120,10 +127,10 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
 
         return values
 
-    @api.depends("student_ids")
+    @api.depends("line_ids.selected")
     def _compute_selected_student_count(self):
         for wizard in self:
-            wizard.selected_student_count = len(wizard.student_ids)
+            wizard.selected_student_count = len(wizard.line_ids.filtered("selected"))
 
     @api.depends(
         "faculty_id",
@@ -144,7 +151,7 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         "section_id",
         "section_id.capacity",
         "section_id.enrollment_ids.status",
-        "student_ids",
+        "line_ids.selected",
     )
     def _compute_seats(self):
         for wizard in self:
@@ -156,9 +163,9 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
             enrolled = section.enrollment_ids.filtered(
                 lambda e: e.status == "enrolled"
             )
-            free = max(section.capacity - len(enrolled) - len(wizard.student_ids), 0)
+            free = max(section.capacity - len(enrolled) - wizard.selected_student_count, 0)
             wizard.available_seats = free if free >= 0 else 0
-            wizard.capacity_blocked = len(enrolled) + len(wizard.student_ids) > section.capacity
+            wizard.capacity_blocked = len(enrolled) + wizard.selected_student_count > section.capacity
 
     @api.onchange("faculty_id")
     def _onchange_faculty_id(self):
@@ -166,6 +173,7 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         self.program_id = False
         self.section_id = False
         self.student_ids = False
+        self.line_ids = [(5, 0, 0)]
         return self._student_domain()
 
     @api.onchange("department_id")
@@ -173,6 +181,7 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         self.program_id = False
         self.section_id = False
         self.student_ids = False
+        self.line_ids = [(5, 0, 0)]
         if self.department_id and not self.faculty_id:
             self.faculty_id = self.department_id.faculty_id
         return self._student_domain()
@@ -186,18 +195,22 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
             if not self.faculty_id and self.department_id:
                 self.faculty_id = self.department_id.faculty_id
             self.student_ids = False
+            self.line_ids = [(5, 0, 0)]
         else:
             self.student_ids = False
+            self.line_ids = [(5, 0, 0)]
         return self._student_domain()
 
     @api.onchange("academic_year_id")
     def _onchange_academic_year_id(self):
         self.semester_id = False
         self.section_id = False
+        self.line_ids = [(5, 0, 0)]
 
     @api.onchange("semester_id")
     def _onchange_semester_id(self):
         self.section_id = False
+        self.line_ids = [(5, 0, 0)]
         if self.semester_id and not self.academic_year_id:
             self.academic_year_id = self.semester_id.academic_year_id
 
@@ -262,6 +275,38 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         )
         return students - existing.mapped("student_id")
 
+    def _get_matching_students(self):
+        if not self.program_id:
+            return self.env["university.student"]
+        return self.env["university.student"].search(self._student_domain_list(), order="name")
+
+    def action_load_eligible_students(self):
+        self.ensure_one()
+        if not self.program_id:
+            raise UserError("Please select a Major / Program.")
+        if not self.academic_year_id:
+            raise UserError("Please select an Academic Year.")
+        if not self.semester_id:
+            raise UserError("Please select a Semester.")
+
+        students = self._get_matching_students()
+        existing = self.env["university.enrollment"].search(
+            self._existing_enrollment_domain(students.ids)
+        )
+        existing_student_ids = set(existing.mapped("student_id").ids)
+        commands = [(5, 0, 0)]
+        for student in students:
+            already = student.id in existing_student_ids
+            commands.append((0, 0, {
+                "student_id": student.id,
+                "selected": not already,
+                "note": "Already enrolled" if already else "",
+            }))
+        self.line_ids = commands
+        if not students:
+            raise UserError("No active students found for the selected filters.")
+        return self._reopen_wizard()
+
     def _reopen_wizard(self):
         return {
             "type": "ir.actions.act_window",
@@ -274,22 +319,22 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
 
     def action_select_all_eligible_students(self):
         self.ensure_one()
-        eligible_students = self._get_eligible_students()
-        if not eligible_students:
-            raise UserError("No eligible students found for the selected filters.")
-        self.student_ids = [(6, 0, eligible_students.ids)]
+        if not self.line_ids:
+            raise UserError("Load eligible students first.")
+        self.line_ids.filtered(lambda line: not line.note).write({"selected": True})
         return self._reopen_wizard()
 
     def action_clear_students(self):
         self.ensure_one()
-        self.student_ids = [(5, 0, 0)]
+        self.line_ids.write({"selected": False})
         return self._reopen_wizard()
 
     def action_enroll_students(self):
         self.ensure_one()
         if not self.program_id:
             raise UserError("Please select a Major / Program.")
-        if not self.student_ids:
+        selected_lines = self.line_ids.filtered("selected")
+        if not selected_lines:
             raise UserError("Please select at least one student.")
         if not self.academic_year_id:
             raise UserError("Please select an Academic Year.")
@@ -304,10 +349,10 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
             )
 
         existing = self.env["university.enrollment"].search(
-            self._existing_enrollment_domain(self.student_ids.ids)
+            self._existing_enrollment_domain(selected_lines.mapped("student_id").ids)
         )
         already_ids = existing.mapped("student_id.id")
-        students_to_enroll = self.student_ids.filtered(lambda s: s.id not in already_ids)
+        students_to_enroll = selected_lines.mapped("student_id").filtered(lambda s: s.id not in already_ids)
 
         if not students_to_enroll:
             raise UserError("All selected students are already enrolled in this "
@@ -360,3 +405,34 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
                 "next": {"type": "ir.actions.act_window_close"},
             },
         }
+
+
+class BulkMajorEnrollmentWizardLine(models.TransientModel):
+    _name = "university.bulk.enrollment.wizard.line"
+    _description = "Bulk Enrollment Student Line"
+    _order = "student_id"
+
+    wizard_id = fields.Many2one(
+        "university.bulk.enrollment.wizard",
+        required=True,
+        ondelete="cascade",
+    )
+    selected = fields.Boolean(string="Selected")
+    student_id = fields.Many2one(
+        "university.student",
+        string="Student",
+        required=True,
+        readonly=True,
+    )
+    student_code = fields.Char(
+        string="Student Code",
+        related="student_id.student_id",
+        readonly=True,
+    )
+    program_id = fields.Many2one(
+        "university.program",
+        string="Program",
+        related="student_id.program_id",
+        readonly=True,
+    )
+    note = fields.Char(string="Note", readonly=True)

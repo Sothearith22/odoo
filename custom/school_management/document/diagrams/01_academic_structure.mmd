@@ -1,0 +1,54 @@
+---
+title: Academic structure
+---
+erDiagram
+    UNIVERSITY_FACULTY ||--o{ UNIVERSITY_DEPARTMENT : contains
+    UNIVERSITY_DEPARTMENT ||--o{ UNIVERSITY_PROGRAM : contains
+    UNIVERSITY_DEPARTMENT ||--o{ UNIVERSITY_SUBJECT : owns
+    UNIVERSITY_PROGRAM }o--o{ UNIVERSITY_SUBJECT : offers
+    UNIVERSITY_PROGRAM ||--o{ UNIVERSITY_CLASS_SECTION : groups
+    UNIVERSITY_SUBJECT ||--o{ UNIVERSITY_CLASS_SECTION : taught_in
+    UNIVERSITY_ACADEMIC_YEAR ||--o{ UNIVERSITY_SEMESTER : contains
+    UNIVERSITY_SEMESTER ||--o{ UNIVERSITY_SEMESTER_SUBJECT : offers
+    UNIVERSITY_SUBJECT ||--o{ UNIVERSITY_SEMESTER_SUBJECT : offered_as
+    UNIVERSITY_SEMESTER ||--o{ UNIVERSITY_CLASS_SECTION : schedules
+
+    UNIVERSITY_FACULTY {
+        string name
+        int dean_id FK
+    }
+    UNIVERSITY_DEPARTMENT {
+        string name
+        int faculty_id FK
+        int head_id FK
+    }
+    UNIVERSITY_PROGRAM {
+        string name
+        int department_id FK
+    }
+    UNIVERSITY_SUBJECT {
+        string name
+        int department_id FK
+    }
+    UNIVERSITY_ACADEMIC_YEAR {
+        string name
+        date date_start
+        date date_end
+    }
+    UNIVERSITY_SEMESTER {
+        string name
+        int academic_year_id FK
+        date date_start
+        date date_end
+        boolean active
+    }
+    UNIVERSITY_SEMESTER_SUBJECT {
+        int semester_id FK
+        int subject_id FK
+    }
+    UNIVERSITY_CLASS_SECTION {
+        string name
+        int program_id FK
+        int subject_id FK
+        int semester_id FK
+    }

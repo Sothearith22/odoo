@@ -6,6 +6,11 @@ class UniversityCapability(models.Model):
     _description = "University System Capability"
     _order = "sort_order, id"
 
+    _unique_capability_name = models.Constraint(
+        "unique (name)",
+        "A capability with this name already exists.",
+    )
+
     name = fields.Char(string="Capability", required=True)
     category = fields.Selection(
         [

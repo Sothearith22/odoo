@@ -1,0 +1,31 @@
+---
+title: Security and role scoping
+---
+flowchart LR
+    subgraph ROLE_CHAIN["Security group inheritance"]
+        TEACHER_GROUP["group_school_teacher<br/>Teacher"] -->|implies| HOD_GROUP["group_school_hod<br/>Head of Department"]
+        HOD_GROUP -->|implies| DEAN_GROUP["group_school_dean<br/>Head of Faculty"]
+        DEAN_GROUP -->|implies| ADMIN_GROUP["group_school_admin<br/>University Administrator"]
+    end
+
+    USER["res.users<br/>teacher_id"] -->|record-rule scope| TEACHER["university.teacher"]
+    TEACHER -->|department_id| DEPARTMENT["university.department"]
+    DEPARTMENT -->|faculty_id| FACULTY["university.faculty"]
+    DEPARTMENT -->|head_id| HOD_OWNER["department.head_id"]
+    FACULTY -->|dean_id| DEAN_OWNER["faculty.dean_id"]
+
+    TEACHER -.->|teacher-owned records| TEACHER_SCOPE["Teacher scope"]
+    DEPARTMENT -.->|faculty / department scope| LEAD_SCOPE["HOD and Dean scope"]
+    ADMIN_GROUP -.->|unrestricted module access| ADMIN_SCOPE["Admin scope"]
+    TEACHER_SCOPE --> DASHBOARDS["Dashboards and reports"]
+    LEAD_SCOPE --> DASHBOARDS
+    ADMIN_SCOPE --> DASHBOARDS
+
+    classDef group fill:#e8f1ff,stroke:#356ae6,color:#12213f
+    classDef model fill:#edf8ef,stroke:#39804b,color:#17351d
+    classDef scope fill:#fff4dc,stroke:#b77a00,color:#4a3200
+    class TEACHER_GROUP,HOD_GROUP,DEAN_GROUP,ADMIN_GROUP group
+    class USER,TEACHER,DEPARTMENT,FACULTY,HOD_OWNER,DEAN_OWNER model
+    class TEACHER_SCOPE,LEAD_SCOPE,ADMIN_SCOPE,DASHBOARDS scope
+
+    LEGEND["Solid arrows = hierarchy / ownership<br/>Dotted arrows = access scope or permission effect"]

@@ -2,6 +2,18 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 
+def _hod_assignment(teacher):
+    return teacher.assignment_ids.filtered(
+        lambda a: a.active and a.role == "department_head"
+    )[:1]
+
+
+def _dean_assignment(teacher):
+    return teacher.assignment_ids.filtered(
+        lambda a: a.active and a.role == "dean"
+    )[:1]
+
+
 class Teacher(models.Model):
     _name = "university.teacher"
     _inherit = ["mail.thread", "mail.activity.mixin"]
@@ -126,16 +138,6 @@ class Teacher(models.Model):
         compute="_compute_admin_appointments",
     )
 
-    def _dean_assignment(self, teacher):
-        return teacher.assignment_ids.filtered(
-            lambda a: a.active and a.role == "dean"
-        )[:1]
-
-    def _hod_assignment(self, teacher):
-        return teacher.assignment_ids.filtered(
-            lambda a: a.active and a.role == "department_head"
-        )[:1]
-
     @api.depends(
         "assignment_ids.role",
         "assignment_ids.active",
@@ -146,8 +148,8 @@ class Teacher(models.Model):
     )
     def _compute_admin_roles(self):
         for teacher in self:
-            teacher.is_dean = bool(self._dean_assignment(teacher))
-            teacher.is_hod = bool(self._hod_assignment(teacher))
+            teacher.is_dean = bool(_dean_assignment(teacher))
+            teacher.is_hod = bool(_hod_assignment(teacher))
 
     @api.depends(
         "assignment_ids.role",
@@ -159,8 +161,8 @@ class Teacher(models.Model):
     )
     def _compute_admin_appointments(self):
         for teacher in self:
-            dean_asg = self._dean_assignment(teacher)
-            head_asg = self._hod_assignment(teacher)
+            dean_asg = _dean_assignment(teacher)
+            head_asg = _hod_assignment(teacher)
 
             teacher.dean_appointment_start = dean_asg.start_date
             teacher.dean_appointment_end = dean_asg.end_date
@@ -210,26 +212,26 @@ class Teacher(models.Model):
                     (4, teacher_group.id),
                     (4, dashboard_group.id),
                 ],
-                "password": "password123",
             })
             self.sudo().write({"user_id": existing_user.id})
+            existing_user.action_reset_password()
         else:
             user = Users.create({
                 "name": self.name,
                 "login": email,
                 "email": email,
-                "password": "password123",
                 "teacher_id": self.id,
                 "group_ids": [(6, 0, [internal_group.id, teacher_group.id, dashboard_group.id])],
             })
             self.sudo().write({"user_id": user.id})
+            user.with_context(create_user=1).action_reset_password()
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("User Created"),
-                "message": _("Login account created for %s with email '%s' and default password 'password123'.")
+                "message": _("Login account created for %s with email '%s'. A password setup email was sent.")
                 % (self.name, email),
                 "type": "success",
                 "sticky": False,
@@ -244,13 +246,13 @@ class Teacher(models.Model):
         if not self.user_id:
             raise UserError(_("Teacher %s does not have a linked login account.") % self.name)
 
-        self.user_id.sudo().write({"password": "password123"})
+        self.user_id.sudo().action_reset_password()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Password Reset"),
-                "message": _("Password for %s has been reset to 'password123'.") % self.name,
+                "message": _("A password reset email was sent to %s.") % self.user_id.login,
                 "type": "success",
                 "sticky": False,
             },

@@ -162,3 +162,19 @@ class UniversityTimetableSlot(models.Model):
                 raise ValidationError(
                     "Timetable conflict detected for: %s." % ", ".join(conflicts)
                 )
+
+    def action_track_attendance(self):
+        self.ensure_one()
+        action = self.env.ref("school_management.action_university_attendance_sheet").read()[0]
+        attendance_date = fields.Date.context_today(self)
+        if self.start_time:
+            attendance_date = fields.Datetime.context_timestamp(self, self.start_time).date()
+        date_value = fields.Date.to_string(attendance_date)
+        action["name"] = "Track Attendance"
+        action["context"] = {
+            "default_section_id": self.section_id.id,
+            "section_id": self.section_id.id,
+            "default_date": date_value,
+            "date": date_value,
+        }
+        return action

@@ -66,6 +66,11 @@ const ACTION_ACTIVE_KEY = {
     "school_management.action_university_student_assignment": "student_assignment",
     "school_management.action_university_assignment_my": "my_assignment",
     "school_management.action_university_assignment_submission_student": "my_submission",
+    "school_management.action_university_attendance_sheet": "take_attendance",
+    "school_management.action_university_attendance": "attendance",
+    "school_management.action_university_exam": "exam",
+    "school_management.action_university_exam_score": "exam",
+    "school_management.action_university_exam_score_student": "exam",
 };
 
 const MODEL_ACTIVE_KEY = {
@@ -95,6 +100,8 @@ const MODEL_ACTIVE_KEY = {
     "university.notice.board": "notice_board",
     "university.service.hour": "service_hour",
     "university.attendance": "attendance",
+    "university.exam": "exam",
+    "university.exam.score": "exam",
 };
 
 const ITEM_GROUP = {
@@ -139,6 +146,9 @@ const ITEM_GROUP = {
     lesson_plan: GROUP_TEACHER,
     grade_assignment: GROUP_TEACHER,
     student_assignment: GROUP_TEACHER,
+    take_attendance: GROUP_TEACHER,
+    exam: GROUP_TEACHER,
+    student_exam: GROUP_STUDENT,
 };
 
 function navGroup(label, items) {
@@ -176,7 +186,8 @@ export class SchoolLayout extends Component {
             navGroup("Teaching & Learning", [
                 navItem("lesson_plan", "Lesson Plans", "fa fa-file-text", "school_management.action_university_lesson_plan"),
                 navItem("assignment", "Assignments", "fa fa-tasks", "school_management.action_university_student_assignment"),
-                navItem("attendance", "Attendance", "fa fa-check-square-o", "school_management.action_university_attendance"),
+                navItem("take_attendance", "Track Attendance", "fa fa-calendar-check-o", "school_management.action_university_attendance_sheet"),
+                navItem("exam", "Exams & Quizzes", "fa fa-graduation-cap", "school_management.action_university_exam"),
                 navItem("timetable", "Timetable", "fa fa-clock-o", "school_management.action_university_timetable_slot"),
                 navItem("grade_assignment", "Grading", "fa fa-bar-chart", "school_management.action_university_grade_assignment"),
             ]),
@@ -542,7 +553,7 @@ export class SchoolLayout extends Component {
             name: item?.label || key,
             actionXmlId,
         });
-        await this.action.doAction(actionXmlId);
+        await this.action.doAction(actionXmlId, { clearBreadcrumbs: true });
         this.refreshActive();
     }
 

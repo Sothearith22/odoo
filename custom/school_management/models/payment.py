@@ -108,6 +108,12 @@ class UniversityPayment(models.Model):
 
     def action_post(self):
         for payment in self:
+            if payment.state != "draft":
+                raise ValidationError(_("Only draft payments can be posted."))
+            if payment.fee_id and payment.fee_id.state != "posted":
+                raise ValidationError(
+                    _("Payments can only be posted against posted fee invoices.")
+                )
             fee = payment.fee_id
             was_paid = bool(fee and fee.state == "paid")
             payment.with_context(bypass_payment_write_guard=True).write({"state": "posted"})
@@ -118,12 +124,20 @@ class UniversityPayment(models.Model):
 
     def action_cancel(self):
         for payment in self:
+            if payment.state != "posted":
+                raise ValidationError(_("Only posted payments can be canceled."))
             payment.with_context(bypass_payment_write_guard=True).write({"state": "canceled"})
             if payment.fee_id:
                 payment.fee_id._update_state_from_balance()
 
     def action_draft(self):
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise ValidationError(
+                _("Only University Administrators can reset payments to draft.")
+            )
         for payment in self:
+            if payment.state != "canceled":
+                raise ValidationError(_("Only canceled payments can be reset to draft."))
             payment.with_context(bypass_payment_write_guard=True).write({"state": "draft"})
 
     def action_print_receipt(self):

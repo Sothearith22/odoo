@@ -3,16 +3,44 @@
         <field name="name">admission.lead.kanban</field>
         <field name="model">admission.lead</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="stage_id" records_draggable="1">
+            <kanban default_group_by="stage_id" records_draggable="1" class="o_admission_pipeline_kanban">
                 <field name="stage_id"/>
+                <field name="student_name"/>
+                <field name="program_id"/>
+                <field name="email"/>
+                <field name="phone"/>
                 <templates>
                     <t t-name="card">
-                        <field name="student_name"/>
-                        <field name="program_id"/>
-                        <button name="action_set_won" type="object"
-                                string="Accept" class="btn-success"/>
-                        <button name="action_set_lost" type="object"
-                                string="Reject" class="btn-danger"/>
+                        <div class="o_admission_lead_card">
+                            <div class="o_admission_lead_head">
+                                <strong class="o_admission_lead_name">
+                                    <field name="student_name"/>
+                                </strong>
+                                <span class="o_admission_lead_stage">
+                                    <field name="stage_id"/>
+                                </span>
+                            </div>
+                            <div class="o_admission_lead_program">
+                                <i class="fa fa-graduation-cap" title="Program" aria-hidden="true"/>
+                                <field name="program_id"/>
+                            </div>
+                            <div class="o_admission_lead_contact">
+                                <span t-if="record.email.raw_value">
+                                    <i class="fa fa-envelope-o" title="Email" aria-hidden="true"/>
+                                    <field name="email"/>
+                                </span>
+                                <span t-if="record.phone.raw_value">
+                                    <i class="fa fa-phone" title="Phone" aria-hidden="true"/>
+                                    <field name="phone"/>
+                                </span>
+                            </div>
+                            <div class="o_admission_lead_actions">
+                                <button name="action_set_won" type="object"
+                                        string="Accept" class="btn btn-sm btn-primary"/>
+                                <button name="action_set_lost" type="object"
+                                        string="Reject" class="btn btn-sm btn-secondary"/>
+                            </div>
+                        </div>
                     </t>
                 </templates>
             </kanban>
@@ -23,14 +51,23 @@
         <field name="name">admission.lead.form</field>
         <field name="model">admission.lead</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_admission_lead_form">
                 <sheet>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <span class="o_admission_eyebrow">Admission pipeline</span>
+                        <h1><field name="student_name" placeholder="Applicant name"/></h1>
+                    </div>
                     <group>
-                        <field name="student_name"/>
-                        <field name="email"/>
-                        <field name="phone"/>
-                        <field name="program_id"/>
-                        <field name="stage_id"/>
+                        <group string="Contact">
+                            <field name="email" widget="email" placeholder="name@example.com"/>
+                            <field name="phone" widget="phone" placeholder="+855 ..."/>
+                        </group>
+                        <group string="Pipeline">
+                            <field name="program_id"/>
+                            <field name="stage_id"/>
+                            <field name="lost_reason" invisible="active"/>
+                        </group>
                     </group>
                 </sheet>
             </form>
@@ -38,13 +75,13 @@
     </record>
 
     <record id="admission_lead_action" model="ir.actions.act_window">
-        <field name="name">Admissions</field>
+        <field name="name">Admission Pipeline</field>
         <field name="res_model">admission.lead</field>
         <field name="view_mode">kanban,form</field>
     </record>
 
-    <menuitem id="menu_admission_root" name="Admissions" sequence="15"/>
-    <menuitem id="menu_admission_lead" name="Applicants"
-              parent="menu_admission_root" action="admission_lead_action"
-              sequence="10"/>
+    <menuitem id="menu_admission_lead" name="Admission Pipeline"
+              parent="menu_university_enrollment_category" action="admission_lead_action"
+              sequence="6"
+              groups="base.group_system,school_management.group_school_admin"/>
 </odoo>

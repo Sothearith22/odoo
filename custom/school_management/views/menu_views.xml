@@ -83,6 +83,15 @@
     />
 
     <menuitem
+        id="menu_school_student_portal_exams"
+        name="My Exam Results"
+        parent="menu_school_student_portal_academic"
+        action="action_university_exam_score_student"
+        sequence="35"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
         id="menu_school_student_portal_results"
         name="My Results"
         parent="menu_school_student_portal_academic"
@@ -144,6 +153,15 @@
         groups="base.group_system,school_management.group_school_user"
     />
 
+    <menuitem
+        id="menu_school_teacher_dashboard"
+        name="Teacher Dashboard"
+        parent="menu_school_root"
+        action="action_teacher_dashboard_shell"
+        sequence="2"
+        groups="school_management.group_teacher_dashboard"
+    />
+
     <!-- ==================== 1. ACADEMIC STRUCTURE ==================== -->
     <menuitem
         id="menu_university_structure"
@@ -175,6 +193,86 @@
         action="action_university_program"
         sequence="30"
         groups="school_management.group_school_dean"
+    />
+    <menuitem
+        id="menu_university_academic_year"
+        name="Academic Years"
+        parent="menu_university_structure"
+        action="action_university_academic_year"
+        sequence="40"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_semester"
+        name="Semesters"
+        parent="menu_university_structure"
+        action="action_university_semester"
+        sequence="50"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_semester_subject"
+        name="Semester Subjects"
+        parent="menu_university_structure"
+        action="action_university_semester_subject"
+        sequence="60"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_classroom"
+        name="Classrooms"
+        parent="menu_university_structure"
+        action="action_university_classroom"
+        sequence="70"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_timeslot"
+        name="Timeslots"
+        parent="menu_university_structure"
+        action="action_university_timeslot"
+        sequence="80"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_timetable_generate"
+        name="Generate Timetable"
+        parent="menu_university_structure"
+        action="action_university_timetable_generation_wizard"
+        sequence="85"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_grade_scale"
+        name="Grade Scales"
+        parent="menu_university_structure"
+        action="action_university_grade_scale"
+        sequence="90"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_assessment_category"
+        name="Assessment Categories"
+        parent="menu_university_structure"
+        action="action_university_assessment_category"
+        sequence="95"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_report_card"
+        name="Report Cards"
+        parent="menu_university_structure"
+        action="action_university_report_card"
+        sequence="100"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_transcript"
+        name="Transcripts"
+        parent="menu_university_structure"
+        action="action_university_transcript"
+        sequence="105"
+        groups="school_management.group_school_admin"
     />
 
     <menuitem
@@ -227,6 +325,22 @@
         groups="school_management.group_school_teacher"
     />
     <menuitem
+        id="menu_university_staff_attendance_sheet"
+        name="Track Staff Attendance"
+        parent="menu_school_teacher_category"
+        action="action_university_staff_attendance_sheet"
+        sequence="12"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_staff_attendance"
+        name="Staff Attendance Records"
+        parent="menu_school_teacher_category"
+        action="action_university_staff_attendance"
+        sequence="15"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
         id="menu_university_hod"
         name="Heads of Department"
         parent="menu_school_teacher_category"
@@ -260,51 +374,20 @@
         groups="school_management.group_school_teacher"
     />
     <menuitem
-        id="menu_university_academic_year"
-        name="Academic Years"
-        parent="menu_university_structure"
-        action="action_university_academic_year"
-        sequence="10"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_semester"
-        name="Semesters"
+        id="menu_university_take_attendance"
+        name="Track Attendance"
         parent="menu_university_academic_category"
-        action="action_university_semester"
-        sequence="20"
-        groups="school_management.group_school_admin"
+        action="action_university_attendance_sheet"
+        sequence="5"
+        groups="school_management.group_school_teacher"
     />
-    <menuitem
-        id="menu_university_semester_subject"
-        name="Semester Subjects"
-        parent="menu_university_academic_category"
-        action="action_university_semester_subject"
-        sequence="25"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_grade_scale"
-        name="Grade Scales"
-        parent="menu_university_academic_category"
-        action="action_university_grade_scale"
-        sequence="27"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_assessment_category"
-        name="Assessment Categories"
-        parent="menu_university_academic_category"
-        action="action_university_assessment_category"
-        sequence="28"
-        groups="school_management.group_school_admin"
-    />
+
     <menuitem
         id="menu_university_subject"
         name="Subjects"
         parent="menu_university_academic_category"
         action="action_university_subject"
-        sequence="30"
+        sequence="10"
         groups="school_management.group_school_teacher"
     />
     <menuitem
@@ -312,114 +395,73 @@
         name="Class Sections"
         parent="menu_university_academic_category"
         action="action_university_class_section"
-        sequence="40"
+        sequence="20"
         groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_classroom"
-        name="Classrooms"
-        parent="menu_university_academic_category"
-        action="action_university_classroom"
-        sequence="50"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_timeslot"
-        name="Timeslots"
-        parent="menu_university_academic_category"
-        action="action_university_timeslot"
-        sequence="55"
-        groups="school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_timetable"
         name="Timetable"
         parent="menu_university_academic_category"
         action="action_university_timetable_slot"
-        sequence="60"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_timetable_generate"
-        name="Generate Timetable"
-        parent="menu_university_academic_category"
-        action="action_university_timetable_generation_wizard"
-        sequence="65"
-        groups="school_management.group_school_admin"
-    />
-
-    <!-- ==================== 4.5 ASSIGNMENTS ==================== -->
-    <menuitem
-        id="menu_university_assignments_category"
-        name="Assignments"
-        parent="menu_university_academic_category"
-        sequence="45"
+        sequence="30"
         groups="school_management.group_school_teacher"
     />
     <menuitem
         id="menu_university_lesson_plan"
         name="Lesson Plans"
-        parent="menu_university_assignments_category"
+        parent="menu_university_academic_category"
         action="action_university_lesson_plan"
-        sequence="10"
+        sequence="40"
+        groups="school_management.group_school_teacher"
+    />
+
+    <menuitem
+        id="menu_university_exam"
+        name="Exams &amp; Quizzes"
+        parent="menu_university_academic_category"
+        action="action_university_exam"
+        sequence="45"
+        groups="school_management.group_school_teacher"
+    />
+    <menuitem
+        id="menu_university_exam_score"
+        name="Exam Scores"
+        parent="menu_university_academic_category"
+        action="action_university_exam_score"
+        sequence="46"
         groups="school_management.group_school_teacher"
     />
     <menuitem
         id="menu_university_grade_assignment"
         name="Grade Assignments"
-        parent="menu_university_assignments_category"
+        parent="menu_university_academic_category"
         action="action_university_grade_assignment"
-        sequence="20"
+        sequence="50"
         groups="school_management.group_school_teacher"
     />
     <menuitem
         id="menu_university_student_assignment"
         name="Student Assignments"
-        parent="menu_university_assignments_category"
+        parent="menu_university_academic_category"
         action="action_university_student_assignment"
-        sequence="30"
+        sequence="55"
         groups="school_management.group_school_teacher"
     />
     <menuitem
         id="menu_university_assignment_submission"
         name="Submissions"
-        parent="menu_university_assignments_category"
-        action="action_university_assignment_submission"
-        sequence="40"
-        groups="school_management.group_school_teacher"
-    />
-
-    <!-- ==================== 4.7 GRADING ==================== -->
-    <menuitem
-        id="menu_university_grading_category"
-        name="Grading"
         parent="menu_university_academic_category"
-        sequence="47"
+        action="action_university_assignment_submission"
+        sequence="60"
         groups="school_management.group_school_teacher"
     />
     <menuitem
         id="menu_university_assessment_result"
         name="Assessment Results"
-        parent="menu_university_grading_category"
+        parent="menu_university_academic_category"
         action="action_university_assessment_result"
-        sequence="10"
+        sequence="70"
         groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_report_card"
-        name="Report Cards"
-        parent="menu_university_grading_category"
-        action="action_university_report_card"
-        sequence="20"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_transcript"
-        name="Transcripts"
-        parent="menu_university_grading_category"
-        action="action_university_transcript"
-        sequence="30"
-        groups="school_management.group_school_admin"
     />
 
     <!-- ==================== 5. ADMISSIONS &amp; ENROLLMENT ==================== -->
@@ -469,7 +511,7 @@
         name="Administration"
         parent="menu_school_root"
         sequence="85"
-        groups="base.group_system,school_management.group_school_admin"
+        groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
     />
     <menuitem
         id="menu_university_finance_category"

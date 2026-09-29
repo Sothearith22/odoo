@@ -9,7 +9,7 @@
             <list string="Enrollments" sample="1">
                 <header>
                     <button name="%(school_management.action_university_bulk_enrollment_wizard)d"
-                            string="Bulk Major Enrollment"
+                            string="Bulk Enrollment"
                             type="action"
                             class="btn-primary"/>
                     <button name="%(school_management.action_print_curriculum_5plus)d"
@@ -19,15 +19,20 @@
                 </header>
                 <field name="student_id" decoration-bf="1"/>
                 <field name="program_id" string="Major / Program"/>
-                <field name="department_id"/>
-                <field name="faculty_id"/>
-                <field name="section_id" string="Class Section (Optional)" optional="hide"/>
+                <field name="section_id" string="Class Section"/>
+                <field name="department_id" optional="hide"/>
+                <field name="faculty_id" optional="hide"/>
                 <field name="subject_id" optional="hide"/>
                 <field name="teacher_id" optional="hide"/>
                 <field name="academic_year_id"/>
                 <field name="semester_id"/>
-                <field name="enrollment_date" optional="show"/>
-                <field name="status" widget="badge" decoration-success="status == 'enrolled'" decoration-info="status == 'completed'" decoration-danger="status == 'dropped'"/>
+                <field name="enrollment_date" optional="show" width="120px"/>
+                <field name="status"
+                       widget="badge"
+                       decoration-success="status == 'enrolled'"
+                       decoration-warning="status == 'draft'"
+                       decoration-danger="status in ['withdrawn', 'dropped']"
+                       decoration-muted="status == 'completed'"/>
             </list>
         </field>
     </record>
@@ -38,6 +43,16 @@
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
             <form string="Student Enrollment">
+                <header>
+                    <button name="action_withdraw"
+                            string="Withdraw"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="status in ['withdrawn', 'dropped']"/>
+                    <field name="status"
+                           widget="statusbar"
+                           statusbar_visible="draft,enrolled,withdrawn,completed"/>
+                </header>
                 <sheet>
                     <group>
                         <group string="Student">
@@ -53,7 +68,6 @@
                             <field name="academic_year_id" options="{'no_create': True}"/>
                             <field name="semester_id" options="{'no_create': True}"/>
                             <field name="enrollment_date"/>
-                            <field name="status"/>
                         </group>
                     </group>
                     <group string="Subject-Bound Sections (Legacy)" invisible="not section_id">
@@ -61,6 +75,7 @@
                         <field name="teacher_id"/>
                     </group>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -97,16 +112,25 @@
         <field name="arch" type="xml">
             <search string="Search Enrollments">
                 <field name="student_id"/>
+                <field name="faculty_id"/>
                 <field name="program_id"/>
+                <field name="academic_year_id"/>
                 <field name="section_id"/>
                 <field name="semester_id"/>
                 <separator/>
+                <filter string="Draft" name="filter_draft" domain="[('status', '=', 'draft')]"/>
                 <filter string="Enrolled" name="filter_enrolled" domain="[('status', '=', 'enrolled')]"/>
                 <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
+                <filter string="Withdrawn" name="filter_withdrawn" domain="[('status', '=', 'withdrawn')]"/>
                 <filter string="Dropped" name="filter_dropped" domain="[('status', '=', 'dropped')]"/>
+                <filter string="Possible duplicates"
+                        name="filter_possible_duplicates"
+                        domain="[('possible_duplicate', '=', True)]"/>
                 <group>
                     <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
-                    <filter string="Major / Program" name="group_by_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
+                    <filter string="Major " name="group_by_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
@@ -119,7 +143,7 @@
         <field name="name">university.enrollment.kanban</field>
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="status" quick_create="false">
+            <kanban sample="1" default_group_by="program_id" quick_create="false">
                 <field name="student_id"/>
                 <field name="program_id"/>
                 <field name="semester_id"/>
@@ -144,11 +168,6 @@
                             <div class="text-muted small mt-1" t-if="record.enrollment_date.value">
                                 <i class="fa fa-clock-o me-1" title="Enrollment Date"/>
                                 <field name="enrollment_date"/>
-                            </div>
-                            <div class="mt-2">
-                                <span t-if="record.status.raw_value == 'enrolled'" class="badge text-bg-success">Enrolled</span>
-                                <span t-if="record.status.raw_value == 'completed'" class="badge text-bg-info">Completed</span>
-                                <span t-if="record.status.raw_value == 'dropped'" class="badge text-bg-danger">Dropped</span>
                             </div>
                         </main>
                     </t>

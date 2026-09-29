@@ -172,19 +172,48 @@ class UniversityAdmissionApplication(models.Model):
         self.section_id = False
 
     def action_submit(self):
-        self.write({"state": "submitted"})
+        for application in self:
+            if application.state != "draft":
+                raise ValidationError(
+                    _("Only draft admission applications can be submitted.")
+                )
+            application.state = "submitted"
 
     def action_approve(self):
-        self.write({"state": "approved"})
+        for application in self:
+            if application.state != "submitted":
+                raise ValidationError(
+                    _("Only submitted admission applications can be approved.")
+                )
+            application.state = "approved"
 
     def action_reject(self):
-        self.write({"state": "rejected"})
+        for application in self:
+            if application.state != "submitted":
+                raise ValidationError(
+                    _("Only submitted admission applications can be rejected.")
+                )
+            application.state = "rejected"
 
     def action_cancel(self):
-        self.write({"state": "cancelled"})
+        for application in self:
+            if application.state not in ("draft", "submitted", "approved"):
+                raise ValidationError(
+                    _("Only draft, submitted, or approved applications can be cancelled.")
+                )
+            application.state = "cancelled"
 
     def action_reset_to_draft(self):
-        self.write({"state": "draft"})
+        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
+            raise ValidationError(
+                _("Only University Administrators can reset applications to draft.")
+            )
+        for application in self:
+            if application.state not in ("rejected", "cancelled"):
+                raise ValidationError(
+                    _("Only rejected or cancelled applications can be reset to draft.")
+                )
+            application.state = "draft"
 
     def action_confirm(self):
         for application in self:

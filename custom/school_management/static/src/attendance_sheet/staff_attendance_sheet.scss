@@ -1,0 +1,878 @@
+// Staff Attendance Sheet — Admin daily staff attendance tracker
+// Palette: Purple primary (#6f5f9e) matching student track attendance screen
+
+.o_satt_sheet {
+    --satt-primary:        #6f5f9e;
+    --satt-primary-hover:  #5a4b85;
+    --satt-primary-soft:   #f1eff8;
+    --satt-primary-border: #dcd6ec;
+
+    --satt-green:       #15803d;
+    --satt-green-soft:  #ecfdf3;
+    --satt-green-dot:   #22c55e;
+    --satt-green-bdr:   #a7f3d0;
+
+    --satt-red:         #b42318;
+    --satt-red-soft:    #fef3f2;
+    --satt-red-dot:     #ef4444;
+    --satt-red-bdr:     #fecdca;
+
+    --satt-amber:       #b45309;
+    --satt-amber-soft:  #fffbeb;
+    --satt-amber-dot:   #f59e0b;
+    --satt-amber-bdr:   #fde68a;
+
+    --satt-blue:        #1e40af;
+    --satt-blue-soft:   #eff6ff;
+    --satt-blue-dot:    #3b82f6;
+    --satt-blue-bdr:    #bfdbfe;
+
+    --satt-border:      #e5e7eb;
+    --satt-border-str:  #d1d5db;
+    --satt-text:        #1f2937;
+    --satt-muted:       #6b7280;
+    --satt-faint:       #9aa1ac;
+    --satt-sunken:      #fafafc;
+    --satt-radius:      12px;
+    --satt-radius-ctl:  10px;
+    --satt-shadow:      0 1px 2px rgba(31, 41, 55, 0.04), 0 1px 3px rgba(31, 41, 55, 0.05);
+    --satt-shadow-bar:  0 -1px 0 var(--satt-border), 0 -8px 24px rgba(31, 41, 55, 0.05);
+    --satt-t:           150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    min-height: 100%;
+    padding-bottom: 12px;
+    background: #f7f8fc;
+    color: var(--satt-text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.o_satt_sheet * { box-sizing: border-box; }
+
+.o_satt_sheet :focus-visible {
+    outline: 2px solid var(--satt-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.o_satt_shell {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+}
+
+// ── Header ─────────────────────────────────────────────────────────────
+.o_satt_hdr {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.o_satt_hdr_main { min-width: 0; }
+
+.o_satt_title_row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.o_satt_back_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--satt-muted);
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius-ctl);
+    background: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--satt-t);
+
+    &:hover {
+        color: var(--satt-primary);
+        border-color: var(--satt-primary-border);
+        background: var(--satt-primary-soft);
+    }
+}
+
+.o_satt_h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--satt-text);
+}
+
+.o_satt_badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.o_satt_badge--recorded {
+    color: var(--satt-green);
+    background: var(--satt-green-soft);
+    border-color: var(--satt-green-bdr);
+}
+
+.o_satt_badge--pending {
+    color: var(--satt-muted);
+    background: var(--satt-sunken);
+    border-color: var(--satt-border);
+}
+
+.o_satt_badge_dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.o_satt_meta {
+    margin: 6px 0 0;
+    color: var(--satt-muted);
+    font-size: 13px;
+}
+
+// ── Right Header Controls Box ───────────────────────────────────────────
+.o_satt_controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.o_satt_control_box {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius-ctl);
+    padding: 6px 14px;
+}
+
+.o_satt_field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.o_satt_field_label {
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--satt-muted);
+    margin: 0;
+    line-height: 1;
+}
+
+.o_satt_field_control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.o_satt_field_icon {
+    font-size: 12px;
+    color: var(--satt-muted);
+}
+
+.o_satt_input_clean,
+.o_satt_select_clean {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--satt-text);
+    outline: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.o_satt_divider_v {
+    width: 1px;
+    height: 28px;
+    background: var(--satt-border);
+    margin: 0 16px;
+}
+
+// ── Error Banner ───────────────────────────────────────────────────────
+.o_satt_error {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--satt-red-soft);
+    border: 1px solid var(--satt-red-bdr);
+    border-radius: var(--satt-radius-ctl);
+    color: var(--satt-red);
+    font-size: 13px;
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────
+.o_satt_stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.o_satt_stat {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius);
+    box-shadow: var(--satt-shadow);
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 3px;
+        background: var(--satt-dot, var(--satt-primary-border));
+    }
+}
+
+.o_satt_stat--present { --satt-dot: var(--satt-green-dot); }
+.o_satt_stat--absent  { --satt-dot: var(--satt-red-dot);   }
+.o_satt_stat--late    { --satt-dot: var(--satt-amber-dot); }
+.o_satt_stat--leave   { --satt-dot: var(--satt-blue-dot);  }
+
+.o_satt_stat_icon_wrap {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+
+.o_satt_stat_body { min-width: 0; }
+
+.o_satt_stat_value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.o_satt_stat_label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--satt-muted);
+    white-space: nowrap;
+}
+
+// ── List Card ──────────────────────────────────────────────────────────
+.o_satt_card {
+    background: #fff;
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius);
+    box-shadow: var(--satt-shadow);
+    overflow: hidden;
+}
+
+.o_satt_toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px;
+    border-bottom: 1px solid var(--satt-border);
+}
+
+.o_satt_toolbar_left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 320px;
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.o_satt_search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 240px;
+    min-width: 180px;
+}
+
+.o_satt_search_icon {
+    position: absolute;
+    left: 12px;
+    color: var(--satt-faint);
+    font-size: 13px;
+    pointer-events: none;
+}
+
+.o_satt_search_input {
+    width: 100%;
+    min-height: 38px;
+    padding: 0 12px 0 34px;
+    background: var(--satt-sunken);
+    border: 1px solid var(--satt-border);
+    border-radius: 99px;
+    font-size: 13.5px;
+    color: var(--satt-text);
+    outline: none;
+    transition: all var(--satt-t);
+
+    &:focus {
+        background: #fff;
+        border-color: var(--satt-primary);
+        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+    }
+
+    &::placeholder { color: var(--satt-faint); }
+}
+
+.o_satt_filter {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--satt-sunken);
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius-ctl);
+    flex: none;
+}
+
+.o_satt_filter_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--satt-muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--satt-t), color var(--satt-t), box-shadow var(--satt-t);
+
+    &:hover { color: var(--satt-text); }
+}
+
+.o_satt_filter_btn--active {
+    background: var(--satt-primary) !important;
+    border-color: var(--satt-primary) !important;
+    color: #fff !important;
+    font-weight: 600;
+}
+
+.o_satt_filter_count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--satt-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.o_satt_filter_btn--active .o_satt_filter_count { color: rgba(255,255,255,0.8); }
+
+// ── Column Headings ────────────────────────────────────────────────────
+.o_satt_listhead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px 115px 115px 85px 50px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--satt-sunken);
+    border-bottom: 1px solid var(--satt-border);
+}
+
+.o_satt_listhead_label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--satt-muted);
+}
+
+.o_satt_listhead_label--center { text-align: center; }
+
+// ── Staff Rows ─────────────────────────────────────────────────────────
+.o_satt_rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.o_satt_row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px 115px 115px 85px 50px;
+    gap: 12px;
+    align-items: center;
+    min-height: 70px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--satt-border);
+    transition: background-color var(--satt-t);
+
+    &:last-child { border-bottom: 0; }
+    &:hover { background: var(--satt-sunken); }
+}
+
+.o_satt_row--active {
+    background: #faf9fd;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: var(--satt-primary);
+    }
+}
+
+// ── Staff Cell ─────────────────────────────────────────────────────────
+.o_satt_staff {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.o_satt_avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    user-select: none;
+    flex: none;
+}
+
+.o_satt_avatar--0 { background: #efebf8; color: #5a4b85; }
+.o_satt_avatar--1 { background: #e7f3ee; color: #1f6a50; }
+.o_satt_avatar--2 { background: #fbede6; color: #96532b; }
+.o_satt_avatar--3 { background: #e9f0f7; color: #3a5b7d; }
+
+.o_satt_staff_text { min-width: 0; }
+
+.o_satt_staff_name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--satt-text);
+}
+
+.o_satt_staff_meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--satt-muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_satt_staff_sep { color: var(--satt-faint); }
+
+.o_satt_chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 5px;
+    background: var(--satt-primary-soft);
+    color: var(--satt-primary);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+// ── Segmented Status Control ───────────────────────────────────────────
+.o_satt_seg {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    background: var(--satt-sunken);
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius-ctl);
+}
+
+.o_satt_seg__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1 1 0;
+    min-height: 36px;
+    padding: 0 6px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--satt-muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--satt-t), color var(--satt-t), box-shadow var(--satt-t);
+
+    i { font-size: 11px; }
+
+    &:hover:not(:disabled) { background: #fff; color: var(--satt-text); }
+    &:disabled { opacity: 0.65; cursor: not-allowed; }
+}
+
+.o_satt_seg__btn--on {
+    color: #fff !important;
+    font-weight: 600;
+    box-shadow: var(--satt-shadow);
+}
+
+.o_satt_seg__btn--present.o_satt_seg__btn--on { background: var(--satt-green); border-color: var(--satt-green); }
+.o_satt_seg__btn--absent.o_satt_seg__btn--on  { background: var(--satt-red);   border-color: var(--satt-red);   }
+.o_satt_seg__btn--late.o_satt_seg__btn--on    { background: var(--satt-amber); border-color: var(--satt-amber); }
+.o_satt_seg__btn--leave.o_satt_seg__btn--on   { background: #2563eb;           border-color: #2563eb;           }
+
+// ── Time Cells ─────────────────────────────────────────────────────────
+.o_satt_timecell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_satt_time_wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #fff;
+    border: 1px solid var(--satt-border);
+    border-radius: var(--satt-radius-ctl);
+    transition: border-color var(--satt-t), box-shadow var(--satt-t), opacity var(--satt-t);
+
+    &:focus-within {
+        border-color: var(--satt-primary);
+        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+    }
+}
+
+.o_satt_time_wrap--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    background: var(--satt-sunken);
+}
+
+.o_satt_time_icon { font-size: 11px; flex: none; }
+
+.o_satt_time_input {
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--satt-text);
+    outline: none;
+    min-width: 65px;
+    cursor: pointer;
+}
+
+// ── Hours Badge ────────────────────────────────────────────────────────
+.o_satt_hourscell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.o_satt_hours_badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    background: var(--satt-sunken);
+    border: 1px solid var(--satt-border);
+    color: var(--satt-muted);
+
+    &.o_satt_hours_badge--filled {
+        background: var(--satt-green-soft);
+        border-color: var(--satt-green-bdr);
+        color: var(--satt-green);
+    }
+}
+
+// ── Note Cell ──────────────────────────────────────────────────────────
+.o_satt_notecell {
+    display: flex;
+    justify-content: center;
+}
+
+.o_satt_notebtn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--satt-border);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--satt-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--satt-t);
+
+    &:hover { background: var(--satt-sunken); color: var(--satt-text); }
+}
+
+.o_satt_notebtn--has-note,
+.o_satt_notebtn--open {
+    background: var(--satt-primary-soft);
+    border-color: var(--satt-primary-border);
+    color: var(--satt-primary);
+}
+
+.o_satt_notebtn_dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--satt-primary);
+}
+
+// ── Inline Note Row ────────────────────────────────────────────────────
+.o_satt_noterow { background: #faf9fd; min-height: auto !important; }
+
+.o_satt_noterow_inner {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0 12px 56px;
+}
+
+.o_satt_noterow_field {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--satt-primary-border);
+    border-radius: var(--satt-radius-ctl);
+    transition: border-color var(--satt-t), box-shadow var(--satt-t);
+
+    &:focus-within {
+        border-color: var(--satt-primary);
+        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+    }
+}
+
+.o_satt_note_input {
+    width: 100%;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--satt-text);
+    outline: none;
+
+    &::placeholder { color: var(--satt-faint); }
+}
+
+.o_satt_linkbtn {
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--satt-muted);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all var(--satt-t);
+
+    &:hover { background: var(--satt-sunken); color: var(--satt-text); }
+}
+
+.o_satt_linkbtn--danger:hover { background: var(--satt-red-soft); color: var(--satt-red); }
+
+// ── Empty States ───────────────────────────────────────────────────────
+.o_satt_empty {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--satt-muted);
+}
+
+.o_satt_empty_icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--satt-sunken);
+    color: var(--satt-faint);
+}
+
+.o_satt_empty_title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--satt-text);
+    margin: 0 0 6px;
+}
+
+// ── Sticky Footer (Action Bar) ─────────────────────────────────────────
+.o_satt_actionbar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: saturate(1.4) blur(8px);
+    border: 1px solid var(--satt-border);
+    border-bottom: 0;
+    border-radius: var(--satt-radius) var(--satt-radius) 0 0;
+    box-shadow: var(--satt-shadow-bar);
+}
+
+.o_satt_hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 13px;
+    color: var(--satt-muted);
+}
+
+.o_satt_hint_dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--satt-green-dot);
+    transition: background-color var(--satt-t);
+}
+
+.o_satt_hint--dirty { color: var(--satt-amber); font-weight: 500; }
+.o_satt_hint--dirty .o_satt_hint_dot { background: var(--satt-amber-dot); }
+
+.o_satt_actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_satt_btn--ghost {
+    background: #fff;
+    border-color: var(--satt-border);
+    color: var(--satt-text);
+
+    &:hover {
+        background: var(--satt-sunken);
+        border-color: var(--satt-border-str);
+    }
+}
+
+.o_satt_btn--primary {
+    background: var(--satt-primary) !important;
+    border-color: var(--satt-primary) !important;
+    color: #fff !important;
+
+    &:hover {
+        background: var(--satt-primary-hover) !important;
+        border-color: var(--satt-primary-hover) !important;
+    }
+}
+
+// ── Subtle Bootstrap Color Overrides ───────────────────────────────────
+.o_satt_sheet {
+    .bg-success-subtle { background-color: var(--satt-green-soft) !important; }
+    .bg-danger-subtle  { background-color: var(--satt-red-soft)   !important; }
+    .bg-warning-subtle { background-color: var(--satt-amber-soft) !important; }
+    .bg-info-subtle    { background-color: var(--satt-blue-soft)  !important; }
+    .text-success { color: var(--satt-green) !important; }
+    .text-danger  { color: var(--satt-red)   !important; }
+    .text-warning { color: var(--satt-amber) !important; }
+    .text-info    { color: var(--satt-blue)  !important; }
+}
+
+// ── Responsive Adaptations ─────────────────────────────────────────────
+@media (max-width: 1024px) {
+    .o_satt_listhead,
+    .o_satt_row { grid-template-columns: minmax(0, 1fr) 260px 105px 105px 75px 50px; }
+}
+
+@media (max-width: 820px) {
+    .o_satt_shell { padding: 20px 14px 0; }
+    .o_satt_h1 { font-size: 22px; }
+    .o_satt_stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .o_satt_listhead { display: none; }
+
+    .o_satt_row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .o_satt_timecell,
+    .o_satt_hourscell,
+    .o_satt_notecell { justify-content: flex-start; }
+
+    .o_satt_seg { width: 100%; }
+    .o_satt_seg__btn { min-height: 40px; }
+    .o_satt_noterow_inner { padding: 0 0 12px; flex-wrap: wrap; }
+    .o_satt_actionbar { padding: 12px 14px; }
+}

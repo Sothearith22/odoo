@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_university_attendance_sheet" model="ir.actions.client">
+        <field name="name">Track Attendance</field>
+        <field name="tag">university_attendance_sheet</field>
+        <field name="target">current</field>
+    </record>
+</odoo>

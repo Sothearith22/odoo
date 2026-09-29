@@ -150,14 +150,29 @@
         <field name="name">university.report.card.list</field>
         <field name="model">university.report.card</field>
         <field name="arch" type="xml">
-            <list string="Report Cards">
+            <list string="Report Cards" sample="1">
                 <field name="name"/>
                 <field name="student_id"/>
                 <field name="program_id"/>
                 <field name="academic_year_id"/>
                 <field name="semester_id"/>
-                <field name="gpa"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'" decoration-warning="state == 'generated'"/>
+                <field name="total_credits" string="Credits"/>
+                <field name="passed_credits" string="Passed"/>
+                <field name="gpa" string="GPA" widget="badge"
+                       decoration-success="gpa &gt;= 3.5"
+                       decoration-info="gpa &gt;= 2.0 and gpa &lt; 3.5"
+                       decoration-danger="gpa &lt; 2.0"/>
+                <field name="academic_standing" widget="badge"
+                       decoration-success="academic_standing == 'dean_list'"
+                       decoration-info="academic_standing == 'good'"
+                       decoration-danger="academic_standing == 'probation'"/>
+                <field name="evaluation_status" widget="badge"
+                       decoration-success="evaluation_status == 'completed'"
+                       decoration-warning="evaluation_status == 'in_progress'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'approved'"
+                       decoration-warning="state == 'generated'"/>
             </list>
         </field>
     </record>
@@ -168,35 +183,89 @@
         <field name="arch" type="xml">
             <form string="Report Card">
                 <header>
-                    <button name="action_generate_lines" type="object" string="Generate Lines" class="oe_highlight"/>
-                    <button name="action_approve" type="object" string="Approve" invisible="state == 'approved'"/>
-                    <button name="action_print_report_card" type="object" string="Print"/>
+                    <button name="action_generate_lines" type="object" string="Generate / Recalculate Grades" class="btn-primary"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success" invisible="state == 'approved'"/>
+                    <button name="action_print_report_card" type="object" string="Print PDF" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,generated,approved"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <!-- Clean KPI Metric Cards -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 col-md-3">
+                            <div class="card p-2 text-center bg-light border">
+                                <span class="text-muted small text-uppercase fw-semibold">Term GPA</span>
+                                <h3 class="mb-0 fw-bold text-primary"><field name="gpa"/></h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-2 text-center bg-light border">
+                                <span class="text-muted small text-uppercase fw-semibold">Total Credits</span>
+                                <h3 class="mb-0 fw-bold text-dark"><field name="total_credits"/></h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-2 text-center bg-light border">
+                                <span class="text-muted small text-uppercase fw-semibold">Passed Credits</span>
+                                <h3 class="mb-0 fw-bold text-success"><field name="passed_credits"/></h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card p-2 text-center bg-light border">
+                                <span class="text-muted small text-uppercase fw-semibold">Academic Standing</span>
+                                <h4 class="mb-0 fw-bold">
+                                    <field name="academic_standing" widget="badge"
+                                           decoration-success="academic_standing == 'dean_list'"
+                                           decoration-info="academic_standing == 'good'"
+                                           decoration-danger="academic_standing == 'probation'"/>
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
                     <group>
-                        <group>
+                        <group string="Student &amp; Program">
                             <field name="student_id"/>
                             <field name="program_id"/>
+                            <field name="evaluation_status" widget="badge"
+                                   decoration-success="evaluation_status == 'completed'"
+                                   decoration-warning="evaluation_status == 'in_progress'"/>
+                        </group>
+                        <group string="Period &amp; Grading Rules">
                             <field name="academic_year_id"/>
                             <field name="semester_id"/>
-                        </group>
-                        <group>
                             <field name="grade_scale_id"/>
-                            <field name="total_credits"/>
-                            <field name="gpa"/>
                         </group>
                     </group>
-                    <field name="line_ids">
-                        <list editable="bottom">
-                            <field name="subject_id"/>
-                            <field name="credits"/>
-                            <field name="final_score"/>
-                            <field name="grade"/>
-                            <field name="grade_point"/>
-                            <field name="is_passing"/>
-                        </list>
-                    </field>
+
+                    <notebook>
+                        <page string="Course Component Breakdown" name="components_tab">
+                            <field name="line_ids">
+                                <list editable="bottom"
+                                      decoration-danger="not is_passing"
+                                      decoration-success="is_passing">
+                                    <field name="subject_id"/>
+                                    <field name="credits" string="Credits"/>
+                                    <field name="attendance_score" string="Att (10%)"/>
+                                    <field name="quiz_score" string="Quiz (10%)"/>
+                                    <field name="midterm_score" string="Mid (20%)"/>
+                                    <field name="assignment_score" string="Assign (10%)"/>
+                                    <field name="final_exam_score" string="Final (50%)"/>
+                                    <field name="final_score" string="Total (100%)" class="fw-bold"/>
+                                    <field name="grade" string="Grade" class="fw-bold"/>
+                                    <field name="grade_point" string="GPA Pts"/>
+                                    <field name="is_passing" string="Pass" widget="boolean"/>
+                                    <field name="evaluation_status" string="Status" widget="badge"
+                                           decoration-success="evaluation_status == 'completed'"
+                                           decoration-warning="evaluation_status == 'in_progress'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -226,7 +295,10 @@
                 <field name="student_id"/>
                 <field name="program_id"/>
                 <field name="total_credits"/>
-                <field name="cumulative_gpa"/>
+                <field name="cumulative_gpa" widget="badge"
+                       decoration-success="cumulative_gpa &gt;= 3.5"
+                       decoration-info="cumulative_gpa &gt;= 2.0 and cumulative_gpa &lt; 3.5"
+                       decoration-danger="cumulative_gpa &lt; 2.0"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'approved'" decoration-warning="state == 'generated'"/>
             </list>
         </field>
@@ -238,27 +310,38 @@
         <field name="arch" type="xml">
             <form string="Transcript">
                 <header>
-                    <button name="action_generate_lines" type="object" string="Generate Lines" class="oe_highlight"/>
-                    <button name="action_approve" type="object" string="Approve" invisible="state == 'approved'"/>
-                    <button name="action_print_transcript" type="object" string="Print"/>
+                    <button name="action_generate_lines" type="object" string="Generate / Recalculate Transcript" class="btn-primary"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success" invisible="state == 'approved'"/>
+                    <button name="action_print_transcript" type="object" string="Print PDF" class="btn-secondary"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,generated,approved"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
                     <group>
-                        <field name="student_id"/>
-                        <field name="program_id"/>
-                        <field name="total_credits"/>
-                        <field name="cumulative_gpa"/>
+                        <group>
+                            <field name="student_id"/>
+                            <field name="program_id"/>
+                        </group>
+                        <group>
+                            <field name="total_credits"/>
+                            <field name="cumulative_gpa"/>
+                        </group>
                     </group>
                     <field name="line_ids">
-                        <list editable="bottom">
+                        <list editable="bottom"
+                              decoration-danger="not is_passing"
+                              decoration-success="is_passing">
                             <field name="academic_year_id"/>
                             <field name="semester_id"/>
                             <field name="subject_id"/>
                             <field name="credits"/>
-                            <field name="final_score"/>
-                            <field name="grade"/>
+                            <field name="final_score" class="fw-bold"/>
+                            <field name="grade" class="fw-bold"/>
                             <field name="grade_point"/>
+                            <field name="is_passing" widget="boolean"/>
                         </list>
                     </field>
                 </sheet>

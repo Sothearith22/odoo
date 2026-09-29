@@ -98,11 +98,11 @@
         <field name="sort_order">80</field>
     </record>
 
-    <!-- ==================== PHASE 2 — IN PROGRESS / BETA ==================== -->
+    <!-- ==================== PHASE 2 — LIVE ==================== -->
     <record id="capability_timetable" model="university.capability">
         <field name="name">Timetable &amp; Room Scheduling</field>
         <field name="category">academic</field>
-        <field name="status">development</field>
+        <field name="status">active</field>
         <field name="phase">2</field>
         <field name="release_version">19.0.1.3</field>
         <field name="icon">fa-calendar</field>
@@ -113,22 +113,22 @@
     <record id="capability_attendance" model="university.capability">
         <field name="name">Attendance Tracking</field>
         <field name="category">academic</field>
-        <field name="status">planned</field>
+        <field name="status">active</field>
         <field name="phase">2</field>
         <field name="release_version">19.0.1.3</field>
         <field name="icon">fa-clock-o</field>
-        <field name="description">Daily attendance capture per class section and reporting.</field>
+        <field name="description">Daily attendance capture per class section, sheet UI and reporting.</field>
         <field name="sort_order">100</field>
     </record>
 
     <record id="capability_examination" model="university.capability">
         <field name="name">Examination &amp; Grading</field>
         <field name="category">academic</field>
-        <field name="status">planned</field>
+        <field name="status">active</field>
         <field name="phase">2</field>
         <field name="release_version">19.0.1.4</field>
         <field name="icon">fa-pencil</field>
-        <field name="description">Exams, mark sheets, grading scales and transcripts.</field>
+        <field name="description">Exams, mark sheets, 5-component grading rollup, GPA calculation and transcripts.</field>
         <field name="sort_order">110</field>
     </record>
 

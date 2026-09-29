@@ -42,47 +42,52 @@
                 <field name="program_id"/>
                 <field name="status"/>
                 <templates>
-                    <t t-name="card" class="o_university_kanban_card">
-                        <main class="p-3">
-                            <div class="o_kcard_head">
-                                <div class="o_kcard_avatar_wrap" aria-label="Student photo">
+                    <t t-name="card" class="o_university_kanban_card o_student_kanban_card">
+                        <main class="o_student_kanban_body">
+                            <div class="o_student_kanban_header">
+                                <div class="o_student_kanban_avatar" aria-label="Student photo">
                                     <t t-if="record.image_1920.raw_value">
                                         <field name="image_1920"
                                                widget="image"
-                                               class="o_kcard_avatar"
-                                               options="{'preview_image': 'image_1920', 'size': [80, 80]}"/>
+                                               class="o_student_kanban_avatar_img rounded-circle object-fit-cover"
+                                               options="{'preview_image': 'image_1920', 'size': [64, 64]}"/>
                                     </t>
                                     <t t-else="">
-                                        <div class="o_kcard_avatar o_kcard_avatar_placeholder">
+                                        <div class="o_student_kanban_avatar_fallback rounded-circle">
                                             <i class="fa fa-user" title="Student" aria-hidden="true"/>
                                         </div>
                                     </t>
                                 </div>
-                                <div class="o_kcard_title">
-                                    <span class="o_kcard_name text-truncate" title="Open this student"><field name="name"/></span>
-                                    <span class="o_kcard_id">
-                                        <i class="fa fa-id-card me-1" title="Student ID" aria-hidden="true"/>
-                                        <field name="student_id"/>
-                                    </span>
+                                <div class="o_student_kanban_content">
+                                    <div class="o_student_kanban_title_row">
+                                        <span class="o_student_kanban_name text-truncate" title="Open this student">
+                                            <field name="name"/>
+                                        </span>
+                                        <field name="status"
+                                               widget="badge"
+                                               decoration-success="status == 'active'"
+                                               decoration-warning="status == 'suspended'"
+                                               decoration-muted="status in ['graduated', 'dropped']"/>
+                                    </div>
+                                    <div class="o_student_kanban_line" t-if="record.student_id.value">
+                                        <i class="fa fa-id-card" title="Student ID" aria-hidden="true"/>
+                                        <span class="text-truncate"><field name="student_id"/></span>
+                                    </div>
+                                    <div class="o_student_kanban_line" t-if="record.program_id.value">
+                                        <i class="fa fa-graduation-cap" title="Program" aria-hidden="true"/>
+                                        <span class="text-truncate"><field name="program_id"/></span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="o_kcard_meta" t-if="record.program_id.value">
-                                <i class="fa fa-graduation-cap" title="Program" aria-hidden="true"/>
-                                <span><field name="program_id"/></span>
-                            </div>
-                            <div class="o_kcard_status">
-                                <span class="o_kstatus" t-att-class="'o_kstatus_' + (record.status.raw_value || 'none')">
-                                    <span class="o_kstatus_dot" aria-hidden="true"/>
-                                    <span class="o_kstatus_label" t-esc="record.status.value"/>
-                                </span>
-                            </div>
                         </main>
-                        <footer class="o_kanban_footer o_kcard_footer d-flex justify-content-between align-items-center">
-                            <span class="o_kcard_footer_meta text-truncate" t-if="record.faculty_id.value">
-                                <i class="fa fa-building me-1" title="Faculty" aria-hidden="true"/>
+                        <footer class="o_student_kanban_footer">
+                            <span class="o_student_kanban_faculty text-truncate" t-if="record.faculty_id.value">
+                                <i class="fa fa-building" title="Faculty" aria-hidden="true"/>
                                 <field name="faculty_id"/>
                             </span>
-                            <span class="o_kcard_open text-truncate">Open <i class="fa fa-arrow-right ms-1" title="Open" aria-hidden="true"/></span>
+                            <a type="open" class="o_student_kanban_open">
+                                Open <i class="fa fa-arrow-right" title="Open" aria-hidden="true"/>
+                            </a>
                         </footer>
                     </t>
                 </templates>

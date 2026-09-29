@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="school_management.AttendanceSheet">
+        <t t-set="visibleRows" t-value="visibleLines"/>
+        <t t-set="tally" t-value="counts"/>
+
+        <div class="o_att_sheet" t-ref="root">
+            <div class="o_att_shell">
+
+                <!-- ==================== Header ==================== -->
+                <header class="o_att_hdr">
+                    <div class="o_att_hdr_main">
+                        <div class="o_att_title_row">
+                            <button type="button" class="btn btn-outline-secondary btn-sm o_att_back_btn shadow-sm"
+                                    title="Back to Attendance List"
+                                    t-on-click="onBack">
+                                <i class="fa fa-arrow-left me-1.5" aria-hidden="true"/> Attendance List
+                            </button>
+                            <h1 class="o_att_h1">Track Attendance</h1>
+                            <span t-att-class="'o_att_badge ' + (state.taken ? 'o_att_badge--recorded' : 'o_att_badge--pending')">
+                                <span class="o_att_badge_dot" aria-hidden="true"/>
+                                <span t-esc="state.taken ? 'Recorded' : 'Not recorded'"/>
+                            </span>
+                        </div>
+                        <p class="o_att_meta">
+                            <t t-if="state.lastSaved">
+                                <i class="fa fa-check-circle text-success me-1"/> Last saved at <strong t-esc="state.lastSaved"/>
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-clock-o text-muted me-1"/> Not saved yet
+                            </t>
+                        </p>
+                    </div>
+
+                    <!-- Right Controls Bar -->
+                    <div class="o_att_controls">
+                        <div class="o_att_control_box shadow-sm">
+                            <div class="o_att_field o_att_field--date">
+                                <label class="o_att_field_label" for="att_date">Date</label>
+                                <div class="o_att_field_control">
+                                    <i class="fa fa-calendar o_att_field_icon" aria-hidden="true"/>
+                                    <input id="att_date" type="date" class="o_att_input_clean" t-att-value="state.date" t-on-change="onDateChange"/>
+                                </div>
+                            </div>
+                            <div class="o_att_divider_v"/>
+                            <div class="o_att_field o_att_field--section">
+                                <label class="o_att_field_label" for="att_section">Class Section</label>
+                                <div class="o_att_field_control">
+                                    <i class="fa fa-users o_att_field_icon" aria-hidden="true"/>
+                                    <select id="att_section" class="o_att_select_clean" t-on-change="onSectionChange">
+                                        <option value="" t-att-selected="!state.sectionId">Select section...</option>
+                                        <option t-foreach="state.sections" t-as="section" t-key="section.id"
+                                                t-att-value="section.id"
+                                                t-att-selected="section.id === state.sectionId"
+                                                t-esc="section.display_name"/>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div t-if="state.error" class="o_att_error shadow-sm mb-4" role="alert">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-exclamation-triangle fa-lg text-danger" aria-hidden="true"/>
+                        <span class="fw-medium text-danger" t-esc="state.error"/>
+                    </div>
+                </div>
+
+                <!-- ==================== 4 Stats KPI Cards ==================== -->
+                <section class="o_att_stats" aria-label="Attendance summary">
+                    <div class="o_att_stat o_att_stat--present">
+                        <div class="o_att_stat_icon_wrap bg-success-subtle text-success">
+                            <i class="fa fa-check fa-lg" aria-hidden="true"/>
+                        </div>
+                        <div class="o_att_stat_body">
+                            <span class="o_att_stat_value text-dark" t-esc="tally.present"/>
+                            <span class="o_att_stat_label text-muted">Present</span>
+                        </div>
+                    </div>
+                    <div class="o_att_stat o_att_stat--absent">
+                        <div class="o_att_stat_icon_wrap bg-danger-subtle text-danger">
+                            <i class="fa fa-times fa-lg" aria-hidden="true"/>
+                        </div>
+                        <div class="o_att_stat_body">
+                            <span class="o_att_stat_value text-dark" t-esc="tally.absent"/>
+                            <span class="o_att_stat_label text-muted">Absent</span>
+                        </div>
+                    </div>
+                    <div class="o_att_stat o_att_stat--late">
+                        <div class="o_att_stat_icon_wrap bg-warning-subtle text-warning">
+                            <i class="fa fa-clock-o fa-lg" aria-hidden="true"/>
+                        </div>
+                        <div class="o_att_stat_body">
+                            <span class="o_att_stat_value text-dark" t-esc="tally.late"/>
+                            <span class="o_att_stat_label text-muted">Late</span>
+                        </div>
+                    </div>
+                    <div class="o_att_stat o_att_stat--total">
+                        <div class="o_att_stat_icon_wrap bg-primary-subtle text-primary">
+                            <i class="fa fa-users fa-lg" aria-hidden="true"/>
+                        </div>
+                        <div class="o_att_stat_body">
+                            <span class="o_att_stat_value text-dark" t-esc="tally.total"/>
+                            <span class="o_att_stat_label text-muted">Total students</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== List Card ==================== -->
+                <section class="o_att_card" aria-label="Student attendance list">
+                    <div class="o_att_toolbar">
+                        <div class="o_att_toolbar_left">
+                            <div class="o_att_search">
+                                <i class="fa fa-search o_att_search_icon" aria-hidden="true"/>
+                                <input type="search" t-att-value="state.query"
+                                       class="o_att_search_input"
+                                       placeholder="Search student by name or ID..."
+                                       aria-label="Search students by name or student ID"
+                                       t-on-input="onSearchInput"/>
+                            </div>
+                            <div class="o_att_filter" role="group" aria-label="Filter students">
+                                <button t-foreach="filters" t-as="option" t-key="option.value"
+                                        type="button"
+                                        t-att-class="'o_att_filter_btn' + (state.filter === option.value ? ' o_att_filter_btn--active' : '')"
+                                        t-att-data-filter="option.value"
+                                        t-att-aria-pressed="state.filter === option.value ? 'true' : 'false'"
+                                        t-on-click="() => this.setFilter(option.value)">
+                                    <span t-esc="option.label"/>
+                                    <span class="o_att_filter_count" t-esc="filterCount(option.value)"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="o_att_listhead" aria-hidden="true" t-if="visibleRows.length">
+                        <span class="o_att_listhead_label">Student</span>
+                        <span class="o_att_listhead_label o_att_listhead_label--center">Attendance</span>
+                        <span class="o_att_listhead_label o_att_listhead_label--center">Note</span>
+                    </div>
+
+                    <ul class="o_att_rows" t-if="visibleRows.length">
+                        <t t-foreach="visibleRows" t-as="line" t-key="line.student_id">
+                            <li t-att-class="'o_att_row' + (line.student_id === state.activeId ? ' o_att_row--active' : '')">
+                                <div class="o_att_student" t-on-click="() => this.setActive(line)">
+                                    <t t-if="line.has_image">
+                                        <img class="o_att_avatar" t-att-src="studentImageUrl(line)" alt=""/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-att-class="'o_att_avatar o_att_avatar--' + studentTone(line)" aria-hidden="true"
+                                              t-esc="studentInitial(line)"/>
+                                    </t>
+                                    <span class="o_att_student_text">
+                                        <span class="o_att_student_name" t-esc="line.name"/>
+                                        <span class="o_att_student_meta">
+                                            <span t-esc="line.code || 'No code'"/>
+                                            <span class="o_att_student_sep" aria-hidden="true">·</span>
+                                            <span t-if="line.section_name" class="o_att_chip" t-esc="line.section_name"/>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="o_att_seg" role="radiogroup"
+                                     t-att-aria-label="'Attendance for ' + line.name">
+                                    <button t-foreach="statusOptions" t-as="option" t-key="option.value"
+                                            type="button"
+                                            t-att-class="'o_att_seg__btn o_att_seg__btn--' + option.value + (line.status === option.value ? ' o_att_seg__btn--on' : '')"
+                                            role="radio"
+                                            t-att-data-student="line.student_id"
+                                            t-att-data-status="option.value"
+                                            t-att-aria-checked="line.status === option.value ? 'true' : 'false'"
+                                            t-att-aria-label="option.label + ' for ' + line.name"
+                                            t-att-title="option.label"
+                                            t-att-tabindex="line.status === option.value ? 0 : -1"
+                                            t-on-click="() => this.setStatus(line, option.value)"
+                                            t-on-keydown="(ev) => this.onSegKeydown(line, ev)">
+                                        <i t-if="line.status === option.value" class="fa fa-check me-1" aria-hidden="true"/>
+                                        <span t-esc="option.label"/>
+                                    </button>
+                                </div>
+
+                                <div class="o_att_notecell">
+                                    <button type="button"
+                                            t-att-class="'o_att_notebtn' + (line.remark ? ' o_att_notebtn--has-note' : (state.openNoteId === line.student_id ? ' o_att_notebtn--open' : ''))"
+                                            t-att-aria-expanded="state.openNoteId === line.student_id ? 'true' : 'false'"
+                                            t-att-aria-label="(line.remark ? 'Edit note' : 'Add note') + ' for ' + line.name"
+                                            t-on-click="() => this.toggleRemark(line)">
+                                        <i class="fa fa-comment-o" aria-hidden="true"/>
+                                        <span t-if="line.remark || state.openNoteId === line.student_id" class="o_att_notebtn_dot" aria-hidden="true"/>
+                                    </button>
+                                </div>
+                            </li>
+
+                            <li t-if="state.openNoteId === line.student_id" class="o_att_row o_att_noterow">
+                                <div class="o_att_noterow_inner">
+                                    <div class="o_att_noterow_field">
+                                        <input type="text" class="o_att_note_input"
+                                               t-att-value="line.remark"
+                                               t-att-placeholder="'Add an attendance note for ' + line.name + '...'"
+                                               t-att-aria-label="'Attendance note for ' + line.name"
+                                               t-on-input="(ev) => this.updateRemark(line, ev)"
+                                               t-on-keydown="(ev) => this.onNoteKeydown(line, ev)"/>
+                                    </div>
+                                    <button type="button" class="o_att_linkbtn"
+                                            t-on-click="() => this.closeRemark()">Done</button>
+                                    <button t-if="line.remark" type="button" class="o_att_linkbtn o_att_linkbtn--danger"
+                                            t-on-click="() => this.clearRemark(line)">Clear</button>
+                                </div>
+                            </li>
+                        </t>
+                    </ul>
+
+                    <!-- ==================== Polished Empty States ==================== -->
+                    <div t-if="state.loading" class="o_att_empty py-5">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem;"/>
+                        <p class="o_att_empty_title mb-1">Loading attendance data...</p>
+                        <p class="text-muted small">Retrieving student roster and records</p>
+                    </div>
+                    <div t-elif="isEmpty" class="o_att_empty py-5">
+                        <div class="o_empty_icon_box rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                            <i class="fa fa-users fa-2x text-muted" aria-hidden="true"/>
+                        </div>
+                        <h5 class="o_att_empty_title fw-bold text-dark mb-1">Select a Class Section</h5>
+                        <p class="text-muted small mb-0">Choose a class section from the dropdown above to view students and track attendance.</p>
+                    </div>
+                    <div t-elif="noStudents" class="o_att_empty py-5">
+                        <div class="o_empty_icon_box rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                            <i class="fa fa-user-plus fa-2x text-muted" aria-hidden="true"/>
+                        </div>
+                        <h5 class="o_att_empty_title fw-bold text-dark mb-1">No Enrolled Students</h5>
+                        <p class="text-muted small mb-3" style="max-width: 420px; margin: 0 auto;">
+                            There are currently no active students enrolled in section <strong class="text-dark" t-esc="currentSectionName"/>.
+                        </p>
+                    </div>
+                    <div t-elif="hasNoMatch" class="o_att_empty py-5">
+                        <div class="o_empty_icon_box rounded-circle mx-auto mb-3 bg-light d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                            <i class="fa fa-search fa-2x text-muted" aria-hidden="true"/>
+                        </div>
+                        <h5 class="o_att_empty_title fw-bold text-dark mb-1">No Students Match Your Filter</h5>
+                        <p class="text-muted small mb-3">Try searching with a different name or reset your search query.</p>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" t-on-click="() => { this.state.query = ''; this.state.filter = 'all'; }">
+                            <i class="fa fa-times me-1"/> Clear Filters
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ==================== Sticky Action Bar ==================== -->
+                <footer class="o_att_actionbar">
+                    <p t-att-class="'o_att_hint ' + (isDirty ? 'o_att_hint--dirty' : 'o_att_hint--clean')" aria-live="polite">
+                        <span class="o_att_hint_dot" aria-hidden="true"/>
+                        <span t-if="isDirty">Unsaved changes</span>
+                        <span t-elif="state.lastSaved">All changes saved</span>
+                        <span t-else="">Draft (not saved)</span>
+                    </p>
+                    <div class="o_att_actions">
+                        <button type="button" class="btn btn-sm btn-outline-secondary o_att_btn--ghost"
+                                title="Set every student in this section to Present"
+                                t-att-disabled="!state.lines.length || state.loading || state.saving"
+                                t-on-click="markAllPresent">
+                            <i class="fa fa-check-square-o me-1" aria-hidden="true"/> Mark all present
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary o_att_btn--primary shadow-sm"
+                                t-att-disabled="!state.lines.length || state.loading || state.saving"
+                                t-on-click="saveAttendance">
+                            <t t-if="state.saving">
+                                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"/>
+                                Saving...
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-floppy-o me-1" aria-hidden="true"/> Save attendance
+                            </t>
+                        </button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </t>
+</templates>
