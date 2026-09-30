@@ -7,6 +7,11 @@
         <field name="arch" type="xml">
             <form string="Bulk Enrollment">
                 <sheet>
+                    <field name="student_ids" invisible="1"/>
+                    <field name="eligible_student_ids" invisible="1"/>
+                    <field name="eligible_student_count" invisible="1"/>
+                    <field name="capacity_blocked" invisible="1"/>
+
                     <group>
                         <group string="Academic Structure">
                             <field name="faculty_id" options="{'no_create': True}"/>
@@ -23,13 +28,11 @@
                     </group>
 
                     <group string="Students">
-                        <field name="eligible_student_ids" invisible="1"/>
-                        <field name="line_ids" invisible="1"/>
-                        <div class="alert alert-info mb-2" role="alert">
+                        <div class="alert alert-info mb-2" role="alert" colspan="2">
                             Load active students matching the selected filters, review the checklist,
                             then enroll the selected students.
                         </div>
-                        <group>
+                        <div class="d-flex gap-2 mb-2" colspan="2">
                             <button name="action_load_eligible_students"
                                     string="Load eligible students"
                                     type="object"
@@ -48,17 +51,17 @@
                                     class="btn-secondary"
                                     icon="fa-times"
                                     invisible="not line_ids"/>
-                        </group>
-                        <field name="line_ids" nolabel="1">
-                            <list string="Eligible Students" editable="bottom" create="false" delete="false">
+                        </div>
+                        <field name="line_ids" nolabel="1" colspan="2">
+                            <list string="Eligible Students" editable="bottom" create="false" delete="false" decoration-muted="note != ''">
                                 <field name="selected" widget="boolean_toggle"/>
                                 <field name="student_code"/>
                                 <field name="student_id"/>
                                 <field name="program_id"/>
-                                <field name="note"/>
+                                <field name="note" decoration-danger="note == 'Already enrolled'"/>
                             </list>
                         </field>
-                        <group>
+                        <group col="2" colspan="2">
                             <field name="selected_student_count"
                                    string="Selected"
                                    readonly="1"
@@ -68,9 +71,6 @@
                                    readonly="1"
                                    invisible="not section_id"/>
                         </group>
-                        <field name="eligible_student_count" invisible="1"/>
-                        <field name="capacity_blocked"
-                               invisible="1"/>
                     </group>
                     <div invisible="not capacity_blocked"
                          class="alert alert-danger mb-0"

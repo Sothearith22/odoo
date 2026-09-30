@@ -34,7 +34,7 @@ class TestGradingIntegration(TransactionCase):
             "academic_year_id": self.academic_year.id,
             "semester_type": "semester_1",
             "date_start": "2026-01-01",
-            "date_end": "2026-06-30",
+            "date_end": "2026-04-23",
         })
 
         # Grade Scale

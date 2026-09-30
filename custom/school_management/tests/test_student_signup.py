@@ -9,7 +9,6 @@ class TestStudentSignup(TransactionCase):
         self.Student = self.env["university.student"].sudo()
         self.student_group = self.env.ref("school_management.group_school_student")
         self.portal_group = self.env.ref("base.group_portal")
-        self.student_portal_group = self.env.ref("school_management.group_student_portal")
         self.internal_group = self.env.ref("base.group_user")
 
     def test_signup_links_existing_student(self):
@@ -33,7 +32,6 @@ class TestStudentSignup(TransactionCase):
         self.assertEqual(student.user_id, user)
         self.assertFalse(user.share, "Sign-up students must be internal backend users")
         self.assertNotIn(self.portal_group, user.group_ids)
-        self.assertNotIn(self.student_portal_group, user.group_ids)
         self.assertIn(self.internal_group, user.group_ids)
         self.assertIn(self.student_group, user.group_ids)
 

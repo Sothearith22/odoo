@@ -250,7 +250,13 @@ class TestSecurityMenus(TransactionCase):
             {"name": "2025-2026", "date_start": "2025-09-01", "date_end": "2026-06-30"}
         )
         sem = self.env["university.semester"].create(
-            {"name": "S1", "academic_year_id": year.id, "semester_type": "semester_1"}
+            {
+                "name": "S1",
+                "academic_year_id": year.id,
+                "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
+            }
         )
         section_a = self.env["university.class.section"].sudo().create(
             {"name": "SEC-A", "program_id": prog_a.id, "semester_id": sem.id, "teacher_id": teacher.id}

@@ -1,68 +1,111 @@
 .o_student_dashboard {
     background: var(--bg-page);
     color: var(--text-body);
-}
 
-.o_student_dashboard_header {
-    background: var(--surface-card);
-}
+    .o_student_dashboard_header {
+        background: var(--surface-card);
+        padding: 1.25rem 1.5rem;
 
-.o_student_dashboard_empty {
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem;
-    text-align: center;
-}
-
-.o_student_stat_card {
-    position: relative;
-    overflow: hidden;
-}
-
-.o_student_stat_icon {
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    font-size: 1.25rem;
-
-    &.fa-book {
-        color: var(--brand-sapphire);
+        @media (min-width: 768px) {
+            padding-left: 230px !important;
+            padding-right: 2rem !important;
+        }
     }
 
-    &.fa-file-text-o {
-        color: var(--status-warning);
+    .o_student_header_avatar_wrap {
+        width: 48px;
+        height: 48px;
     }
 
-    &.fa-credit-card {
-        color: var(--status-success);
+    .o_student_header_avatar {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
     }
-}
 
-// Profile card avatar
-.o_student_avatar_wrap {
-    width: 96px;
-    height: 96px;
-}
+    .o_student_header_avatar_placeholder {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #1b2a4a 0%, #3a6ea5 100%);
+        border: 2px solid var(--border-color);
 
-.o_student_avatar {
-    width: 96px;
-    height: 96px;
-    object-fit: cover;
-    border: 3px solid var(--border-color);
-}
+        .o_student_header_avatar_letter {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1;
+            user-select: none;
+        }
+    }
 
-.o_student_avatar_placeholder {
-    width: 96px;
-    height: 96px;
-    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%);
-    border: 3px solid var(--border-color);
-}
+    .o_student_dashboard_empty {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        text-align: center;
+    }
 
-.o_student_profile_card {
-    .card-footer {
-        background: transparent;
+    .o_student_stat_card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .o_student_stat_icon {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        font-size: 1.25rem;
+
+        &.fa-book {
+            color: var(--brand-sapphire);
+        }
+
+        &.fa-file-text-o {
+            color: var(--status-warning);
+        }
+
+        &.fa-credit-card {
+            color: var(--status-success);
+        }
+    }
+
+    // Profile card avatar
+    .o_student_avatar_wrap {
+        width: 96px;
+        height: 96px;
+    }
+
+    .o_student_avatar {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border: 3px solid var(--border-color);
+    }
+
+    .o_student_avatar_placeholder {
+        width: 96px;
+        height: 96px;
+        background: linear-gradient(135deg, #1b2a4a 0%, #3a6ea5 100%);
+        border: 3px solid var(--border-color);
+        box-shadow: 0 4px 12px rgba(27, 42, 74, 0.15);
+
+        .o_student_avatar_letter {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            user-select: none;
+        }
+    }
+
+    .o_student_profile_card {
+        .card-footer {
+            background: transparent;
+        }
     }
 }

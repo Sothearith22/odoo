@@ -6,7 +6,6 @@ import { router } from "@web/core/browser/router";
 import { patch } from "@web/core/utils/patch";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { onMounted, useState } from "@odoo/owl";
-import { SchoolLayout } from "./school_layout";
 
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const STUDENT_APP_XMLID = "school_management.menu_school_student_portal_root";
@@ -95,11 +94,6 @@ function isSchoolAction(action = {}) {
     );
 }
 
-WebClient.components = {
-    ...WebClient.components,
-    SchoolLayout,
-};
-
 patch(WebClient.prototype, {
     setup() {
         super.setup();
@@ -182,9 +176,6 @@ patch(WebClient.prototype, {
         });
 
         // A real loaded action or an explicit dashboard action owns the route.
-        // During app selection Odoo can expose a stale router action before the
-        // ActionContainer has mounted; in that state the University app would
-        // render the shell with an empty content slot and never recover.
         if (isDashboardAction || actionLoaded) {
             return;
         }

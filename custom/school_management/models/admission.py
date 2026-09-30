@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class UniversityAdmissionApplication(models.Model):
@@ -131,7 +131,42 @@ class UniversityAdmissionApplication(models.Model):
                 != application.academic_year_id
             ):
                 raise ValidationError(
-                    "The selected semester does not belong to the selected academic year."
+                    _("The selected semester does not belong to the selected academic year.")
+                )
+
+    @api.constrains("date_of_birth", "application_date")
+    def _check_dates(self):
+        today = fields.Date.context_today(self)
+        for application in self:
+            if application.date_of_birth and application.date_of_birth > today:
+                raise ValidationError(_("Date of birth cannot be in the future."))
+            if application.application_date and application.application_date > today:
+                raise ValidationError(_("Application date cannot be in the future."))
+
+    @api.constrains("email", "program_id", "academic_year_id", "semester_id")
+    def _check_duplicate_application(self):
+        for application in self:
+            email = (application.email or "").strip()
+            if not email or not application.program_id or not application.academic_year_id:
+                continue
+            duplicate = self.search(
+                [
+                    ("id", "!=", application.id),
+                    ("email", "=ilike", email),
+                    ("program_id", "=", application.program_id.id),
+                    ("academic_year_id", "=", application.academic_year_id.id),
+                    ("semester_id", "=", application.semester_id.id),
+                    ("state", "not in", ("rejected", "cancelled")),
+                ],
+                limit=1,
+            )
+            if duplicate:
+                raise ValidationError(
+                    _(
+                        "An active admission application already exists for this email, "
+                        "program, academic year, and semester: %(reference)s."
+                    )
+                    % {"reference": duplicate.display_name}
                 )
 
     @api.constrains("section_id", "program_id", "semester_id")
@@ -180,6 +215,7 @@ class UniversityAdmissionApplication(models.Model):
             application.state = "submitted"
 
     def action_approve(self):
+        self._check_workflow_manager()
         for application in self:
             if application.state != "submitted":
                 raise ValidationError(
@@ -188,6 +224,7 @@ class UniversityAdmissionApplication(models.Model):
             application.state = "approved"
 
     def action_reject(self):
+        self._check_workflow_manager()
         for application in self:
             if application.state != "submitted":
                 raise ValidationError(
@@ -196,6 +233,7 @@ class UniversityAdmissionApplication(models.Model):
             application.state = "rejected"
 
     def action_cancel(self):
+        self._check_workflow_manager()
         for application in self:
             if application.state not in ("draft", "submitted", "approved"):
                 raise ValidationError(
@@ -204,10 +242,7 @@ class UniversityAdmissionApplication(models.Model):
             application.state = "cancelled"
 
     def action_reset_to_draft(self):
-        if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
-            raise ValidationError(
-                _("Only University Administrators can reset applications to draft.")
-            )
+        self._check_workflow_manager()
         for application in self:
             if application.state not in ("rejected", "cancelled"):
                 raise ValidationError(
@@ -216,6 +251,7 @@ class UniversityAdmissionApplication(models.Model):
             application.state = "draft"
 
     def action_confirm(self):
+        self._check_workflow_manager()
         for application in self:
             if application.state != "approved":
                 raise ValidationError(
@@ -263,7 +299,6 @@ class UniversityAdmissionApplication(models.Model):
         self.ensure_one()
         if self.student_id:
             student = self.student_id
-            student.write(self._student_update_vals())
             return student
 
         student = False
@@ -272,7 +307,6 @@ class UniversityAdmissionApplication(models.Model):
                 [("email", "=", self.email)], limit=1
             )
         if student:
-            student.write(self._student_update_vals())
             return student
 
         vals = self._student_update_vals()
@@ -287,6 +321,12 @@ class UniversityAdmissionApplication(models.Model):
             }
         )
         return self.env["university.student"].create(vals)
+
+    def _check_workflow_manager(self):
+        if not self.env.su and not self.env.user.has_group(
+            "school_management.group_school_admin"
+        ):
+            raise AccessError(_("Only University Administrators can change admission status."))
 
     def _student_update_vals(self):
         self.ensure_one()

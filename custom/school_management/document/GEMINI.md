@@ -39,7 +39,7 @@
   - Academic Standing thresholds: Dean's List ($\ge 3.50$), Good Standing ($\ge 2.00$), Academic Probation ($< 2.00$).
 
 ## 5. Automated Testing Rules
-- Every grading, exam, or academic feature must have a corresponding test class inheriting from `odoo.tests.common.TransactionCase` registered in `tests/__init__.py`.
+- Every grading, exam, or academic feature must have a corresponding test class inheriting from `odoo.tests.common.TransactionCase` registered in `../tests/__init__.py`.
 - Run verification tests with:
   ```powershell
   python odoo-bin -c odoo.conf -u school_management --test-enable --test-tags=/school_management:<TestClass> --stop-after-init

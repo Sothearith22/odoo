@@ -97,13 +97,19 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         if (
             self.env.context.get("active_model") == "university.student"
             and self.env.context.get("active_ids")
-            and "student_ids" in fields_list
         ):
             students = self.env["university.student"].browse(
                 self.env.context.get("active_ids")
             ).exists()
             if students:
                 values["student_ids"] = [(6, 0, students.ids)]
+                programs = students.mapped("program_id")
+                if len(programs) == 1 and programs:
+                    values.setdefault("program_id", programs.id)
+                    if programs.department_id:
+                        values.setdefault("department_id", programs.department_id.id)
+                        if programs.department_id.faculty_id:
+                            values.setdefault("faculty_id", programs.department_id.faculty_id.id)
 
         section = self.env["university.class.section"].browse(
             values.get("section_id")
@@ -127,10 +133,13 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
 
         return values
 
-    @api.depends("line_ids.selected")
+    @api.depends("line_ids.selected", "student_ids")
     def _compute_selected_student_count(self):
         for wizard in self:
-            wizard.selected_student_count = len(wizard.line_ids.filtered("selected"))
+            if wizard.line_ids:
+                wizard.selected_student_count = len(wizard.line_ids.filtered("selected"))
+            else:
+                wizard.selected_student_count = len(wizard.student_ids)
 
     @api.depends(
         "faculty_id",
@@ -152,6 +161,7 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         "section_id.capacity",
         "section_id.enrollment_ids.status",
         "line_ids.selected",
+        "student_ids",
     )
     def _compute_seats(self):
         for wizard in self:
@@ -163,9 +173,10 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
             enrolled = section.enrollment_ids.filtered(
                 lambda e: e.status == "enrolled"
             )
-            free = max(section.capacity - len(enrolled) - wizard.selected_student_count, 0)
+            count = wizard.selected_student_count
+            free = max(section.capacity - len(enrolled) - count, 0)
             wizard.available_seats = free if free >= 0 else 0
-            wizard.capacity_blocked = len(enrolled) + wizard.selected_student_count > section.capacity
+            wizard.capacity_blocked = len(enrolled) + count > section.capacity
 
     @api.onchange("faculty_id")
     def _onchange_faculty_id(self):
@@ -276,6 +287,8 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         return students - existing.mapped("student_id")
 
     def _get_matching_students(self):
+        if self.student_ids:
+            return self.student_ids
         if not self.program_id:
             return self.env["university.student"]
         return self.env["university.student"].search(self._student_domain_list(), order="name")
@@ -334,8 +347,13 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         if not self.program_id:
             raise UserError("Please select a Major / Program.")
         selected_lines = self.line_ids.filtered("selected")
-        if not selected_lines:
+        if selected_lines:
+            candidate_students = selected_lines.mapped("student_id")
+        elif self.student_ids:
+            candidate_students = self.student_ids
+        else:
             raise UserError("Please select at least one student.")
+
         if not self.academic_year_id:
             raise UserError("Please select an Academic Year.")
         if not self.semester_id:
@@ -349,10 +367,10 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
             )
 
         existing = self.env["university.enrollment"].search(
-            self._existing_enrollment_domain(selected_lines.mapped("student_id").ids)
+            self._existing_enrollment_domain(candidate_students.ids)
         )
         already_ids = existing.mapped("student_id.id")
-        students_to_enroll = selected_lines.mapped("student_id").filtered(lambda s: s.id not in already_ids)
+        students_to_enroll = candidate_students.filtered(lambda s: s.id not in already_ids)
 
         if not students_to_enroll:
             raise UserError("All selected students are already enrolled in this "

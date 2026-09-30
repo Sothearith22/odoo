@@ -81,6 +81,7 @@
     "views/attendance_sheet_views.xml",
     "views/attendance_views.xml",
     "views/staff_attendance_views.xml",
+    "views/service_hour_views.xml",
     "views/exam_views.xml",
 
     # Academic Reports
@@ -110,12 +111,7 @@
             "school_management/static/src/school_management/student_dashboard_shell.js",
             "school_management/static/src/school_management/student_dashboard_shell.xml",
             "school_management/static/src/school_management/student_dashboard_shell.scss",
-            "school_management/static/src/school_management/layout/school_layout.js",
-            "school_management/static/src/school_management/layout/school_layout.xml",
-            "school_management/static/src/school_management/layout/school_layout.scss",
-            "school_management/static/src/school_management/layout/webclient_patch.js",
-            "school_management/static/src/school_management/layout/webclient_patch.xml",
-            "school_management/static/src/school_management/layout/topbar_integration.scss",
+            "school_management/static/src/school_management/webclient_patch.js",
             "school_management/static/src/school_management/teacher_dashboard_shell.js",
             "school_management/static/src/school_management/teacher_dashboard_shell.xml",
             "school_management/static/src/school_management/teacher_dashboard_shell.scss",

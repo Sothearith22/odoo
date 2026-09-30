@@ -51,37 +51,12 @@
                                     --ink: #1f2430;
                                     background-color: var(--bg);
                                 }
-                                .o_main_navbar { display: none !important; }
-                                .o_form_view .o_form_sheet_bg { padding: 0 !important; background: none !important; }
-                                .o_form_view .o_form_sheet { padding: 0 !important; max-width: 100% !important; margin: 0 !important; border: none !important; }
-
-                                /* Sidebar - !important guards below because Odoo's own .offcanvas
-                                   rules (background-color: var(--bs-offcanvas-bg,#fff)) share the
-                                   same specificity and were winning the cascade, washing the sidebar
-                                   out to white. The inline style on the element is a second guard. */
-                                .o_school_dashboard_layout .sidebar-container { width: 250px; background-color: var(--brand-900) !important; }
-                                .sidebar-header { border-bottom: 1px solid rgba(255,255,255,0.12); }
-                                .sidebar-btn { transition: background-color 0.15s ease; color: #fff; }
-                                .sidebar-btn:hover { background-color: var(--brand-700) !important; }
-                                .sidebar-btn-active { background-color: var(--brand-600) !important; box-shadow: inset 3px 0 0 var(--accent); }
-                                .sidebar-submenu .sidebar-btn { color: rgba(255,255,255,0.75) !important; }
-                                .sidebar-submenu .sidebar-btn:hover { color: #fff !important; }
-
-                                /* Slim sidebar: checkbox lives in the header, so use :has() instead of sibling ~ */
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container { width: 72px !important; }
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .sidebar-text,
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .sidebar-arrow,
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .sidebar-submenu { display: none !important; }
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .sidebar-icon { margin-right: 0 !important; }
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .offcanvas-header { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .sidebar-btn { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
-                                .o_school_dashboard_layout:has(.o_sidebar_toggle:checked) .sidebar-container .nav-item .collapse { display: none !important; }
+                                .o_school_dashboard .o_form_sheet_bg { padding: 0 !important; background: none !important; }
+                                .o_school_dashboard .o_form_sheet { padding: 0 !important; max-width: 100% !important; margin: 0 !important; border: none !important; }
 
                                 /* Header */
                                 .dashboard-header { background-color: var(--surface); border-bottom: 1px solid var(--border); }
                                 .dashboard-title { color: var(--ink); }
-                                .sidebar-toggle-btn { color: var(--brand-900); transition: color 0.15s ease; }
-                                .sidebar-toggle-btn:hover { color: var(--accent); }
                                 .btn-brand-primary { background-color: var(--brand-900); border: 1px solid var(--brand-900); color: #fff; }
                                 .btn-brand-primary:hover { background-color: var(--brand-700); border-color: var(--brand-700); color: #fff; }
                                 .btn-brand-outline { background-color: transparent; border: 1px solid var(--border); color: var(--brand-900); }

@@ -60,10 +60,8 @@ class ResUsers(models.Model):
         internal_group = self.env.ref("base.group_user")
 
         signup_values = dict(values)
-        # Default student sign-up creates an internal school user so the
-        # student can access the backend Student Portal app. Portal-only
-        # students remain supported by group_student_portal when assigned
-        # explicitly through the normal portal flow.
+        # Default student sign-up creates an internal school user with the
+        # regular student role.
         signup_values["group_ids"] = [(6, 0, [internal_group.id, student_group.id])]
         signup_values["share"] = False
 

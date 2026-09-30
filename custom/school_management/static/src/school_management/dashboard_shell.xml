@@ -141,8 +141,9 @@
               </div>
               <button class="btn btn-sm o_dashboard_notifications"
                       type="button"
-                      title="Pending notifications"
-                      aria-label="Pending notifications">
+                      t-on-click="() => this.openPendingNotifications()"
+                      title="Pending admissions notifications"
+                      aria-label="Pending admissions notifications">
                 <i class="fa fa-bell-o" aria-hidden="true"/>
                 <span t-if="state.dashboard.pending_admission_count" class="badge rounded-pill" t-esc="state.dashboard.pending_admission_count"/>
               </button>

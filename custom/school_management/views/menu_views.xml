@@ -83,6 +83,15 @@
     />
 
     <menuitem
+        id="menu_school_student_portal_service_hours"
+        name="My Service Hours"
+        parent="menu_school_student_portal_academic"
+        action="action_university_service_hour"
+        sequence="32"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
         id="menu_school_student_portal_exams"
         name="My Exam Results"
         parent="menu_school_student_portal_academic"
@@ -334,7 +343,7 @@
     />
     <menuitem
         id="menu_university_staff_attendance"
-        name="Staff Attendance Records"
+        name="Staff Attendance"
         parent="menu_school_teacher_category"
         action="action_university_staff_attendance"
         sequence="15"
@@ -379,6 +388,15 @@
         parent="menu_university_academic_category"
         action="action_university_attendance_sheet"
         sequence="5"
+        groups="school_management.group_school_teacher"
+    />
+
+    <menuitem
+        id="menu_university_service_hours"
+        name="Service Hours"
+        parent="menu_university_academic_category"
+        action="action_university_service_hour"
+        sequence="75"
         groups="school_management.group_school_teacher"
     />
 
@@ -470,7 +488,7 @@
         name="Admissions &amp; Enrollment"
         parent="menu_school_root"
         sequence="50"
-        groups="school_management.group_school_hod"
+        groups="school_management.group_school_hod,school_management.group_school_registrar"
     />
     <menuitem
         id="menu_university_bulk_major_enrollment"
@@ -478,7 +496,7 @@
         parent="menu_university_enrollment_category"
         action="action_university_bulk_enrollment_wizard"
         sequence="5"
-        groups="base.group_system,school_management.group_school_admin"
+        groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
     />
     <menuitem
         id="menu_university_admission_application"
@@ -486,7 +504,7 @@
         parent="menu_university_enrollment_category"
         action="action_university_admission_application"
         sequence="7"
-        groups="base.group_system,school_management.group_school_admin"
+        groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
     />
     <menuitem
         id="menu_university_populate_class"
@@ -502,7 +520,7 @@
         parent="menu_university_enrollment_category"
         action="action_university_enrollment"
         sequence="10"
-        groups="school_management.group_school_hod"
+        groups="school_management.group_school_hod,school_management.group_school_registrar"
     />
 
     <!-- ==================== 6. FINANCE ==================== -->

@@ -67,10 +67,22 @@ class TestEnrollmentSectionPeriod(TransactionCase):
             {"name": "2026-2027", "date_start": "2026-09-01", "date_end": "2027-06-30"}
         )
         self.sem1 = Semester.create(
-            {"name": "S1", "academic_year_id": self.year1.id, "semester_type": "semester_1"}
+            {
+                "name": "S1",
+                "academic_year_id": self.year1.id,
+                "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
+            }
         )
         self.sem_other = Semester.create(
-            {"name": "S1-Other", "academic_year_id": self.year2.id, "semester_type": "semester_1"}
+            {
+                "name": "S1-Other",
+                "academic_year_id": self.year2.id,
+                "semester_type": "semester_1",
+                "date_start": "2026-09-01",
+                "date_end": "2026-12-22",
+            }
         )
         self.faculty = self.Faculty.create({"name": "F", "code": "F1"})
         self.department = self.Department.create(
@@ -107,6 +119,79 @@ class TestEnrollmentSectionPeriod(TransactionCase):
         enrollment._onchange_section_id()
         self.assertEqual(enrollment.semester_id, self.sem1)
         self.assertEqual(enrollment.academic_year_id, self.year1)
+
+
+class TestSemesterDateRules(TransactionCase):
+    def setUp(self):
+        super().setUp()
+        self.AcademicYear = self.env["university.academic.year"]
+        self.Semester = self.env["university.semester"]
+        self.year = self.AcademicYear.create(
+            {
+                "name": "2025-2026 Semester Rules",
+                "date_start": "2025-09-01",
+                "date_end": "2026-06-30",
+            }
+        )
+
+    def _semester_vals(self, **overrides):
+        values = {
+            "name": "Semester Rules Test",
+            "academic_year_id": self.year.id,
+            "semester_type": "semester_1",
+            "date_start": "2025-09-01",
+            "date_end": "2025-12-22",
+        }
+        values.update(overrides)
+        return values
+
+    def test_semester_dates_are_required(self):
+        self.assertTrue(self.Semester._fields["date_start"].required)
+        self.assertTrue(self.Semester._fields["date_end"].required)
+        with self.assertRaises(ValidationError):
+            self.Semester.create(
+                self._semester_vals(date_start=False, date_end=False)
+            )
+
+    def test_end_date_must_be_strictly_after_start(self):
+        with self.assertRaisesRegex(ValidationError, "strictly after"):
+            self.Semester.create(
+                self._semester_vals(date_start="2025-09-01", date_end="2025-09-01")
+            )
+
+    def test_semester_shorter_than_four_weeks_is_rejected(self):
+        with self.assertRaisesRegex(ValidationError, "at least 4 weeks"):
+            self.Semester.create(
+                self._semester_vals(date_start="2025-09-01", date_end="2025-09-27")
+            )
+
+    def test_unusual_duration_is_a_non_blocking_warning(self):
+        semester = self.Semester.create(
+            self._semester_vals(
+                date_start="2025-09-01",
+                date_end="2026-02-01",
+            )
+        )
+        self.assertTrue(semester)
+
+    def test_semester_must_fit_academic_year(self):
+        with self.assertRaisesRegex(ValidationError, "before the selected academic year"):
+            self.Semester.create(
+                self._semester_vals(
+                    date_start="2025-08-01",
+                    date_end="2025-11-21",
+                )
+            )
+
+    def test_semester_name_must_be_unique_per_academic_year(self):
+        self.Semester.create(self._semester_vals())
+        with self.assertRaisesRegex(ValidationError, "already used"):
+            self.Semester.create(
+                self._semester_vals(
+                    date_start="2026-01-05",
+                    date_end="2026-04-27",
+                )
+            )
 
 
 class TestLeadershipSourceOfTruth(TransactionCase):
@@ -183,7 +268,13 @@ class TestClassSectionDataRules(TransactionCase):
             {"name": "2025-2026", "date_start": "2025-09-01", "date_end": "2026-06-30"}
         )
         self.semester = Semester.create(
-            {"name": "S1", "academic_year_id": self.year.id, "semester_type": "semester_1"}
+            {
+                "name": "S1",
+                "academic_year_id": self.year.id,
+                "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
+            }
         )
         self.faculty = self.Faculty.create({"name": "F", "code": "F1"})
         self.department = self.Department.create(
@@ -235,7 +326,13 @@ class TestHodRecordRules(TransactionCase):
             {"name": "2025-2026", "date_start": "2025-09-01", "date_end": "2026-06-30"}
         )
         self.semester = Semester.create(
-            {"name": "S1", "academic_year_id": self.year.id, "semester_type": "semester_1"}
+            {
+                "name": "S1",
+                "academic_year_id": self.year.id,
+                "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
+            }
         )
         self.hod = self.Teacher.create({"name": "HOD", "department_id": self.department.id})
         self.hod_group = self.env.ref("school_management.group_school_hod")
@@ -301,7 +398,13 @@ class TestBulkEnrollmentWizard(TransactionCase):
             {"name": "2025-2026", "date_start": "2025-09-01", "date_end": "2026-06-30"}
         )
         self.semester = Semester.create(
-            {"name": "S1", "academic_year_id": self.year.id, "semester_type": "semester_1"}
+            {
+                "name": "S1",
+                "academic_year_id": self.year.id,
+                "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
+            }
         )
         self.faculty = self.Faculty.create({"name": "F", "code": "F1"})
         self.department = self.Department.create(

@@ -24,6 +24,17 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <record id="rule_student_own_service_hours" model="ir.rule">
+        <field name="name">Student: own service hours</field>
+        <field name="model_id" ref="model_university_service_hour"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <record id="rule_student_own_enrollments" model="ir.rule">
         <field name="name">Student: own enrollments</field>
         <field name="model_id" ref="model_university_enrollment"/>
@@ -587,65 +598,6 @@
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <!-- Student Portal (external / portal users): read only their own records.
-         These rules apply to members of group_student_portal only (a portal
-         role with no implied base.group_user), so they never widen backend
-         access. Every rule is strictly READ-ONLY. -->
-    <record id="rule_portal_own_student" model="ir.rule">
-        <field name="name">Student Portal: own profile</field>
-        <field name="model_id" ref="model_university_student"/>
-        <field name="groups" eval="[(4, ref('group_student_portal'))]"/>
-        <field name="domain_force">[('user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_portal_own_enrollments" model="ir.rule">
-        <field name="name">Student Portal: own enrollments</field>
-        <field name="model_id" ref="model_university_enrollment"/>
-        <field name="groups" eval="[(4, ref('group_student_portal'))]"/>
-        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_portal_own_attendance" model="ir.rule">
-        <field name="name">Student Portal: own attendance</field>
-        <field name="model_id" ref="model_university_attendance"/>
-        <field name="groups" eval="[(4, ref('group_student_portal'))]"/>
-        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_portal_own_fees" model="ir.rule">
-        <field name="name">Student Portal: own fees</field>
-        <field name="model_id" ref="model_university_fee"/>
-        <field name="groups" eval="[(4, ref('group_student_portal'))]"/>
-        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
-    </record>
-
-    <record id="rule_portal_own_payments" model="ir.rule">
-        <field name="name">Student Portal: own payments</field>
-        <field name="model_id" ref="model_university_payment"/>
-        <field name="groups" eval="[(4, ref('group_student_portal'))]"/>
-        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
-        <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
-        <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
 

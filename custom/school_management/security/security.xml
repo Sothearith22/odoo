@@ -85,22 +85,4 @@
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
-    <!--
-        Student Portal – external (portal) role for students.
-
-        This group implies base.group_portal (standard Odoo portal role) but
-        deliberately NOT group_school_user / base.group_user, so a student
-        signed up through the portal stays a real portal user (share = True)
-        with no backend access, no Apps menu and no internal copy of
-        base.group_user.
-
-        Portal READ-ONLY access to the student models is granted through this
-        group in ir.model.access.csv, and the matching record rules in
-        record_rules.xml restrict the portal user to their own records only.
-    -->
-    <record id="group_student_portal" model="res.groups">
-        <field name="name">Student Portal</field>
-        <field name="privilege_id" ref="school_management_privilege"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
-    </record>
 </odoo>

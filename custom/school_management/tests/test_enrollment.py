@@ -43,6 +43,8 @@ class TestEnrollment(TransactionCase):
                 "name": "Semester 1",
                 "academic_year_id": self.year.id,
                 "semester_type": "semester_1",
+                "date_start": "2025-09-01",
+                "date_end": "2025-12-22",
             }
         )
         self.section = Section.create(

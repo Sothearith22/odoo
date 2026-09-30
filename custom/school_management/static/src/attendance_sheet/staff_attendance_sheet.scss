@@ -1,47 +1,48 @@
 // Staff Attendance Sheet — Admin daily staff attendance tracker
-// Palette: Purple primary (#6f5f9e) matching student track attendance screen
+// Purple palette (#6f5f9e) with high-polish responsive UI matching student Track Attendance
 
 .o_satt_sheet {
     --satt-primary:        #6f5f9e;
     --satt-primary-hover:  #5a4b85;
-    --satt-primary-soft:   #f1eff8;
+    --satt-primary-soft:   #f4f1fa;
     --satt-primary-border: #dcd6ec;
 
     --satt-green:       #15803d;
     --satt-green-soft:  #ecfdf3;
-    --satt-green-dot:   #22c55e;
+    --satt-green-bar:   #22c55e;
     --satt-green-bdr:   #a7f3d0;
 
     --satt-red:         #b42318;
     --satt-red-soft:    #fef3f2;
-    --satt-red-dot:     #ef4444;
+    --satt-red-bar:     #ef4444;
     --satt-red-bdr:     #fecdca;
 
     --satt-amber:       #b45309;
     --satt-amber-soft:  #fffbeb;
-    --satt-amber-dot:   #f59e0b;
+    --satt-amber-bar:   #f59e0b;
     --satt-amber-bdr:   #fde68a;
 
-    --satt-blue:        #1e40af;
+    --satt-blue:        #2563eb;
     --satt-blue-soft:   #eff6ff;
-    --satt-blue-dot:    #3b82f6;
+    --satt-blue-bar:    #3b82f6;
     --satt-blue-bdr:    #bfdbfe;
 
     --satt-border:      #e5e7eb;
     --satt-border-str:  #d1d5db;
     --satt-text:        #1f2937;
     --satt-muted:       #6b7280;
-    --satt-faint:       #9aa1ac;
-    --satt-sunken:      #fafafc;
+    --satt-faint:       #9ca3af;
+    --satt-sunken:      #f9fafb;
     --satt-radius:      12px;
-    --satt-radius-ctl:  10px;
-    --satt-shadow:      0 1px 2px rgba(31, 41, 55, 0.04), 0 1px 3px rgba(31, 41, 55, 0.05);
-    --satt-shadow-bar:  0 -1px 0 var(--satt-border), 0 -8px 24px rgba(31, 41, 55, 0.05);
+    --satt-radius-ctl:  8px;
+    --satt-shadow:      0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --satt-shadow-card: 0 1px 4px rgba(15, 23, 42, 0.06);
+    --satt-shadow-bar:  0 -4px 18px rgba(15, 23, 42, 0.06);
     --satt-t:           150ms cubic-bezier(0.4, 0, 0.2, 1);
 
     min-height: 100%;
-    padding-bottom: 12px;
-    background: #f7f8fc;
+    padding-bottom: 16px;
+    background: #f8f9fc;
     color: var(--satt-text);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-size: 14px;
@@ -58,9 +59,9 @@
 }
 
 .o_satt_shell {
-    max-width: 1140px;
+    max-width: 1260px;
     margin: 0 auto;
-    padding: 32px 24px 0;
+    padding: 24px 24px 0;
 }
 
 // ── Header ─────────────────────────────────────────────────────────────
@@ -68,9 +69,9 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
 .o_satt_hdr_main { min-width: 0; }
@@ -86,12 +87,12 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 32px;
-    padding: 0 12px;
+    height: 34px;
+    padding: 0 14px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--satt-muted);
-    border: 1px solid var(--satt-border);
+    color: #4b5563;
+    border: 1px solid var(--satt-border-str);
     border-radius: var(--satt-radius-ctl);
     background: #fff;
     cursor: pointer;
@@ -107,11 +108,11 @@
 
 .o_satt_h1 {
     margin: 0;
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 26px;
+    font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.02em;
-    color: var(--satt-text);
+    color: #111827;
 }
 
 .o_satt_badge {
@@ -120,7 +121,6 @@
     gap: 6px;
     height: 26px;
     padding: 0 10px;
-    border: 1px solid transparent;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 600;
@@ -130,13 +130,13 @@
 .o_satt_badge--recorded {
     color: var(--satt-green);
     background: var(--satt-green-soft);
-    border-color: var(--satt-green-bdr);
+    border: 1px solid var(--satt-green-bdr);
 }
 
 .o_satt_badge--pending {
     color: var(--satt-muted);
-    background: var(--satt-sunken);
-    border-color: var(--satt-border);
+    background: #f3f4f6;
+    border: 1px solid var(--satt-border);
 }
 
 .o_satt_badge_dot {
@@ -147,7 +147,7 @@
 }
 
 .o_satt_meta {
-    margin: 6px 0 0;
+    margin: 4px 0 0 2px;
     color: var(--satt-muted);
     font-size: 13px;
 }
@@ -155,49 +155,44 @@
 // ── Right Header Controls Box ───────────────────────────────────────────
 .o_satt_controls {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
+    gap: 16px;
     flex-wrap: wrap;
-    gap: 12px;
 }
 
-.o_satt_control_box {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius-ctl);
-    padding: 6px 14px;
-}
-
-.o_satt_field {
+.o_satt_control_group {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
-.o_satt_field_label {
-    font-size: 10.5px;
+.o_satt_control_label {
+    font-size: 11.5px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: var(--satt-muted);
     margin: 0;
     line-height: 1;
 }
 
-.o_satt_field_control {
+.o_satt_pill_box {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    height: 38px;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid var(--satt-border-str);
+    border-radius: var(--satt-radius-ctl);
+    transition: all var(--satt-t);
+
+    &:focus-within {
+        border-color: var(--satt-primary);
+        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
+    }
 }
 
-.o_satt_field_icon {
-    font-size: 12px;
-    color: var(--satt-muted);
-}
-
-.o_satt_input_clean,
-.o_satt_select_clean {
+.o_satt_pill_input,
+.o_satt_pill_select {
     border: 0;
     background: transparent;
     font-family: inherit;
@@ -207,13 +202,12 @@
     outline: none;
     padding: 0;
     cursor: pointer;
+    min-width: 140px;
 }
 
-.o_satt_divider_v {
-    width: 1px;
-    height: 28px;
-    background: var(--satt-border);
-    margin: 0 16px;
+.o_satt_pill_icon {
+    font-size: 13px;
+    color: var(--satt-faint);
 }
 
 // ── Error Banner ───────────────────────────────────────────────────────
@@ -232,73 +226,73 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .o_satt_stat {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: #fff;
+    gap: 16px;
+    padding: 18px 20px;
+    background: #ffffff;
     border: 1px solid var(--satt-border);
     border-radius: var(--satt-radius);
     box-shadow: var(--satt-shadow);
-    overflow: hidden;
+    transition: all 180ms ease;
 
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 3px;
-        background: var(--satt-dot, var(--satt-primary-border));
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-}
 
-.o_satt_stat--present { --satt-dot: var(--satt-green-dot); }
-.o_satt_stat--absent  { --satt-dot: var(--satt-red-dot);   }
-.o_satt_stat--late    { --satt-dot: var(--satt-amber-dot); }
-.o_satt_stat--leave   { --satt-dot: var(--satt-blue-dot);  }
+    &--present { border-left: 4px solid var(--satt-green-bar); }
+    &--absent  { border-left: 4px solid var(--satt-red-bar);   }
+    &--late    { border-left: 4px solid var(--satt-amber-bar); }
+    &--leave   { border-left: 4px solid var(--satt-blue-bar);  }
+}
 
 .o_satt_stat_icon_wrap {
     width: 44px;
     height: 44px;
     min-width: 44px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
     flex: none;
 }
 
-.o_satt_stat_body { min-width: 0; }
+.o_satt_stat_body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
 
 .o_satt_stat_value {
     display: block;
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.02em;
+    color: #111827;
     font-variant-numeric: tabular-nums;
 }
 
 .o_satt_stat_label {
     display: block;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--satt-muted);
-    white-space: nowrap;
+    margin-top: 4px;
 }
 
-// ── List Card ──────────────────────────────────────────────────────────
+// ── Main Attendance Card ───────────────────────────────────────────────
 .o_satt_card {
-    background: #fff;
+    background: #ffffff;
     border: 1px solid var(--satt-border);
     border-radius: var(--satt-radius);
-    box-shadow: var(--satt-shadow);
+    box-shadow: var(--satt-shadow-card);
     overflow: hidden;
 }
 
@@ -308,30 +302,21 @@
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-    padding: 16px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--satt-border);
-}
-
-.o_satt_toolbar_left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1 1 320px;
-    min-width: 0;
-    flex-wrap: wrap;
 }
 
 .o_satt_search {
     position: relative;
     display: flex;
     align-items: center;
-    flex: 1 1 240px;
-    min-width: 180px;
+    flex: 1 1 280px;
+    max-width: 440px;
 }
 
 .o_satt_search_icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
     color: var(--satt-faint);
     font-size: 13px;
     pointer-events: none;
@@ -339,20 +324,20 @@
 
 .o_satt_search_input {
     width: 100%;
-    min-height: 38px;
-    padding: 0 12px 0 34px;
+    height: 38px;
+    padding: 0 14px 0 38px;
     background: var(--satt-sunken);
     border: 1px solid var(--satt-border);
-    border-radius: 99px;
-    font-size: 13.5px;
+    border-radius: 999px;
+    font-size: 13px;
     color: var(--satt-text);
     outline: none;
     transition: all var(--satt-t);
 
     &:focus {
-        background: #fff;
+        background: #ffffff;
         border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.12);
     }
 
     &::placeholder { color: var(--satt-faint); }
@@ -360,11 +345,12 @@
 
 .o_satt_filter {
     display: flex;
-    gap: 2px;
+    align-items: center;
+    gap: 3px;
     padding: 3px;
-    background: var(--satt-sunken);
+    background: #f3f4f6;
+    border-radius: 999px;
     border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius-ctl);
     flex: none;
 }
 
@@ -372,52 +358,56 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 32px;
+    height: 30px;
     padding: 0 12px;
     border: 0;
-    border-radius: 7px;
+    border-radius: 999px;
     background: transparent;
-    color: var(--satt-muted);
+    color: #4b5563;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color var(--satt-t), color var(--satt-t), box-shadow var(--satt-t);
+    transition: all var(--satt-t);
 
-    &:hover { color: var(--satt-text); }
-}
+    &:hover:not(.o_satt_filter_btn--active) {
+        color: #111827;
+        background: rgba(255, 255, 255, 0.6);
+    }
 
-.o_satt_filter_btn--active {
-    background: var(--satt-primary) !important;
-    border-color: var(--satt-primary) !important;
-    color: #fff !important;
-    font-weight: 600;
+    &--active {
+        background: #ffffff !important;
+        color: #111827 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
 }
 
 .o_satt_filter_count {
+    display: inline-block;
     font-size: 11px;
     font-weight: 600;
-    color: var(--satt-faint);
+    color: var(--satt-muted);
     font-variant-numeric: tabular-nums;
 }
 
-.o_satt_filter_btn--active .o_satt_filter_count { color: rgba(255,255,255,0.8); }
+.o_satt_filter_btn--active .o_satt_filter_count { color: var(--satt-primary); }
 
 // ── Column Headings ────────────────────────────────────────────────────
 .o_satt_listhead {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px 115px 115px 85px 50px;
+    grid-template-columns: minmax(240px, 1fr) 300px 115px 115px 85px 50px;
     gap: 12px;
     align-items: center;
-    padding: 10px 16px;
-    background: var(--satt-sunken);
+    padding: 10px 20px;
+    background: #fafafc;
     border-bottom: 1px solid var(--satt-border);
 }
 
 .o_satt_listhead_label {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--satt-muted);
 }
@@ -434,20 +424,20 @@
 .o_satt_row {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px 115px 115px 85px 50px;
+    grid-template-columns: minmax(240px, 1fr) 300px 115px 115px 85px 50px;
     gap: 12px;
     align-items: center;
-    min-height: 70px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--satt-border);
+    min-height: 72px;
+    padding: 10px 20px;
+    border-bottom: 1px solid #f3f4f6;
     transition: background-color var(--satt-t);
 
     &:last-child { border-bottom: 0; }
-    &:hover { background: var(--satt-sunken); }
+    &:hover { background: #fafafc; }
 }
 
 .o_satt_row--active {
-    background: #faf9fd;
+    background: #fbfaff;
 
     &::before {
         content: "";
@@ -470,9 +460,9 @@
 .o_satt_avatar {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
     border-radius: 50%;
     object-fit: cover;
     font-size: 14px;
@@ -491,13 +481,13 @@
 
 .o_satt_staff_name {
     display: block;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.3;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--satt-text);
+    color: #111827;
 }
 
 .o_satt_staff_meta {
@@ -509,15 +499,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-top: 2px;
 }
 
+.o_satt_code { font-variant-numeric: tabular-nums; }
 .o_satt_staff_sep { color: var(--satt-faint); }
 
 .o_satt_chip {
     display: inline-flex;
     align-items: center;
     padding: 1px 7px;
-    border-radius: 5px;
+    border-radius: 4px;
     background: var(--satt-primary-soft);
     color: var(--satt-primary);
     font-size: 11px;
@@ -526,13 +518,18 @@
 }
 
 // ── Segmented Status Control ───────────────────────────────────────────
-.o_satt_seg {
+.o_satt_seg_cell {
     display: flex;
+    justify-content: center;
+}
+
+.o_satt_seg {
+    display: inline-flex;
     gap: 3px;
     padding: 3px;
-    background: var(--satt-sunken);
+    background: #f3f4f6;
     border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius-ctl);
+    border-radius: 8px;
 }
 
 .o_satt_seg__btn {
@@ -540,36 +537,53 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    flex: 1 1 0;
-    min-height: 36px;
-    padding: 0 6px;
-    border: 1px solid transparent;
-    border-radius: 7px;
+    height: 32px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 6px;
     background: transparent;
-    color: var(--satt-muted);
+    color: #4b5563;
     font-family: inherit;
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color var(--satt-t), color var(--satt-t), box-shadow var(--satt-t);
+    transition: all 140ms ease;
 
     i { font-size: 11px; }
 
-    &:hover:not(:disabled) { background: #fff; color: var(--satt-text); }
+    &:hover:not(:disabled):not(.o_satt_seg__btn--on) {
+        background: #ffffff;
+        color: #111827;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
     &:disabled { opacity: 0.65; cursor: not-allowed; }
 }
 
 .o_satt_seg__btn--on {
-    color: #fff !important;
+    color: #ffffff !important;
     font-weight: 600;
-    box-shadow: var(--satt-shadow);
 }
 
-.o_satt_seg__btn--present.o_satt_seg__btn--on { background: var(--satt-green); border-color: var(--satt-green); }
-.o_satt_seg__btn--absent.o_satt_seg__btn--on  { background: var(--satt-red);   border-color: var(--satt-red);   }
-.o_satt_seg__btn--late.o_satt_seg__btn--on    { background: var(--satt-amber); border-color: var(--satt-amber); }
-.o_satt_seg__btn--leave.o_satt_seg__btn--on   { background: #2563eb;           border-color: #2563eb;           }
+.o_satt_seg__btn--present.o_satt_seg__btn--on {
+    background: var(--satt-green) !important;
+    box-shadow: 0 1px 3px rgba(21, 128, 61, 0.3);
+}
+
+.o_satt_seg__btn--absent.o_satt_seg__btn--on {
+    background: var(--satt-red) !important;
+    box-shadow: 0 1px 3px rgba(180, 35, 24, 0.3);
+}
+
+.o_satt_seg__btn--late.o_satt_seg__btn--on {
+    background: var(--satt-amber) !important;
+    box-shadow: 0 1px 3px rgba(180, 83, 9, 0.3);
+}
+
+.o_satt_seg__btn--leave.o_satt_seg__btn--on {
+    background: var(--satt-blue) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+}
 
 // ── Time Cells ─────────────────────────────────────────────────────────
 .o_satt_timecell {
@@ -582,15 +596,16 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 8px;
-    background: #fff;
-    border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius-ctl);
-    transition: border-color var(--satt-t), box-shadow var(--satt-t), opacity var(--satt-t);
+    height: 32px;
+    padding: 0 8px;
+    background: #ffffff;
+    border: 1px solid var(--satt-border-str);
+    border-radius: 6px;
+    transition: all var(--satt-t);
 
     &:focus-within {
         border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
     }
 }
 
@@ -626,13 +641,13 @@
     align-items: center;
     justify-content: center;
     min-width: 52px;
-    height: 26px;
+    height: 24px;
     padding: 0 8px;
     border-radius: 999px;
     font-size: 11.5px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    background: var(--satt-sunken);
+    background: #f3f4f6;
     border: 1px solid var(--satt-border);
     color: var(--satt-muted);
 
@@ -653,13 +668,13 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--satt-border);
-    border-radius: 9px;
-    background: #fff;
+    border-radius: 8px;
+    background: #ffffff;
     color: var(--satt-muted);
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: all var(--satt-t);
 
@@ -679,34 +694,34 @@
     right: -3px;
     width: 8px;
     height: 8px;
-    border: 2px solid #fff;
+    border: 2px solid #ffffff;
     border-radius: 50%;
     background: var(--satt-primary);
 }
 
-// ── Inline Note Row ────────────────────────────────────────────────────
-.o_satt_noterow { background: #faf9fd; min-height: auto !important; }
+// ── Inline Note Drawer ─────────────────────────────────────────────────
+.o_satt_noterow { background: #fbfaff; min-height: auto !important; }
 
 .o_satt_noterow_inner {
     grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0 12px 56px;
+    padding: 4px 0 12px 54px;
 }
 
 .o_satt_noterow_field {
     flex: 1 1 auto;
     display: flex;
     align-items: center;
-    background: #fff;
+    background: #ffffff;
     border: 1px solid var(--satt-primary-border);
     border-radius: var(--satt-radius-ctl);
-    transition: border-color var(--satt-t), box-shadow var(--satt-t);
+    transition: all var(--satt-t);
 
     &:focus-within {
         border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px var(--satt-primary-soft);
+        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
     }
 }
 
@@ -725,27 +740,17 @@
 }
 
 .o_satt_linkbtn {
-    min-height: 34px;
-    padding: 0 10px;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--satt-muted);
-    font-family: inherit;
+    height: 34px;
+    padding: 0 12px;
     font-size: 13px;
     font-weight: 500;
+    border-radius: 6px;
     white-space: nowrap;
-    cursor: pointer;
-    transition: all var(--satt-t);
-
-    &:hover { background: var(--satt-sunken); color: var(--satt-text); }
 }
-
-.o_satt_linkbtn--danger:hover { background: var(--satt-red-soft); color: var(--satt-red); }
 
 // ── Empty States ───────────────────────────────────────────────────────
 .o_satt_empty {
-    padding: 48px 24px;
+    padding: 56px 24px;
     text-align: center;
     color: var(--satt-muted);
 }
@@ -757,22 +762,22 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: var(--satt-sunken);
+    background: #f3f4f6;
     color: var(--satt-faint);
 }
 
 .o_satt_empty_title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--satt-text);
-    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+    margin: 12px 0 6px;
 }
 
 // ── Sticky Footer (Action Bar) ─────────────────────────────────────────
 .o_satt_actionbar {
     position: sticky;
     bottom: 0;
-    z-index: 5;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -780,8 +785,8 @@
     flex-wrap: wrap;
     margin-top: 16px;
     padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: saturate(1.4) blur(8px);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: saturate(1.4) blur(10px);
     border: 1px solid var(--satt-border);
     border-bottom: 0;
     border-radius: var(--satt-radius) var(--satt-radius) 0 0;
@@ -802,34 +807,45 @@
     height: 8px;
     border-radius: 50%;
     flex: none;
-    background: var(--satt-green-dot);
+    background: var(--satt-green-bar);
     transition: background-color var(--satt-t);
 }
 
 .o_satt_hint--dirty { color: var(--satt-amber); font-weight: 500; }
-.o_satt_hint--dirty .o_satt_hint_dot { background: var(--satt-amber-dot); }
+.o_satt_hint--dirty .o_satt_hint_dot { background: var(--satt-amber-bar); }
 
 .o_satt_actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.o_satt_btn--ghost {
-    background: #fff;
-    border-color: var(--satt-border);
-    color: var(--satt-text);
+.o_satt_btn_ghost {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--satt-border-str);
+    background: #ffffff;
+    color: #374151;
+    border-radius: 8px;
 
     &:hover {
-        background: var(--satt-sunken);
-        border-color: var(--satt-border-str);
+        background: #f9fafb;
+        border-color: #9ca3af;
+        color: #111827;
     }
 }
 
-.o_satt_btn--primary {
+.o_satt_btn_save {
+    height: 36px;
+    padding: 0 18px;
+    font-size: 13px;
+    font-weight: 600;
     background: var(--satt-primary) !important;
     border-color: var(--satt-primary) !important;
-    color: #fff !important;
+    color: #ffffff !important;
+    border-radius: 8px;
 
     &:hover {
         background: var(--satt-primary-hover) !important;
@@ -837,7 +853,7 @@
     }
 }
 
-// ── Subtle Bootstrap Color Overrides ───────────────────────────────────
+// ── Subtle Bootstrap Color Helpers ─────────────────────────────────────
 .o_satt_sheet {
     .bg-success-subtle { background-color: var(--satt-green-soft) !important; }
     .bg-danger-subtle  { background-color: var(--satt-red-soft)   !important; }
@@ -852,12 +868,12 @@
 // ── Responsive Adaptations ─────────────────────────────────────────────
 @media (max-width: 1024px) {
     .o_satt_listhead,
-    .o_satt_row { grid-template-columns: minmax(0, 1fr) 260px 105px 105px 75px 50px; }
+    .o_satt_row { grid-template-columns: minmax(200px, 1fr) 280px 105px 105px 75px 44px; }
 }
 
 @media (max-width: 820px) {
-    .o_satt_shell { padding: 20px 14px 0; }
-    .o_satt_h1 { font-size: 22px; }
+    .o_satt_shell { padding: 16px 12px 0; }
+    .o_satt_h1 { font-size: 20px; }
     .o_satt_stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .o_satt_listhead { display: none; }
 
@@ -867,12 +883,13 @@
         padding: 14px;
     }
 
+    .o_satt_seg_cell,
     .o_satt_timecell,
     .o_satt_hourscell,
     .o_satt_notecell { justify-content: flex-start; }
 
     .o_satt_seg { width: 100%; }
-    .o_satt_seg__btn { min-height: 40px; }
-    .o_satt_noterow_inner { padding: 0 0 12px; flex-wrap: wrap; }
+    .o_satt_seg__btn { min-height: 38px; }
+    .o_satt_noterow_inner { padding: 0 0 10px; flex-wrap: wrap; }
     .o_satt_actionbar { padding: 12px 14px; }
 }

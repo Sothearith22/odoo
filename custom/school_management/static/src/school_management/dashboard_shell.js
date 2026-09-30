@@ -108,6 +108,7 @@ class SchoolDashboardShell extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
+        this.notification = useService("notification");
 
         this.chartStatusRef = useRef("chart_status");
         this.chartProgramRef = useRef("chart_program");
@@ -232,8 +233,9 @@ class SchoolDashboardShell extends Component {
 
     async loadCapabilities() {
         const isSystem = await user.hasGroup(GROUP_SYSTEM);
+        const isAdmin = isSystem || (await user.hasGroup(GROUP_ADMIN));
         const can = async (role) => {
-            if (isSystem) {
+            if (isAdmin) {
                 return true;
             }
             return await user.hasGroup(role);
@@ -351,6 +353,9 @@ class SchoolDashboardShell extends Component {
         this.state.isNavigating = true;
         try {
             await this.action.doAction(actionXmlId);
+        } catch (error) {
+            console.error(`Failed to navigate to ${actionXmlId}`, error);
+            this.notification?.add(error.message || "Failed to open view", { type: "danger" });
         } finally {
             this.state.isNavigating = false;
         }
@@ -362,13 +367,26 @@ class SchoolDashboardShell extends Component {
                 type: "ir.actions.act_window",
                 name,
                 res_model: resModel,
+                views: [[false, "form"]],
                 view_mode: "form",
                 target: "current",
             });
         } catch (error) {
             console.error(`Failed to open ${name} form`, error);
-            this.state.error = error.message || `Unable to open ${name}.`;
+            this.notification?.add(error.message || `Unable to open ${name}.`, { type: "danger" });
         }
+    }
+
+    openPendingNotifications() {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Pending Admissions",
+            res_model: "university.admission.application",
+            views: [[false, "list"], [false, "form"]],
+            view_mode: "list,form",
+            domain: [["state", "=", "submitted"]],
+            context: { search_default_filter_submitted: 1 },
+        });
     }
 
     async openCapability(cap) {
@@ -386,6 +404,7 @@ class SchoolDashboardShell extends Component {
             });
         } catch (error) {
             console.error("Failed to open capability", error);
+            this.notification?.add(error.message || "Unable to open capability.", { type: "danger" });
         }
     }
 
@@ -404,7 +423,9 @@ class SchoolDashboardShell extends Component {
             await this.loadDashboardData();
             await this.loadRoadmapData();
             this.state.lastUpdated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            this.renderCharts();
+            setTimeout(() => {
+                this.renderCharts();
+            }, 50);
         } catch (error) {
             console.error("Failed to refresh dashboard data", error);
             this.state.error = error.message || "Unable to refresh dashboard data.";
