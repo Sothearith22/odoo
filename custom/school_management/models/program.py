@@ -5,11 +5,20 @@ from odoo.exceptions import UserError
 class UniversityProgram(models.Model):
     _name = "university.program"
     _description = "University Program"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _order = "name"
 
-    name = fields.Char(string="Program Name", required=True)
-    code = fields.Char(string="Program Code", required=True)
+    name = fields.Char(string="Program Name", required=True, tracking=True)
+    code = fields.Char(string="Program Code", required=True, tracking=True)
     department_id = fields.Many2one(
-        "university.department", string="Department", required=True
+        "university.department", string="Department", required=True, tracking=True
+    )
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        string="Faculty",
+        related="department_id.faculty_id",
+        store=True,
+        readonly=True,
     )
     degree_type = fields.Selection(
         [
@@ -21,9 +30,10 @@ class UniversityProgram(models.Model):
         string="Degree Type",
         default="bachelor",
         required=True,
+        tracking=True,
     )
-    duration_years = fields.Integer(string="Duration (Years)", default=4)
-    total_credits = fields.Integer(string="Total Credits Required", default=120)
+    duration_years = fields.Integer(string="Duration (Years)", default=4, tracking=True)
+    total_credits = fields.Integer(string="Total Credits Required", default=120, tracking=True)
     student_ids = fields.One2many(
         "university.student", "program_id", string="Students"
     )
@@ -32,7 +42,7 @@ class UniversityProgram(models.Model):
         "university_program_subject_rel",
         "program_id",
         "subject_id",
-        string="Subjects"
+        string="Subjects",
     )
     section_ids = fields.One2many(
         "university.class.section",
@@ -41,14 +51,56 @@ class UniversityProgram(models.Model):
     )
     subject_count = fields.Integer(
         string="Subject Count",
-        compute="_compute_subject_count",
+        compute="_compute_counts",
+        store=True,
     )
-    active = fields.Boolean(string="Active", default=True)
+    student_count = fields.Integer(
+        string="Student Count",
+        compute="_compute_counts",
+        store=True,
+    )
+    active_student_count = fields.Integer(
+        string="Active Students",
+        compute="_compute_counts",
+        store=True,
+    )
+    section_count = fields.Integer(
+        string="Section Count",
+        compute="_compute_counts",
+        store=True,
+    )
+    active = fields.Boolean(string="Active", default=True, tracking=True)
 
-    @api.depends("subject_ids")
-    def _compute_subject_count(self):
+    @api.depends("subject_ids", "student_ids.status", "section_ids")
+    def _compute_counts(self):
         for program in self:
             program.subject_count = len(program.subject_ids)
+            program.student_count = len(program.student_ids)
+            program.active_student_count = len(
+                program.student_ids.filtered(lambda s: s.status == "active")
+            )
+            program.section_count = len(program.section_ids)
+
+    def action_view_students(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_student")
+        action["domain"] = [("program_id", "=", self.id)]
+        action["context"] = {"default_program_id": self.id}
+        return action
+
+    def action_view_subjects(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_subject")
+        action["domain"] = [("program_ids", "in", self.id)]
+        action["context"] = {"default_program_ids": [(4, self.id)], "search_default_program_ids": self.id}
+        return action
+
+    def action_view_sections(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_class_section")
+        action["domain"] = [("program_id", "=", self.id)]
+        action["context"] = {"default_program_id": self.id}
+        return action
 
     def action_link_department_subjects(self):
         self.ensure_one()

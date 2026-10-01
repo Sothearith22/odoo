@@ -1,5 +1,6 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.tools import format_date
 
 
 class UniversityAcademicAssignment(models.Model):
@@ -37,19 +38,10 @@ class UniversityAcademicAssignment(models.Model):
         string="Department",
         domain="[('active', '=', True)]",
     )
-    start_date = fields.Date(string="Start Date")
+    start_date = fields.Date(string="Start Date", required=True)
     end_date = fields.Date(string="End Date")
     active = fields.Boolean(string="Active", default=True)
     notes = fields.Text(string="Notes")
-
-    _unique_active_dean_faculty = models.UniqueIndex(
-        "(faculty_id) WHERE role = 'dean' AND active IS TRUE",
-        "Only one active Head of Faculty is allowed per Faculty.",
-    )
-    _unique_active_head_department = models.UniqueIndex(
-        "(department_id) WHERE role = 'department_head' AND active IS TRUE",
-        "Only one active Head of Department is allowed per Department.",
-    )
 
     @api.depends("staff_id", "role", "faculty_id", "department_id")
     def _compute_name(self):
@@ -61,7 +53,7 @@ class UniversityAcademicAssignment(models.Model):
             )
             rec.name = f"{who} - {role_label}" + (f" ({scope})" if scope else "")
 
-    @api.constrains("staff_id", "faculty_id", "department_id")
+    @api.constrains("staff_id", "role", "faculty_id", "department_id", "start_date", "end_date")
     def _check_org_consistency(self):
         role_labels = dict(self._fields["role"].selection)
         for rec in self:
@@ -79,20 +71,85 @@ class UniversityAcademicAssignment(models.Model):
                 )
 
             if rec.role in ("dean", "vice_dean") and rec.faculty_id:
-                if staff.faculty_id and staff.faculty_id != rec.faculty_id:
+                if staff.faculty_id != rec.faculty_id:
                     raise ValidationError(
-                        f"{staff.name} belongs to {staff.faculty_id.name}, not {rec.faculty_id.name}."
+                        f"{staff.name} is not a member of {rec.faculty_id.name} and cannot be assigned as its {label}."
                     )
 
             if rec.role == "department_head" and rec.department_id:
-                if staff.department_id and staff.department_id != rec.department_id:
+                if staff.department_id != rec.department_id:
                     raise ValidationError(
-                        f"{staff.name} belongs to {staff.department_id.name}, not {rec.department_id.name}."
+                        f"{staff.name} is not a member of {rec.department_id.name} and cannot be assigned as its Head."
                     )
 
-            if rec.start_date and rec.end_date and rec.start_date > rec.end_date:
+            if rec.start_date and rec.end_date and rec.end_date <= rec.start_date:
                 raise ValidationError(
-                    "The appointment start date cannot be after the end date."
+                    "The End Date must be strictly after the Start Date."
+                )
+
+    @api.constrains("role", "faculty_id", "department_id", "start_date", "end_date", "active")
+    def _check_no_overlapping_assignments(self):
+        role_labels = dict(self._fields["role"].selection)
+        for rec in self.filtered(lambda assignment: assignment.active and assignment.start_date):
+            domain = [
+                ("id", "!=", rec.id),
+                ("active", "=", True),
+                ("role", "=", rec.role),
+                ("start_date", "<=", rec.end_date) if rec.end_date else ("id", "!=", 0),
+                "|",
+                ("end_date", "=", False),
+                ("end_date", ">=", rec.start_date),
+            ]
+            if rec.role == "department_head":
+                domain.append(("department_id", "=", rec.department_id.id))
+            else:
+                domain.append(("faculty_id", "=", rec.faculty_id.id))
+
+            conflict = self.search(domain, limit=1)
+            if conflict:
+                role_label = role_labels.get(rec.role, rec.role)
+                conflict_end = format_date(self.env, conflict.end_date) if conflict.end_date else _("ongoing")
+                raise ValidationError(
+                    _("%(staff)s is already %(role)s for %(scope)s from %(start)s to %(end)s - assignments cannot overlap.")
+                    % {
+                        "staff": conflict.staff_id.name,
+                        "role": role_label,
+                        "scope": rec.department_id.name or rec.faculty_id.name,
+                        "start": format_date(self.env, conflict.start_date),
+                        "end": conflict_end,
+                    }
+                )
+
+    @api.constrains("role", "faculty_id", "department_id", "end_date", "active")
+    def _check_one_active_head_per_scope(self):
+        today = fields.Date.context_today(self)
+        head_roles = {"dean", "department_head"}
+        role_labels = dict(self._fields["role"].selection)
+        for rec in self.filtered(lambda assignment: assignment.active and assignment.role in head_roles):
+            domain = [
+                ("id", "!=", rec.id),
+                ("active", "=", True),
+                ("role", "=", rec.role),
+                "|",
+                ("end_date", "=", False),
+                ("end_date", ">=", today),
+            ]
+            if rec.role == "department_head":
+                domain.append(("department_id", "=", rec.department_id.id))
+                scope = rec.department_id.name
+            else:
+                domain.append(("faculty_id", "=", rec.faculty_id.id))
+                scope = rec.faculty_id.name
+
+            conflict = self.search(domain, limit=1)
+            if conflict:
+                raise ValidationError(
+                    _("%(staff)s already holds %(role)s for %(scope)s with an active appointment; only one active Head may hold this scope at a time.")
+                    % {
+                        "staff": conflict.staff_id.name,
+                        "role": role_labels.get(rec.role, rec.role),
+                        "scope": scope,
+                    }
                 )
 
     @api.onchange("role")
@@ -104,5 +161,14 @@ class UniversityAcademicAssignment(models.Model):
 
     @api.onchange("department_id")
     def _onchange_department_id(self):
-        if self.department_id:
+        if self.department_id and self.role != "department_head":
             self.faculty_id = self.department_id.faculty_id
+
+    @api.onchange("role", "faculty_id", "department_id")
+    def _onchange_staff_scope(self):
+        domain = [("active", "=", True)]
+        if self.role == "department_head" and self.department_id:
+            domain.append(("department_id", "=", self.department_id.id))
+        elif self.role in ("dean", "vice_dean") and self.faculty_id:
+            domain.append(("faculty_id", "=", self.faculty_id.id))
+        return {"domain": {"staff_id": domain}}

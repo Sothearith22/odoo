@@ -6,7 +6,7 @@
         <field name="name">university.subject.list</field>
         <field name="model">university.subject</field>
         <field name="arch" type="xml">
-            <list string="Subjects" sample="1" default_order="semester_number,code">
+            <list string="Subjects" sample="1" default_order="semester_number,code" class="o_university_subject_list">
                 <field name="semester_number" string="Sem."/>
                 <field name="code" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
@@ -23,7 +23,7 @@
         <field name="name">university.subject.kanban</field>
         <field name="model">university.subject</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban sample="1" class="o_university_subject_kanban">
                 <field name="name"/>
                 <field name="code"/>
                 <field name="program_ids"/>
@@ -32,24 +32,25 @@
                 <field name="credits"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
+                        <main class="o_university_subject_card ms-2 p-3">
                             <div class="o_kanban_record_top mb-2">
                                 <div class="o_kanban_record_headings">
                                     <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
                                     <span class="text-muted ms-2">(<field name="code"/>)</span>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-graduation-cap me-1" title="Program"/>
+                            <div class="o_subject_meta_line o_subject_program_line">
+                                <i class="fa fa-graduation-cap o_subject_meta_icon" title="Program"/>
                                 <field name="program_ids" widget="many2many_tags"/>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-building me-1" title="Department"/>
+                            <div class="o_subject_meta_line o_subject_department_line">
+                                <i class="fa fa-building o_subject_meta_icon" title="Department"/>
                                 <field name="department_id"/>
                             </div>
-                            <div class="mt-2">
-                                <span class="badge text-bg-info">Semester <field name="semester_number"/></span>
-                                <span class="badge text-bg-secondary float-end"><field name="credits"/> Credits</span>
+                            <div class="o_subject_academic_meta">
+                                <span class="o_subject_meta_pill">Semester&#160;<field name="semester_number" nolabel="1"/></span>
+                                <span class="o_subject_meta_separator" aria-hidden="true">·</span>
+                                <span class="o_subject_meta_pill"><field name="credits" nolabel="1"/>&#160;Credits</span>
                             </div>
                         </main>
                     </t>
@@ -139,6 +140,9 @@
                 <group>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
                 </group>
+                <searchpanel>
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>

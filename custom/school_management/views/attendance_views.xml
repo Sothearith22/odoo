@@ -62,6 +62,10 @@
                     <filter string="Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
+                <searchpanel>
+                    <field name="section_id" icon="fa-users" enable_counters="1"/>
+                    <field name="status" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

@@ -8,7 +8,6 @@ import { useService, useBus } from "@web/core/utils/hooks";
 import { onMounted, useState } from "@odoo/owl";
 
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
-const STUDENT_APP_XMLID = "school_management.menu_school_student_portal_root";
 const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
 const TEACHER_ACTION_XMLID = "school_management.action_teacher_dashboard_shell";
 const STUDENT_ACTION_XMLID = "school_management.action_student_dashboard_shell";
@@ -18,9 +17,8 @@ const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STAFF_GROUP_XMLID = "school_management.group_school_teacher";
 
-const SCHOOL_APP_XMLIDS = new Set([SCHOOL_APP_XMLID, STUDENT_APP_XMLID]);
 const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID, TEACHER_ACTION_XMLID]);
-const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG]);
+const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG, "university_attendance_sheet"]);
 const SCHOOL_MODELS = new Set([
     "school.dashboard",
     "university.academic.assignment",
@@ -108,7 +106,7 @@ patch(WebClient.prototype, {
             const schoolAction = isSchoolAction(currentAction);
             const routeAction = router.current.action;
             const schoolRouteWithoutAction =
-                !actionLoaded && !routeAction && SCHOOL_APP_XMLIDS.has(currentApp?.xmlid);
+                !actionLoaded && !routeAction && currentApp?.xmlid === SCHOOL_APP_XMLID;
 
             this.schoolState.isActive = Boolean(schoolAction || schoolRouteWithoutAction);
 
@@ -211,7 +209,7 @@ patch(WebClient.prototype, {
             return;
         }
         // A dual-role user can intentionally switch between staff and student
-        // views; only student-only users need automatic portal redirection.
+        // views; only student-only users need automatic dashboard redirection.
         if (await user.hasGroup(STAFF_GROUP_XMLID)) {
             return;
         }
@@ -221,7 +219,7 @@ patch(WebClient.prototype, {
         const actionLoaded = hasLoadedAction(currentAction);
         const routeAction = router.current.action;
         const inSchoolRoute = isSchoolAction(currentAction) ||
-            (!actionLoaded && !routeAction && SCHOOL_APP_XMLIDS.has(currentApp?.xmlid));
+            (!actionLoaded && !routeAction && currentApp?.xmlid === SCHOOL_APP_XMLID);
 
         if (!inSchoolRoute) {
             return;

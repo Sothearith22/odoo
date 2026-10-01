@@ -310,6 +310,6 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
             program = section.subject_id.program_ids[:1]
         if not program:
             raise ValidationError(
-                f"No major/program could be determined for section {section.display_name}."
+                f"No major could be determined for section {section.display_name}."
             )
         return program

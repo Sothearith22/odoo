@@ -35,7 +35,7 @@
                             </t>
                         </div>
                         <div>
-                            <div class="text-uppercase small fw-semibold text-muted">Student Portal</div>
+                            <div class="text-uppercase small fw-semibold text-muted">University</div>
                             <h1 class="h2 mb-1 mt-1">Welcome, <t t-esc="state.student.name"/></h1>
                             <div class="text-muted">
                                 <span t-esc="state.student.student_id || 'Student ID not assigned'"/>

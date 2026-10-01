@@ -213,6 +213,9 @@
                     <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
                     <filter string="Department Head" name="group_by_head" context="{'group_by': 'head_id'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>

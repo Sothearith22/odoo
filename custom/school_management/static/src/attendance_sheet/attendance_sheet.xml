@@ -5,17 +5,20 @@
         <t t-set="tally" t-value="counts"/>
 
         <div class="o_att_sheet" t-ref="root">
+            <nav class="o_att_breadcrumb" aria-label="Breadcrumb">
+                <button type="button" class="o_att_breadcrumb_link" t-on-click="onBack" title="Back to Attendance List">
+                    <i class="fa fa-arrow-left" aria-hidden="true"/> Track Attendance
+                </button>
+                <span aria-hidden="true">/</span>
+                <span class="o_att_breadcrumb_record" aria-current="page" t-esc="recordLabel"/>
+            </nav>
+            <div class="o_att_layout">
             <div class="o_att_shell">
 
                 <!-- ==================== Header ==================== -->
                 <header class="o_att_hdr">
                     <div class="o_att_hdr_main">
                         <div class="o_att_title_row">
-                            <button type="button" class="btn btn-outline-secondary btn-sm o_att_back_btn shadow-sm"
-                                    title="Back to Attendance List"
-                                    t-on-click="onBack">
-                                <i class="fa fa-arrow-left me-1.5" aria-hidden="true"/> Attendance List
-                            </button>
                             <h1 class="o_att_h1">Track Attendance</h1>
                             <span t-att-class="'o_att_badge ' + (state.taken ? 'o_att_badge--recorded' : 'o_att_badge--pending')">
                                 <span class="o_att_badge_dot" aria-hidden="true"/>
@@ -32,33 +35,47 @@
                         </p>
                     </div>
 
-                    <!-- Right Controls Bar -->
-                    <div class="o_att_controls">
-                        <div class="o_att_control_box shadow-sm">
-                            <div class="o_att_field o_att_field--date">
-                                <label class="o_att_field_label" for="att_date">Date</label>
-                                <div class="o_att_field_control">
-                                    <i class="fa fa-calendar o_att_field_icon" aria-hidden="true"/>
-                                    <input id="att_date" type="date" class="o_att_input_clean" t-att-value="state.date" t-on-change="onDateChange"/>
-                                </div>
-                            </div>
-                            <div class="o_att_divider_v"/>
-                            <div class="o_att_field o_att_field--section">
-                                <label class="o_att_field_label" for="att_section">Class Section</label>
-                                <div class="o_att_field_control">
-                                    <i class="fa fa-users o_att_field_icon" aria-hidden="true"/>
-                                    <select id="att_section" class="o_att_select_clean" t-on-change="onSectionChange">
-                                        <option value="" t-att-selected="!state.sectionId">Select section...</option>
-                                        <option t-foreach="state.sections" t-as="section" t-key="section.id"
-                                                t-att-value="section.id"
-                                                t-att-selected="section.id === state.sectionId"
-                                                t-esc="section.display_name"/>
-                                    </select>
-                                </div>
-                            </div>
+                </header>
+
+                <section class="o_att_info" aria-label="Session information">
+                    <div class="o_att_info_group">
+                        <h2 class="o_att_section_heading">Session Information</h2>
+                        <div class="o_att_info_row">
+                            <label for="att_section">Class Section</label>
+                            <select id="att_section" class="o_att_select_clean" t-on-change="onSectionChange"
+                                    t-att-disabled="state.loading || state.saving">
+                                <option value="" t-att-selected="!state.sectionId">Select section...</option>
+                                <option t-foreach="state.sections" t-as="section" t-key="section.id"
+                                        t-att-value="section.id" t-att-selected="section.id === state.sectionId"
+                                        t-esc="section.display_name"/>
+                            </select>
+                        </div>
+                        <div class="o_att_info_row" t-if="state.session.subject">
+                            <span class="o_att_info_label">Subject</span>
+                            <span t-esc="state.session.subject"/>
+                        </div>
+                        <div class="o_att_info_row">
+                            <span class="o_att_info_label">Teacher</span>
+                            <span t-esc="state.session.teacher || 'Not assigned'"/>
                         </div>
                     </div>
-                </header>
+                    <div class="o_att_info_group">
+                        <h2 class="o_att_section_heading">Schedule</h2>
+                        <div class="o_att_info_row">
+                            <label for="att_date">Date</label>
+                            <input id="att_date" type="date" class="o_att_input_clean" t-att-value="state.date"
+                                   t-att-disabled="state.loading || state.saving" t-on-change="onDateChange"/>
+                        </div>
+                        <div class="o_att_info_row">
+                            <span class="o_att_info_label">Semester</span>
+                            <span t-esc="state.session.semester || '-'"/>
+                        </div>
+                        <div class="o_att_info_row">
+                            <span class="o_att_info_label">Academic Year</span>
+                            <span t-esc="state.session.academic_year || '-'"/>
+                        </div>
+                    </div>
+                </section>
 
                 <div t-if="state.error" class="o_att_error shadow-sm mb-4" role="alert">
                     <div class="d-flex align-items-center gap-2">
@@ -70,7 +87,7 @@
                 <!-- ==================== 4 Stats KPI Cards ==================== -->
                 <section class="o_att_stats" aria-label="Attendance summary">
                     <div class="o_att_stat o_att_stat--present">
-                        <div class="o_att_stat_icon_wrap bg-success-subtle text-success">
+                        <div class="o_att_stat_icon_wrap">
                             <i class="fa fa-check fa-lg" aria-hidden="true"/>
                         </div>
                         <div class="o_att_stat_body">
@@ -79,7 +96,7 @@
                         </div>
                     </div>
                     <div class="o_att_stat o_att_stat--absent">
-                        <div class="o_att_stat_icon_wrap bg-danger-subtle text-danger">
+                        <div class="o_att_stat_icon_wrap">
                             <i class="fa fa-times fa-lg" aria-hidden="true"/>
                         </div>
                         <div class="o_att_stat_body">
@@ -88,7 +105,7 @@
                         </div>
                     </div>
                     <div class="o_att_stat o_att_stat--late">
-                        <div class="o_att_stat_icon_wrap bg-warning-subtle text-warning">
+                        <div class="o_att_stat_icon_wrap">
                             <i class="fa fa-clock-o fa-lg" aria-hidden="true"/>
                         </div>
                         <div class="o_att_stat_body">
@@ -97,7 +114,7 @@
                         </div>
                     </div>
                     <div class="o_att_stat o_att_stat--total">
-                        <div class="o_att_stat_icon_wrap bg-primary-subtle text-primary">
+                        <div class="o_att_stat_icon_wrap">
                             <i class="fa fa-users fa-lg" aria-hidden="true"/>
                         </div>
                         <div class="o_att_stat_body">
@@ -107,8 +124,19 @@
                     </div>
                 </section>
 
-                <!-- ==================== List Card ==================== -->
-                <section class="o_att_card" aria-label="Student attendance list">
+                <div class="o_att_tabs" role="tablist" aria-label="Attendance session" t-on-keydown="onTabKeydown">
+                    <button id="att_students_tab" type="button" role="tab" class="o_att_tab" data-tab="attendance"
+                            t-att-aria-selected="state.tab === 'attendance' ? 'true' : 'false'"
+                            t-att-tabindex="state.tab === 'attendance' ? 0 : -1" aria-controls="att_students_panel"
+                            t-on-click="() => this.setTab('attendance')">Student Attendance</button>
+                    <button id="att_details_tab" type="button" role="tab" class="o_att_tab" data-tab="details"
+                            t-att-aria-selected="state.tab === 'details' ? 'true' : 'false'"
+                            t-att-tabindex="state.tab === 'details' ? 0 : -1" aria-controls="att_details_panel"
+                            t-on-click="() => this.setTab('details')">Session Details</button>
+                </div>
+
+                <section t-if="state.tab === 'attendance'" id="att_students_panel" class="o_att_card"
+                         role="tabpanel" aria-labelledby="att_students_tab">
                     <div class="o_att_toolbar">
                         <div class="o_att_toolbar_left">
                             <div class="o_att_search">
@@ -171,6 +199,7 @@
                                             t-att-aria-checked="line.status === option.value ? 'true' : 'false'"
                                             t-att-aria-label="option.label + ' for ' + line.name"
                                             t-att-title="option.label"
+                                            t-att-disabled="state.loading || state.saving"
                                             t-att-tabindex="line.status === option.value ? 0 : -1"
                                             t-on-click="() => this.setStatus(line, option.value)"
                                             t-on-keydown="(ev) => this.onSegKeydown(line, ev)">
@@ -184,6 +213,8 @@
                                             t-att-class="'o_att_notebtn' + (line.remark ? ' o_att_notebtn--has-note' : (state.openNoteId === line.student_id ? ' o_att_notebtn--open' : ''))"
                                             t-att-aria-expanded="state.openNoteId === line.student_id ? 'true' : 'false'"
                                             t-att-aria-label="(line.remark ? 'Edit note' : 'Add note') + ' for ' + line.name"
+                                            t-att-title="(line.remark ? 'Edit note' : 'Add note') + ' for ' + line.name"
+                                            t-att-disabled="state.loading || state.saving"
                                             t-on-click="() => this.toggleRemark(line)">
                                         <i class="fa fa-comment-o" aria-hidden="true"/>
                                         <span t-if="line.remark || state.openNoteId === line.student_id" class="o_att_notebtn_dot" aria-hidden="true"/>
@@ -196,14 +227,17 @@
                                     <div class="o_att_noterow_field">
                                         <input type="text" class="o_att_note_input"
                                                t-att-value="line.remark"
+                                               t-att-disabled="state.loading || state.saving"
                                                t-att-placeholder="'Add an attendance note for ' + line.name + '...'"
                                                t-att-aria-label="'Attendance note for ' + line.name"
                                                t-on-input="(ev) => this.updateRemark(line, ev)"
                                                t-on-keydown="(ev) => this.onNoteKeydown(line, ev)"/>
                                     </div>
                                     <button type="button" class="o_att_linkbtn"
+                                            t-att-disabled="state.loading || state.saving"
                                             t-on-click="() => this.closeRemark()">Done</button>
                                     <button t-if="line.remark" type="button" class="o_att_linkbtn o_att_linkbtn--danger"
+                                            t-att-disabled="state.loading || state.saving"
                                             t-on-click="() => this.clearRemark(line)">Clear</button>
                                 </div>
                             </li>
@@ -244,6 +278,37 @@
                     </div>
                 </section>
 
+                <section t-if="state.tab === 'details'" id="att_details_panel" class="o_att_details"
+                         role="tabpanel" aria-labelledby="att_details_tab">
+                    <h2 class="o_att_section_heading">Location &amp; Timing</h2>
+                    <div class="o_att_info_row" t-if="state.session.classroom">
+                        <span class="o_att_info_label">Classroom</span><span t-esc="state.session.classroom"/>
+                    </div>
+                    <div class="o_att_session_slots" t-if="state.session.slots?.length">
+                        <table class="o_att_slots_table">
+                            <thead><tr><th>Subject</th><th>Teacher</th><th>Time</th><th>Location</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="state.session.slots" t-as="slot" t-key="slot.id">
+                                    <td t-esc="slot.subject"/>
+                                    <td t-esc="slot.teacher"/>
+                                    <td><t t-esc="formatSessionTime(slot.start_time)"/> - <t t-esc="formatSessionTime(slot.end_time)"/></td>
+                                    <td t-esc="slot.location || '-'"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p t-else="" class="text-muted">No timetable session scheduled for this date.</p>
+                    <div class="o_att_info_row" t-if="state.session.recorded_by">
+                        <span class="o_att_info_label">Last Recorded By</span><span t-esc="state.session.recorded_by"/>
+                    </div>
+                    <div class="o_att_info_row" t-if="state.session.recorded_at">
+                        <span class="o_att_info_label">Last Recorded At</span><span t-esc="formatSessionTime(state.session.recorded_at)"/>
+                    </div>
+                    <label class="o_att_section_heading" for="att_session_notes">Session Notes</label>
+                    <textarea id="att_session_notes" class="o_att_session_notes" rows="4" t-model="state.notes"
+                              t-att-disabled="state.loading || state.saving"/>
+                </section>
+
                 <!-- ==================== Sticky Action Bar ==================== -->
                 <footer class="o_att_actionbar">
                     <p t-att-class="'o_att_hint ' + (isDirty ? 'o_att_hint--dirty' : 'o_att_hint--clean')" aria-live="polite">
@@ -259,7 +324,7 @@
                                 t-on-click="markAllPresent">
                             <i class="fa fa-check-square-o me-1" aria-hidden="true"/> Mark all present
                         </button>
-                        <button type="button" class="btn btn-sm btn-primary o_att_btn--primary shadow-sm"
+                        <button type="button" class="btn btn-sm btn-primary o_att_btn--primary"
                                 t-att-disabled="!state.lines.length || state.loading || state.saving"
                                 t-on-click="saveAttendance">
                             <t t-if="state.saving">
@@ -272,6 +337,18 @@
                         </button>
                     </div>
                 </footer>
+            </div>
+            <aside class="o_att_chatter" aria-label="Session messages and activities">
+                <Chatter t-if="state.session.session_id &amp;&amp; !state.loading"
+                         t-key="state.session.session_id + '-' + state.chatterRevision"
+                         threadModel="'university.attendance.session'" threadId="state.session.session_id"
+                         has_activities="true" isChatterAside="false"/>
+                <div t-else="" class="o_att_chatter_empty">
+                    <i class="fa fa-comments-o" aria-hidden="true"/>
+                    <span t-if="state.loading">Loading session...</span>
+                    <span t-else="">Save attendance to start the session log.</span>
+                </div>
+            </aside>
             </div>
         </div>
     </t>

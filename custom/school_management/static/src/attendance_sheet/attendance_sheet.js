@@ -4,6 +4,9 @@ import { Component, onWillStart, onWillUnmount, useEffect, useRef, useState } fr
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
+import { Chatter } from "@mail/chatter/web_portal/chatter";
+import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
 const STATUS_OPTIONS = [
     { value: "present", label: "Present", key: "P" },
@@ -31,8 +34,7 @@ function clockTime(value) {
     if (!value) {
         return "";
     }
-    const match = String(value).match(/(\d{2}):(\d{2})/);
-    return match ? `${match[1]}:${match[2]}` : "";
+    return formatDateTime(deserializeDateTime(value), { format: "HH:mm" });
 }
 
 function initials(name) {
@@ -54,12 +56,14 @@ function nameTone(name) {
 
 class AttendanceSheet extends Component {
     static template = "school_management.AttendanceSheet";
+    static components = { Chatter };
     static props = ["*"];
 
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
+        this.dialog = useService("dialog");
         const context = this.props.action?.context || {};
 
         this.statusOptions = STATUS_OPTIONS;
@@ -82,6 +86,10 @@ class AttendanceSheet extends Component {
             filter: "all",
             activeId: false,
             openNoteId: false,
+            session: {},
+            notes: "",
+            tab: "attendance",
+            chatterRevision: 0,
         });
 
         // Restore DOM focus after a re-render so keyboard flows are not broken.
@@ -136,16 +144,37 @@ class AttendanceSheet extends Component {
         return sec ? sec.display_name : "";
     }
 
+    get recordLabel() {
+        if (!this.state.sectionId || !this.state.date) {
+            return _t("New attendance session");
+        }
+        return `${this.currentSectionName} - ${formatDate(deserializeDate(this.state.date))}`;
+    }
+
+    formatSessionTime(value) {
+        return value ? formatDateTime(deserializeDateTime(value)) : "";
+    }
+
+    setTab(tab) {
+        this.state.tab = tab;
+    }
+
+    onTabKeydown(ev) {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) {
+            ev.preventDefault();
+            this.state.tab = ev.key === "Home" ? "attendance" : ev.key === "End" ? "details" :
+                this.state.tab === "attendance" ? "details" : "attendance";
+            this._pendingFocus = `[role="tab"][data-tab="${this.state.tab}"]`;
+        }
+    }
+
     get visibleLines() {
         const query = this.state.query.trim().toLowerCase();
         if (!query && this.state.filter === "all") {
             return this.state.lines;
         }
         return this.state.lines.filter((line) => {
-            if (this.state.filter === "absent" && line.status !== "absent") {
-                return false;
-            }
-            if (this.state.filter === "late" && line.status !== "late") {
+            if (this.state.filter !== "all" && line.status !== this.state.filter) {
                 return false;
             }
             if (!query) {
@@ -185,7 +214,7 @@ class AttendanceSheet extends Component {
 
     snapshot() {
         return JSON.stringify(
-            this.state.lines.map((line) => [line.student_id, line.status, line.remark || ""])
+            [this.state.notes, this.state.lines.map((line) => [line.student_id, line.status, line.remark || ""])]
         );
     }
 
@@ -202,6 +231,8 @@ class AttendanceSheet extends Component {
     }
 
     applySheet(sheet) {
+        this.state.session = sheet;
+        this.state.notes = sheet.notes || "";
         this.state.taken = Boolean(sheet.taken);
         this.state.lastSaved = clockTime(sheet.last_saved_at);
         this.state.lines = (sheet.lines || []).map((line) => ({
@@ -219,11 +250,15 @@ class AttendanceSheet extends Component {
             this.state.taken = false;
             this.state.lastSaved = "";
             this.state.activeId = false;
+            this.state.session = {};
+            this.state.notes = "";
             this._baseline = this.snapshot();
             return;
         }
         this.state.loading = true;
         this.state.error = null;
+        this.state.session = {};
+        this.state.lines = [];
         try {
             const sheet = await this.orm.call("university.attendance", "get_sheet", [
                 this.state.sectionId,
@@ -232,6 +267,8 @@ class AttendanceSheet extends Component {
             this.applySheet(sheet);
         } catch (error) {
             this.state.error = error.message || _t("Unable to load attendance.");
+            this.state.taken = false;
+            this.state.lastSaved = "";
         } finally {
             this.state.loading = false;
         }
@@ -240,7 +277,21 @@ class AttendanceSheet extends Component {
     // ------------------------------------------------------------------
     // Header controls
     // ------------------------------------------------------------------
-    onBack() {
+    async confirmDiscard() {
+        if (!this.isDirty) {
+            return true;
+        }
+        return new Promise((resolve) => this.dialog.add(ConfirmationDialog, {
+            body: _t("Discard the unsaved attendance and session notes?"),
+            confirm: () => resolve(true),
+            cancel: () => resolve(false),
+        }, { onClose: () => resolve(false) }));
+    }
+
+    async onBack() {
+        if (!await this.confirmDiscard()) {
+            return;
+        }
         if (this.env.config?.historyBack) {
             this.env.config.historyBack();
         } else {
@@ -249,11 +300,19 @@ class AttendanceSheet extends Component {
     }
 
     async onDateChange(ev) {
+        if (!ev.target.value || !await this.confirmDiscard()) {
+            ev.target.value = this.state.date;
+            return;
+        }
         this.state.date = ev.target.value;
         await this.loadSheet();
     }
 
     async onSectionChange(ev) {
+        if (!await this.confirmDiscard()) {
+            ev.target.value = this.state.sectionId;
+            return;
+        }
         this.state.sectionId = Number(ev.target.value) || 0;
         await this.loadSheet();
     }
@@ -281,6 +340,9 @@ class AttendanceSheet extends Component {
     // Attendance selection
     // ------------------------------------------------------------------
     setStatus(line, status) {
+        if (this.state.loading || this.state.saving) {
+            return;
+        }
         this.state.activeId = line.student_id;
         if (line.status !== status) {
             line.status = status;
@@ -381,6 +443,9 @@ class AttendanceSheet extends Component {
 
     onGlobalKeydown(ev) {
         const target = ev.target;
+        if (this.state.tab !== "attendance" || !this.rootRef.el?.contains(target) || target.closest(".o_att_chatter")) {
+            return;
+        }
         const tag = (target.tagName || "").toLowerCase();
         if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) {
             return;
@@ -451,8 +516,10 @@ class AttendanceSheet extends Component {
                 this.state.sectionId,
                 this.state.date,
                 payload,
+                this.state.notes,
             ]);
             this.applySheet(sheet);
+            this.state.chatterRevision++;
             const counts = this.counts;
             const sectionName =
                 this.state.sections.find((s) => s.id === this.state.sectionId)?.display_name || "";

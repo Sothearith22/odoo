@@ -1,0 +1,430 @@
+2026-09-30 15:26:17,202 20280 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:26:17,202 20280 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:26:17,202 20280 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:26:17,202 20280 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:26:17,892 20280 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8070 
+2026-09-30 15:26:17,930 20280 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:26:18,036 20280 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:26:18,039 20280 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:26:18,064 20280 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:26:18,079 20280 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:26:19,066 20280 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:26:19,066 20280 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:26:19,679 20280 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:26:19,778 20280 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:26:20,347 20280 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:26:20,459 20280 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:26:20,766 20280 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:20,766 20280 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:20,835 20280 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:26:21,032 20280 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:26:21,212 20280 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:26:21,612 20280 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:26:21,613 20280 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:26:21,613 20280 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:26:21,619 20280 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:26:21,623 20280 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:26:21,636 20280 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:26:21,639 20280 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:26:21,668 20280 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:26:21,685 20280 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:26:21,686 20280 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:26:21,693 20280 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:26:21,714 20280 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:26:21,730 20280 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:26:21,742 20280 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:26:21,753 20280 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:26:21,822 20280 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:26:21,859 20280 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:26:21,897 20280 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:26:21,951 20280 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:26:21,982 20280 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:26:22,027 20280 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:26:22,050 20280 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:26:22,090 20280 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:26:22,113 20280 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:26:22,136 20280 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:26:22,160 20280 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:26:22,212 20280 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:26:22,256 20280 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:26:22,338 20280 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:26:22,356 20280 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:26:22,421 20280 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:26:22,433 20280 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:26:22,437 20280 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:26:22,451 20280 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:26:22,463 20280 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:26:22,495 20280 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:26:22,548 20280 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:26:22,575 20280 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:26:22,598 20280 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:26:22,612 20280 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:26:22,615 20280 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:26:22,617 20280 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:26:22,644 20280 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:26:22,692 20280 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:26:22,787 20280 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:26:22,838 20280 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:26:22,883 20280 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:26:22,909 20280 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:26:22,931 20280 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:26:22,974 20280 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:26:22,993 20280 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:26:22,999 20280 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:26:23,567 20280 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:26:23,567 20280 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:26:23,609 20280 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1256) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:26:23,842 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_invalid_lines_and_notes_do_not_create_session ... 
+2026-09-30 15:26:23,856 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_loading_is_read_only_and_returns_session_metadata ... 
+2026-09-30 15:26:23,867 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_other_teacher_cannot_read_or_edit_session ... 
+2026-09-30 15:26:23,985 20280 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [1], uid: 1165, model: university.attendance.session 
+2026-09-30 15:26:23,989 20280 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [1], uid: 1165, model: university.attendance.session 
+2026-09-30 15:26:23,995 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_save_preserves_attendance_and_records_real_chatter ... 
+2026-09-30 15:26:24,033 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_sessions_are_isolated_by_date ... 
+2026-09-30 15:26:24,074 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_teacher_can_save_and_student_cannot_access_session_thread ... 
+2026-09-30 15:26:24,125 20280 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1164, model: university.attendance.session 
+2026-09-30 15:26:24,127 20280 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1164, model: university.attendance.session 
+2026-09-30 15:26:24,129 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_university_is_single_entry_point ... 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lead 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lead 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.activity.report 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lost.reason 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.iap.lead.mining.request 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,145 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.invoice.report 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.tax 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.fiscal.position 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment.term 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model spreadsheet.dashboard.group 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model quotation.document 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model purchase.order 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model purchase.order 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.technical.page 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.page 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.visitor 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.track 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.slide 
+2026-09-30 15:26:24,146 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.slide 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel.partner 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.question 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel.tag.group 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.tag 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.project 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model report.project.task.user 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.project 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.tags 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.role 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,147 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.scrap 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.quant 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.warehouse 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.move.line 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.move 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.picking.type 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.picking.type 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.daily.sales.reports.wizard 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.note 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.category 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.config 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.config 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model report.pos.order 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.details.wizard 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.public 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.department 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.work.location 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.departure.reason 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.job 
+2026-09-30 15:26:24,148 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.skill 
+2026-09-30 15:26:24,149 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.resume.line 
+2026-09-30 15:26:24,149 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.certification.report 
+2026-09-30 15:26:24,149 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.skill.report 
+2026-09-30 15:26:24,149 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lead 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lead 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.activity.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.lost.reason 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model crm.iap.lead.mining.request 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.move 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.invoice.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.tax 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.fiscal.position 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model account.payment.term 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model spreadsheet.dashboard.group 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.report 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model sale.order 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model quotation.document 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model purchase.order 
+2026-09-30 15:26:24,156 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model purchase.order 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.technical.page 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.page 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.visitor 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model website.track 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.slide 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.slide 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel.partner 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.question 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel.tag.group 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.tag 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.project 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model report.project.task.user 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.project 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.tags 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.role 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model project.task 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.scrap 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.quant 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.warehouse 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.move.line 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.move 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.picking.type 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model stock.picking.type 
+2026-09-30 15:26:24,157 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.daily.sales.reports.wizard 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.note 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.category 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.config 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.config 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model report.pos.order 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model pos.details.wizard 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.public 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.department 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.work.location 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.departure.reason 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.job 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.skill 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.resume.line 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.certification.report 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model hr.employee.skill.report 
+2026-09-30 15:26:24,158 20280 ERROR odoo odoo.addons.base.models.ir_model: Missing model slide.channel 
+2026-09-30 15:26:24,159 20280 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: ====================================================================== 
+2026-09-30 15:26:24,159 20280 ERROR odoo odoo.addons.school_management.tests.test_attendance_sheet: FAIL: TestAttendanceSheet.test_university_is_single_entry_point
+Traceback (most recent call last):
+  File "c:\odoo\odoo\custom\school_management\tests\test_attendance_sheet.py", line 120, in test_university_is_single_entry_point
+    self.assertNotIn("Student Portal", visible_roots.mapped("name"))
+AssertionError: 'Student Portal' unexpectedly found in ['Discuss', 'University', 'Student Portal', 'Calendar', 'To-do', 'Contacts', 'Dashboards', 'Website', 'Maintenance', 'Employees', 'Apps']
+ 
+2026-09-30 15:26:24,272 20280 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 3 checked, 3 removed 
+2026-09-30 15:26:24,278 20280 INFO odoo odoo.modules.loading: Module school_management loaded in 3.93s (incl. 0.71s test), 3573 queries (+767 test, +3573 other) 
+2026-09-30 15:26:24,278 20280 ERROR odoo odoo.modules.loading: Module school_management: 1 failures, 0 errors of 7 tests 
+2026-09-30 15:26:24,807 20280 INFO odoo odoo.modules.loading: 131 modules loaded in 5.03s, 3573 queries (+4340 extra) 
+2026-09-30 15:26:25,142 20280 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:25,143 20280 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:25,595 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 611@ir.ui.menu (school_management.menu_school_student_portal_service_hours) 
+2026-09-30 15:26:25,630 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [651804] 
+2026-09-30 15:26:25,630 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [611] 
+2026-09-30 15:26:25,634 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 607@ir.ui.menu (school_management.menu_school_student_portal_exams) 
+2026-09-30 15:26:25,637 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [612695] 
+2026-09-30 15:26:25,637 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [607] 
+2026-09-30 15:26:25,640 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 194@ir.ui.menu (school_management.menu_school_student_portal_payments) 
+2026-09-30 15:26:25,644 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271702] 
+2026-09-30 15:26:25,644 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [194] 
+2026-09-30 15:26:25,648 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 193@ir.ui.menu (school_management.menu_school_student_portal_fees) 
+2026-09-30 15:26:25,652 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271701] 
+2026-09-30 15:26:25,652 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [193] 
+2026-09-30 15:26:25,655 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 192@ir.ui.menu (school_management.menu_school_student_portal_finance) 
+2026-09-30 15:26:25,659 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271700] 
+2026-09-30 15:26:25,659 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [192] 
+2026-09-30 15:26:25,662 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 191@ir.ui.menu (school_management.menu_school_student_portal_transcripts) 
+2026-09-30 15:26:25,665 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271699] 
+2026-09-30 15:26:25,666 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [191] 
+2026-09-30 15:26:25,669 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 190@ir.ui.menu (school_management.menu_school_student_portal_report_cards) 
+2026-09-30 15:26:25,673 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271698] 
+2026-09-30 15:26:25,673 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [190] 
+2026-09-30 15:26:25,677 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 189@ir.ui.menu (school_management.menu_school_student_portal_results) 
+2026-09-30 15:26:25,681 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271697] 
+2026-09-30 15:26:25,682 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [189] 
+2026-09-30 15:26:25,690 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 188@ir.ui.menu (school_management.menu_school_student_portal_submissions) 
+2026-09-30 15:26:25,695 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271696] 
+2026-09-30 15:26:25,695 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [188] 
+2026-09-30 15:26:25,699 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 187@ir.ui.menu (school_management.menu_school_student_portal_assignments) 
+2026-09-30 15:26:25,703 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271695] 
+2026-09-30 15:26:25,703 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [187] 
+2026-09-30 15:26:25,710 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 186@ir.ui.menu (school_management.menu_school_student_portal_timetable) 
+2026-09-30 15:26:25,714 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271694] 
+2026-09-30 15:26:25,714 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [186] 
+2026-09-30 15:26:25,723 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 185@ir.ui.menu (school_management.menu_school_student_portal_academic) 
+2026-09-30 15:26:25,727 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271693] 
+2026-09-30 15:26:25,727 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [185] 
+2026-09-30 15:26:25,736 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 184@ir.ui.menu (school_management.menu_school_student_portal_enrollments) 
+2026-09-30 15:26:25,739 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271692] 
+2026-09-30 15:26:25,740 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [184] 
+2026-09-30 15:26:25,749 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 183@ir.ui.menu (school_management.menu_school_student_portal_profile) 
+2026-09-30 15:26:25,753 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271691] 
+2026-09-30 15:26:25,754 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [183] 
+2026-09-30 15:26:25,763 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 182@ir.ui.menu (school_management.menu_school_student_portal_dashboard) 
+2026-09-30 15:26:25,769 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [271690] 
+2026-09-30 15:26:25,769 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [182] 
+2026-09-30 15:26:25,775 20280 INFO odoo odoo.addons.base.models.ir_model: Deleting 158@ir.ui.menu (school_management.menu_school_student_portal_root) 
+2026-09-30 15:26:25,779 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.model.data records with IDs: [107165] 
+2026-09-30 15:26:25,779 20280 INFO odoo odoo.models.unlink: User #1 deleted ir.ui.menu records with IDs: [158] 
+2026-09-30 15:26:25,843 20280 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:26:26,297 20280 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:26,299 20280 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:26:27,887 20280 ERROR odoo odoo.modules.loading: At least one test failed when loading the modules. 
+2026-09-30 15:26:27,904 20280 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:26:27,904 20280 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:26:27,904 20280 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:26:27,907 20280 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:26:27,907 20280 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:26:27,914 20280 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:26:27,918 20280 INFO odoo odoo.registry: Registry loaded in 10.024s 
+2026-09-30 15:26:27,918 20280 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:26:27,919 20280 INFO odoo odoo.service.server: 0 post-tests in 0.00s, 0 queries 
+2026-09-30 15:26:27,919 20280 INFO odoo odoo.tests.stats: school_management: 9 tests 0.71s 767 queries 
+2026-09-30 15:26:27,919 20280 ERROR odoo odoo.tests.result: 1 failed, 0 error(s) of 7 tests when loading database 'odoo' 
+2026-09-30 15:26:27,919 20280 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:26:27,919 20280 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:26:28,029 20280 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 2 connections  
+2026-09-30 15:35:24,398 8212 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:35:24,398 8212 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:35:24,398 8212 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:35:24,398 8212 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:35:24,839 8212 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8070 
+2026-09-30 15:35:24,870 8212 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:35:24,931 8212 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:35:24,933 8212 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:35:24,952 8212 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:35:24,957 8212 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:35:26,003 8212 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:35:26,003 8212 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:35:26,695 8212 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:35:26,734 8212 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:35:27,267 8212 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:35:27,390 8212 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:35:27,603 8212 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:27,604 8212 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:27,645 8212 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:35:27,774 8212 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:35:27,871 8212 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:35:28,258 8212 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:35:28,260 8212 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:35:28,261 8212 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:35:28,263 8212 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:35:28,278 8212 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:35:28,299 8212 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:35:28,304 8212 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:35:28,323 8212 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:35:28,335 8212 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:35:28,336 8212 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:35:28,338 8212 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:35:28,349 8212 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:35:28,362 8212 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:35:28,373 8212 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:35:28,382 8212 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:35:28,417 8212 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:35:28,443 8212 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:35:28,474 8212 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:35:28,514 8212 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:35:28,534 8212 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:35:28,554 8212 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:35:28,573 8212 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:35:28,596 8212 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:35:28,615 8212 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:35:28,639 8212 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:35:28,664 8212 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:35:28,712 8212 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:35:28,754 8212 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:35:28,794 8212 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:35:28,814 8212 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:35:28,879 8212 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:35:28,887 8212 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:35:28,891 8212 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:35:28,900 8212 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:35:28,910 8212 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:35:28,942 8212 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:35:29,015 8212 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:35:29,060 8212 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:35:29,081 8212 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:35:29,103 8212 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:35:29,107 8212 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:35:29,108 8212 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:35:29,123 8212 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:35:29,170 8212 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:35:29,234 8212 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:35:29,245 8212 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:35:29,261 8212 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:35:29,282 8212 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:35:29,298 8212 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:35:29,334 8212 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:35:29,347 8212 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:35:29,350 8212 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:35:29,790 8212 INFO odoo odoo.modules.loading: Module school_management loaded in 2.52s, 3550 queries (+3550 other) 
+2026-09-30 15:35:30,346 8212 INFO odoo odoo.modules.loading: 131 modules loaded in 3.61s, 3550 queries (+3550 extra) 
+2026-09-30 15:35:30,696 8212 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:30,697 8212 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:31,008 8212 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:35:31,228 8212 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:31,228 8212 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:35:32,128 8212 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:35:32,144 8212 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:35:32,144 8212 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:35:32,144 8212 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:35:32,146 8212 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:35:32,146 8212 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:35:32,157 8212 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:35:32,158 8212 INFO odoo odoo.registry: Registry loaded in 7.318s 
+2026-09-30 15:35:32,158 8212 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:35:32,169 8212 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1257) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:35:32,543 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_invalid_lines_and_notes_do_not_create_session ... 
+2026-09-30 15:35:32,560 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_loading_is_read_only_and_returns_session_metadata ... 
+2026-09-30 15:35:32,567 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_other_teacher_cannot_read_or_edit_session ... 
+2026-09-30 15:35:32,763 8212 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [6], uid: 1168, model: university.attendance.session 
+2026-09-30 15:35:32,767 8212 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [6], uid: 1168, model: university.attendance.session 
+2026-09-30 15:35:32,774 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_save_preserves_attendance_and_records_real_chatter ... 
+2026-09-30 15:35:32,818 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_sessions_are_isolated_by_date ... 
+2026-09-30 15:35:32,865 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_teacher_can_save_and_student_cannot_access_session_thread ... 
+2026-09-30 15:35:32,926 8212 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1167, model: university.attendance.session 
+2026-09-30 15:35:32,928 8212 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1167, model: university.attendance.session 
+2026-09-30 15:35:32,931 8212 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_university_is_single_entry_point ... 
+2026-09-30 15:35:32,989 8212 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 3 checked, 3 removed 
+2026-09-30 15:35:32,994 8212 INFO odoo odoo.service.server: 7 post-tests in 0.84s, 928 queries 
+2026-09-30 15:35:32,994 8212 INFO odoo odoo.tests.stats: school_management: 9 tests 0.83s 928 queries 
+2026-09-30 15:35:32,994 8212 INFO odoo odoo.tests.result: 0 failed, 0 error(s) of 7 tests when loading database 'odoo' 
+2026-09-30 15:35:32,994 8212 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:35:32,994 8212 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:35:33,046 8212 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 1 connections  

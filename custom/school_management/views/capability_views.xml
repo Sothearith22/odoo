@@ -80,6 +80,10 @@
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                     <filter string="Phase" name="group_by_phase" context="{'group_by': 'phase'}"/>
                 </group>
+                <searchpanel>
+                    <field name="category" icon="fa-th-large" enable_counters="1" select="multi"/>
+                    <field name="status" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

@@ -84,6 +84,11 @@
                     <filter string="Month" name="group_by_month" context="{'group_by': 'date:month'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
+                    <field name="status" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

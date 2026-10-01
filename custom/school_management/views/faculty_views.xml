@@ -204,6 +204,10 @@
                 <filter string="Closed" name="filter_closed" domain="[('state', '=', 'closed')]"/>
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <searchpanel>
+                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                    <field name="dean_id" string="Head of Faculty" icon="fa-user" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

@@ -7015,6 +7015,9 @@ class BaseModel(metaclass=MetaModel):
     def action_post(self):
         pass
 
+    def _update_state_from_balance(self):
+        pass
+
 
 collections.abc.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have index or count

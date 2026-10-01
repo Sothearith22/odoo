@@ -75,6 +75,10 @@
                     <filter string="Payment Method" name="method" context="{'group_by': 'payment_method'}"/>
                     <filter string="Status" name="status" context="{'group_by': 'state'}"/>
                 </group>
+                <searchpanel>
+                    <field name="payment_method" icon="fa-credit-card" enable_counters="1" select="multi"/>
+                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

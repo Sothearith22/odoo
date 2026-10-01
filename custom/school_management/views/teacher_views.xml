@@ -238,6 +238,11 @@
                     <filter string="Position" name="group_by_position" context="{'group_by': 'position'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
+                    <field name="position" icon="fa-briefcase" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -287,6 +292,9 @@
                     <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'managed_faculty_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
                 </group>
+                <searchpanel>
+                    <field name="managed_faculty_id" icon="fa-university" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -341,6 +349,10 @@
                     <filter string="Department" name="group_by_department" context="{'group_by': 'managed_department_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                    <field name="managed_department_id" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>

@@ -1,0 +1,1492 @@
+2026-09-30 15:41:03,459 20228 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:41:03,459 20228 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:41:03,459 20228 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:41:03,459 20228 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:41:03,772 20228 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8071 
+2026-09-30 15:41:03,792 20228 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:41:03,836 20228 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:41:03,839 20228 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:41:03,855 20228 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:41:03,859 20228 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:41:04,677 20228 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:41:04,677 20228 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:41:05,266 20228 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:41:05,294 20228 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:41:05,640 20228 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:41:05,741 20228 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:41:05,938 20228 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:05,938 20228 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:05,975 20228 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:41:06,124 20228 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:41:06,220 20228 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:41:06,464 20228 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:41:06,465 20228 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:41:06,465 20228 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:41:06,467 20228 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:41:06,470 20228 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:41:06,478 20228 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:41:06,481 20228 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:41:06,492 20228 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:41:06,501 20228 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:41:06,502 20228 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:41:06,504 20228 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:41:06,515 20228 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:41:06,530 20228 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:41:06,539 20228 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:41:06,547 20228 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:41:06,582 20228 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:41:06,604 20228 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:41:06,637 20228 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:41:06,673 20228 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:41:06,694 20228 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:41:06,717 20228 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:41:06,735 20228 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:41:06,755 20228 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:41:06,772 20228 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:41:06,791 20228 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:41:06,810 20228 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:41:06,852 20228 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:41:06,885 20228 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:41:06,946 20228 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:41:06,968 20228 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:41:07,044 20228 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:41:07,050 20228 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:41:07,053 20228 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:41:07,061 20228 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:41:07,069 20228 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:41:07,098 20228 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:41:07,139 20228 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:41:07,161 20228 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:41:07,177 20228 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:41:07,191 20228 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:41:07,194 20228 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:41:07,195 20228 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:41:07,209 20228 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:41:07,243 20228 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:41:07,283 20228 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:41:07,292 20228 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:41:07,309 20228 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:41:07,334 20228 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:41:07,353 20228 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:41:07,395 20228 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:41:07,407 20228 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:41:07,409 20228 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:41:07,720 20228 INFO odoo odoo.modules.loading: Module school_management loaded in 2.08s, 3550 queries (+3550 other) 
+2026-09-30 15:41:08,077 20228 INFO odoo odoo.modules.loading: 131 modules loaded in 2.78s, 3550 queries (+3550 extra) 
+2026-09-30 15:41:08,415 20228 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:08,416 20228 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:08,686 20228 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:41:09,033 20228 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:09,034 20228 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:41:10,183 20228 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:41:10,197 20228 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:41:10,197 20228 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:41:10,197 20228 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:41:10,200 20228 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:41:10,200 20228 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:41:10,211 20228 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:41:10,212 20228 INFO odoo odoo.registry: Registry loaded in 6.438s 
+2026-09-30 15:41:10,213 20228 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:41:10,214 20228 INFO odoo odoo.addons.base.models.ir_qweb: Pregenerating assets bundles 
+2026-09-30 15:41:11,429 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/abbbe71/api_doc.assets.min.js (id:5345) 
+2026-09-30 15:41:11,440 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/4528054/html_editor.assets_history_diff.min.js (id:5346) 
+2026-09-30 15:41:11,459 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/18c8d9f/html_editor.assets_image_cropper.min.js (id:5347) 
+2026-09-30 15:41:11,560 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/8286db5/mail.assets_discuss_public_test_tours.min.js (id:5348) 
+2026-09-30 15:41:11,620 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/ffec009/mail.assets_lamejs.min.js (id:5349) 
+2026-09-30 15:41:11,766 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf6d1aa/mail.assets_odoo_sfu.min.js (id:5350) 
+2026-09-30 15:41:13,194 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/ed6a396/mail.assets_public.min.js (id:5351) 
+2026-09-30 15:41:13,377 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/6d315f0/point_of_sale.assets_debug.min.js (id:5352) 
+2026-09-30 15:41:14,975 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/49fba20/point_of_sale.assets_prod_dark.min.js (id:5353) 
+2026-09-30 15:41:15,432 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/77071ce/point_of_sale.customer_display_assets.min.js (id:5354) 
+2026-09-30 15:41:15,533 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/b363fdb/point_of_sale.customer_display_assets_test.min.js (id:5355) 
+2026-09-30 15:41:16,491 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/0ec0f50/portal.assets_chatter.min.js (id:5356) 
+2026-09-30 15:41:18,470 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/2817850/project.webclient.min.js (id:5357) 
+2026-09-30 15:41:18,505 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/snailmail.report_assets_snailmail.min.js (id:5358) 
+2026-09-30 15:41:18,508 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/spreadsheet.assets_print.min.js (id:5359) 
+2026-09-30 15:41:19,393 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/caa7910/spreadsheet.public_spreadsheet.min.js (id:5360) 
+2026-09-30 15:41:19,881 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/52eef15/web.__assets_tests_call__.min.js (id:5361) 
+2026-09-30 15:41:19,922 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/82faf9e/web._assets_jquery.min.js (id:5362) 
+2026-09-30 15:41:20,036 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/97bb8f0/web.ace_lib.min.js (id:5363) 
+2026-09-30 15:41:20,046 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/223357c/web.assets_clickbot.min.js (id:5364) 
+2026-09-30 15:41:20,193 20228 INFO odoo odoo.addons.base.models.assetsbundle: Found a similar attachment for /web/assets/10f9362/web.assets_frontend_lazy.min.js, copying from /web/assets/1/10f9362/web.assets_frontend_lazy.min.js 
+2026-09-30 15:41:20,204 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [4573] (matching /web/assets/_______/web.assets_frontend_lazy.min.js) because it was replaced with /web/assets/10f9362/web.assets_frontend_lazy.min.js 
+2026-09-30 15:41:20,239 20228 INFO odoo odoo.addons.base.models.assetsbundle: Found a similar attachment for /web/assets/ea6fd79/web.assets_frontend_minimal.min.js, copying from /web/assets/1/ea6fd79/web.assets_frontend_minimal.min.js 
+2026-09-30 15:41:20,242 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [2802] (matching /web/assets/_______/web.assets_frontend_minimal.min.js) because it was replaced with /web/assets/ea6fd79/web.assets_frontend_minimal.min.js 
+2026-09-30 15:41:20,660 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cce1346/web.assets_tests.min.js (id:5367) 
+2026-09-30 15:41:25,695 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/9b0e567/web.assets_unit_tests.min.js (id:5368) 
+2026-09-30 15:41:30,092 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/d10a38a/web.assets_unit_tests_setup.min.js (id:5369) 
+2026-09-30 15:41:33,101 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/068838a/web.assets_web.min.js (id:5370) 
+2026-09-30 15:41:33,102 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5293] (matching /web/assets/_______/web.assets_web.min.js) because it was replaced with /web/assets/068838a/web.assets_web.min.js 
+2026-09-30 15:41:33,143 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/ce7f576/web.qunit_suite_tests.min.js (id:5371) 
+2026-09-30 15:41:33,238 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/986a227/web.report_assets_common.min.js (id:5372) 
+2026-09-30 15:41:33,241 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.report_assets_pdf.min.js (id:5373) 
+2026-09-30 15:41:36,538 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/30be7b9/web.tests_assets.min.js (id:5374) 
+2026-09-30 15:41:36,584 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/1603bd3/website.assets_all_wysiwyg.min.js (id:5375) 
+2026-09-30 15:41:37,128 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/1196dd9/website_slides.slide_embed_assets.min.js (id:5376) 
+2026-09-30 15:41:37,129 20228 INFO odoo odoo.addons.base.models.ir_qweb: JS Assets bundles generated in 25.81439447402954 seconds 
+2026-09-30 15:41:38,446 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/0e0153e/api_doc.assets.min.css (id:5377) 
+2026-09-30 15:41:38,448 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/bus.websocket_worker_assets.min.css (id:5378) 
+2026-09-30 15:41:38,453 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/3916a83/html_editor.assets_history_diff.min.css (id:5379) 
+2026-09-30 15:41:38,456 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/13a09ee/html_editor.assets_image_cropper.min.css (id:5380) 
+2026-09-30 15:41:38,458 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/mail.assets_discuss_public_test_tours.min.css (id:5381) 
+2026-09-30 15:41:38,460 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/mail.assets_lamejs.min.css (id:5382) 
+2026-09-30 15:41:38,462 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/mail.assets_odoo_sfu.min.css (id:5383) 
+2026-09-30 15:41:40,414 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/2e7962e/mail.assets_public.min.css (id:5384) 
+2026-09-30 15:41:40,415 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/point_of_sale.assets_debug.min.css (id:5385) 
+2026-09-30 15:41:43,038 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/d45758f/point_of_sale.assets_prod_dark.min.css (id:5386) 
+2026-09-30 15:41:44,839 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/dac6d08/point_of_sale.customer_display_assets.min.css (id:5387) 
+2026-09-30 15:41:44,842 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/point_of_sale.customer_display_assets_test.min.css (id:5388) 
+2026-09-30 15:41:45,173 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/581b4b5/portal.assets_chatter.min.css (id:5389) 
+2026-09-30 15:41:47,610 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/e1ca145/project.webclient.min.css (id:5390) 
+2026-09-30 15:41:47,831 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/b2dde09/snailmail.report_assets_snailmail.min.css (id:5391) 
+2026-09-30 15:41:47,835 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/a3ef814/spreadsheet.assets_print.min.css (id:5392) 
+2026-09-30 15:41:47,838 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/spreadsheet.o_spreadsheet.min.css (id:5393) 
+2026-09-30 15:41:49,217 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/dc21136/spreadsheet.public_spreadsheet.min.css (id:5394) 
+2026-09-30 15:41:49,221 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/stock.assets_stock_print_report.min.css (id:5395) 
+2026-09-30 15:41:49,222 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.__assets_tests_call__.min.css (id:5396) 
+2026-09-30 15:41:49,225 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web._assets_jquery.min.css (id:5397) 
+2026-09-30 15:41:49,226 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.ace_lib.min.css (id:5398) 
+2026-09-30 15:41:49,227 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.assets_clickbot.min.css (id:5399) 
+2026-09-30 15:41:49,229 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.assets_emoji.min.css (id:5400) 
+2026-09-30 15:41:49,327 20228 INFO odoo odoo.addons.base.models.assetsbundle: Found a similar attachment for /web/assets/ace6657/web.assets_frontend.min.css, copying from /web/assets/1/ace6657/web.assets_frontend.min.css 
+2026-09-30 15:41:49,357 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [4572] (matching /web/assets/_______/web.assets_frontend.min.css) because it was replaced with /web/assets/ace6657/web.assets_frontend.min.css 
+2026-09-30 15:41:52,835 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/ace6657/web.assets_frontend_lazy.min.css (id:5402) 
+2026-09-30 15:41:52,837 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.assets_frontend_minimal.min.css (id:5403) 
+2026-09-30 15:41:52,839 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.assets_tests.min.css (id:5404) 
+2026-09-30 15:41:53,693 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/7fd7047/web.assets_unit_tests.min.css (id:5405) 
+2026-09-30 15:41:57,520 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/f273ec2/web.assets_unit_tests_setup.min.css (id:5406) 
+2026-09-30 15:42:01,154 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/a0b4d5d/web.assets_web.min.css (id:5407) 
+2026-09-30 15:42:01,155 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5313] (matching /web/assets/_______/web.assets_web.min.css) because it was replaced with /web/assets/a0b4d5d/web.assets_web.min.css 
+2026-09-30 15:42:05,089 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/88b6461/web.assets_web_dark.min.css (id:5408) 
+2026-09-30 15:42:08,860 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/5324e41/web.assets_web_print.min.css (id:5409) 
+2026-09-30 15:42:08,861 20228 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5314] (matching /web/assets/_______/web.assets_web_print.min.css) because it was replaced with /web/assets/5324e41/web.assets_web_print.min.css 
+2026-09-30 15:42:08,865 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.chartjs_lib.min.css (id:5410) 
+2026-09-30 15:42:08,867 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.fullcalendar_lib.min.css (id:5411) 
+2026-09-30 15:42:08,868 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web.qunit_suite_tests.min.css (id:5412) 
+2026-09-30 15:42:10,745 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/5db62ce/web.report_assets_common.min.css (id:5413) 
+2026-09-30 15:42:10,753 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/2172594/web.report_assets_pdf.min.css (id:5414) 
+2026-09-30 15:42:14,738 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/abde292/web.tests_assets.min.css (id:5415) 
+2026-09-30 15:42:14,741 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/cf83e13/web_tour.interactive.min.css (id:5416) 
+2026-09-30 15:42:14,973 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/b9ee91a/website.assets_all_wysiwyg.min.css (id:5417) 
+2026-09-30 15:42:15,006 20228 INFO odoo odoo.addons.base.models.assetsbundle: Found a similar attachment for /web/assets/b9ee91a/website.assets_wysiwyg.min.css, copying from /web/assets/1/b9ee91a/website.assets_wysiwyg.min.css 
+2026-09-30 15:42:16,867 20228 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/a280a4b/website_slides.slide_embed_assets.min.css (id:5419) 
+2026-09-30 15:42:16,868 20228 INFO odoo odoo.addons.base.models.ir_qweb: CSS Assets bundles generated in 39.73876714706421 seconds 
+2026-09-30 15:42:16,923 20228 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1258) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:42:17,216 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_invalid_lines_and_notes_do_not_create_session ... 
+2026-09-30 15:42:17,232 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_loading_is_read_only_and_returns_session_metadata ... 
+2026-09-30 15:42:17,242 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_other_teacher_cannot_read_or_edit_session ... 
+2026-09-30 15:42:17,428 20228 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [11], uid: 1171, model: university.attendance.session 
+2026-09-30 15:42:17,432 20228 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [11], uid: 1171, model: university.attendance.session 
+2026-09-30 15:42:17,438 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_save_preserves_attendance_and_records_real_chatter ... 
+2026-09-30 15:42:17,479 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_sessions_are_isolated_by_date ... 
+2026-09-30 15:42:17,523 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_teacher_can_save_and_student_cannot_access_session_thread ... 
+2026-09-30 15:42:17,583 20228 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1170, model: university.attendance.session 
+2026-09-30 15:42:17,586 20228 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1170, model: university.attendance.session 
+2026-09-30 15:42:17,587 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_university_is_single_entry_point ... 
+2026-09-30 15:42:17,661 20228 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 54 checked, 9 removed 
+2026-09-30 15:42:17,672 20228 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1259) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:42:17,989 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls ... 
+2026-09-30 15:42:18,273 20228 WARNING odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: websocket-client module is not installed 
+2026-09-30 15:42:18,273 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: skipped TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls : websocket-client module is not installed 
+2026-09-30 15:42:18,274 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls ... 
+2026-09-30 15:42:18,302 20228 WARNING odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: websocket-client module is not installed 
+2026-09-30 15:42:18,302 20228 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: skipped TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls : websocket-client module is not installed 
+2026-09-30 15:42:18,312 20228 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-30 15:42:18,316 20228 INFO odoo odoo.service.server: 9 post-tests in 68.10s, 2021 queries 
+2026-09-30 15:42:18,316 20228 INFO odoo odoo.tests.stats: school_management: 13 tests 1.40s 1380 queries 
+2026-09-30 15:42:18,316 20228 INFO odoo odoo.tests.result: 0 failed, 0 error(s) of 9 tests when loading database 'odoo' 
+2026-09-30 15:42:18,316 20228 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:42:18,316 20228 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:42:18,358 20228 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 1 connections  
+2026-09-30 15:43:57,223 14720 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:43:57,223 14720 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:43:57,223 14720 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:43:57,225 14720 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:43:57,513 14720 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8071 
+2026-09-30 15:43:57,539 14720 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:43:57,584 14720 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:43:57,587 14720 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:43:57,605 14720 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:43:57,607 14720 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:43:58,440 14720 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:43:58,440 14720 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:43:59,053 14720 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:43:59,080 14720 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:43:59,445 14720 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:43:59,553 14720 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:43:59,748 14720 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:43:59,748 14720 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:43:59,784 14720 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:43:59,933 14720 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:44:00,033 14720 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:44:00,280 14720 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:44:00,280 14720 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:44:00,282 14720 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:44:00,285 14720 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:44:00,288 14720 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:44:00,295 14720 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:44:00,297 14720 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:44:00,308 14720 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:44:00,317 14720 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:44:00,317 14720 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:44:00,319 14720 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:44:00,329 14720 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:44:00,339 14720 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:44:00,347 14720 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:44:00,354 14720 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:44:00,385 14720 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:44:00,407 14720 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:44:00,434 14720 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:44:00,469 14720 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:44:00,485 14720 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:44:00,506 14720 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:44:00,524 14720 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:44:00,547 14720 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:44:00,567 14720 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:44:00,591 14720 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:44:00,620 14720 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:44:00,678 14720 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:44:00,716 14720 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:44:00,756 14720 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:44:00,773 14720 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:44:00,835 14720 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:44:00,842 14720 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:44:00,844 14720 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:44:00,850 14720 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:44:00,858 14720 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:44:00,885 14720 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:44:00,932 14720 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:44:00,958 14720 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:44:00,974 14720 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:44:00,988 14720 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:44:00,991 14720 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:44:00,992 14720 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:44:01,009 14720 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:44:01,045 14720 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:44:01,108 14720 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:44:01,116 14720 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:44:01,134 14720 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:44:01,157 14720 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:44:01,176 14720 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:44:01,217 14720 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:44:01,229 14720 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:44:01,232 14720 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:44:01,563 14720 INFO odoo odoo.modules.loading: Module school_management loaded in 2.12s, 3550 queries (+3550 other) 
+2026-09-30 15:44:01,923 14720 INFO odoo odoo.modules.loading: 131 modules loaded in 2.84s, 3550 queries (+3550 extra) 
+2026-09-30 15:44:02,262 14720 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:44:02,263 14720 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:44:02,598 14720 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:44:02,834 14720 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:44:02,834 14720 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:44:03,899 14720 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:44:03,910 14720 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:44:03,911 14720 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:44:03,911 14720 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:44:03,913 14720 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:44:03,913 14720 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:44:03,924 14720 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:44:03,926 14720 INFO odoo odoo.registry: Registry loaded in 6.412s 
+2026-09-30 15:44:03,926 14720 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:44:03,933 14720 INFO odoo odoo.addons.base.models.ir_qweb: Pregenerating assets bundles 
+2026-09-30 15:44:06,828 14720 INFO odoo odoo.addons.base.models.ir_qweb: JS Assets bundles generated in 2.321857213973999 seconds 
+2026-09-30 15:44:07,588 14720 INFO odoo odoo.addons.base.models.ir_qweb: CSS Assets bundles generated in 0.7603862285614014 seconds 
+2026-09-30 15:44:07,597 14720 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1260) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:44:07,929 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls ... 
+2026-09-30 15:44:08,499 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome pid: 3752 
+2026-09-30 15:44:08,503 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmpziyr4ks4_chrome_odoo 
+2026-09-30 15:44:08,503 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:56094/json/version 
+2026-09-30 15:44:08,505 14720 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:56094', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:44:08,515 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:44:08,515 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:56094/json 
+2026-09-30 15:44:08,516 14720 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:56094', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:44:08,536 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:56094/devtools/page/AD5B5D8756A58CFBE68754C61CEED238 
+2026-09-30 15:44:08,538 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:44:08,539 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:44:08,593 14720 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:44:08,600 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:44:08,601 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:44:08,601 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:44:08,609 14720 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:44:08,725 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /odoo?debug=1 HTTP/1.1" 200 - 61 0.036 0.083
+2026-09-30 15:44:08,727 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigation result: {'frameId': 'AD5B5D8756A58CFBE68754C61CEED238', 'loaderId': '7434C03AD5B2DED6BBA652D29A118CF7', 'isDownload': False} 
+2026-09-30 15:44:08,727 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:44:08,746 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/assets/068838a/web.assets_web.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:44:08,795 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.013 0.040
+2026-09-30 15:44:08,802 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.005 0.045
+2026-09-30 15:44:08,805 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/assets/a0b4d5d/web.assets_web.min.css HTTP/1.1" 200 - 2 0.000 0.052
+2026-09-30 15:44:08,824 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.001 0.003
+2026-09-30 15:44:08,841 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:08] "GET /web/assets/5324e41/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.001 0.002
+2026-09-30 15:44:09,098 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:09,098 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:09,126 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.001 0.018
+2026-09-30 15:44:09,135 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:09,140 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 2 0.000 0.003
+2026-09-30 15:44:09,154 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:44:09,161 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:44:09,168 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:44:09,198 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /odoo HTTP/1.1" 200 - 26 0.009 0.016
+2026-09-30 15:44:09,209 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /odoo/offline HTTP/1.1" 200 - 5 0.004 0.029
+2026-09-30 15:44:09,270 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /mail/data HTTP/1.1" 200 - 48 0.028 0.028
+2026-09-30 15:44:09,274 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.002 0.055
+2026-09-30 15:44:09,277 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.056
+2026-09-30 15:44:09,279 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:44:09,591 14720 INFO ? odoo.addons.bus.models.bus: Bus.loop listen imbus on db postgres 
+2026-09-30 15:44:09,634 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1232, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:44:09,640 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.003
+2026-09-30 15:44:09,640 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:09,773 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /web/action/load HTTP/1.1" 200 - 5 0.010 0.141
+2026-09-30 15:44:09,788 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.005 0.159
+2026-09-30 15:44:09,796 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.001 0.171
+2026-09-30 15:44:09,797 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.158
+2026-09-30 15:44:09,803 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.002 0.156
+2026-09-30 15:44:09,829 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.009 0.014
+2026-09-30 15:44:09,899 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /mail/thread/messages HTTP/1.1" 200 - 26 0.018 0.011
+2026-09-30 15:44:09,918 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "POST /mail/data HTTP/1.1" 200 - 25 0.012 0.030
+2026-09-30 15:44:09,930 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:09,958 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.002 0.008
+2026-09-30 15:44:09,962 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:09] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:44:10,219 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:10] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.017 0.021
+2026-09-30 15:44:10,254 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:10] "POST /mail/data HTTP/1.1" 200 - 17 0.006 0.010
+2026-09-30 15:44:10,270 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:10] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.005 0.016
+2026-09-30 15:44:10,299 14720 ERROR odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: TypeError: Cannot read properties of null (reading 'click')
+    at <anonymous>:37:59 
+2026-09-30 15:44:10,299 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:44:10,312 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:10] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.005 0.008
+2026-09-30 15:44:10,404 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing chrome headless with pid 3752 
+2026-09-30 15:44:10,405 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\sc_20260930_154410_403204_test_desktop_attendance_layout_and_controls.png 
+2026-09-30 15:44:10,405 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:44:10,405 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Terminating chrome headless with pid 3752 
+2026-09-30 15:44:10,633 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_154410_633744_test_desktop_attendance_layout_and_controls.txt 
+2026-09-30 15:44:10,633 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmpziyr4ks4_chrome_odoo" 
+2026-09-30 15:44:10,668 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: ====================================================================== 
+2026-09-30 15:44:10,668 14720 ERROR odoo odoo.addons.school_management.tests.test_attendance_sheet: FAIL: TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls
+Traceback (most recent call last):
+  File "c:\odoo\odoo\custom\school_management\tests\test_attendance_sheet.py", line 204, in test_desktop_attendance_layout_and_controls
+    self._check_sheet(1440)
+  File "c:\odoo\odoo\custom\school_management\tests\test_attendance_sheet.py", line 197, in _check_sheet
+    self.browser_js("/odoo?debug=1", code, ready="odoo.isReady === true", login="admin", timeout=90)
+  File "C:\Odoo\odoo\odoo\tests\common.py", line 2553, in browser_js
+    self.fail('%s\n\n%s' % (message, error))
+AssertionError: The test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1232, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " failed
+
+TypeError: Cannot read properties of null (reading 'click')
+    at <anonymous>:37:59
+ 
+2026-09-30 15:44:10,671 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls ... 
+2026-09-30 15:44:10,904 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome pid: 14212 
+2026-09-30 15:44:10,904 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmpq54cgp35_chrome_odoo 
+2026-09-30 15:44:10,904 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:52094/json/version 
+2026-09-30 15:44:10,904 14720 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:52094', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:44:10,914 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:44:10,914 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:52094/json 
+2026-09-30 15:44:10,914 14720 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:52094', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:44:10,922 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:52094/devtools/page/860F3CF5474E3CB89B084935A44452DE 
+2026-09-30 15:44:10,926 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:44:10,936 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:44:11,007 14720 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:44:11,010 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:44:11,013 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:44:11,013 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:44:11,020 14720 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:44:11,687 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /odoo?debug=1 HTTP/1.1" 200 - 101 0.022 0.646
+2026-09-30 15:44:11,689 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigation result: {'frameId': '860F3CF5474E3CB89B084935A44452DE', 'loaderId': '0D4F692B3C73921C7E33D770BC0844BD', 'isDownload': False} 
+2026-09-30 15:44:11,689 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:44:11,709 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/assets/068838a/web.assets_web.min.js HTTP/1.1" 200 - 2 0.002 0.003
+2026-09-30 15:44:11,711 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/assets/a0b4d5d/web.assets_web.min.css HTTP/1.1" 200 - 2 0.001 0.006
+2026-09-30 15:44:11,748 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.010 0.033
+2026-09-30 15:44:11,755 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.002 0.046
+2026-09-30 15:44:11,763 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.002 0.002
+2026-09-30 15:44:11,782 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:11] "GET /web/assets/5324e41/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.000 0.004
+2026-09-30 15:44:12,007 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:44:12,009 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:12,034 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.000 0.004
+2026-09-30 15:44:12,048 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 2 0.001 0.006
+2026-09-30 15:44:12,052 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 3 0.001 0.006
+2026-09-30 15:44:12,061 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:44:12,067 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:44:12,074 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:44:12,101 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /odoo HTTP/1.1" 200 - 26 0.003 0.017
+2026-09-30 15:44:12,111 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /odoo/offline HTTP/1.1" 200 - 5 0.003 0.025
+2026-09-30 15:44:12,130 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1232, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:44:12,136 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.004 0.014
+2026-09-30 15:44:12,137 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.005
+2026-09-30 15:44:12,147 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.003 0.025
+2026-09-30 15:44:12,152 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /web/action/load HTTP/1.1" 200 - 5 0.003 0.030
+2026-09-30 15:44:12,180 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /mail/data HTTP/1.1" 200 - 48 0.010 0.035
+2026-09-30 15:44:12,181 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.044
+2026-09-30 15:44:12,187 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.003 0.041
+2026-09-30 15:44:12,190 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.001 0.041
+2026-09-30 15:44:12,193 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.045
+2026-09-30 15:44:12,195 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:44:12,221 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.014 0.016
+2026-09-30 15:44:12,286 14720 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:44:12,299 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /mail/data HTTP/1.1" 200 - 26 0.010 0.014
+2026-09-30 15:44:12,315 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /mail/thread/messages HTTP/1.1" 200 - 25 0.003 0.032
+2026-09-30 15:44:12,347 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 1 0.000 0.004
+2026-09-30 15:44:12,370 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.002 0.005
+2026-09-30 15:44:12,373 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:44:12,676 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.013 0.081
+2026-09-30 15:44:12,723 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /mail/data HTTP/1.1" 200 - 17 0.009 0.014
+2026-09-30 15:44:12,736 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.004 0.012
+2026-09-30 15:44:12,770 14720 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:44:12] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.001 0.008
+2026-09-30 15:44:12,783 14720 ERROR odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: TypeError: Cannot read properties of null (reading 'click')
+    at <anonymous>:37:59 
+2026-09-30 15:44:12,783 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:44:12,875 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing chrome headless with pid 14212 
+2026-09-30 15:44:12,878 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\sc_20260930_154412_875430_test_mobile_attendance_layout_and_controls.png 
+2026-09-30 15:44:12,878 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:44:12,879 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Terminating chrome headless with pid 14212 
+2026-09-30 15:44:13,003 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_154412_996071_test_mobile_attendance_layout_and_controls.txt 
+2026-09-30 15:44:13,003 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmpq54cgp35_chrome_odoo" 
+2026-09-30 15:44:13,032 14720 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: ====================================================================== 
+2026-09-30 15:44:13,032 14720 ERROR odoo odoo.addons.school_management.tests.test_attendance_sheet: FAIL: TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls
+Traceback (most recent call last):
+  File "c:\odoo\odoo\custom\school_management\tests\test_attendance_sheet.py", line 207, in test_mobile_attendance_layout_and_controls
+    self._check_sheet(390)
+  File "c:\odoo\odoo\custom\school_management\tests\test_attendance_sheet.py", line 197, in _check_sheet
+    self.browser_js("/odoo?debug=1", code, ready="odoo.isReady === true", login="admin", timeout=90)
+  File "C:\Odoo\odoo\odoo\tests\common.py", line 2553, in browser_js
+    self.fail('%s\n\n%s' % (message, error))
+AssertionError: The test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1232, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " failed
+
+TypeError: Cannot read properties of null (reading 'click')
+    at <anonymous>:37:59
+ 
+2026-09-30 15:44:13,048 14720 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-30 15:44:13,054 14720 INFO odoo odoo.service.server: 2 post-tests in 9.13s, 1773 queries 
+2026-09-30 15:44:13,054 14720 INFO odoo odoo.tests.stats: school_management: 4 tests 5.46s 1381 queries 
+2026-09-30 15:44:13,054 14720 ERROR odoo odoo.tests.result: 2 failed, 0 error(s) of 2 tests when loading database 'odoo' 
+2026-09-30 15:44:13,054 14720 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:44:13,054 14720 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:44:13,268 14720 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 2 connections  
+2026-09-30 15:45:29,804 20264 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:45:29,805 20264 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:45:29,805 20264 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:45:29,805 20264 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:45:30,102 20264 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8071 
+2026-09-30 15:45:30,126 20264 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:45:30,173 20264 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:45:30,175 20264 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:45:30,193 20264 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:45:30,196 20264 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:45:31,124 20264 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:45:31,124 20264 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:45:31,730 20264 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:45:31,759 20264 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:45:32,108 20264 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:45:32,204 20264 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:45:32,402 20264 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:32,402 20264 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:32,439 20264 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:45:32,569 20264 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:45:32,668 20264 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:45:32,929 20264 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:45:32,930 20264 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:45:32,931 20264 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:45:32,932 20264 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:45:32,935 20264 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:45:32,942 20264 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:45:32,945 20264 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:45:32,956 20264 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:45:32,967 20264 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:45:32,967 20264 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:45:32,968 20264 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:45:32,978 20264 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:45:32,987 20264 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:45:32,997 20264 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:45:33,004 20264 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:45:33,035 20264 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:45:33,056 20264 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:45:33,085 20264 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:45:33,125 20264 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:45:33,145 20264 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:45:33,167 20264 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:45:33,187 20264 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:45:33,211 20264 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:45:33,235 20264 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:45:33,257 20264 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:45:33,282 20264 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:45:33,336 20264 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:45:33,377 20264 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:45:33,422 20264 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:45:33,441 20264 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:45:33,514 20264 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:45:33,522 20264 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:45:33,524 20264 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:45:33,532 20264 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:45:33,541 20264 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:45:33,575 20264 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:45:33,619 20264 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:45:33,646 20264 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:45:33,672 20264 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:45:33,704 20264 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:45:33,711 20264 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:45:33,712 20264 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:45:33,735 20264 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:45:33,777 20264 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:45:33,833 20264 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:45:33,846 20264 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:45:33,865 20264 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:45:33,924 20264 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:45:33,944 20264 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:45:34,014 20264 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:45:34,034 20264 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:45:34,037 20264 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:45:34,348 20264 INFO odoo odoo.modules.loading: Module school_management loaded in 2.24s, 3550 queries (+3550 other) 
+2026-09-30 15:45:34,690 20264 INFO odoo odoo.modules.loading: 131 modules loaded in 2.93s, 3550 queries (+3550 extra) 
+2026-09-30 15:45:35,020 20264 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:35,020 20264 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:35,278 20264 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:45:35,544 20264 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:35,545 20264 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:45:36,478 20264 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:45:36,491 20264 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:45:36,491 20264 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:45:36,491 20264 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:45:36,493 20264 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:45:36,493 20264 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:45:36,505 20264 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:45:36,507 20264 INFO odoo odoo.registry: Registry loaded in 6.404s 
+2026-09-30 15:45:36,507 20264 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:45:36,508 20264 INFO odoo odoo.addons.base.models.ir_qweb: Pregenerating assets bundles 
+2026-09-30 15:45:39,364 20264 INFO odoo odoo.addons.base.models.ir_qweb: JS Assets bundles generated in 2.230598211288452 seconds 
+2026-09-30 15:45:40,149 20264 INFO odoo odoo.addons.base.models.ir_qweb: CSS Assets bundles generated in 0.7854666709899902 seconds 
+2026-09-30 15:45:40,157 20264 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1261) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:45:40,517 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls ... 
+2026-09-30 15:45:40,997 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome pid: 14164 
+2026-09-30 15:45:40,997 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmpxulj90ko_chrome_odoo 
+2026-09-30 15:45:40,997 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:62350/json/version 
+2026-09-30 15:45:40,998 20264 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:62350', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:45:41,010 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:45:41,010 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:62350/json 
+2026-09-30 15:45:41,011 20264 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:62350', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:45:41,017 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:62350/devtools/page/EED3EAA6DE30237DAE520C392C06E9D2 
+2026-09-30 15:45:41,029 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:45:41,038 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:45:41,110 20264 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:45:41,116 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:45:41,116 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:45:41,117 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:45:41,125 20264 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:45:41,211 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /odoo?debug=1 HTTP/1.1" 200 - 61 0.023 0.066
+2026-09-30 15:45:41,214 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigation result: {'frameId': 'EED3EAA6DE30237DAE520C392C06E9D2', 'loaderId': '3CEB6325046323E2BCFC2A54BA85BA17', 'isDownload': False} 
+2026-09-30 15:45:41,214 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:45:41,231 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/068838a/web.assets_web.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:45:41,264 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.012 0.025
+2026-09-30 15:45:41,267 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/a0b4d5d/web.assets_web.min.css HTTP/1.1" 200 - 2 0.000 0.039
+2026-09-30 15:45:41,273 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.000 0.044
+2026-09-30 15:45:41,292 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:45:41,310 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/5324e41/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.002 0.002
+2026-09-30 15:45:41,525 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:41,526 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:41,570 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.001 0.018
+2026-09-30 15:45:41,580 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:41,584 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 2 0.000 0.003
+2026-09-30 15:45:41,598 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:45:41,603 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:41,610 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:41,635 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /odoo HTTP/1.1" 200 - 26 0.006 0.015
+2026-09-30 15:45:41,645 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /odoo/offline HTTP/1.1" 200 - 5 0.005 0.024
+2026-09-30 15:45:41,668 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.005 0.012
+2026-09-30 15:45:41,669 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1233, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                await waitFor(() => sheet.querySelector('[data-filter="all"]'));
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:45:41,682 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.007
+2026-09-30 15:45:41,683 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.004 0.028
+2026-09-30 15:45:41,687 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.008
+2026-09-30 15:45:41,690 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /web/action/load HTTP/1.1" 200 - 5 0.003 0.035
+2026-09-30 15:45:41,723 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /mail/data HTTP/1.1" 200 - 48 0.025 0.019
+2026-09-30 15:45:41,724 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.042
+2026-09-30 15:45:41,733 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.003 0.042
+2026-09-30 15:45:41,736 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.001 0.043
+2026-09-30 15:45:41,737 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.051
+2026-09-30 15:45:41,742 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:45:41,772 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.023 0.012
+2026-09-30 15:45:41,846 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /mail/data HTTP/1.1" 200 - 26 0.012 0.009
+2026-09-30 15:45:41,866 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "POST /mail/thread/messages HTTP/1.1" 200 - 25 0.012 0.027
+2026-09-30 15:45:41,893 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:45:41,919 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.004 0.005
+2026-09-30 15:45:41,922 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:41] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.001 0.005
+2026-09-30 15:45:42,055 20264 INFO ? odoo.addons.bus.models.bus: Bus.loop listen imbus on db postgres 
+2026-09-30 15:45:42,162 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:42] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.011 0.019
+2026-09-30 15:45:42,199 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:42] "POST /mail/data HTTP/1.1" 200 - 17 0.006 0.011
+2026-09-30 15:45:42,218 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:42] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.009 0.015
+2026-09-30 15:45:42,258 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:42] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.001 0.008
+2026-09-30 15:45:42,351 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: test successful 
+2026-09-30 15:45:42,392 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:45:42,395 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: heap 21355332 (allocated 22355968) 
+2026-09-30 15:45:42,507 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\attendance_1440_20260930_154542_505136_test_desktop_attendance_layout_and_controls.png 
+2026-09-30 15:45:42,510 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing chrome headless with pid 14164 
+2026-09-30 15:45:42,510 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:45:42,511 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Terminating chrome headless with pid 14164 
+2026-09-30 15:45:42,633 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_154542_626440_test_desktop_attendance_layout_and_controls.txt 
+2026-09-30 15:45:42,633 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmpxulj90ko_chrome_odoo" 
+2026-09-30 15:45:42,683 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls ... 
+2026-09-30 15:45:42,926 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome pid: 13672 
+2026-09-30 15:45:42,926 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmpy28judpm_chrome_odoo 
+2026-09-30 15:45:42,926 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:60205/json/version 
+2026-09-30 15:45:42,926 20264 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:60205', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:45:42,947 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:45:42,947 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:60205/json 
+2026-09-30 15:45:42,948 20264 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:60205', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:45:42,957 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:60205/devtools/page/38CB4FB9D7EC50BBF94DB180EC39AD76 
+2026-09-30 15:45:42,963 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:45:42,967 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:45:43,062 20264 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:45:43,066 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:45:43,067 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:45:43,067 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:45:43,074 20264 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:45:43,734 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /odoo?debug=1 HTTP/1.1" 200 - 101 0.026 0.635
+2026-09-30 15:45:43,736 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigation result: {'frameId': '38CB4FB9D7EC50BBF94DB180EC39AD76', 'loaderId': '759F58EB7307307407C14A4BAD0685C5', 'isDownload': False} 
+2026-09-30 15:45:43,736 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:45:43,757 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/assets/068838a/web.assets_web.min.js HTTP/1.1" 200 - 2 0.001 0.005
+2026-09-30 15:45:43,758 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/assets/a0b4d5d/web.assets_web.min.css HTTP/1.1" 200 - 2 0.000 0.005
+2026-09-30 15:45:43,797 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.013 0.031
+2026-09-30 15:45:43,802 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.003 0.045
+2026-09-30 15:45:43,811 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.000 0.005
+2026-09-30 15:45:43,829 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:43] "GET /web/assets/5324e41/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.001 0.003
+2026-09-30 15:45:44,052 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:45:44,052 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:44,080 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.000 0.002
+2026-09-30 15:45:44,097 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 2 0.000 0.008
+2026-09-30 15:45:44,101 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 3 0.001 0.007
+2026-09-30 15:45:44,109 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:45:44,115 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:45:44,121 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:45:44,147 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /odoo HTTP/1.1" 200 - 26 0.007 0.013
+2026-09-30 15:45:44,158 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /odoo/offline HTTP/1.1" 200 - 5 0.004 0.025
+2026-09-30 15:45:44,178 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1233, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                await waitFor(() => sheet.querySelector('[data-filter="all"]'));
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:45:44,185 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.008 0.012
+2026-09-30 15:45:44,194 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.011
+2026-09-30 15:45:44,198 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.004 0.027
+2026-09-30 15:45:44,203 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /web/action/load HTTP/1.1" 200 - 5 0.003 0.032
+2026-09-30 15:45:44,230 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /mail/data HTTP/1.1" 200 - 48 0.013 0.033
+2026-09-30 15:45:44,231 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.044
+2026-09-30 15:45:44,234 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.000 0.039
+2026-09-30 15:45:44,240 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:45:44,241 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.001 0.039
+2026-09-30 15:45:44,244 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.048
+2026-09-30 15:45:44,276 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.014 0.016
+2026-09-30 15:45:44,332 20264 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:45:44,346 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /mail/data HTTP/1.1" 200 - 26 0.014 0.013
+2026-09-30 15:45:44,363 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /mail/thread/messages HTTP/1.1" 200 - 25 0.004 0.036
+2026-09-30 15:45:44,395 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 1 0.000 0.003
+2026-09-30 15:45:44,418 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.001 0.007
+2026-09-30 15:45:44,420 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.002 0.004
+2026-09-30 15:45:44,698 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.015 0.020
+2026-09-30 15:45:44,733 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /mail/data HTTP/1.1" 200 - 17 0.005 0.014
+2026-09-30 15:45:44,749 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.005 0.014
+2026-09-30 15:45:44,786 20264 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:45:44] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.004 0.006
+2026-09-30 15:45:44,876 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: test successful 
+2026-09-30 15:45:44,909 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:45:44,912 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: heap 21010224 (allocated 22220800) 
+2026-09-30 15:45:44,978 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\attendance_390_20260930_154544_977185_test_mobile_attendance_layout_and_controls.png 
+2026-09-30 15:45:44,979 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing chrome headless with pid 13672 
+2026-09-30 15:45:44,980 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:45:44,981 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Terminating chrome headless with pid 13672 
+2026-09-30 15:45:45,135 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_154545_134158_test_mobile_attendance_layout_and_controls.txt 
+2026-09-30 15:45:45,135 20264 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmpy28judpm_chrome_odoo" 
+2026-09-30 15:45:45,194 20264 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-30 15:45:45,200 20264 INFO odoo odoo.service.server: 2 post-tests in 8.69s, 1811 queries 
+2026-09-30 15:45:45,201 20264 INFO odoo odoo.tests.stats: school_management: 4 tests 5.05s 1419 queries 
+2026-09-30 15:45:45,201 20264 INFO odoo odoo.tests.result: 0 failed, 0 error(s) of 2 tests when loading database 'odoo' 
+2026-09-30 15:45:45,201 20264 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:45:45,201 20264 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:45:45,281 20264 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 2 connections  
+2026-09-30 15:48:24,573 9984 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:48:24,573 9984 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:48:24,573 9984 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:48:24,573 9984 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:48:24,850 9984 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8071 
+2026-09-30 15:48:24,873 9984 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:48:24,926 9984 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:48:24,929 9984 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:48:24,946 9984 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:48:24,948 9984 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:48:25,729 9984 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:48:25,729 9984 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:48:26,309 9984 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:48:26,334 9984 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:48:26,679 9984 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:48:26,778 9984 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:48:26,968 9984 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:26,969 9984 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:27,003 9984 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:48:27,132 9984 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:48:27,217 9984 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:48:27,451 9984 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:48:27,451 9984 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:48:27,452 9984 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:48:27,453 9984 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:48:27,457 9984 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:48:27,462 9984 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:48:27,464 9984 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:48:27,474 9984 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:48:27,485 9984 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:48:27,485 9984 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:48:27,488 9984 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:48:27,498 9984 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:48:27,508 9984 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:48:27,516 9984 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:48:27,523 9984 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:48:27,557 9984 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:48:27,578 9984 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:48:27,606 9984 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:48:27,641 9984 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:48:27,658 9984 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:48:27,677 9984 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:48:27,692 9984 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:48:27,711 9984 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:48:27,730 9984 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:48:27,749 9984 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:48:27,768 9984 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:48:27,809 9984 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:48:27,839 9984 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:48:27,870 9984 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:48:27,885 9984 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:48:27,940 9984 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:48:27,946 9984 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:48:27,948 9984 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:48:27,958 9984 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:48:27,969 9984 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:48:28,033 9984 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:48:28,080 9984 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:48:28,112 9984 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:48:28,127 9984 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:48:28,141 9984 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:48:28,148 9984 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:48:28,149 9984 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:48:28,163 9984 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:48:28,191 9984 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:48:28,227 9984 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:48:28,233 9984 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:48:28,250 9984 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:48:28,270 9984 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:48:28,284 9984 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:48:28,323 9984 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:48:28,334 9984 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:48:28,337 9984 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:48:28,636 9984 INFO odoo odoo.modules.loading: Module school_management loaded in 1.96s, 3550 queries (+3550 other) 
+2026-09-30 15:48:28,971 9984 INFO odoo odoo.modules.loading: 131 modules loaded in 2.64s, 3550 queries (+3550 extra) 
+2026-09-30 15:48:29,294 9984 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:29,294 9984 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:29,518 9984 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:48:29,756 9984 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:29,757 9984 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:48:30,784 9984 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:48:30,816 9984 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:48:30,816 9984 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:48:30,816 9984 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:48:30,821 9984 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:48:30,821 9984 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:48:30,833 9984 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:48:30,835 9984 INFO odoo odoo.registry: Registry loaded in 5.984s 
+2026-09-30 15:48:30,836 9984 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:48:30,837 9984 INFO odoo odoo.addons.base.models.ir_qweb: Pregenerating assets bundles 
+2026-09-30 15:48:35,981 9984 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/da7f3ea/web.assets_unit_tests_setup.min.js (id:5465) 
+2026-09-30 15:48:35,982 9984 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5369] (matching /web/assets/_______/web.assets_unit_tests_setup.min.js) because it was replaced with /web/assets/da7f3ea/web.assets_unit_tests_setup.min.js 
+2026-09-30 15:48:38,600 9984 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/109b7a9/web.assets_web.min.js (id:5466) 
+2026-09-30 15:48:38,601 9984 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5370] (matching /web/assets/_______/web.assets_web.min.js) because it was replaced with /web/assets/109b7a9/web.assets_web.min.js 
+2026-09-30 15:48:42,058 9984 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/1199a78/web.tests_assets.min.js (id:5467) 
+2026-09-30 15:48:42,060 9984 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5374] (matching /web/assets/_______/web.tests_assets.min.js) because it was replaced with /web/assets/1199a78/web.tests_assets.min.js 
+2026-09-30 15:48:42,259 9984 INFO odoo odoo.addons.base.models.ir_qweb: JS Assets bundles generated in 10.860071659088135 seconds 
+2026-09-30 15:48:46,371 9984 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/8665ab0/web.assets_unit_tests_setup.min.css (id:5468) 
+2026-09-30 15:48:46,372 9984 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5406] (matching /web/assets/_______/web.assets_unit_tests_setup.min.css) because it was replaced with /web/assets/8665ab0/web.assets_unit_tests_setup.min.css 
+2026-09-30 15:48:50,080 9984 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/74945b6/web.assets_web.min.css (id:5470) 
+2026-09-30 15:48:50,080 9984 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5407] (matching /web/assets/_______/web.assets_web.min.css) because it was replaced with /web/assets/74945b6/web.assets_web.min.css 
+2026-09-30 15:48:50,082 9984 ERROR odoo odoo.sql_db: bad query: b'DELETE FROM ir_attachment WHERE id IN (\n            SELECT id FROM ir_attachment WHERE id in (5407) FOR NO KEY UPDATE SKIP LOCKED\n        )'
+ERROR: could not serialize access due to concurrent update
+ 
+2026-09-30 15:48:50,083 9984 CRITICAL odoo odoo.service.server: Failed to initialize database `odoo`. 
+Traceback (most recent call last):
+  File "C:\Odoo\odoo\odoo\service\server.py", line 1602, in preload_registries
+    env['ir.qweb']._pregenerate_assets_bundles()
+  File "C:\Odoo\odoo\odoo\addons\base\models\ir_qweb.py", line 2933, in _pregenerate_assets_bundles
+    links += self._get_asset_bundle(bundle, css=True, js=False).css()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\addons\base\models\assetsbundle.py", line 526, in css
+    return self.save_attachment(extension, css)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\addons\base\models\assetsbundle.py", line 300, in save_attachment
+    self._clean_attachments(extension, url)
+  File "C:\Odoo\odoo\odoo\addons\base\models\assetsbundle.py", line 192, in _clean_attachments
+    self._unlink_attachments(attachments)
+  File "C:\Odoo\odoo\odoo\addons\base\models\assetsbundle.py", line 157, in _unlink_attachments
+    self.env.cr.execute(f"""DELETE FROM {attachments._table} WHERE id IN (
+  File "C:\Odoo\odoo\odoo\sql_db.py", line 440, in execute
+    self._obj.execute(query, params)
+psycopg2.errors.SerializationFailure: could not serialize access due to concurrent update
+
+2026-09-30 15:48:50,092 9984 WARNING odoo odoo.tests.result: 0 failed, 0 error(s) of 0 tests when loading database 'odoo' 
+2026-09-30 15:48:50,092 9984 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:48:50,092 9984 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:48:50,485 9984 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 1 connections  
+2026-09-30 15:51:07,118 22144 INFO ? odoo: Odoo version 19.0 
+2026-09-30 15:51:07,119 22144 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-09-30 15:51:07,119 22144 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-09-30 15:51:07,119 22144 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-09-30 15:51:07,417 22144 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8071 
+2026-09-30 15:51:07,439 22144 INFO odoo odoo.tests.common: Importing test framework 
+2026-09-30 15:51:07,598 22144 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-09-30 15:51:07,601 22144 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-09-30 15:51:07,618 22144 INFO odoo odoo.modules.loading: updating modules list 
+2026-09-30 15:51:07,621 22144 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-09-30 15:51:08,486 22144 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:51:08,487 22144 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-09-30 15:51:09,082 22144 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-09-30 15:51:09,108 22144 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-09-30 15:51:09,459 22144 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-09-30 15:51:09,562 22144 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-09-30 15:51:09,749 22144 INFO odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:09,750 22144 INFO odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:09,786 22144 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-09-30 15:51:09,917 22144 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-09-30 15:51:10,007 22144 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-09-30 15:51:10,254 22144 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-09-30 15:51:10,255 22144 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-09-30 15:51:10,256 22144 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-09-30 15:51:10,257 22144 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-09-30 15:51:10,260 22144 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-09-30 15:51:10,264 22144 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-09-30 15:51:10,266 22144 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-09-30 15:51:10,275 22144 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-09-30 15:51:10,284 22144 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-09-30 15:51:10,284 22144 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-09-30 15:51:10,286 22144 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-09-30 15:51:10,295 22144 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-09-30 15:51:10,306 22144 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-09-30 15:51:10,315 22144 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-09-30 15:51:10,322 22144 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-09-30 15:51:10,352 22144 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-09-30 15:51:10,373 22144 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-09-30 15:51:10,401 22144 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-09-30 15:51:10,434 22144 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-09-30 15:51:10,452 22144 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-09-30 15:51:10,472 22144 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-09-30 15:51:10,489 22144 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-09-30 15:51:10,508 22144 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-09-30 15:51:10,528 22144 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-09-30 15:51:10,548 22144 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-09-30 15:51:10,570 22144 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-09-30 15:51:10,620 22144 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-09-30 15:51:10,655 22144 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-09-30 15:51:10,695 22144 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-09-30 15:51:10,710 22144 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-09-30 15:51:10,770 22144 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-09-30 15:51:10,776 22144 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-09-30 15:51:10,778 22144 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-09-30 15:51:10,785 22144 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-09-30 15:51:10,791 22144 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-09-30 15:51:10,821 22144 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-09-30 15:51:10,859 22144 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-09-30 15:51:10,879 22144 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-09-30 15:51:10,893 22144 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-09-30 15:51:10,904 22144 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-09-30 15:51:10,906 22144 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-09-30 15:51:10,908 22144 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-09-30 15:51:10,922 22144 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-09-30 15:51:10,949 22144 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-09-30 15:51:10,992 22144 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-09-30 15:51:11,003 22144 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-09-30 15:51:11,022 22144 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-09-30 15:51:11,045 22144 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-09-30 15:51:11,062 22144 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-09-30 15:51:11,100 22144 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-09-30 15:51:11,119 22144 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-09-30 15:51:11,122 22144 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-09-30 15:51:11,434 22144 INFO odoo odoo.modules.loading: Module school_management loaded in 1.98s, 3550 queries (+3550 other) 
+2026-09-30 15:51:11,771 22144 INFO odoo odoo.modules.loading: 131 modules loaded in 2.66s, 3550 queries (+3550 extra) 
+2026-09-30 15:51:12,093 22144 WARNING odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:12,102 22144 WARNING odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:12,333 22144 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-09-30 15:51:12,557 22144 ERROR odoo odoo.schema: column "date_start" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:12,557 22144 ERROR odoo odoo.schema: column "date_end" of relation "university_semester" contains null values
+ 
+2026-09-30 15:51:13,731 22144 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-09-30 15:51:13,743 22144 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-09-30 15:51:13,743 22144 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-09-30 15:51:13,743 22144 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-09-30 15:51:13,745 22144 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_start 
+2026-09-30 15:51:13,745 22144 WARNING odoo odoo.schema: Missing not-null constraint on university.semester.date_end 
+2026-09-30 15:51:13,757 22144 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-09-30 15:51:13,759 22144 INFO odoo odoo.registry: Registry loaded in 6.341s 
+2026-09-30 15:51:13,759 22144 INFO odoo odoo.service.server: Starting post tests 
+2026-09-30 15:51:13,760 22144 INFO odoo odoo.addons.base.models.ir_qweb: Pregenerating assets bundles 
+2026-09-30 15:51:19,269 22144 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/da7f3ea/web.assets_unit_tests_setup.min.js (id:5473) 
+2026-09-30 15:51:19,270 22144 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5369] (matching /web/assets/_______/web.assets_unit_tests_setup.min.js) because it was replaced with /web/assets/da7f3ea/web.assets_unit_tests_setup.min.js 
+2026-09-30 15:51:22,941 22144 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/1199a78/web.tests_assets.min.js (id:5474) 
+2026-09-30 15:51:22,942 22144 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5374] (matching /web/assets/_______/web.tests_assets.min.js) because it was replaced with /web/assets/1199a78/web.tests_assets.min.js 
+2026-09-30 15:51:23,090 22144 INFO odoo odoo.addons.base.models.ir_qweb: JS Assets bundles generated in 8.725628137588501 seconds 
+2026-09-30 15:51:26,862 22144 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/8665ab0/web.assets_unit_tests_setup.min.css (id:5475) 
+2026-09-30 15:51:26,863 22144 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5406] (matching /web/assets/_______/web.assets_unit_tests_setup.min.css) because it was replaced with /web/assets/8665ab0/web.assets_unit_tests_setup.min.css 
+2026-09-30 15:51:30,825 22144 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/1f7cdc6/web.assets_web_dark.min.css (id:5476) 
+2026-09-30 15:51:30,827 22144 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5408] (matching /web/assets/_______/web.assets_web_dark.min.css) because it was replaced with /web/assets/1f7cdc6/web.assets_web_dark.min.css 
+2026-09-30 15:51:34,843 22144 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/0bd0d4e/web.tests_assets.min.css (id:5477) 
+2026-09-30 15:51:34,843 22144 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [5415] (matching /web/assets/_______/web.tests_assets.min.css) because it was replaced with /web/assets/0bd0d4e/web.tests_assets.min.css 
+2026-09-30 15:51:34,878 22144 INFO odoo odoo.addons.base.models.ir_qweb: CSS Assets bundles generated in 11.788299798965454 seconds 
+2026-09-30 15:51:34,893 22144 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1262) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:51:35,189 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_invalid_lines_and_notes_do_not_create_session ... 
+2026-09-30 15:51:35,207 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_loading_is_read_only_and_returns_session_metadata ... 
+2026-09-30 15:51:35,214 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_other_teacher_cannot_read_or_edit_session ... 
+2026-09-30 15:51:35,373 22144 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [22], uid: 1180, model: university.attendance.session 
+2026-09-30 15:51:35,380 22144 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [22], uid: 1180, model: university.attendance.session 
+2026-09-30 15:51:35,386 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_save_preserves_attendance_and_records_real_chatter ... 
+2026-09-30 15:51:35,430 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_sessions_are_isolated_by_date ... 
+2026-09-30 15:51:35,493 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_teacher_can_save_and_student_cannot_access_session_thread ... 
+2026-09-30 15:51:35,602 22144 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1179, model: university.attendance.session 
+2026-09-30 15:51:35,605 22144 INFO odoo odoo.addons.base.models.ir_model: Access Denied by ACLs for operation: read, uid: 1179, model: university.attendance.session 
+2026-09-30 15:51:35,607 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheet.test_university_is_single_entry_point ... 
+2026-09-30 15:51:35,661 22144 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 13 checked, 8 removed 
+2026-09-30 15:51:35,690 22144 WARNING odoo odoo.addons.school_management.models.academic_year: Semester duration review candidate: 'Attendance Test Semester' (id=1263) has 364 days (52.00 weeks), outside the expected 12-20 week range around the 16-week standard. 
+2026-09-30 15:51:35,986 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls ... 
+2026-09-30 15:51:36,449 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome pid: 20312 
+2026-09-30 15:51:36,449 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmpob3yi_9w_chrome_odoo 
+2026-09-30 15:51:36,449 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:59237/json/version 
+2026-09-30 15:51:36,450 22144 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:59237', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:51:36,472 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:51:36,472 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Issuing json command http://127.0.0.1:59237/json 
+2026-09-30 15:51:36,473 22144 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:59237', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:51:36,480 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:59237/devtools/page/FE2AD35B4DA74B0A156D904803BCB3E7 
+2026-09-30 15:51:36,485 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:51:36,496 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:51:36,581 22144 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:51:36,584 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:51:36,585 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:51:36,585 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:51:36,593 22144 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:51:37,294 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /odoo?debug=1 HTTP/1.1" 200 - 100 0.031 0.672
+2026-09-30 15:51:37,296 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Navigation result: {'frameId': 'FE2AD35B4DA74B0A156D904803BCB3E7', 'loaderId': '5546C39BF539B23D8EC76CCA53F63B35', 'isDownload': False} 
+2026-09-30 15:51:37,296 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:51:37,313 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/assets/109b7a9/web.assets_web.min.js HTTP/1.1" 200 - 2 0.000 0.005
+2026-09-30 15:51:37,342 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.006 0.028
+2026-09-30 15:51:37,346 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/assets/74945b6/web.assets_web.min.css HTTP/1.1" 200 - 2 0.001 0.035
+2026-09-30 15:51:37,351 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.002 0.037
+2026-09-30 15:51:37,368 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.000 0.004
+2026-09-30 15:51:37,389 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/assets/7de3b15/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.000 0.004
+2026-09-30 15:51:37,613 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:51:37,614 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:51:37,653 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.001 0.018
+2026-09-30 15:51:37,670 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 2 0.001 0.006
+2026-09-30 15:51:37,675 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 3 0.001 0.010
+2026-09-30 15:51:37,682 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:51:37,689 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.002
+2026-09-30 15:51:37,697 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.000
+2026-09-30 15:51:37,720 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /odoo HTTP/1.1" 200 - 26 0.006 0.014
+2026-09-30 15:51:37,732 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /odoo/offline HTTP/1.1" 200 - 5 0.003 0.026
+2026-09-30 15:51:37,755 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1235, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const chatterBar = sheet.querySelector('.o-mail-Chatter-topbar');
+                assert(chatterBar.scrollWidth <= chatterBar.clientWidth + 1, 'Chatter toolbar overflows');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                await waitFor(() => sheet.querySelector('[data-filter="all"]'));
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:51:37,763 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.007 0.017
+2026-09-30 15:51:37,767 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.007
+2026-09-30 15:51:37,775 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.011
+2026-09-30 15:51:37,781 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.008 0.034
+2026-09-30 15:51:37,788 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /web/action/load HTTP/1.1" 200 - 5 0.002 0.046
+2026-09-30 15:51:37,827 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /mail/data HTTP/1.1" 200 - 48 0.017 0.044
+2026-09-30 15:51:37,828 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.056
+2026-09-30 15:51:37,835 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.002 0.054
+2026-09-30 15:51:37,839 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.001 0.054
+2026-09-30 15:51:37,841 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.066
+2026-09-30 15:51:37,844 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:51:37,868 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.014 0.014
+2026-09-30 15:51:37,949 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /mail/thread/messages HTTP/1.1" 200 - 26 0.009 0.012
+2026-09-30 15:51:37,969 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "POST /mail/data HTTP/1.1" 200 - 25 0.007 0.032
+2026-09-30 15:51:37,982 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:37] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 1 0.000 0.003
+2026-09-30 15:51:38,005 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.002 0.007
+2026-09-30 15:51:38,007 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.000 0.003
+2026-09-30 15:51:38,160 22144 INFO ? odoo.addons.bus.models.bus: Bus.loop listen imbus on db postgres 
+2026-09-30 15:51:38,280 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.016 0.021
+2026-09-30 15:51:38,315 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "POST /mail/data HTTP/1.1" 200 - 17 0.006 0.009
+2026-09-30 15:51:38,328 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.007 0.008
+2026-09-30 15:51:38,368 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:38] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.005 0.008
+2026-09-30 15:51:38,465 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: test successful 
+2026-09-30 15:51:38,515 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:51:38,517 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls.browser: heap 21310220 (allocated 22355968) 
+2026-09-30 15:51:38,624 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\attendance_1440_20260930_155138_623741_test_desktop_attendance_layout_and_controls.png 
+2026-09-30 15:51:38,628 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing chrome headless with pid 20312 
+2026-09-30 15:51:38,629 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:51:38,629 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Terminating chrome headless with pid 20312 
+2026-09-30 15:51:38,779 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_155138_779502_test_desktop_attendance_layout_and_controls.txt 
+2026-09-30 15:51:38,780 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_desktop_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmpob3yi_9w_chrome_odoo" 
+2026-09-30 15:51:38,825 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet: Starting TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls ... 
+2026-09-30 15:51:39,056 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome pid: 20108 
+2026-09-30 15:51:39,057 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless temporary user profile dir: C:\Users\Rith2\AppData\Local\Temp\tmp707vje9d_chrome_odoo 
+2026-09-30 15:51:39,057 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:59660/json/version 
+2026-09-30 15:51:39,057 22144 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:59660', path='/json/version', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:51:39,067 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Browser version: Chrome/154.0.8037.58 
+2026-09-30 15:51:39,068 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Issuing json command http://127.0.0.1:59660/json 
+2026-09-30 15:51:39,068 22144 INFO odoo odoo.tests.common.requests: request SplitResult(scheme='http', netloc='127.0.0.1:59660', path='/json', query='', fragment='') with timeout 3 increased to 10s during tests 
+2026-09-30 15:51:39,076 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Websocket url found: ws://127.0.0.1:59660/devtools/page/64C3F62335A26940C4F9C4B3C5D5582F 
+2026-09-30 15:51:39,089 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Enable chrome headless console log notification 
+2026-09-30 15:51:39,092 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome headless enable page notifications 
+2026-09-30 15:51:39,148 22144 INFO odoo odoo.addons.base.models.res_users: Login successful for login:admin from n/a 
+2026-09-30 15:51:39,150 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Setting session cookie in browser 
+2026-09-30 15:51:39,152 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Open "http://127.0.0.1:8071/odoo?debug=1" in browser 
+2026-09-30 15:51:39,152 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigating to: "http://127.0.0.1:8071/odoo?debug=1" 
+2026-09-30 15:51:39,159 22144 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-09-30 15:51:39,966 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:39] "GET /odoo?debug=1 HTTP/1.1" 200 - 101 0.031 0.778
+2026-09-30 15:51:39,968 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Navigation result: {'frameId': '64C3F62335A26940C4F9C4B3C5D5582F', 'loaderId': 'BFBC9A720BE1EBA01574A9F488AF1231', 'isDownload': False} 
+2026-09-30 15:51:39,968 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate ready code "odoo.isReady === true" 
+2026-09-30 15:51:39,988 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:39] "GET /web/assets/74945b6/web.assets_web.min.css HTTP/1.1" 200 - 2 0.001 0.005
+2026-09-30 15:51:40,015 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/webclient/load_menus HTTP/1.1" 200 - 18 0.006 0.025
+2026-09-30 15:51:40,018 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/assets/109b7a9/web.assets_web.min.js HTTP/1.1" 200 - 2 0.000 0.035
+2026-09-30 15:51:40,023 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 7 0.003 0.035
+2026-09-30 15:51:40,032 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/assets/cce1346/web.assets_tests.min.js HTTP/1.1" 200 - 2 0.001 0.004
+2026-09-30 15:51:40,049 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/assets/7de3b15/web.assets_web_print.min.css HTTP/1.1" 200 - 2 0.001 0.002
+2026-09-30 15:51:40,287 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/static/img/favicon.ico HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:51:40,289 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/static/img/odoo-icon-192x192.png HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:51:40,309 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 1 0.001 0.002
+2026-09-30 15:51:40,322 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/bundle/web_tour.interactive?lang=en_US&debug=1 HTTP/1.1" 200 - 2 0.000 0.006
+2026-09-30 15:51:40,325 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 200 - 3 0.000 0.007
+2026-09-30 15:51:40,334 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: Owl is running in 'dev' mode. 
+2026-09-30 15:51:40,340 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/service-worker.js HTTP/1.1" 200 - 0 0.000 0.001
+2026-09-30 15:51:40,348 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /mail/static/lib/idb-keyval/idb-keyval.js HTTP/1.1" 200 - 0 0.000 0.000
+2026-09-30 15:51:40,379 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /odoo HTTP/1.1" 200 - 26 0.010 0.017
+2026-09-30 15:51:40,392 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /odoo/offline HTTP/1.1" 200 - 5 0.004 0.034
+2026-09-30 15:51:40,411 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Evaluate test code "
+            (async () => {
+                const assert = (condition, message) => { if (!condition) throw new Error(message); };
+                const waitFor = async (check) => {
+                    for (let i = 0; i < 200; i++) {
+                        if (check()) return;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error('Attendance screen did not finish rendering');
+                };
+                await odoo.__WOWL_DEBUG__.root.env.services.action.doAction({
+                    type: 'ir.actions.client', name: 'Track Attendance', tag: 'university_attendance_sheet',
+                    context: {default_section_id: 1235, default_date: '2026-09-30'},
+                });
+                await waitFor(() => document.querySelector('.o_att_student_name'));
+                const sheet = document.querySelector('.o_att_sheet');
+                assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
+                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
+                await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
+                assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');
+                assert(sheet.querySelector('.o-mail-Chatter-activity'), 'Missing standard activity button');
+                const chatterBar = sheet.querySelector('.o-mail-Chatter-topbar');
+                assert(chatterBar.scrollWidth <= chatterBar.clientWidth + 1, 'Chatter toolbar overflows');
+                const row = sheet.querySelector('.o_att_row');
+                row.querySelector('[data-status="permission"]').click();
+                sheet.querySelector('[data-filter="permission"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                sheet.querySelector('[data-tab="details"]').click();
+                await waitFor(() => sheet.querySelector('#att_session_notes'));
+                const notes = sheet.querySelector('#att_session_notes');
+                assert(notes.value === 'Browser session note', 'Session notes were not loaded');
+                notes.value = 'Saved browser note';
+                notes.dispatchEvent(new Event('input', {bubbles: true}));
+                sheet.querySelector('.o_att_btn--primary').click();
+                await waitFor(() => sheet.querySelector('.o_att_hint').textContent.includes('All changes saved'));
+                sheet.querySelector('[data-tab="attendance"]').click();
+                await waitFor(() => sheet.querySelector('[data-filter="all"]'));
+                sheet.querySelector('[data-filter="all"]').click();
+                await waitFor(() => sheet.querySelector('.o_att_student_name'));
+                const seg = sheet.querySelector('.o_att_seg');
+                assert(seg.scrollWidth <= seg.clientWidth + 1, 'Attendance controls overflow');
+                assert(sheet.scrollWidth <= sheet.clientWidth + 1, 'Attendance page overflows horizontally');
+                const left = sheet.querySelector('.o_att_shell').getBoundingClientRect();
+                const chatter = sheet.querySelector('.o_att_chatter').getBoundingClientRect();
+                if (window.innerWidth >= 1180) assert(chatter.left >= left.right - 1, 'Chatter overlaps the attendance form');
+                else assert(chatter.top >= left.bottom - 1, 'Mobile chatter overlaps the attendance form');
+                console.log('test successful');
+            })().catch(error => console.error(error));
+        " 
+2026-09-30 15:51:40,420 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/image?model=res.users&field=avatar_128&id=2 HTTP/1.1" 200 - 14 0.008 0.016
+2026-09-30 15:51:40,422 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0 HTTP/1.1" 200 - 0 0.000 0.007
+2026-09-30 15:51:40,429 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /web/action/load HTTP/1.1" 200 - 5 0.004 0.026
+2026-09-30 15:51:40,441 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/image/res.partner/3/avatar_128?unique=1789610244000 HTTP/1.1" 200 - 6 0.003 0.038
+2026-09-30 15:51:40,480 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /mail/data HTTP/1.1" 200 - 48 0.018 0.044
+2026-09-30 15:51:40,482 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 0 0.000 0.063
+2026-09-30 15:51:40,490 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 5 0.004 0.060
+2026-09-30 15:51:40,494 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/assets/17fd454/web_tour.interactive.min.js HTTP/1.1" 200 - 2 0.001 0.063
+2026-09-30 15:51:40,496 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 0 0.000 0.074
+2026-09-30 15:51:40,500 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: click .o_app[data-menu-xmlid="crm.crm_menu_root"] 
+2026-09-30 15:51:40,541 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /web/dataset/call_kw/university.attendance/get_sheet#university.attendance.get_sheet HTTP/1.1" 200 - 42 0.021 0.023
+2026-09-30 15:51:40,605 22144 INFO ? werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2 HTTP/1.1" 200 - 0 0.000 0.005
+2026-09-30 15:51:40,629 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /mail/data HTTP/1.1" 200 - 26 0.014 0.020
+2026-09-30 15:51:40,653 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /mail/thread/messages HTTP/1.1" 200 - 25 0.009 0.047
+2026-09-30 15:51:40,684 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/bundle/web.assets_emoji?lang=en_US&debug=1 HTTP/1.1" 200 - 1 0.000 0.006
+2026-09-30 15:51:40,716 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/image/res.partner/2/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 5 0.004 0.011
+2026-09-30 15:51:40,721 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "GET /web/assets/87273d9/web.assets_emoji.min.js HTTP/1.1" 200 - 2 0.002 0.009
+2026-09-30 15:51:40,952 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /web/dataset/call_kw/university.attendance/save_sheet#university.attendance.save_sheet HTTP/1.1" 200 - 49 0.022 0.024
+2026-09-30 15:51:40,981 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /mail/data HTTP/1.1" 200 - 17 0.007 0.007
+2026-09-30 15:51:40,997 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:40] "POST /mail/thread/messages HTTP/1.1" 200 - 20 0.002 0.013
+2026-09-30 15:51:41,042 22144 INFO odoo werkzeug: 127.0.0.1 - - [30/Sep/2026 15:51:41] "GET /web/image/res.partner/3/avatar_128?unique=1789635444000 HTTP/1.1" 200 - 6 0.005 0.007
+2026-09-30 15:51:41,113 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: test successful 
+2026-09-30 15:51:41,178 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls.browser: heap 21090172 (allocated 22093824) 
+2026-09-30 15:51:41,178 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Asking for screenshot 
+2026-09-30 15:51:41,280 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Screenshot in: c:\odoo\odoo\attendance_qa\odoo\screenshots\attendance_390_20260930_155141_278498_test_mobile_attendance_layout_and_controls.png 
+2026-09-30 15:51:41,281 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing chrome headless with pid 20108 
+2026-09-30 15:51:41,283 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Closing websocket connection 
+2026-09-30 15:51:41,284 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Terminating chrome headless with pid 20108 
+2026-09-30 15:51:41,438 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Chrome Log in: c:\odoo\odoo\attendance_qa\odoo\chrome_logs\chrome_log_20260930_155141_438235_test_mobile_attendance_layout_and_controls.txt 
+2026-09-30 15:51:41,438 22144 INFO odoo odoo.addons.school_management.tests.test_attendance_sheet.TestAttendanceSheetBrowser.test_mobile_attendance_layout_and_controls: Removing chrome user profile "C:\Users\Rith2\AppData\Local\Temp\tmp707vje9d_chrome_odoo" 
+2026-09-30 15:51:41,496 22144 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 2 checked, 2 removed 
+2026-09-30 15:51:41,503 22144 INFO odoo odoo.service.server: 9 post-tests in 27.74s, 2802 queries 
+2026-09-30 15:51:41,503 22144 INFO odoo odoo.tests.stats: school_management: 13 tests 6.62s 2380 queries 
+2026-09-30 15:51:41,503 22144 INFO odoo odoo.tests.result: 0 failed, 0 error(s) of 9 tests when loading database 'odoo' 
+2026-09-30 15:51:41,503 22144 INFO odoo odoo.service.server: Initiating shutdown 
+2026-09-30 15:51:41,503 22144 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-09-30 15:51:41,536 22144 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=8): Closed 2 connections  

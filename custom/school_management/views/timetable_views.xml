@@ -140,10 +140,31 @@
         </field>
     </record>
 
+        <record id="view_university_timetable_slot_search" model="ir.ui.view">
+        <field name="name">university.timetable.slot.search</field>
+        <field name="model">university.timetable.slot</field>
+        <field name="arch" type="xml">
+            <search string="Search Timetable Slots">
+                <field name="name"/>
+                <field name="section_id"/>
+                <field name="subject_id"/>
+                <field name="teacher_id"/>
+                <filter string="Completed" name="completed" domain="[('state', '=', 'completed')]"/>
+                <filter string="Running" name="running" domain="[('state', '=', 'running')]"/>
+                <filter string="To Do" name="todo" domain="[('state', '=', 'todo')]"/>
+                <searchpanel>
+                    <field name="section_id" icon="fa-users" enable_counters="1"/>
+                    <field name="subject_id" icon="fa-book" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
     <record id="action_university_timetable_slot" model="ir.actions.act_window">
         <field name="name">Class Timetable</field>
         <field name="res_model">university.timetable.slot</field>
         <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_university_timetable_slot_search"/>
     </record>
 
 

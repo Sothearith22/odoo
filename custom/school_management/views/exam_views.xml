@@ -7,7 +7,7 @@
         <field name="name">university.exam.list</field>
         <field name="model">university.exam</field>
         <field name="arch" type="xml">
-            <list string="Exams &amp; Quizzes" sample="1">
+            <list string="Exams &amp; Quizzes" sample="1" class="o_university_exam_list">
                 <field name="name"/>
                 <field name="exam_type"
                        widget="badge"
@@ -209,6 +209,11 @@
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
                 </group>
+                <searchpanel class="o_university_exam_searchpanel">
+                    <field name="subject_id" icon="fa-book" enable_counters="1"/>
+                    <field name="exam_type" icon="fa-pencil-square-o" enable_counters="1" select="multi"/>
+                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

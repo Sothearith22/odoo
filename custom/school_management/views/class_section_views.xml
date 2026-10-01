@@ -47,7 +47,7 @@
                         <group string="Program &amp; Subject">
                             <field name="section_type"/>
                             <field name="program_id"/>
-                            <field name="subject_id"/>
+                            <field name="subject_id" domain="[('program_ids', 'in', [program_id])]"/>
                             <field name="teacher_id" domain="[('subject_ids', 'in', subject_id)]"/>
                         </group>
                         <group string="Schedule &amp; Location">
@@ -100,6 +100,11 @@
                     <filter string="Teacher" name="group_by_teacher" context="{'group_by': 'teacher_id'}"/>
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                 </group>
+                <searchpanel>
+                    <field name="program_id" icon="fa-graduation-cap" enable_counters="1"/>
+                    <field name="semester_id" icon="fa-calendar" enable_counters="1"/>
+                    <field name="section_type" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

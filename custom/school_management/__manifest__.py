@@ -1,6 +1,6 @@
 {
     "name": "University Management System",
-    "version": "19.0.1.2.2",
+    "version": "19.0.1.3.0",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -11,14 +11,13 @@
         "mail",
         "portal",
         "web",
-    ],"data": [
+    ],
+    "external_dependencies": {"python": ["xlsxwriter"]},
+    "data": [
     # Security
     "security/security.xml",
     "security/ir.model.access.csv",
     "security/record_rules.xml",
-
-    # Portal
-    "views/portal_templates.xml",
 
     # Data
     "data/cleanup_legacy_models.xml",
@@ -30,18 +29,25 @@
     "data/university_capability_data.xml",
     "data/fix_user_teacher_links.xml",
     "data/exam_cron_data.xml",
+    "data/ir_cron.xml",
+
+    # Portal
+    "views/portal_templates.xml",
 
     # Wizards
     "wizard/student_enrollment_wizard_views.xml",
     "wizard/bulk_enrollment_wizard_views.xml",
     "wizard/populate_class_wizard_views.xml",
     "wizard/teacher_account_wizard_views.xml",
+    "wizard/year_rollover_wizard_views.xml",
 
     # Core Views
     "views/faculty_views.xml",
     "views/department_views.xml",
     "views/program_views.xml",
     "views/academic_year_views.xml",
+    "views/department_term_views.xml",
+    "views/holiday_views.xml",
     "views/semester_subject_views.xml",
     "views/classroom_views.xml",
     "views/admission_views.xml",
@@ -95,8 +101,10 @@
         "web.assets_backend": [
             "school_management/static/src/school_management/design_tokens.scss",
             "school_management/static/src/school_management/backend.scss",
+            "school_management/static/src/school_management/bulk_enrollment_wizard.scss",
             "school_management/static/src/scss/status_badge.scss",
             "school_management/static/src/scss/student_kanban.scss",
+            "school_management/static/src/scss/subject_kanban.scss",
             "school_management/static/src/scss/admission_ui.scss",
             "school_management/static/src/attendance_sheet/attendance_sheet.js",
             "school_management/static/src/attendance_sheet/attendance_sheet.xml",

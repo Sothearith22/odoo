@@ -31,6 +31,7 @@
                        widget="badge"
                        decoration-success="status == 'enrolled'"
                        decoration-warning="status == 'draft'"
+                       decoration-info="status == 'to_approve'"
                        decoration-danger="status in ['withdrawn', 'dropped']"
                        decoration-muted="status == 'completed'"/>
             </list>
@@ -44,6 +45,16 @@
         <field name="arch" type="xml">
             <form string="Student Enrollment">
                 <header>
+                    <button name="action_approve"
+                            string="Approve"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="status != 'to_approve'"/>
+                    <button name="action_reject"
+                            string="Reject"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="status != 'to_approve'"/>
                     <button name="action_withdraw"
                             string="Withdraw"
                             type="object"
@@ -51,7 +62,7 @@
                             invisible="status in ['withdrawn', 'dropped']"/>
                     <field name="status"
                            widget="statusbar"
-                           statusbar_visible="draft,enrolled,withdrawn,completed"/>
+                           statusbar_visible="draft,to_approve,enrolled,withdrawn,completed"/>
                 </header>
                 <sheet>
                     <group>
@@ -74,6 +85,7 @@
                         <field name="subject_id"/>
                         <field name="teacher_id"/>
                     </group>
+                    <field name="pending_change" invisible="not pending_change" readonly="1"/>
                 </sheet>
                 <chatter/>
             </form>
@@ -119,6 +131,7 @@
                 <field name="semester_id"/>
                 <separator/>
                 <filter string="Draft" name="filter_draft" domain="[('status', '=', 'draft')]"/>
+                <filter string="To Approve" name="filter_to_approve" domain="[('status', '=', 'to_approve')]"/>
                 <filter string="Enrolled" name="filter_enrolled" domain="[('status', '=', 'enrolled')]"/>
                 <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
                 <filter string="Withdrawn" name="filter_withdrawn" domain="[('status', '=', 'withdrawn')]"/>
@@ -134,6 +147,11 @@
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                    <field name="program_id" icon="fa-graduation-cap" enable_counters="1"/>
+                    <field name="status" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

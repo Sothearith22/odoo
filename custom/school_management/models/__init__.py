@@ -2,6 +2,8 @@ from . import faculty
 from . import department
 from . import program
 from . import academic_year
+from . import department_term
+from . import holiday
 from . import teacher
 from . import academic_assignment
 from . import res_users

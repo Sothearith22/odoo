@@ -74,10 +74,27 @@
         </field>
     </record>
 
+        <record id="admission_lead_view_search" model="ir.ui.view">
+        <field name="name">admission.lead.search</field>
+        <field name="model">admission.lead</field>
+        <field name="arch" type="xml">
+            <search string="Search Admission Pipeline">
+                <field name="student_name"/>
+                <field name="program_id"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <searchpanel>
+                    <field name="program_id" icon="fa-graduation-cap" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
     <record id="admission_lead_action" model="ir.actions.act_window">
         <field name="name">Admission Pipeline</field>
         <field name="res_model">admission.lead</field>
         <field name="view_mode">kanban,form</field>
+        <field name="search_view_id" ref="admission_lead_view_search"/>
     </record>
 
     <menuitem id="menu_admission_lead" name="Admission Pipeline"

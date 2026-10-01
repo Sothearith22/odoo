@@ -161,6 +161,10 @@
                     <filter string="Student" name="student" context="{'group_by': 'student_id'}"/>
                     <filter string="Status" name="status" context="{'group_by': 'state'}"/>
                 </group>
+                <searchpanel>
+                    <field name="academic_year_id" icon="fa-calendar" enable_counters="1"/>
+                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

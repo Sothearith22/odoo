@@ -63,6 +63,10 @@
                     <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
                 </group>
+                <searchpanel>
+                    <field name="academic_year_id" icon="fa-calendar" enable_counters="1"/>
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
+                </searchpanel>
             </search>
         </field>
     </record>

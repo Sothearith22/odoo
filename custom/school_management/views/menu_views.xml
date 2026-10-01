@@ -11,147 +11,6 @@
         groups="base.group_system,school_management.group_school_user"
     />
 
-    <!-- Dedicated Student Portal root -->
-    <menuitem
-        id="menu_school_student_portal_root"
-        name="Student Portal"
-        sequence="10"
-        action="action_student_dashboard_shell"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_dashboard"
-        name="Dashboard"
-        parent="menu_school_student_portal_root"
-        action="action_student_dashboard_shell"
-        sequence="1"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_profile"
-        name="My Profile"
-        parent="menu_school_student_portal_root"
-        action="action_university_student_profile"
-        sequence="10"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_enrollments"
-        name="My Enrollments"
-        parent="menu_school_student_portal_root"
-        action="action_university_enrollment_student"
-        sequence="20"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_academic"
-        name="Academic"
-        parent="menu_school_student_portal_root"
-        sequence="30"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_timetable"
-        name="My Timetable"
-        parent="menu_school_student_portal_academic"
-        action="action_university_timetable_slot_student"
-        sequence="10"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_assignments"
-        name="My Assignments"
-        parent="menu_school_student_portal_academic"
-        action="action_university_assignment_my"
-        sequence="20"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_submissions"
-        name="My Submissions"
-        parent="menu_school_student_portal_academic"
-        action="action_university_assignment_submission_student"
-        sequence="30"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_service_hours"
-        name="My Service Hours"
-        parent="menu_school_student_portal_academic"
-        action="action_university_service_hour"
-        sequence="32"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_exams"
-        name="My Exam Results"
-        parent="menu_school_student_portal_academic"
-        action="action_university_exam_score_student"
-        sequence="35"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_results"
-        name="My Results"
-        parent="menu_school_student_portal_academic"
-        action="action_university_assessment_result_student"
-        sequence="40"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_report_cards"
-        name="My Report Cards"
-        parent="menu_school_student_portal_academic"
-        action="action_university_report_card_student"
-        sequence="50"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_transcripts"
-        name="My Transcript"
-        parent="menu_school_student_portal_academic"
-        action="action_university_transcript_student"
-        sequence="60"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_finance"
-        name="Finance"
-        parent="menu_school_student_portal_root"
-        sequence="40"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_fees"
-        name="My Fees"
-        parent="menu_school_student_portal_finance"
-        action="action_university_fee_student"
-        sequence="10"
-        groups="school_management.group_school_student"
-    />
-
-    <menuitem
-        id="menu_school_student_portal_payments"
-        name="My Payments"
-        parent="menu_school_student_portal_finance"
-        action="action_university_payment_student"
-        sequence="20"
-        groups="school_management.group_school_student"
-    />
     <!-- ==================== DASHBOARD ==================== -->
     <menuitem
         id="menu_school_dashboard"
@@ -218,6 +77,30 @@
         action="action_university_semester"
         sequence="50"
         groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_department_term"
+        name="Department Terms"
+        parent="menu_university_structure"
+        action="action_university_department_term"
+        sequence="55"
+        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_department_term_ending_soon"
+        name="Ending Soon"
+        parent="menu_university_structure"
+        action="action_university_department_term_ending_soon"
+        sequence="56"
+        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_holiday"
+        name="Holidays"
+        parent="menu_university_structure"
+        action="action_university_holiday"
+        sequence="57"
+        groups="school_management.group_school_registrar,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_semester_subject"
@@ -315,14 +198,6 @@
         name="Academic Staff"
         parent="menu_university_people"
         sequence="20"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_school_teacher_profile"
-        name="My Profile"
-        parent="menu_school_teacher_category"
-        action="action_university_teacher_profile"
-        sequence="5"
         groups="school_management.group_school_teacher"
     />
     <menuitem

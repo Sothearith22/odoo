@@ -6,10 +6,15 @@
         <field name="name">university.academic.year.list</field>
         <field name="model">university.academic.year</field>
         <field name="arch" type="xml">
-            <list string="Academic Years" sample="1">
+            <list string="Academic Years" sample="1" class="o_university_academic_year_list">
                 <field name="name" decoration-bf="1"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'running'"
+                       decoration-muted="state == 'closed'"/>
+                <field name="semester_count"/>
                 <field name="current" widget="boolean_toggle"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
@@ -21,6 +26,14 @@
         <field name="model">university.academic.year</field>
         <field name="arch" type="xml">
             <form string="Academic Year">
+                <header>
+                    <button name="action_open_rollover"
+                            string="Roll Over Year"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state not in ['closed', 'running']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,closed"/>
+                </header>
                 <sheet>
                     <widget name="web_ribbon" title="Current" bg_color="text-bg-success" invisible="not current"/>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -39,6 +52,7 @@
                             <field name="date_end"/>
                         </group>
                         <group string="Status">
+                            <field name="state"/>
                             <field name="current" widget="boolean_toggle"/>
                         </group>
                     </group>
@@ -49,6 +63,16 @@
                                 <list editable="bottom">
                                     <field name="name"/>
                                     <field name="semester_type"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Holidays" name="holidays_tab">
+                            <field name="holiday_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="faculty_id"/>
                                     <field name="date_start"/>
                                     <field name="date_end"/>
                                 </list>
@@ -66,10 +90,22 @@
         <field name="arch" type="xml">
             <search string="Search Academic Years">
                 <field name="name"/>
+                <separator/>
                 <filter string="Current Year" name="filter_current" domain="[('current', '=', True)]"/>
+                <separator/>
+                <filter string="Running" name="filter_running" domain="[('state', '=', 'running')]"/>
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Closed" name="filter_closed" domain="[('state', '=', 'closed')]"/>
                 <separator/>
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                </group>
+                <searchpanel class="o_university_academic_year_searchpanel">
+                    <field name="state" icon="fa-tasks" enable_counters="1" select="multi"/>
+                    <field name="semester_status" icon="fa-calendar" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>
@@ -79,27 +115,47 @@
         <field name="name">university.academic.year.kanban</field>
         <field name="model">university.academic.year</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban sample="1" class="o_university_academic_year_kanban">
                 <field name="name"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="current"/>
-                <field name="semester_ids"/>
+                <field name="state"/>
+                <field name="semester_count"/>
                 <templates>
-                    <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                    <t t-name="card" class="o_academic_year_kanban_card">
+                        <main class="o_academic_year_card_body p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="o_academic_year_icon_wrap">
+                                        <i class="fa fa-calendar-check-o" title="Academic Year" aria-hidden="true"/>
+                                    </div>
+                                    <div>
+                                        <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
+                                        <div class="mt-1" t-if="record.current.raw_value">
+                                            <span class="badge o_badge_current"><i class="fa fa-check-circle me-1" title="Current"/>Current</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-success="state == 'running'"
+                                           decoration-muted="state == 'closed'"/>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-calendar me-1" title="Period"/>
-                                <field name="date_start"/> → <field name="date_end"/>
+                            <div class="o_academic_year_date_line text-muted small mt-2">
+                                <i class="fa fa-calendar me-2" title="Period"/>
+                                <field name="date_start"/> <i class="fa fa-arrow-right mx-1 small text-muted" title="To"/> <field name="date_end"/>
                             </div>
-                            <div class="mt-2">
-                                <span t-if="record.current.raw_value" class="badge text-bg-success">Current</span>
-                                <span class="badge text-bg-secondary float-end"><field name="semester_ids"/> Semesters</span>
+                            <div class="o_academic_year_footer d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
+                                <span class="o_academic_year_pill">
+                                    <i class="fa fa-bookmark-o me-1" title="Semesters"/>
+                                    <field name="semester_count"/> Semesters
+                                </span>
+                                <a type="open" class="o_academic_year_open">
+                                    Details <i class="fa fa-arrow-right ms-1" title="Details"/>
+                                </a>
                             </div>
                         </main>
                     </t>
@@ -136,6 +192,16 @@
         <field name="model">university.semester</field>
         <field name="arch" type="xml">
             <form string="Semester">
+                <header>
+                    <button name="action_generate_department_terms"
+                            string="Generate Department Schedule"
+                            type="object"
+                            class="oe_highlight"/>
+                    <button name="action_export_department_terms"
+                            string="Export Department Terms"
+                            type="object"
+                            class="btn-secondary"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name" string="Semester Name"/>
@@ -164,6 +230,23 @@
                                 </list>
                             </field>
                         </page>
+
+                        <page string="Department Schedule" name="department_schedule_tab">
+                            <field name="department_term_ids">
+                                <list editable="bottom">
+                                    <field name="faculty_id" readonly="1"/>
+                                    <field name="department_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           readonly="1"
+                                           decoration-info="state == 'planned'"
+                                           decoration-success="state == 'running'"
+                                           decoration-muted="state == 'ended'"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -181,7 +264,7 @@
                 <field name="semester_type"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
-                <field name="semester_subject_ids"/>
+                <field name="subject_count"/>
                 <templates>
                     <t t-name="card">
                         <main class="ms-2 p-3">
@@ -203,7 +286,7 @@
                                 <field name="date_start"/> → <field name="date_end"/>
                             </div>
                             <div class="mt-2">
-                                <span class="badge text-bg-secondary"><field name="semester_subject_ids"/> Subjects</span>
+                                <span class="badge text-bg-secondary"><field name="subject_count"/> Subjects</span>
                             </div>
                         </main>
                     </t>
@@ -216,6 +299,13 @@
         <field name="name">Semesters</field>
         <field name="res_model">university.semester</field>
         <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record id="action_export_department_terms_server" model="ir.actions.server">
+        <field name="name">Export Department Terms</field>
+        <field name="model_id" ref="model_university_semester"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_export_department_terms()</field>
     </record>
 
 </odoo>

@@ -1,7 +1,7 @@
 from collections import Counter
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class UniversityEnrollment(models.Model):
@@ -84,6 +84,7 @@ class UniversityEnrollment(models.Model):
     status = fields.Selection(
         [
             ("draft", "Draft"),
+            ("to_approve", "To Approve"),
             ("enrolled", "Enrolled"),
             ("withdrawn", "Withdrawn"),
             ("completed", "Completed"),
@@ -93,6 +94,10 @@ class UniversityEnrollment(models.Model):
         default="draft",
         tracking=True,
     )
+    pending_change = fields.Json(
+        string="Pending Change", copy=False, readonly=True,
+        help="Values awaiting registrar or administrator approval.",
+    )
     possible_duplicate = fields.Boolean(
         string="Possible Duplicate",
         compute="_compute_possible_duplicate",
@@ -101,11 +106,50 @@ class UniversityEnrollment(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
+        for vals in vals_list:
+            self._apply_registration_policy(vals)
         self._check_capacity_for_vals(vals_list)
         self._check_active_program_period_duplicates(vals_list)
         return super().create(vals_list)
 
     def write(self, vals):
+        if not self.env.context.get("approval_write"):
+            placement_fields = {
+                "section_id", "program_id", "semester_id", "academic_year_id",
+            }
+            if placement_fields & set(vals) or vals.get("status") == "enrolled":
+                handled = self.env[self._name]
+                for enrollment in self:
+                    term = enrollment._term_for_values(vals)
+                    if not term:
+                        continue
+                    if term.academic_year_id.state == "closed":
+                        raise ValidationError(
+                            "Enrollments cannot be changed for a closed academic year."
+                        )
+                    today = fields.Date.context_today(enrollment)
+                    if term.is_registration_open(today) or term.is_add_drop_open(today):
+                        continue
+                    if term.add_drop_end and today > term.add_drop_end:
+                        pending = {
+                            key: vals[key]
+                            for key in placement_fields
+                            if key in vals
+                        }
+                        pending["_previous_status"] = enrollment.status
+                        super(UniversityEnrollment, enrollment).write({
+                            "pending_change": pending,
+                            "status": "to_approve",
+                        })
+                        handled |= enrollment
+                        continue
+                    raise ValidationError(
+                        "Enrollment changes are allowed only during registration or add/drop."
+                    )
+                self = self - handled
+                if not self:
+                    return True
         if {"section_id", "status"} & set(vals):
             self._check_capacity_for_vals([
                 {
@@ -115,6 +159,86 @@ class UniversityEnrollment(models.Model):
                 for enrollment in self
             ], excluded_ids=self.ids)
         return super().write(vals)
+
+    def _term_for_values(self, vals):
+        self.ensure_one()
+        section = self.env["university.class.section"].browse(
+            vals.get("section_id", self.section_id.id)
+        ).exists()
+        program = self.env["university.program"].browse(
+            vals.get("program_id", self.program_id.id)
+        ).exists()
+        semester = self.env["university.semester"].browse(
+            vals.get("semester_id", self.semester_id.id)
+        ).exists()
+        department = (section.subject_id.department_id if section and section.subject_id
+                      else program.department_id if program else self.department_id)
+        if not semester or not department:
+            return self.env["university.department.term"]
+        return self.env["university.department.term"].search([
+            ("semester_id", "=", semester.id),
+            ("department_id", "=", department.id),
+        ], limit=1)
+
+    def _apply_registration_policy(self, vals):
+        status = vals.get("status", "draft")
+        if status in ("withdrawn", "dropped", "completed"):
+            return
+        section = self.env["university.class.section"].browse(vals.get("section_id")).exists()
+        program = self.env["university.program"].browse(vals.get("program_id")).exists()
+        semester = self.env["university.semester"].browse(vals.get("semester_id")).exists()
+        department = (section.subject_id.department_id if section and section.subject_id
+                      else program.department_id if program else False)
+        term = self.env["university.department.term"].search([
+            ("semester_id", "=", semester.id if semester else 0),
+            ("department_id", "=", department.id if department else 0),
+        ], limit=1)
+        if not term:
+            # Preserve legacy enrollment records until a department schedule
+            # has been generated for their semester.
+            return
+        if term.academic_year_id.state == "closed":
+            raise ValidationError("Enrollments cannot be created for a closed academic year.")
+        today = fields.Date.context_today(self)
+        if term.is_registration_open(today):
+            return
+        if term.add_drop_end and today > term.add_drop_end:
+            vals["status"] = "to_approve"
+            return
+        raise ValidationError(
+            "Enrollment is allowed only during the department registration window."
+        )
+
+    def _check_approval_user(self):
+        if self.env.su or self.env.user.has_group("school_management.group_school_admin") \
+                or self.env.user.has_group("school_management.group_school_registrar"):
+            return
+        raise AccessError("Only a Registrar or University Administrator can approve enrollments.")
+
+    def action_approve(self):
+        self._check_approval_user()
+        for enrollment in self.filtered(lambda rec: rec.status == "to_approve"):
+            pending = enrollment.pending_change or {}
+            values = {
+                key: value for key, value in pending.items()
+                if not key.startswith("_")
+            }
+            values.update({"pending_change": False, "status": "enrolled"})
+            enrollment.with_context(approval_write=True).write(values)
+            enrollment.message_post(body="Enrollment approved by %s." % self.env.user.display_name)
+        return True
+
+    def action_reject(self):
+        self._check_approval_user()
+        for enrollment in self.filtered(lambda rec: rec.status == "to_approve"):
+            pending = enrollment.pending_change or {}
+            previous_status = pending.get("_previous_status", "dropped")
+            enrollment.with_context(approval_write=True).write({
+                "pending_change": False,
+                "status": previous_status,
+            })
+            enrollment.message_post(body="Enrollment request rejected by %s." % self.env.user.display_name)
+        return True
 
     def action_withdraw(self):
         for enrollment in self:

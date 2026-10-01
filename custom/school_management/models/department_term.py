@@ -1,0 +1,279 @@
+from datetime import timedelta
+
+from odoo import api, fields, models
+from odoo.exceptions import AccessError, ValidationError
+
+
+class UniversityDepartmentTerm(models.Model):
+    _name = "university.department.term"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _description = "Department Term"
+    _rec_name = "department_id"
+    _order = "academic_year_id desc, semester_id, faculty_id, department_id"
+
+    _semester_department_unique = models.Constraint(
+        "UNIQUE (semester_id, department_id)",
+        "A department can only have one term per semester.",
+    )
+    _date_range_constraint = models.Constraint(
+        "CHECK (date_end >= date_start)",
+        "The department term end date must be on or after the start date.",
+    )
+
+    semester_id = fields.Many2one(
+        "university.semester",
+        string="Semester",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    academic_year_id = fields.Many2one(
+        "university.academic.year",
+        string="Academic Year",
+        related="semester_id.academic_year_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    department_id = fields.Many2one(
+        "university.department",
+        string="Department",
+        required=True,
+        index=True,
+    )
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        string="Faculty",
+        related="department_id.faculty_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    date_start = fields.Date(string="Start Date", required=True, tracking=True)
+    date_end = fields.Date(string="End Date", required=True, tracking=True)
+    registration_start = fields.Date(string="Registration Start")
+    registration_end = fields.Date(string="Registration End")
+    add_drop_start = fields.Date(string="Add/Drop Start")
+    add_drop_end = fields.Date(string="Add/Drop End")
+    grade_deadline = fields.Date(string="Grade Deadline")
+    change_reason = fields.Text(string="Change Reason")
+    teaching_weeks = fields.Float(
+        string="Teaching Weeks", compute="_compute_teaching_weeks", store=True
+    )
+    state = fields.Selection(
+        [
+            ("planned", "Planned"),
+            ("running", "Running"),
+            ("ended", "Ended"),
+        ],
+        string="State",
+        compute="_compute_state",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        semester_ids = [vals.get("semester_id") for vals in vals_list]
+        semesters = self.env["university.semester"].browse(semester_ids).exists()
+        if any(semester.academic_year_id.state == "closed" for semester in semesters):
+            raise AccessError("Terms cannot be created in a closed academic year.")
+        return super().create(vals_list)
+
+    @api.depends(
+        "date_start", "date_end", "faculty_id",
+        "academic_year_id.holiday_ids.date_start",
+        "academic_year_id.holiday_ids.date_end",
+        "academic_year_id.holiday_ids.faculty_id",
+    )
+    def _compute_teaching_weeks(self):
+        Holiday = self.env["university.holiday"]
+        for term in self:
+            if not term.date_start or not term.date_end:
+                term.teaching_weeks = 0.0
+                continue
+            holidays = Holiday.search([
+                ("academic_year_id", "=", term.academic_year_id.id),
+                ("date_end", ">=", term.date_start),
+                ("date_start", "<=", term.date_end),
+                "|", ("faculty_id", "=", False),
+                ("faculty_id", "=", term.faculty_id.id),
+            ])
+            holiday_days = set()
+            for holiday in holidays:
+                current = max(term.date_start, holiday.date_start)
+                end = min(term.date_end, holiday.date_end)
+                while current <= end:
+                    if current.weekday() < 5:
+                        holiday_days.add(current)
+                    current += timedelta(days=1)
+            total_days = (term.date_end - term.date_start).days + 1
+            term.teaching_weeks = round(
+                max(total_days - len(holiday_days), 0) / 7.0, 2
+            )
+
+    @api.depends("date_start", "date_end")
+    def _compute_state(self):
+        today = fields.Date.context_today(self)
+        for term in self:
+            if not term.date_start or not term.date_end or today < term.date_start:
+                term.state = "planned"
+            elif today > term.date_end:
+                term.state = "ended"
+            else:
+                term.state = "running"
+
+    @api.constrains("semester_id", "date_start", "date_end")
+    def _check_dates_within_semester(self):
+        for term in self:
+            semester = term.semester_id
+            if not semester or not term.date_start or not term.date_end:
+                continue
+            if not semester.date_start or not semester.date_end:
+                raise ValidationError(
+                    "Department term dates require a semester with start and end dates."
+                )
+            if (
+                term.date_start < semester.date_start
+                or term.date_end > semester.date_end
+            ):
+                raise ValidationError(
+                    "Department term dates must fall within the selected semester dates."
+                )
+
+    @api.constrains(
+        "registration_start", "registration_end", "add_drop_start",
+        "add_drop_end", "grade_deadline", "date_start", "date_end",
+    )
+    def _check_milestones(self):
+        for term in self:
+            if term.registration_start and term.registration_end \
+                    and term.registration_end < term.registration_start:
+                raise ValidationError(
+                    "Registration end must be on or after registration start."
+                )
+            if term.add_drop_start and term.add_drop_end \
+                    and term.add_drop_end < term.add_drop_start:
+                raise ValidationError(
+                    "Add/drop end must be on or after add/drop start."
+                )
+            if term.registration_end and term.add_drop_start \
+                    and term.add_drop_start < term.registration_end:
+                raise ValidationError("Add/drop cannot start before registration ends.")
+            if term.grade_deadline and term.date_end \
+                    and term.grade_deadline < term.date_end:
+                raise ValidationError("Grade deadline cannot be before the term end date.")
+
+    def write(self, vals):
+        if any(term.academic_year_id.state == "closed" for term in self) \
+                and not self.env.context.get("allow_closed_year_write"):
+            raise AccessError("Terms of a closed academic year cannot be modified.")
+
+        changing_dates = {"date_start", "date_end"} & set(vals)
+        old_values = {
+            term.id: (term.date_start, term.date_end) for term in self
+        } if changing_dates else {}
+        if "date_end" in vals:
+            new_end = fields.Date.to_date(vals["date_end"])
+            today = fields.Date.context_today(self)
+            for term in self:
+                if new_end and term.date_end and new_end > term.date_end \
+                        and today >= term.date_start \
+                        and not (vals.get("change_reason") or term.change_reason):
+                    raise ValidationError(
+                        "A reason is required when extending a started term."
+                    )
+
+        result = super().write(vals)
+        if changing_dates:
+            for term in self:
+                old_start, old_end = old_values[term.id]
+                reason = (". Reason: %s" % term.change_reason) \
+                    if term.change_reason else ""
+                term.message_post(body=(
+                    "Schedule changed by %s: start %s -> %s; end %s -> %s%s"
+                    % (
+                        self.env.user.display_name,
+                        old_start or "-", term.date_start or "-",
+                        old_end or "-", term.date_end or "-", reason,
+                    )
+                ))
+        return result
+
+    def is_registration_open(self, today=None):
+        self.ensure_one()
+        today = today or fields.Date.context_today(self)
+        return bool(
+            self.registration_start and self.registration_end
+            and self.registration_start <= today <= self.registration_end
+        )
+
+    def is_add_drop_open(self, today=None):
+        self.ensure_one()
+        today = today or fields.Date.context_today(self)
+        return bool(
+            self.add_drop_start and self.add_drop_end
+            and self.add_drop_start <= today <= self.add_drop_end
+        )
+
+    @api.model
+    def action_ending_soon(self):
+        today = fields.Date.context_today(self)
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Ending Soon",
+            "res_model": self._name,
+            "view_mode": "list,form",
+            "domain": [
+                ("date_end", ">=", today),
+                ("date_end", "<=", today + timedelta(days=14)),
+            ],
+        }
+
+    @api.model
+    def _cron_update_state(self):
+        self.search([])._compute_state()
+        return True
+
+    @api.model
+    def _cron_create_deadline_activities(self):
+        today = fields.Date.context_today(self)
+        activity_type = self.env.ref(
+            "mail.mail_activity_data_todo", raise_if_not_found=False
+        )
+        if not activity_type:
+            return True
+        model_id = self.env["ir.model"]._get_id(self._name)
+        for term in self.search([]):
+            user = term.department_id.head_id.user_id
+            if not user:
+                continue
+            for event_name in ("registration_end", "date_end", "grade_deadline"):
+                event_date = getattr(term, event_name)
+                if not event_date or event_date - today != timedelta(days=7):
+                    continue
+                summary = "Department term %s: %s" % (term.id, event_name)
+                if self.env["mail.activity"].search_count([
+                    ("res_model_id", "=", model_id),
+                    ("res_id", "=", term.id),
+                    ("user_id", "=", user.id),
+                    ("summary", "=", summary),
+                ]):
+                    continue
+                self.env["mail.activity"].create({
+                    "activity_type_id": activity_type.id,
+                    "res_model_id": model_id,
+                    "res_id": term.id,
+                    "user_id": user.id,
+                    "summary": summary,
+                    "note": "Deadline: %s" % event_date,
+                    "date_deadline": today,
+                })
+        return True
+
+    @api.model
+    def _cron_daily_maintenance(self):
+        self._cron_update_state()
+        self._cron_create_deadline_activities()
+        return True

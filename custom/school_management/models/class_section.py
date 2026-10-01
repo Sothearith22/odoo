@@ -26,6 +26,7 @@ class UniversityClassSection(models.Model):
     subject_id = fields.Many2one(
         "university.subject",
         string="Subject",
+        domain="[('program_ids', 'in', [program_id])]",
         help="Legacy: set for subject-based class sections. Leave empty for "
              "program-level cohort sections.",
     )
@@ -148,6 +149,14 @@ class UniversityClassSection(models.Model):
                 raise ValidationError(
                     "The selected subject does not belong to the chosen major/program."
                 )
+
+    @api.onchange("program_id")
+    def _onchange_program_id(self):
+        domain = [("program_ids", "in", [self.program_id.id])] if self.program_id else []
+        if self.subject_id and self.program_id not in self.subject_id.program_ids:
+            self.subject_id = False
+            self.teacher_id = False
+        return {"domain": {"subject_id": domain}}
 
     def action_open_bulk_enroll_wizard(self):
         self.ensure_one()

@@ -40,7 +40,9 @@
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="staff_id" required="1"/>
+                            <field name="staff_id"
+                                   required="1"
+                                   domain="[('active', '=', True), '|', ('department_id', '=', department_id), ('faculty_id', '=', faculty_id)]"/>
                         </h1>
                     </div>
                     <group>
@@ -57,7 +59,7 @@
                         </group>
                     </group>
                     <group string="Appointment Period">
-                        <field name="start_date"/>
+                        <field name="start_date" required="1"/>
                         <field name="end_date"/>
                     </group>
                     <group string="Notes">
@@ -88,6 +90,11 @@
                     <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
                 </group>
+                <searchpanel>
+                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
+                    <field name="role" icon="fa-briefcase" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>

@@ -51,6 +51,9 @@
                 <field name="signed_name"/>
                 <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
                 <filter string="Signed" name="signed" domain="[('state', '=', 'signed')]"/>
+                <searchpanel>
+                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                </searchpanel>
             </search>
         </field>
     </record>
