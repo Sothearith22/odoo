@@ -39,6 +39,22 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Teaching &amp; Schedule">
+                        <setting
+                            id="university_min_teaching_weeks"
+                            string="Minimum Teaching Weeks"
+                            help="Minimum required teaching weeks per department term. Terms shorter than this will display a warning."
+                        >
+                            <div class="row mt16">
+                                <label
+                                    for="min_teaching_weeks"
+                                    string="Minimum Weeks"
+                                    class="col-lg-4 o_light_label"
+                                />
+                                <field name="min_teaching_weeks" class="col-lg-4"/>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

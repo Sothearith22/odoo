@@ -1,6 +1,6 @@
 {
     "name": "University Management System",
-    "version": "19.0.1.3.0",
+    "version": "19.0.1.3.3",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -23,6 +23,8 @@
     "data/cleanup_legacy_models.xml",
     "data/dashboard_data.xml",
     "data/fee_sequence.xml",
+    "data/student_sequence.xml",
+    "data/teacher_sequence.xml",
     "data/academic_defaults.xml",
     "data/admission_stage_data.xml",
     "data/mail_template.xml",

@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UniversityHoliday(models.Model):
@@ -31,16 +31,25 @@ class UniversityHoliday(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        year_ids = [vals.get("academic_year_id") for vals in vals_list]
-        years = self.env["university.academic.year"].browse(year_ids).exists()
-        if any(year.state == "closed" for year in years):
-            raise AccessError("Holidays cannot be created in a closed academic year.")
+        if not self.env.context.get("allow_closed_year_write"):
+            year_ids = [vals.get("academic_year_id") for vals in vals_list if vals.get("academic_year_id")]
+            if year_ids:
+                years = self.env["university.academic.year"].browse(year_ids).exists()
+                if any(year.state in ("closed", "archived") for year in years):
+                    raise UserError("Holidays cannot be created in a closed or archived academic year.")
         return super().create(vals_list)
 
     def write(self, vals):
-        if any(holiday.academic_year_id.state == "closed" for holiday in self):
-            raise AccessError("Holidays of a closed academic year cannot be modified.")
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(holiday.academic_year_id.state in ("closed", "archived") for holiday in self):
+                raise UserError("Holidays of a closed or archived academic year cannot be modified.")
         return super().write(vals)
+
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(holiday.academic_year_id.state in ("closed", "archived") for holiday in self):
+                raise UserError("Holidays of a closed or archived academic year cannot be deleted.")
+        return super().unlink()
 
     @api.constrains("date_start", "date_end", "academic_year_id")
     def _check_dates_within_year(self):

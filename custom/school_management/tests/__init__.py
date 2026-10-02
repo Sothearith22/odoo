@@ -10,3 +10,6 @@ from . import test_user_provisioning
 from . import test_grading_integration
 from . import test_attendance_sheet
 from . import test_department_term
+from . import test_record_rules
+from . import test_student
+from . import test_teacher

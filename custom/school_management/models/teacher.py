@@ -1,5 +1,37 @@
+import re
+
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+
+TITLES_MAP = {
+    "dr.": "dr",
+    "dr": "dr",
+    "prof.": "prof",
+    "prof": "prof",
+    "mr.": "mr",
+    "mr": "mr",
+    "ms.": "ms",
+    "ms": "ms",
+    "mrs.": "mrs",
+    "mrs": "mrs",
+}
+
+
+def _normalize_name_and_extract_title(raw_name, explicit_title=None):
+    if not raw_name or not isinstance(raw_name, str):
+        return explicit_title, raw_name
+    parts = raw_name.strip().split()
+    if not parts:
+        return explicit_title, ""
+    first_lower = parts[0].lower()
+    title = explicit_title
+    if first_lower in TITLES_MAP:
+        if not title:
+            title = TITLES_MAP[first_lower]
+        parts = parts[1:]
+    normalized_name = " ".join(part.capitalize() for part in parts)
+    return title, normalized_name
 
 
 def _hod_assignment(teacher):
@@ -14,24 +46,51 @@ def _dean_assignment(teacher):
     )[:1]
 
 
+def _is_positive_boolean_search(operator, value):
+    if operator in ("=", "=="):
+        return bool(value)
+    if operator in ("!=", "<>"):
+        return not bool(value)
+    if operator == "in":
+        vals = set(value) if hasattr(value, "__iter__") else {value}
+        if True in vals and False not in vals:
+            return True
+        if False in vals and True not in vals:
+            return False
+    if operator == "not in":
+        vals = set(value) if hasattr(value, "__iter__") else {value}
+        if True in vals and False not in vals:
+            return False
+        if False in vals and True not in vals:
+            return True
+    return bool(value)
+
+
 class Teacher(models.Model):
     _name = "university.teacher"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "avatar.mixin"]
     _description = "University Teacher"
+    _order = "name, id"
 
     # Personal Information
     name = fields.Char(string="Teacher Name", required=True)
-    teacher_id = fields.Char(string="Teacher ID", copy=False, index=True)
-    image_1920 = fields.Image(string="Photo")
+    title = fields.Selection(
+        [
+            ("dr", "Dr."),
+            ("prof", "Prof."),
+            ("mr", "Mr."),
+            ("ms", "Ms."),
+            ("mrs", "Mrs."),
+        ],
+        string="Title",
+    )
+    teacher_id = fields.Char(string="Staff ID", copy=False, index=True)
+    image_1920 = fields.Image(string="Photo", max_width=1920, max_height=1920)
     user_id = fields.Many2one(
         "res.users",
         string="Related User",
         ondelete="set null",
         help="Optionally link this academic staff member to their Odoo login for role-based access.",
-    )
-    _unique_user_id = models.UniqueIndex(
-        "(user_id) WHERE user_id IS NOT NULL",
-        "A staff login can only be linked to one academic staff record.",
     )
     gender = fields.Selection(
         [
@@ -79,6 +138,14 @@ class Teacher(models.Model):
     # Status
     active = fields.Boolean(string="Active", default=True)
 
+    # Color for Kanban left stripe
+    color = fields.Integer(
+        string="Color",
+        related="faculty_id.color",
+        store=True,
+        readonly=True,
+    )
+
     # Teaching
     subject_ids = fields.Many2many(
         "university.subject",
@@ -92,12 +159,51 @@ class Teacher(models.Model):
         "teacher_id",
         string="Class Sections",
     )
+    timetable_slot_ids = fields.One2many(
+        "university.timetable.slot",
+        "teacher_id",
+        string="Timetable Sessions",
+    )
+    class_count = fields.Integer(
+        string="Class Count",
+        compute="_compute_teaching_stats",
+        store=True,
+    )
+    weekly_hours = fields.Float(
+        string="Weekly Hours",
+        compute="_compute_teaching_stats",
+        store=True,
+    )
+
+    # Attendance & Presence
+    attendance_ids = fields.One2many(
+        "university.staff.attendance",
+        "staff_id",
+        string="Attendance Records",
+    )
+    is_present = fields.Boolean(
+        string="Present Today",
+        compute="_compute_presence",
+        search="_search_is_present",
+    )
+    on_leave = fields.Boolean(
+        string="On Leave",
+        compute="_compute_presence",
+        search="_search_on_leave",
+    )
+    notes = fields.Text(string="Notes")
 
     # Administrative responsibilities (derived from role assignments)
     assignment_ids = fields.One2many(
         "university.academic.assignment",
         "staff_id",
         string="Role Assignments",
+    )
+    is_head = fields.Boolean(
+        string="Is Head",
+        compute="_compute_is_head",
+        store=True,
+        help="True if the staff member currently holds an active Dean, Vice Dean, or HOD appointment.",
     )
     is_dean = fields.Boolean(
         string="Is Dean",
@@ -138,6 +244,126 @@ class Teacher(models.Model):
         compute="_compute_admin_appointments",
     )
 
+    # Odoo 19 Constraints / Indexes
+    _unique_user_id = models.UniqueIndex(
+        "(user_id) WHERE user_id IS NOT NULL",
+        "A staff login can only be linked to one academic staff record.",
+    )
+    _unique_teacher_id = models.UniqueIndex(
+        "(lower(teacher_id)) WHERE teacher_id IS NOT NULL",
+        "The Staff ID must be unique.",
+    )
+    _unique_email = models.UniqueIndex(
+        "(lower(email)) WHERE email IS NOT NULL",
+        "The email address must be unique.",
+    )
+
+    @api.depends("name", "title")
+    def _compute_display_name(self):
+        title_labels = dict(self._fields["title"].selection)
+        for teacher in self:
+            name = teacher.name or ""
+            if teacher.title:
+                t_label = title_labels.get(teacher.title, teacher.title)
+                teacher.display_name = f"{t_label} {name}".strip()
+            else:
+                teacher.display_name = name
+
+    @api.constrains("email")
+    def _check_email_format(self):
+        email_regex = re.compile(r"^[\w\.\+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)+$")
+        for rec in self:
+            if rec.email:
+                clean = rec.email.strip()
+                if not email_regex.match(clean):
+                    raise ValidationError(_("Invalid email address: '%(email)s'.") % {"email": rec.email})
+
+    @api.depends("assignment_ids.active", "assignment_ids.role", "assignment_ids.staff_id")
+    def _compute_is_head(self):
+        head_records = self.env["university.academic.assignment"]._read_group(
+            [
+                ("staff_id", "in", self.ids),
+                ("active", "=", True),
+                ("role", "in", ("dean", "vice_dean", "department_head")),
+            ],
+            groupby=["staff_id"],
+            aggregates=["__count"],
+        )
+        head_staff_ids = {staff.id for staff, count in head_records}
+        for teacher in self:
+            teacher.is_head = teacher.id in head_staff_ids
+
+    def _compute_presence(self):
+        today = fields.Date.context_today(self)
+        attendance_records = self.env["university.staff.attendance"]._read_group(
+            [
+                ("staff_id", "in", self.ids),
+                ("date", "=", today),
+            ],
+            groupby=["staff_id", "status"],
+            aggregates=["__count"],
+        )
+        present_ids = set()
+        leave_ids = set()
+        for staff, status, count in attendance_records:
+            if status in ("present", "late"):
+                present_ids.add(staff.id)
+            elif status == "leave":
+                leave_ids.add(staff.id)
+
+        for teacher in self:
+            teacher.is_present = teacher.id in present_ids
+            teacher.on_leave = teacher.id in leave_ids
+
+    def _search_is_present(self, operator, value):
+        today = fields.Date.context_today(self)
+        attendances = self.env["university.staff.attendance"].search([
+            ("date", "=", today),
+            ("status", "in", ("present", "late")),
+        ])
+        staff_ids = attendances.mapped("staff_id").ids
+        if _is_positive_boolean_search(operator, value):
+            return [("id", "in", staff_ids or [0])]
+        return [("id", "not in", staff_ids or [0])]
+
+    def _search_on_leave(self, operator, value):
+        today = fields.Date.context_today(self)
+        attendances = self.env["university.staff.attendance"].search([
+            ("date", "=", today),
+            ("status", "=", "leave"),
+        ])
+        staff_ids = attendances.mapped("staff_id").ids
+        if _is_positive_boolean_search(operator, value):
+            return [("id", "in", staff_ids or [0])]
+        return [("id", "not in", staff_ids or [0])]
+
+    @api.depends(
+        "section_ids.active",
+        "section_ids.teacher_id",
+        "timetable_slot_ids.start_time",
+        "timetable_slot_ids.end_time",
+    )
+    def _compute_teaching_stats(self):
+        sec_records = self.env["university.class.section"]._read_group(
+            [("teacher_id", "in", self.ids), ("active", "=", True)],
+            groupby=["teacher_id"],
+            aggregates=["__count"],
+        )
+        sec_map = {teacher.id: count for teacher, count in sec_records}
+
+        slots = self.env["university.timetable.slot"].search([
+            ("teacher_id", "in", self.ids),
+        ])
+        hours_map = {teacher_id: 0.0 for teacher_id in self.ids}
+        for slot in slots:
+            if slot.start_time and slot.end_time:
+                duration = (slot.end_time - slot.start_time).total_seconds() / 3600.0
+                hours_map[slot.teacher_id.id] = hours_map.get(slot.teacher_id.id, 0.0) + duration
+
+        for teacher in self:
+            teacher.class_count = sec_map.get(teacher.id, 0)
+            teacher.weekly_hours = round(hours_map.get(teacher.id, 0.0), 1)
+
     @api.depends(
         "assignment_ids.role",
         "assignment_ids.active",
@@ -174,12 +400,85 @@ class Teacher(models.Model):
 
     @api.onchange("department_id")
     def _onchange_department_id(self):
-        # Keep the teacher's subjects consistent with the new department:
-        # drop subjects that no longer belong to the department.
         if self.department_id and self.subject_ids:
             self.subject_ids = self.subject_ids.filtered(
                 lambda s: s.department_id == self.department_id
             )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if "name" in vals:
+                title, norm_name = _normalize_name_and_extract_title(vals.get("name"), vals.get("title"))
+                vals["name"] = norm_name
+                if title and not vals.get("title"):
+                    vals["title"] = title
+
+            raw_id = vals.get("teacher_id")
+            if not raw_id or not str(raw_id).strip():
+                vals["teacher_id"] = (
+                    self.env["ir.sequence"].next_by_code("university.teacher")
+                    or _("New")
+                )
+            elif isinstance(raw_id, str):
+                vals["teacher_id"] = raw_id.strip()
+
+            if "email" in vals and isinstance(vals["email"], str):
+                vals["email"] = vals["email"].strip()
+
+        return super().create(vals_list)
+
+    def write(self, vals):
+        clean_vals = dict(vals)
+        if "name" in clean_vals:
+            title, norm_name = _normalize_name_and_extract_title(clean_vals.get("name"), clean_vals.get("title"))
+            clean_vals["name"] = norm_name
+            if title and not clean_vals.get("title"):
+                clean_vals["title"] = title
+
+        if "teacher_id" in clean_vals and isinstance(clean_vals["teacher_id"], str):
+            clean_vals["teacher_id"] = clean_vals["teacher_id"].strip()
+
+        if "email" in clean_vals and isinstance(clean_vals["email"], str):
+            clean_vals["email"] = clean_vals["email"].strip()
+
+        return super().write(clean_vals)
+
+    def unlink(self):
+        for rec in self:
+            blocking = []
+            if rec.section_ids:
+                blocking.append(_("%(count)d class section(s)", count=len(rec.section_ids)))
+            if rec.timetable_slot_ids:
+                blocking.append(_("%(count)d timetable session(s)", count=len(rec.timetable_slot_ids)))
+            att_count = self.env["university.staff.attendance"].search_count([("staff_id", "=", rec.id)])
+            if att_count:
+                blocking.append(_("%(count)d attendance record(s)", count=att_count))
+            if rec.assignment_ids:
+                blocking.append(_("%(count)d role assignment(s)", count=len(rec.assignment_ids)))
+            if blocking:
+                raise UserError(
+                    _("Cannot delete staff member '%(staff)s' because they have linked records: %(details)s. Archive the staff member instead.")
+                    % {
+                        "staff": rec.display_name or rec.name,
+                        "details": ", ".join(blocking),
+                    }
+                )
+        return super().unlink()
+
+    def action_view_sections(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_class_section")
+        action["domain"] = [("teacher_id", "=", self.id)]
+        action["context"] = {"default_teacher_id": self.id}
+        return action
+
+    def action_view_attendance(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_staff_attendance")
+        action["domain"] = [("staff_id", "=", self.id)]
+        action["context"] = {"default_staff_id": self.id}
+        return action
 
     def action_create_user(self):
         self.ensure_one()
@@ -188,10 +487,10 @@ class Teacher(models.Model):
 
         email = (self.email or "").strip()
         if not email:
-            raise UserError(_("Cannot create user: teacher %s has no email address.") % self.name)
+            raise UserError(_("Cannot create user: teacher %s has no email address.") % self.display_name)
 
         if self.user_id:
-            raise UserError(_("Teacher %s is already linked to user account %s.") % (self.name, self.user_id.login))
+            raise UserError(_("Teacher %s is already linked to user account %s.") % (self.display_name, self.user_id.login))
 
         Users = self.env["res.users"].sudo()
         teacher_group = self.env.ref("school_management.group_school_teacher")
@@ -232,7 +531,7 @@ class Teacher(models.Model):
             "params": {
                 "title": _("User Created"),
                 "message": _("Login account created for %s with email '%s'. A password setup email was sent.")
-                % (self.name, email),
+                % (self.display_name, email),
                 "type": "success",
                 "sticky": False,
             },
@@ -244,7 +543,7 @@ class Teacher(models.Model):
             raise AccessError(_("Only University Administrators can reset teacher passwords."))
 
         if not self.user_id:
-            raise UserError(_("Teacher %s does not have a linked login account.") % self.name)
+            raise UserError(_("Teacher %s does not have a linked login account.") % self.display_name)
 
         self.user_id.sudo().action_reset_password()
         return {
@@ -258,3 +557,34 @@ class Teacher(models.Model):
             },
         }
 
+    def action_normalize_titles_and_names(self):
+        records = self if self else self.search([])
+        updated = 0
+        for t in records:
+            raw_name = t.name or ""
+            parts = raw_name.strip().split()
+            if not parts:
+                continue
+            first_lower = parts[0].lower()
+            detected_title = TITLES_MAP.get(first_lower)
+            has_embedded_title = detected_title is not None
+            cleaned_parts = parts[1:] if has_embedded_title else parts
+            normalized_name = " ".join(p.capitalize() for p in cleaned_parts)
+            target_title = detected_title or t.title
+            if t.name != normalized_name or t.title != target_title:
+                vals = {"name": normalized_name}
+                if target_title:
+                    vals["title"] = target_title
+                t.write(vals)
+                t._compute_display_name()
+                updated += 1
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Staff Name & Title Normalization"),
+                "message": _("%(count)d staff record(s) normalized.", count=updated),
+                "type": "success",
+                "sticky": False,
+            },
+        }

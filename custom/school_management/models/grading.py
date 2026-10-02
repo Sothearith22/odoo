@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UniversityGradeScale(models.Model):
@@ -142,6 +142,32 @@ class UniversityAssessmentResult(models.Model):
             if result.semester_id.academic_year_id != result.academic_year_id:
                 raise ValidationError("The semester must belong to the selected academic year.")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.context.get("allow_closed_year_write"):
+            for vals in vals_list:
+                year_id = vals.get("academic_year_id")
+                if not year_id and vals.get("semester_id"):
+                    semester = self.env["university.semester"].browse(vals.get("semester_id")).exists()
+                    year_id = semester.academic_year_id.id if semester else False
+                if year_id:
+                    year = self.env["university.academic.year"].browse(year_id).exists()
+                    if year and year.state in ("closed", "archived"):
+                        raise UserError("Grades cannot be created for a closed or archived academic year.")
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(res.academic_year_id.state in ("closed", "archived") for res in self):
+                raise UserError("Grades of a closed or archived academic year cannot be modified.")
+        return super().write(vals)
+
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(res.academic_year_id.state in ("closed", "archived") for res in self):
+                raise UserError("Grades of a closed or archived academic year cannot be deleted.")
+        return super().unlink()
+
     def action_publish(self):
         self.write({"state": "published"})
 
@@ -197,10 +223,32 @@ class UniversityReportCard(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.context.get("allow_closed_year_write"):
+            for vals in vals_list:
+                year_id = vals.get("academic_year_id")
+                if not year_id and vals.get("semester_id"):
+                    semester = self.env["university.semester"].browse(vals.get("semester_id")).exists()
+                    year_id = semester.academic_year_id.id if semester else False
+                if year_id:
+                    year = self.env["university.academic.year"].browse(year_id).exists()
+                    if year and year.state in ("closed", "archived"):
+                        raise UserError("Report cards cannot be created for a closed or archived academic year.")
         for vals in vals_list:
             if vals.get("name", "New") == "New":
                 vals["name"] = self.env["ir.sequence"].next_by_code("university.report.card") or "New"
         return super().create(vals_list)
+
+    def write(self, vals):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(card.academic_year_id.state in ("closed", "archived") for card in self):
+                raise UserError("Report cards of a closed or archived academic year cannot be modified.")
+        return super().write(vals)
+
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(card.academic_year_id.state in ("closed", "archived") for card in self):
+                raise UserError("Report cards of a closed or archived academic year cannot be deleted.")
+        return super().unlink()
 
     @api.depends("line_ids.credits", "line_ids.grade_point", "line_ids.is_passing")
     def _compute_gpa(self):

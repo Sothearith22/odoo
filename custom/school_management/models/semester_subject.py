@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UniversitySemesterSubject(models.Model):
@@ -44,6 +44,28 @@ class UniversitySemesterSubject(models.Model):
         store=True,
     )
     active = fields.Boolean(string="Active", default=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.context.get("allow_closed_year_write"):
+            semester_ids = [vals.get("semester_id") for vals in vals_list if vals.get("semester_id")]
+            if semester_ids:
+                semesters = self.env["university.semester"].browse(semester_ids).exists()
+                if any(s.academic_year_id.state in ("closed", "archived") for s in semesters):
+                    raise UserError("Cannot create semester subjects in a closed or archived academic year.")
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(subj.academic_year_id.state in ("closed", "archived") for subj in self):
+                raise UserError("Semester subjects of a closed or archived academic year are read-only and cannot be modified.")
+        return super().write(vals)
+
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(subj.academic_year_id.state in ("closed", "archived") for subj in self):
+                raise UserError("Cannot delete semester subjects of a closed or archived academic year.")
+        return super().unlink()
 
     @api.constrains("semester_id", "subject_id")
     def _check_unique_semester_subject(self):

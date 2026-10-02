@@ -19,6 +19,12 @@ class UniversityResConfigSettings(models.TransientModel):
         domain="[('active', '=', True), ('academic_year_id', '=', current_academic_year_id)]",
         help="Semester currently used by the University application.",
     )
+    min_teaching_weeks = fields.Float(
+        string="Minimum Teaching Weeks",
+        config_parameter="school_management.min_teaching_weeks",
+        default=14.0,
+        help="Minimum required teaching weeks per department term.",
+    )
 
     @api.onchange("current_academic_year_id")
     def _onchange_current_academic_year_id(self):

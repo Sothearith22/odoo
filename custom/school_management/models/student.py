@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class Student(models.Model):
@@ -17,7 +17,18 @@ class Student(models.Model):
         index=True,
         help="The Odoo login for this student.",
     )
-    image_1920 = fields.Image(string="Photo")
+    image_1920 = fields.Image(
+        string="Photo",
+        max_width=1920,
+        max_height=1920,
+    )
+    image_128 = fields.Image(
+        string="Photo Thumbnail",
+        related="image_1920",
+        max_width=128,
+        max_height=128,
+        store=True,
+    )
     date_of_birth = fields.Date(string="Date of Birth")
     gender = fields.Selection(
         [
@@ -45,18 +56,19 @@ class Student(models.Model):
     department_id = fields.Many2one(
         "university.department",
         string="Department",
-        related="program_id.department_id",
+        compute="_compute_department_id",
         store=True,
-        readonly=True,
-        help="Derived from the selected program.",
+        readonly=False,
+        precompute=True,
+        help="Derived from the selected program or assigned directly.",
     )
     faculty_id = fields.Many2one(
         "university.faculty",
         string="Faculty",
-        related="program_id.department_id.faculty_id",
+        related="department_id.faculty_id",
         store=True,
         readonly=True,
-        help="Derived from the selected program's department.",
+        help="Derived from the selected department.",
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -139,12 +151,16 @@ class Student(models.Model):
     )
 
     _unique_student_id = models.UniqueIndex(
-        "(student_id) WHERE student_id IS NOT NULL",
+        "(lower(student_id)) WHERE student_id IS NOT NULL",
         "The Student ID must be unique.",
     )
     _unique_user_id = models.UniqueIndex(
         "(user_id) WHERE user_id IS NOT NULL",
         "A student login can only be linked to one student record.",
+    )
+    _check_status = models.Constraint(
+        "CHECK(status IN ('active', 'suspended', 'graduated', 'dropped'))",
+        "Student status must be active, suspended, graduated, or dropped.",
     )
 
     def _compute_currency_id(self):
@@ -278,3 +294,65 @@ class Student(models.Model):
             rec.fee_total = sum(confirmed.mapped("total_amount"))
             rec.fee_paid = sum(confirmed.mapped("paid_amount"))
             rec.fee_balance = sum(confirmed.mapped("balance"))
+
+    @api.depends("program_id.department_id")
+    def _compute_department_id(self):
+        for rec in self:
+            if rec.program_id:
+                rec.department_id = rec.program_id.department_id
+            elif not rec.department_id:
+                rec.department_id = False
+
+    @api.onchange("program_id")
+    def _onchange_program_id(self):
+        if self.program_id:
+            self.department_id = self.program_id.department_id
+
+    @api.constrains("program_id", "department_id")
+    def _check_program_department(self):
+        for rec in self:
+            if rec.program_id and rec.department_id and rec.program_id.department_id != rec.department_id:
+                raise ValidationError(
+                    _("The program '%(program)s' does not belong to department '%(department)s'.")
+                    % {
+                        "program": rec.program_id.display_name,
+                        "department": rec.department_id.display_name,
+                    }
+                )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            raw_id = vals.get("student_id")
+            if not raw_id or not str(raw_id).strip():
+                vals["student_id"] = (
+                    self.env["ir.sequence"].next_by_code("university.student")
+                    or _("New")
+                )
+            elif isinstance(raw_id, str):
+                vals["student_id"] = raw_id.strip()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if "student_id" in vals and isinstance(vals["student_id"], str):
+            vals["student_id"] = vals["student_id"].strip()
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            blocking = []
+            if rec.enrollment_ids:
+                blocking.append(_("%(count)d enrollment(s)", count=len(rec.enrollment_ids)))
+            if rec.report_card_ids:
+                blocking.append(_("%(count)d report card(s)", count=len(rec.report_card_ids)))
+            if rec.transcript_ids:
+                blocking.append(_("%(count)d transcript(s)", count=len(rec.transcript_ids)))
+            if blocking:
+                raise UserError(
+                    _("Cannot delete student '%(student)s' because they have existing records: %(details)s. Archive the student instead.")
+                    % {
+                        "student": rec.display_name,
+                        "details": ", ".join(blocking),
+                    }
+                )
+        return super().unlink()

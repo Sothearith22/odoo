@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UniversityDepartmentTerm(models.Model):
@@ -53,12 +53,26 @@ class UniversityDepartmentTerm(models.Model):
     date_end = fields.Date(string="End Date", required=True, tracking=True)
     registration_start = fields.Date(string="Registration Start")
     registration_end = fields.Date(string="Registration End")
+    add_drop_deadline = fields.Date(string="Add/Drop Deadline")
     add_drop_start = fields.Date(string="Add/Drop Start")
     add_drop_end = fields.Date(string="Add/Drop End")
+    withdraw_deadline = fields.Date(string="Withdraw Deadline")
+    exam_start = fields.Date(string="Exam Start")
+    exam_end = fields.Date(string="Exam End")
     grade_deadline = fields.Date(string="Grade Deadline")
     change_reason = fields.Text(string="Change Reason")
+
     teaching_weeks = fields.Float(
         string="Teaching Weeks", compute="_compute_teaching_weeks", store=True
+    )
+    min_teaching_weeks = fields.Float(
+        string="Minimum Teaching Weeks",
+        compute="_compute_min_teaching_weeks",
+    )
+    is_below_min_weeks = fields.Boolean(
+        string="Below Minimum Weeks",
+        compute="_compute_is_below_min_weeks",
+        search="_search_is_below_min_weeks",
     )
     state = fields.Selection(
         [
@@ -73,45 +87,49 @@ class UniversityDepartmentTerm(models.Model):
         index=True,
     )
 
+    def _get_min_teaching_weeks(self):
+        param = self.env["ir.config_parameter"].sudo().get_param(
+            "school_management.min_teaching_weeks", "14"
+        )
+        try:
+            return float(param)
+        except (ValueError, TypeError):
+            return 14.0
+
+    def _compute_min_teaching_weeks(self):
+        min_weeks = self._get_min_teaching_weeks()
+        for term in self:
+            term.min_teaching_weeks = min_weeks
+
+    @api.depends("teaching_weeks")
+    def _compute_is_below_min_weeks(self):
+        min_weeks = self._get_min_teaching_weeks()
+        for term in self:
+            term.is_below_min_weeks = bool(term.teaching_weeks and term.teaching_weeks < min_weeks)
+
+    def _search_is_below_min_weeks(self, operator, value):
+        min_weeks = self._get_min_teaching_weeks()
+        if (operator == "=" and value) or (operator == "!=" and not value):
+            return [("teaching_weeks", "<", min_weeks)]
+        return [("teaching_weeks", ">=", min_weeks)]
+
     @api.model_create_multi
     def create(self, vals_list):
-        semester_ids = [vals.get("semester_id") for vals in vals_list]
-        semesters = self.env["university.semester"].browse(semester_ids).exists()
-        if any(semester.academic_year_id.state == "closed" for semester in semesters):
-            raise AccessError("Terms cannot be created in a closed academic year.")
+        if not self.env.context.get("allow_closed_year_write"):
+            semester_ids = [vals.get("semester_id") for vals in vals_list if vals.get("semester_id")]
+            if semester_ids:
+                semesters = self.env["university.semester"].browse(semester_ids).exists()
+                if any(s.academic_year_id.state in ("closed", "archived") for s in semesters):
+                    raise UserError("Cannot create department terms in a closed or archived academic year.")
         return super().create(vals_list)
 
-    @api.depends(
-        "date_start", "date_end", "faculty_id",
-        "academic_year_id.holiday_ids.date_start",
-        "academic_year_id.holiday_ids.date_end",
-        "academic_year_id.holiday_ids.faculty_id",
-    )
+    @api.depends("date_start", "date_end")
     def _compute_teaching_weeks(self):
-        Holiday = self.env["university.holiday"]
         for term in self:
             if not term.date_start or not term.date_end:
                 term.teaching_weeks = 0.0
                 continue
-            holidays = Holiday.search([
-                ("academic_year_id", "=", term.academic_year_id.id),
-                ("date_end", ">=", term.date_start),
-                ("date_start", "<=", term.date_end),
-                "|", ("faculty_id", "=", False),
-                ("faculty_id", "=", term.faculty_id.id),
-            ])
-            holiday_days = set()
-            for holiday in holidays:
-                current = max(term.date_start, holiday.date_start)
-                end = min(term.date_end, holiday.date_end)
-                while current <= end:
-                    if current.weekday() < 5:
-                        holiday_days.add(current)
-                    current += timedelta(days=1)
-            total_days = (term.date_end - term.date_start).days + 1
-            term.teaching_weeks = round(
-                max(total_days - len(holiday_days), 0) / 7.0, 2
-            )
+            term.teaching_weeks = round((term.date_end - term.date_start).days / 7.0, 1)
 
     @api.depends("date_start", "date_end")
     def _compute_state(self):
@@ -143,16 +161,54 @@ class UniversityDepartmentTerm(models.Model):
                 )
 
     @api.constrains(
-        "registration_start", "registration_end", "add_drop_start",
-        "add_drop_end", "grade_deadline", "date_start", "date_end",
+        "registration_start", "registration_end", "date_start", "date_end",
+        "add_drop_deadline", "add_drop_start", "add_drop_end",
+        "withdraw_deadline", "exam_start", "exam_end", "grade_deadline",
     )
     def _check_milestones(self):
         for term in self:
+            # registration_end >= registration_start; date_start >= registration_start
             if term.registration_start and term.registration_end \
                     and term.registration_end < term.registration_start:
                 raise ValidationError(
                     "Registration end must be on or after registration start."
                 )
+            if term.registration_start and term.date_start \
+                    and term.date_start < term.registration_start:
+                raise ValidationError(
+                    "Class start date cannot be before registration start."
+                )
+
+            # add_drop_deadline and withdraw_deadline inside class dates
+            if term.add_drop_deadline and term.date_start and term.date_end:
+                if term.add_drop_deadline < term.date_start or term.add_drop_deadline > term.date_end:
+                    raise ValidationError(
+                        "Add/drop deadline must fall within term class dates."
+                    )
+            if term.withdraw_deadline and term.date_start and term.date_end:
+                if term.withdraw_deadline < term.date_start or term.withdraw_deadline > term.date_end:
+                    raise ValidationError(
+                        "Withdraw deadline must fall within term class dates."
+                    )
+
+            # exam_end >= exam_start; grade_deadline >= exam_end
+            if term.exam_start and term.exam_end \
+                    and term.exam_end < term.exam_start:
+                raise ValidationError(
+                    "Exam end date must be on or after exam start date."
+                )
+            if term.exam_end and term.grade_deadline \
+                    and term.grade_deadline < term.exam_end:
+                raise ValidationError(
+                    "Grade deadline must be on or after exam end date."
+                )
+            elif term.grade_deadline and term.date_end \
+                    and term.grade_deadline < term.date_end:
+                raise ValidationError(
+                    "Grade deadline cannot be before the term end date."
+                )
+
+            # Legacy add_drop milestone validations if populated
             if term.add_drop_start and term.add_drop_end \
                     and term.add_drop_end < term.add_drop_start:
                 raise ValidationError(
@@ -161,14 +217,11 @@ class UniversityDepartmentTerm(models.Model):
             if term.registration_end and term.add_drop_start \
                     and term.add_drop_start < term.registration_end:
                 raise ValidationError("Add/drop cannot start before registration ends.")
-            if term.grade_deadline and term.date_end \
-                    and term.grade_deadline < term.date_end:
-                raise ValidationError("Grade deadline cannot be before the term end date.")
 
     def write(self, vals):
-        if any(term.academic_year_id.state == "closed" for term in self) \
-                and not self.env.context.get("allow_closed_year_write"):
-            raise AccessError("Terms of a closed academic year cannot be modified.")
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(term.academic_year_id.state in ("closed", "archived") for term in self):
+                raise UserError("Department terms of a closed or archived academic year are read-only and cannot be modified.")
 
         changing_dates = {"date_start", "date_end"} & set(vals)
         old_values = {
@@ -201,6 +254,12 @@ class UniversityDepartmentTerm(models.Model):
                 ))
         return result
 
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(term.academic_year_id.state in ("closed", "archived") for term in self):
+                raise UserError("Cannot delete department terms of a closed or archived academic year.")
+        return super().unlink()
+
     def is_registration_open(self, today=None):
         self.ensure_one()
         today = today or fields.Date.context_today(self)
@@ -212,6 +271,8 @@ class UniversityDepartmentTerm(models.Model):
     def is_add_drop_open(self, today=None):
         self.ensure_one()
         today = today or fields.Date.context_today(self)
+        if self.add_drop_deadline and self.date_start:
+            return bool(self.date_start <= today <= self.add_drop_deadline)
         return bool(
             self.add_drop_start and self.add_drop_end
             and self.add_drop_start <= today <= self.add_drop_end
@@ -233,7 +294,8 @@ class UniversityDepartmentTerm(models.Model):
 
     @api.model
     def _cron_update_state(self):
-        self.search([])._compute_state()
+        terms = self.search([])
+        terms._compute_state()
         return True
 
     @api.model

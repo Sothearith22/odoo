@@ -60,16 +60,25 @@
                     <notebook>
                         <page string="Enrolled Students" name="students_tab">
                             <field name="enrollment_ids">
-                                <list>
-                                    <field name="student_id"/>
+                                <list editable="bottom">
+                                    <field name="student_id" options="{'no_create': True}"/>
                                     <field name="enrollment_date"/>
                                     <field name="status"
                                            widget="badge"
                                            decoration-success="status == 'enrolled'"
-                                           decoration-warning="status == 'draft'"
-                                           decoration-danger="status in ['withdrawn', 'dropped']"
+                                           decoration-info="status == 'draft'"
+                                           decoration-warning="status == 'dropped'"
                                            decoration-muted="status == 'completed'"/>
                                 </list>
+                                <form string="Enroll Student">
+                                    <sheet>
+                                        <group>
+                                            <field name="student_id" options="{'no_create': True}"/>
+                                            <field name="enrollment_date"/>
+                                            <field name="status"/>
+                                        </group>
+                                    </sheet>
+                                </form>
                             </field>
                         </page>
                     </notebook>

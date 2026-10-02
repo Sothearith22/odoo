@@ -84,7 +84,7 @@
         parent="menu_university_structure"
         action="action_university_department_term"
         sequence="55"
-        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
+        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_department_term_ending_soon"
@@ -92,7 +92,7 @@
         parent="menu_university_structure"
         action="action_university_department_term_ending_soon"
         sequence="56"
-        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
+        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_holiday"
@@ -100,7 +100,7 @@
         parent="menu_university_structure"
         action="action_university_holiday"
         sequence="57"
-        groups="school_management.group_school_registrar,school_management.group_school_admin"
+        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_semester_subject"
@@ -176,77 +176,82 @@
     />
 
     <!-- ==================== 2. PEOPLE ==================== -->
+    <!-- Direct Students Menu (removes redundant single-item group header) -->
     <menuitem
         id="menu_school_student_category"
         name="Students"
         parent="menu_university_people"
-        sequence="10"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_school_student_all"
-        name="Students"
-        parent="menu_school_student_category"
         action="action_university_student"
         sequence="10"
         groups="school_management.group_school_teacher"
     />
 
-    <!-- ==================== 3. ACADEMIC STAFF ==================== -->
-    <menuitem
-        id="menu_school_teacher_category"
-        name="Academic Staff"
-        parent="menu_university_people"
-        sequence="20"
-        groups="school_management.group_school_teacher"
-    />
+    <!-- Direct Academic Staff Menu -->
     <menuitem
         id="menu_school_teacher_all"
         name="Academic Staff"
-        parent="menu_school_teacher_category"
+        parent="menu_university_people"
         action="action_university_teacher"
-        sequence="10"
+        sequence="20"
         groups="school_management.group_school_teacher"
     />
+
+    <!-- Leadership Submenu -->
     <menuitem
-        id="menu_university_staff_attendance_sheet"
-        name="Track Staff Attendance"
-        parent="menu_school_teacher_category"
-        action="action_university_staff_attendance_sheet"
-        sequence="12"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_staff_attendance"
-        name="Staff Attendance"
-        parent="menu_school_teacher_category"
-        action="action_university_staff_attendance"
-        sequence="15"
-        groups="school_management.group_school_admin"
+        id="menu_university_leadership_category"
+        name="Leadership"
+        parent="menu_university_people"
+        sequence="30"
+        groups="school_management.group_school_hod"
     />
     <menuitem
         id="menu_university_hod"
         name="Heads of Department"
-        parent="menu_school_teacher_category"
+        parent="menu_university_leadership_category"
         action="action_university_hod"
-        sequence="20"
+        sequence="10"
         groups="school_management.group_school_hod"
     />
     <menuitem
         id="menu_university_dean"
         name="Heads of Faculty"
-        parent="menu_school_teacher_category"
+        parent="menu_university_leadership_category"
         action="action_university_dean"
-        sequence="30"
+        sequence="20"
         groups="school_management.group_school_dean"
     />
     <menuitem
         id="menu_university_academic_assignment"
         name="Role Assignments"
-        parent="menu_school_teacher_category"
+        parent="menu_university_leadership_category"
         action="action_university_academic_assignment"
-        sequence="40"
+        sequence="30"
         groups="school_management.group_school_hod"
+    />
+
+    <!-- Attendance Submenu -->
+    <menuitem
+        id="menu_university_staff_attendance_category"
+        name="Attendance"
+        parent="menu_university_people"
+        sequence="40"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_staff_attendance_sheet"
+        name="Check-in Log"
+        parent="menu_university_staff_attendance_category"
+        action="action_university_staff_attendance_sheet"
+        sequence="10"
+        groups="school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_staff_attendance"
+        name="Attendance Report"
+        parent="menu_university_staff_attendance_category"
+        action="action_university_staff_attendance"
+        sequence="20"
+        groups="school_management.group_school_admin"
     />
 
     <!-- ==================== 4. TEACHING &amp; LEARNING ==================== -->

@@ -1,7 +1,5 @@
-from collections import Counter
-
-from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class UniversityEnrollment(models.Model):
@@ -10,93 +8,123 @@ class UniversityEnrollment(models.Model):
     _description = "University Enrollment"
     _order = "enrollment_date desc, id desc"
 
-    # A student can be enrolled in one subject-based class section at a time
-    # (legacy subject enrollment flow keeps one section per record).
-    _student_section_constraint = models.Constraint(
-        "unique (student_id, section_id)",
+    _student_class_section_unique = models.Constraint(
+        "UNIQUE (student_id, class_section_id)",
         "This student is already enrolled in this class section.",
     )
+
     student_id = fields.Many2one(
         "university.student",
         string="Student",
         required=True,
+        index=True,
+        domain="[('active', '=', True), ('status', '=', 'active')]",
+        tracking=True,
     )
+    class_section_id = fields.Many2one(
+        "university.class.section",
+        string="Class Section",
+        index=True,
+        domain="[('active', '=', True)]",
+        tracking=True,
+    )
+    section_id = fields.Many2one(
+        "university.class.section",
+        string="Class Section (Legacy)",
+        compute="_compute_section_id",
+        inverse="_inverse_section_id",
+        store=True,
+        index=True,
+    )
+
     program_id = fields.Many2one(
         "university.program",
         string="Major / Program",
-        required=True,
+        compute="_compute_derived_fields",
+        store=True,
+        readonly=True,
         index=True,
-        help="The major/program the student is enrolled into.",
     )
     department_id = fields.Many2one(
         "university.department",
         string="Department",
-        related="program_id.department_id",
+        compute="_compute_derived_fields",
         store=True,
         readonly=True,
-        help="Derived from the selected major/program.",
+        index=True,
     )
     faculty_id = fields.Many2one(
         "university.faculty",
         string="Faculty",
-        related="program_id.department_id.faculty_id",
+        compute="_compute_derived_fields",
         store=True,
         readonly=True,
-        help="Derived from the selected major/program's department.",
-    )
-    section_id = fields.Many2one(
-        "university.class.section",
-        string="Class Section",
-        domain="[('active', '=', True), ('semester_id', '=', semester_id), '|', ('program_id', '=', program_id), ('subject_id.program_ids', 'in', [program_id])]",
-        help="Optional class section / intake cohort for this major enrollment.",
+        index=True,
     )
     subject_id = fields.Many2one(
-        related="section_id.subject_id",
+        "university.subject",
         string="Subject",
+        compute="_compute_derived_fields",
         store=True,
         readonly=True,
-        help="Legacy: derived from the class section when a subject-based "
-             "section is linked. Not part of the main major enrollment flow.",
+        index=True,
+    )
+    instructor_id = fields.Many2one(
+        "university.teacher",
+        string="Instructor",
+        compute="_compute_derived_fields",
+        store=True,
+        readonly=True,
+        index=True,
     )
     teacher_id = fields.Many2one(
-        related="section_id.teacher_id",
-        string="Instructor",
+        "university.teacher",
+        string="Instructor (Legacy)",
+        compute="_compute_derived_fields",
         store=True,
         readonly=True,
-        help="Legacy: derived from the class section when a subject-based "
-             "section is linked. Not part of the main major enrollment flow.",
-    )
-    academic_year_id = fields.Many2one(
-        "university.academic.year",
-        string="Academic Year",
-        required=True,
     )
     semester_id = fields.Many2one(
         "university.semester",
         string="Semester",
-        required=True,
-        domain="[('academic_year_id', '=', academic_year_id)]",
+        compute="_compute_derived_fields",
+        store=True,
+        readonly=True,
+        index=True,
     )
+    academic_year_id = fields.Many2one(
+        "university.academic.year",
+        string="Academic Year",
+        compute="_compute_derived_fields",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+
     enrollment_date = fields.Date(
         string="Enrollment Date",
         default=fields.Date.context_today,
+        required=True,
+        tracking=True,
     )
     status = fields.Selection(
         [
             ("draft", "Draft"),
-            ("to_approve", "To Approve"),
             ("enrolled", "Enrolled"),
-            ("withdrawn", "Withdrawn"),
             ("completed", "Completed"),
             ("dropped", "Dropped"),
+            ("to_approve", "To Approve"),
+            ("withdrawn", "Withdrawn"),
         ],
         string="Status",
         default="draft",
+        required=True,
         tracking=True,
     )
     pending_change = fields.Json(
-        string="Pending Change", copy=False, readonly=True,
-        help="Values awaiting registrar or administrator approval.",
+        string="Pending Change",
+        copy=False,
+        readonly=True,
     )
     possible_duplicate = fields.Boolean(
         string="Possible Duplicate",
@@ -104,374 +132,265 @@ class UniversityEnrollment(models.Model):
         search="_search_possible_duplicate",
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        vals_list = [dict(vals) for vals in vals_list]
-        for vals in vals_list:
-            self._apply_registration_policy(vals)
-        self._check_capacity_for_vals(vals_list)
-        self._check_active_program_period_duplicates(vals_list)
-        return super().create(vals_list)
+    @api.depends("class_section_id")
+    def _compute_section_id(self):
+        for rec in self:
+            rec.section_id = rec.class_section_id
 
-    def write(self, vals):
-        if not self.env.context.get("approval_write"):
-            placement_fields = {
-                "section_id", "program_id", "semester_id", "academic_year_id",
-            }
-            if placement_fields & set(vals) or vals.get("status") == "enrolled":
-                handled = self.env[self._name]
-                for enrollment in self:
-                    term = enrollment._term_for_values(vals)
-                    if not term:
-                        continue
-                    if term.academic_year_id.state == "closed":
-                        raise ValidationError(
-                            "Enrollments cannot be changed for a closed academic year."
-                        )
-                    today = fields.Date.context_today(enrollment)
-                    if term.is_registration_open(today) or term.is_add_drop_open(today):
-                        continue
-                    if term.add_drop_end and today > term.add_drop_end:
-                        pending = {
-                            key: vals[key]
-                            for key in placement_fields
-                            if key in vals
-                        }
-                        pending["_previous_status"] = enrollment.status
-                        super(UniversityEnrollment, enrollment).write({
-                            "pending_change": pending,
-                            "status": "to_approve",
-                        })
-                        handled |= enrollment
-                        continue
-                    raise ValidationError(
-                        "Enrollment changes are allowed only during registration or add/drop."
-                    )
-                self = self - handled
-                if not self:
-                    return True
-        if {"section_id", "status"} & set(vals):
-            self._check_capacity_for_vals([
-                {
-                    "section_id": vals.get("section_id", enrollment.section_id.id),
-                    "status": vals.get("status", enrollment.status),
-                }
-                for enrollment in self
-            ], excluded_ids=self.ids)
-        return super().write(vals)
+    def _inverse_section_id(self):
+        for rec in self:
+            if rec.section_id and not rec.class_section_id:
+                rec.class_section_id = rec.section_id
 
-    def _term_for_values(self, vals):
-        self.ensure_one()
-        section = self.env["university.class.section"].browse(
-            vals.get("section_id", self.section_id.id)
-        ).exists()
-        program = self.env["university.program"].browse(
-            vals.get("program_id", self.program_id.id)
-        ).exists()
-        semester = self.env["university.semester"].browse(
-            vals.get("semester_id", self.semester_id.id)
-        ).exists()
-        department = (section.subject_id.department_id if section and section.subject_id
-                      else program.department_id if program else self.department_id)
-        if not semester or not department:
-            return self.env["university.department.term"]
-        return self.env["university.department.term"].search([
-            ("semester_id", "=", semester.id),
-            ("department_id", "=", department.id),
-        ], limit=1)
+    @api.depends(
+        "class_section_id",
+        "class_section_id.subject_id",
+        "class_section_id.subject_id.department_id",
+        "class_section_id.subject_id.program_ids",
+        "class_section_id.teacher_id",
+        "class_section_id.semester_id",
+        "class_section_id.semester_id.academic_year_id",
+        "class_section_id.program_id",
+        "class_section_id.program_id.department_id",
+        "student_id",
+        "student_id.program_id",
+        "student_id.department_id",
+    )
+    def _compute_derived_fields(self):
+        for rec in self:
+            section = rec.class_section_id
+            student = rec.student_id
 
-    def _apply_registration_policy(self, vals):
-        status = vals.get("status", "draft")
-        if status in ("withdrawn", "dropped", "completed"):
-            return
-        section = self.env["university.class.section"].browse(vals.get("section_id")).exists()
-        program = self.env["university.program"].browse(vals.get("program_id")).exists()
-        semester = self.env["university.semester"].browse(vals.get("semester_id")).exists()
-        department = (section.subject_id.department_id if section and section.subject_id
-                      else program.department_id if program else False)
-        term = self.env["university.department.term"].search([
-            ("semester_id", "=", semester.id if semester else 0),
-            ("department_id", "=", department.id if department else 0),
-        ], limit=1)
-        if not term:
-            # Preserve legacy enrollment records until a department schedule
-            # has been generated for their semester.
-            return
-        if term.academic_year_id.state == "closed":
-            raise ValidationError("Enrollments cannot be created for a closed academic year.")
-        today = fields.Date.context_today(self)
-        if term.is_registration_open(today):
-            return
-        if term.add_drop_end and today > term.add_drop_end:
-            vals["status"] = "to_approve"
-            return
-        raise ValidationError(
-            "Enrollment is allowed only during the department registration window."
-        )
+            if section:
+                subject = section.subject_id
+                instructor = section.teacher_id
+                semester = section.semester_id
+                year = semester.academic_year_id if semester else False
 
-    def _check_approval_user(self):
-        if self.env.su or self.env.user.has_group("school_management.group_school_admin") \
-                or self.env.user.has_group("school_management.group_school_registrar"):
-            return
-        raise AccessError("Only a Registrar or University Administrator can approve enrollments.")
+                program = False
+                if section.program_id:
+                    program = section.program_id
+                elif student and student.program_id:
+                    program = student.program_id
+                elif subject and subject.program_ids:
+                    program = subject.program_ids[0]
 
-    def action_approve(self):
-        self._check_approval_user()
-        for enrollment in self.filtered(lambda rec: rec.status == "to_approve"):
-            pending = enrollment.pending_change or {}
-            values = {
-                key: value for key, value in pending.items()
-                if not key.startswith("_")
-            }
-            values.update({"pending_change": False, "status": "enrolled"})
-            enrollment.with_context(approval_write=True).write(values)
-            enrollment.message_post(body="Enrollment approved by %s." % self.env.user.display_name)
-        return True
+                dept = False
+                if subject and subject.department_id:
+                    dept = subject.department_id
+                elif program and program.department_id:
+                    dept = program.department_id
+                elif student and student.department_id:
+                    dept = student.department_id
 
-    def action_reject(self):
-        self._check_approval_user()
-        for enrollment in self.filtered(lambda rec: rec.status == "to_approve"):
-            pending = enrollment.pending_change or {}
-            previous_status = pending.get("_previous_status", "dropped")
-            enrollment.with_context(approval_write=True).write({
-                "pending_change": False,
-                "status": previous_status,
-            })
-            enrollment.message_post(body="Enrollment request rejected by %s." % self.env.user.display_name)
-        return True
+                faculty = dept.faculty_id if dept else False
 
-    def action_withdraw(self):
-        for enrollment in self:
-            enrollment.status = "withdrawn"
-            enrollment.message_post(body="Enrollment withdrawn.")
-        return True
+                rec.subject_id = subject
+                rec.instructor_id = instructor
+                rec.teacher_id = instructor
+                rec.semester_id = semester
+                rec.academic_year_id = year
+                rec.program_id = program
+                rec.department_id = dept
+                rec.faculty_id = faculty
+            else:
+                # Sectionless enrollment (e.g. major registration wizard)
+                if not rec.program_id and student and student.program_id:
+                    rec.program_id = student.program_id
+                dept = rec.program_id.department_id if rec.program_id else (student.department_id if student else False)
+                rec.department_id = dept
+                rec.faculty_id = dept.faculty_id if dept else False
+                if rec.semester_id and not rec.academic_year_id:
+                    rec.academic_year_id = rec.semester_id.academic_year_id
 
-    @api.constrains("student_id", "program_id", "academic_year_id", "semester_id", "status")
-    def _check_duplicate_program_period(self):
-        for enrollment in self:
-            if not (
-                enrollment.student_id
-                and enrollment.program_id
-                and enrollment.academic_year_id
-                and enrollment.semester_id
-            ):
-                continue
-            if enrollment.status in ("withdrawn", "dropped"):
+    @api.onchange("class_section_id", "student_id")
+    def _onchange_class_section_or_student(self):
+        self._compute_derived_fields()
+
+    @api.depends("student_id", "subject_id", "semester_id", "class_section_id", "status")
+    def _compute_possible_duplicate(self):
+        for rec in self:
+            if not (rec.student_id and rec.subject_id and rec.semester_id) or rec.status in ("dropped", "withdrawn"):
+                rec.possible_duplicate = False
                 continue
             duplicate = self.search([
-                ("id", "!=", enrollment.id),
-                ("student_id", "=", enrollment.student_id.id),
-                ("program_id", "=", enrollment.program_id.id),
-                ("academic_year_id", "=", enrollment.academic_year_id.id),
-                ("semester_id", "=", enrollment.semester_id.id),
-                ("status", "not in", ["withdrawn", "dropped"]),
+                ("id", "!=", rec.id or 0),
+                ("student_id", "=", rec.student_id.id),
+                ("subject_id", "=", rec.subject_id.id),
+                ("semester_id", "=", rec.semester_id.id),
+                ("class_section_id", "!=", rec.class_section_id.id if rec.class_section_id else 0),
+                ("status", "not in", ["dropped", "withdrawn"]),
             ], limit=1)
-            if duplicate:
-                raise ValidationError(
-                    "This student is already enrolled in the same program, "
-                    "academic year and semester. Withdraw the earlier "
-                    "enrollment before creating another one."
-                )
-
-    def _duplicate_group_domain(self):
-        return [("status", "not in", ["withdrawn", "dropped"])]
-
-    def _duplicate_enrollment_ids(self):
-        groups = self.read_group(
-            self._duplicate_group_domain(),
-            ["student_id", "program_id", "academic_year_id", "semester_id"],
-            ["student_id", "program_id", "academic_year_id", "semester_id"],
-            lazy=False,
-        )
-        duplicate_ids = []
-        for group in groups:
-            if group["__count"] <= 1:
-                continue
-            duplicate_ids.extend(self.search(group["__domain"]).ids)
-        return duplicate_ids
-
-    def _compute_possible_duplicate(self):
-        duplicate_ids = set(self._duplicate_enrollment_ids())
-        for enrollment in self:
-            enrollment.possible_duplicate = enrollment.id in duplicate_ids
+            rec.possible_duplicate = bool(duplicate)
 
     def _search_possible_duplicate(self, operator, value):
-        duplicate_ids = self._duplicate_enrollment_ids()
+        self.env.cr.execute(
+            """
+            SELECT e1.id
+              FROM university_enrollment e1
+              JOIN university_enrollment e2 ON e1.student_id = e2.student_id
+                                          AND e1.subject_id = e2.subject_id
+                                          AND e1.semester_id = e2.semester_id
+                                          AND e1.id != e2.id
+                                          AND COALESCE(e1.class_section_id, 0) != COALESCE(e2.class_section_id, 0)
+             WHERE e1.status NOT IN ('dropped', 'withdrawn')
+               AND e2.status NOT IN ('dropped', 'withdrawn')
+            """
+        )
+        duplicate_ids = [row[0] for row in self.env.cr.fetchall()]
         is_positive = (operator in ("=", "==") and value) or (operator in ("!=", "<>") and not value)
         if is_positive:
             return [("id", "in", duplicate_ids or [0])]
         return [("id", "not in", duplicate_ids or [0])]
 
-    @api.constrains("student_id", "program_id", "section_id")
-    def _check_program_section_fit(self):
-        for enrollment in self:
-            if not self._section_matches_program(enrollment.section_id, enrollment.program_id):
-                raise ValidationError(
-                    "The selected class section does not belong to the "
-                    "chosen major/program."
-                )
+    @api.constrains("student_id", "class_section_id", "status", "enrollment_date")
+    def _check_enrollment_rules(self):
+        for rec in self:
+            # 1. Active student
+            if not rec.student_id.active or (hasattr(rec.student_id, "status") and rec.student_id.status != "active"):
+                raise ValidationError("The student must be active to enroll in a class.")
 
-    @api.constrains("semester_id", "academic_year_id")
-    def _check_period_consistency(self):
-        for enrollment in self:
-            if (
-                enrollment.semester_id
-                and enrollment.academic_year_id
-                and enrollment.semester_id.academic_year_id != enrollment.academic_year_id
-            ):
-                raise ValidationError(
-                    "The selected semester does not belong to the selected "
-                    "academic year."
-                )
+            if rec.class_section_id:
+                # 2. Open / active class section
+                if not rec.class_section_id.active:
+                    raise ValidationError("The selected class section is closed or inactive.")
 
-    @api.constrains("section_id", "semester_id", "academic_year_id")
-    def _check_section_period_consistency(self):
-        for enrollment in self:
-            if not enrollment.section_id:
-                continue
-            sec_sem = enrollment.section_id.semester_id
-            if sec_sem and enrollment.semester_id != sec_sem:
-                raise ValidationError(
-                    "The enrollment semester must match the class section's semester."
-                )
-            sec_year = sec_sem.academic_year_id if sec_sem else False
-            if sec_year and enrollment.academic_year_id != sec_year:
-                raise ValidationError(
-                    "The enrollment academic year must match the class section's "
-                    "academic year."
-                )
+                if not rec.class_section_id.semester_id:
+                    raise ValidationError("The class section must belong to a semester.")
 
-    @api.onchange("section_id")
-    def _onchange_section_id(self):
-        if self.section_id:
-            sec_sem = self.section_id.semester_id
-            if sec_sem:
-                self.semester_id = sec_sem
-                self.academic_year_id = sec_sem.academic_year_id
-            if not self.program_id and self.section_id.program_id:
-                self.program_id = self.section_id.program_id
-        return self._section_domain_result()
+                # 4. Department term registration window
+                if not self.env.context.get("bypass_registration_window"):
+                    semester = rec.semester_id or rec.class_section_id.semester_id
+                    dept = (
+                        rec.department_id
+                        or (rec.class_section_id.subject_id.department_id if rec.class_section_id.subject_id else False)
+                        or (rec.program_id.department_id if rec.program_id else False)
+                    )
+                    term = False
+                    if "university.department.term" in self.env:
+                        term = self.env["university.department.term"].search([
+                            ("semester_id", "=", semester.id if semester else 0),
+                            ("department_id", "=", dept.id if dept else 0),
+                        ], limit=1)
+                    if term and term.registration_start and term.registration_end:
+                        today = rec.enrollment_date or fields.Date.context_today(rec)
+                        is_reg_open = term.is_registration_open(today) if hasattr(term, "is_registration_open") else (term.registration_start <= today <= term.registration_end)
+                        is_add_drop = term.is_add_drop_open(today) if hasattr(term, "is_add_drop_open") else False
+                        if not (is_reg_open or is_add_drop):
+                            raise ValidationError(
+                                f"Registration for department '{dept.name}' is closed. "
+                                f"The registration window is {term.registration_start} to {term.registration_end}."
+                            )
 
-    @api.onchange("program_id")
-    def _onchange_program_id(self):
-        if self.section_id and not self._section_matches_program(self.section_id, self.program_id):
-            self.section_id = False
+                # 5. Section capacity check
+                if rec.status == "enrolled" and rec.class_section_id.capacity:
+                    enrolled_count = self.search_count([
+                        ("class_section_id", "=", rec.class_section_id.id),
+                        ("status", "=", "enrolled"),
+                        ("id", "!=", rec.id or 0),
+                    ])
+                    if enrolled_count + 1 > rec.class_section_id.capacity:
+                        raise ValidationError(
+                            f"Class section '{rec.class_section_id.name}' has reached its maximum capacity of {rec.class_section_id.capacity} seats."
+                        )
 
-    @api.onchange("student_id")
-    def _onchange_student_id(self):
-        if not self.student_id:
-            return
+                # 6. Student must not already be enrolled in the same subject in the same semester
+                if rec.student_id and rec.subject_id and rec.semester_id and rec.status in ("draft", "enrolled"):
+                    dup = self.search([
+                        ("id", "!=", rec.id or 0),
+                        ("student_id", "=", rec.student_id.id),
+                        ("subject_id", "=", rec.subject_id.id),
+                        ("semester_id", "=", rec.semester_id.id),
+                        ("status", "in", ["draft", "enrolled"]),
+                    ], limit=1)
+                    if dup:
+                        raise ValidationError(
+                            f"Student '{rec.student_id.name}' is already enrolled in subject '{rec.subject_id.name}' for semester '{rec.semester_id.name}'."
+                        )
 
-        self.program_id = self.student_id.program_id
-        self.academic_year_id = self.student_id.academic_year_id
-        self.semester_id = self.student_id.current_semester_id
-        if self.semester_id:
-            self.academic_year_id = self.semester_id.academic_year_id
-        if self.section_id and not self._section_matches_program(self.section_id, self.program_id):
-            self.section_id = False
+            # 3. Closed / archived academic year lock
+            year = rec.academic_year_id or (rec.class_section_id.semester_id.academic_year_id if rec.class_section_id and rec.class_section_id.semester_id else False)
+            if year and year.state in ("closed", "archived") and not self.env.context.get("allow_closed_year_write"):
+                raise UserError("Enrollments cannot be created or modified for a closed or archived academic year.")
 
-    @api.onchange("academic_year_id")
-    def _onchange_academic_year_id(self):
-        if (
-            self.academic_year_id
-            and self.semester_id
-            and self.semester_id.academic_year_id != self.academic_year_id
-        ):
-            self.semester_id = False
+    def action_confirm(self):
+        for rec in self:
+            if rec.status != "draft":
+                raise UserError("Only draft enrollments can be confirmed.")
+            rec.status = "enrolled"
+            rec.message_post(body="Enrollment confirmed: status changed to Enrolled.")
+        return True
 
-    @api.onchange("semester_id")
-    def _onchange_semester_id(self):
-        if self.semester_id and not self.academic_year_id:
-            self.academic_year_id = self.semester_id.academic_year_id
+    def action_complete(self):
+        for rec in self:
+            if rec.status != "enrolled":
+                raise UserError("Only active enrollments can be completed.")
+            rec.status = "completed"
+            rec.message_post(body="Enrollment completed: status changed to Completed.")
+        return True
 
-    def _section_domain_result(self):
-        """Return domain update for section_id based on current filters."""
-        domain = [("active", "=", True)]
-        if self.semester_id:
-            domain.append(("semester_id", "=", self.semester_id.id))
-        if self.program_id:
-            domain += [
-                "|",
-                ("program_id", "=", self.program_id.id),
-                ("subject_id.program_ids", "in", [self.program_id.id]),
-            ]
-        return {"domain": {"section_id": domain}}
+    def action_drop(self):
+        for rec in self:
+            if rec.status not in ("draft", "enrolled"):
+                raise UserError("Only draft or enrolled records can be dropped.")
+            rec.status = "dropped"
+            rec.message_post(body="Enrollment dropped: status changed to Dropped.")
+        return True
 
-    def _check_active_program_period_duplicates(self, vals_list):
-        """Refuse to create an ACTIVE major enrollment for a student who is
-        already actively enrolled in the same program, academic year and
-        semester (sectionless major enrollments)."""
+    def action_reset_draft(self):
+        for rec in self:
+            if rec.status != "dropped":
+                raise UserError("Only dropped enrollments can be reset to draft.")
+            rec.status = "draft"
+            rec.message_post(body="Enrollment reset to draft: status changed to Draft.")
+        return True
+
+    # Legacy method compatibility
+    def action_withdraw(self):
+        return self.action_drop()
+
+    def action_approve(self):
+        return self.action_confirm()
+
+    def action_reject(self):
+        return self.action_drop()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
         for vals in vals_list:
-            if vals.get("status", "draft") != "enrolled":
-                continue
-            if "program_id" not in vals or "academic_year_id" not in vals:
-                continue
-            if vals.get("section_id"):
-                # Subject/section-bound legacy enrollments are unique per section.
-                continue
-            if not vals.get("student_id"):
-                continue
-            exists = self.search_count([
-                ("student_id", "=", vals["student_id"]),
-                ("program_id", "=", vals["program_id"]),
-                ("academic_year_id", "=", vals["academic_year_id"]),
-                ("semester_id", "=", vals["semester_id"]),
-                ("status", "=", "enrolled"),
-                ("section_id", "=", False),
-            ])
-            if exists:
-                raise ValidationError(
-                    "This student already has an active major enrollment in this "
-                    "program for the selected academic year and semester."
-                )
+            if not vals.get("class_section_id") and vals.get("section_id"):
+                vals["class_section_id"] = vals["section_id"]
+            if not vals.get("section_id") and vals.get("class_section_id"):
+                vals["section_id"] = vals["class_section_id"]
+            if not vals.get("status"):
+                vals["status"] = "draft"
 
-    def _check_capacity_for_vals(self, vals_list, excluded_ids=None):
-        enrolled_section_ids = [
-            vals.get("section_id")
-            for vals in vals_list
-            if vals.get("section_id") and vals.get("status", "draft") == "enrolled"
-        ]
-        if not enrolled_section_ids:
-            return
+            if not self.env.context.get("allow_closed_year_write"):
+                year_id = vals.get("academic_year_id")
+                if not year_id and vals.get("class_section_id"):
+                    section = self.env["university.class.section"].browse(vals["class_section_id"]).exists()
+                    if section and section.semester_id and section.semester_id.academic_year_id:
+                        year_id = section.semester_id.academic_year_id.id
+                if year_id:
+                    year = self.env["university.academic.year"].browse(year_id).exists()
+                    if year and year.state in ("closed", "archived"):
+                        raise UserError("Enrollments cannot be created for a closed or archived academic year.")
 
-        section_counts = Counter(enrolled_section_ids)
-        sections = self.env["university.class.section"].browse(list(section_counts)).exists()
-        sections = sections.filtered("capacity")
-        if not sections:
-            return
+        return super().create(vals_list)
 
-        self.env.cr.execute(
-            "SELECT id FROM university_class_section WHERE id IN %s ORDER BY id FOR UPDATE",
-            [tuple(sections.ids)],
-        )
+    def write(self, vals):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(rec.academic_year_id.state in ("closed", "archived") for rec in self):
+                raise UserError("Enrollments in a closed or archived academic year cannot be modified.")
+        if "section_id" in vals and "class_section_id" not in vals:
+            vals["class_section_id"] = vals["section_id"]
+        elif "class_section_id" in vals and "section_id" not in vals:
+            vals["section_id"] = vals["class_section_id"]
+        return super().write(vals)
 
-        excluded_ids = excluded_ids or []
-        for section in sections:
-            domain = [
-                ("section_id", "=", section.id),
-                ("status", "=", "enrolled"),
-            ]
-            if excluded_ids:
-                domain.append(("id", "not in", excluded_ids))
-
-            current_count = self.search_count(domain)
-            requested_count = section_counts[section.id]
-            if current_count + requested_count > section.capacity:
-                available = max(section.capacity - current_count, 0)
-                raise ValidationError(
-                    "Not enough seats in this class section. "
-                    f"Available: {available}, requested: {requested_count}."
-                )
-
-    def _section_matches_program(self, section, program):
-        if not section or not program:
-            return True
-        if section.program_id:
-            return section.program_id == program
-
-        subject = section.subject_id
-        if not subject:
-            return True
-        if subject.program_ids:
-            return program in subject.program_ids
-        return subject.department_id == program.department_id
+    def unlink(self):
+        if not self.env.context.get("allow_closed_year_write"):
+            if any(rec.academic_year_id.state in ("closed", "archived") for rec in self):
+                raise UserError("Enrollments of a closed or archived academic year cannot be deleted.")
+        return super().unlink()

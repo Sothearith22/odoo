@@ -83,4 +83,9 @@
         <field name="start_hour">10.0</field>
         <field name="end_hour">11.5</field>
     </record>
+
+    <record id="default_min_teaching_weeks" model="ir.config_parameter">
+        <field name="key">school_management.min_teaching_weeks</field>
+        <field name="value">14</field>
+    </record>
 </odoo>

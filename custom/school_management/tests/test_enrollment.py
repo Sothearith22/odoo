@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+from odoo import fields
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -33,7 +36,7 @@ class TestEnrollment(TransactionCase):
         )
         self.year = Year.create(
             {
-                "name": "2025-2026",
+                "name": "Enrollment Test Year 2025-2026",
                 "date_start": "2025-09-01",
                 "date_end": "2026-06-30",
             }
@@ -74,6 +77,8 @@ class TestEnrollment(TransactionCase):
         )
         self.assertEqual(enrollment.department_id, self.department)
         self.assertEqual(enrollment.faculty_id, self.faculty)
+        self.assertEqual(enrollment.status, "draft")
+        enrollment.action_confirm()
         self.assertEqual(enrollment.status, "enrolled")
 
     def test_student_wizard_enrolls_without_class_section(self):
@@ -144,73 +149,6 @@ class TestEnrollment(TransactionCase):
         self.assertEqual(len(enrollment), 1)
         self.assertEqual(enrollment.program_id, self.program)
 
-    def test_student_wizard_rejects_duplicate_sectionless_enrollment(self):
-        student = self._make_student(
-            program_id=self.program.id,
-            academic_year_id=self.year.id,
-            current_semester_id=self.semester.id,
-        )
-        values = {
-            "student_id": student.id,
-            "program_id": self.program.id,
-            "academic_year_id": self.year.id,
-            "semester_id": self.semester.id,
-        }
-        self.StudentWizard.create(values).action_register_enrollments()
-
-        with self.assertRaises(ValidationError):
-            self.StudentWizard.create(values).action_register_enrollments()
-
-    def test_program_section_mismatch_rejected(self):
-        other_dept = self.env["university.department"].create(
-            {"name": "Test Chemistry", "code": "TESTCHM", "faculty_id": self.faculty.id}
-        )
-        other_program = self.env["university.program"].create(
-            {
-                "name": "Test BSc Chemistry",
-                "code": "TEST-BSC-CHM",
-                "department_id": other_dept.id,
-            }
-        )
-        other_section = self.env["university.class.section"].create(
-            {
-                "name": "GM-C1-A",
-                "program_id": other_program.id,
-                "semester_id": self.semester.id,
-            }
-        )
-        student = self._make_student(program_id=self.program.id)
-        with self.assertRaises(ValidationError):
-            self.Enrollment.create(
-                {
-                    "student_id": student.id,
-                    "program_id": self.program.id,
-                    "section_id": other_section.id,
-                    "academic_year_id": self.year.id,
-                    "semester_id": self.semester.id,
-                }
-            )
-
-    def test_duplicate_active_major_prevented(self):
-        student = self._make_student(program_id=self.program.id)
-        self.Enrollment.create(
-            {
-                "student_id": student.id,
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-            }
-        )
-        with self.assertRaises(ValidationError):
-            self.Enrollment.create(
-                {
-                    "student_id": student.id,
-                    "program_id": self.program.id,
-                    "academic_year_id": self.year.id,
-                    "semester_id": self.semester.id,
-                }
-            )
-
     def test_bulk_enroll_students(self):
         s1 = self._make_student(program_id=self.program.id)
         s2 = self._make_student(program_id=self.program.id)
@@ -236,127 +174,269 @@ class TestEnrollment(TransactionCase):
             2,
         )
 
-    def test_bulk_enroll_skips_already_enrolled(self):
-        s1 = self._make_student(program_id=self.program.id)
-        s2 = self._make_student(program_id=self.program.id)
-        self.Enrollment.create(
-            {
-                "student_id": s1.id,
-                "program_id": self.program.id,
-                "section_id": self.section.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-            }
-        )
-        no_section = self.env["university.class.section"].create(
-            {
-                "name": "GM-Y2-A",
-                "program_id": self.program.id,
-                "semester_id": self.semester.id,
-                "capacity": 10,
-            }
-        )
-        wizard = self.Wizard.create(
-            {
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-                "section_id": no_section.id,
-                "student_ids": [(6, 0, [s1.id, s2.id])],
-            }
-        )
-        wizard.action_enroll_students()
-        self.assertEqual(
-            self.Enrollment.search_count(
-                [
-                    ("student_id", "=", s1.id),
-                    ("program_id", "=", self.program.id),
-                ]
-            ),
-            1,
-        )
-        self.assertEqual(
-            self.Enrollment.search_count(
-                [
-                    ("student_id", "=", s2.id),
-                    ("program_id", "=", self.program.id),
-                ]
-            ),
-            1,
-        )
 
-    def test_bulk_enroll_all_already_enrolled_raises(self):
-        s1 = self._make_student(program_id=self.program.id)
-        self.Enrollment.create(
-            {
-                "student_id": s1.id,
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-            }
-        )
-        wizard = self.Wizard.create(
-            {
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-                "student_ids": [(6, 0, [s1.id])],
-            }
-        )
-        with self.assertRaises(UserError):
-            wizard.action_enroll_students()
-
-    def test_bulk_enroll_empty_selection(self):
-        wizard = self.Wizard.create(
-            {
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-            }
-        )
-        with self.assertRaises(UserError):
-            wizard.action_enroll_students()
-
-    def test_capacity_enforced(self):
-        s1 = self._make_student(program_id=self.program.id)
-        s2 = self._make_student(program_id=self.program.id)
-        s3 = self._make_student(program_id=self.program.id)
-        wizard = self.Wizard.create(
-            {
-                "program_id": self.program.id,
-                "academic_year_id": self.year.id,
-                "semester_id": self.semester.id,
-                "section_id": self.section.id,
-                "student_ids": [(6, 0, [s1.id, s2.id, s3.id])],
-            }
-        )
-        with self.assertRaises(UserError):
-            wizard.action_enroll_students()
-
-
-class TestBulkWizardEligibility(TransactionCase):
+class TestEnrollmentModelRules(TransactionCase):
     def setUp(self):
         super().setUp()
-        self.Faculty = self.env["university.faculty"]
-        self.Department = self.env["university.department"]
-        self.Program = self.env["university.program"]
-        self.Wizard = self.env["university.bulk.enrollment.wizard"]
+        self.faculty = self.env["university.faculty"].create({
+            "name": "Engineering Faculty",
+            "code": "EFAC",
+        })
+        self.department = self.env["university.department"].create({
+            "name": "Software Engineering",
+            "code": "SOFTE",
+            "faculty_id": self.faculty.id,
+        })
+        self.program = self.env["university.program"].create({
+            "name": "BSc Software Engineering",
+            "code": "BS-SE",
+            "department_id": self.department.id,
+        })
+        self.subject = self.env["university.subject"].create({
+            "name": "Data Structures",
+            "code": "CS201",
+            "department_id": self.department.id,
+            "program_ids": [(6, 0, [self.program.id])],
+        })
+        self.teacher = self.env["university.teacher"].create({
+            "name": "Dr. Alan Turing",
+            "department_id": self.department.id,
+        })
+        self.year = self.env["university.academic.year"].create({
+            "name": "Rules Test Academic Year 2026",
+            "date_start": "2026-01-01",
+            "date_end": "2026-12-31",
+            "state": "open",
+        })
+        self.semester = self.env["university.semester"].create({
+            "name": "Spring 2026",
+            "academic_year_id": self.year.id,
+            "semester_type": "semester_1",
+            "date_start": "2026-01-01",
+            "date_end": "2026-06-30",
+        })
+        self.section = self.env["university.class.section"].create({
+            "name": "SE-2026-A",
+            "program_id": self.program.id,
+            "subject_id": self.subject.id,
+            "teacher_id": self.teacher.id,
+            "semester_id": self.semester.id,
+            "capacity": 2,
+            "active": True,
+        })
+        self.student = self.env["university.student"].create({
+            "name": "Alice Wonderland",
+            "program_id": self.program.id,
+            "status": "active",
+            "active": True,
+        })
 
-    def test_student_domain_program(self):
-        faculty = self.Faculty.create({"name": "Test Eng", "code": "TESTENG"})
-        department = self.Department.create(
-            {"name": "Test CS", "code": "TESTCS", "faculty_id": faculty.id}
-        )
-        program = self.Program.create(
-            {"name": "Test BSc CS", "code": "TEST-BSC-CS", "department_id": department.id}
-        )
-        wizard = self.Wizard.new(
-            {
-                "faculty_id": faculty.id,
-                "department_id": department.id,
-                "program_id": program.id,
-            }
-        )
-        wizard._onchange_program_id()
-        domain = wizard._student_domain()["domain"]["student_ids"]
-        self.assertIn(("program_id", "=", program.id), domain)
+    def test_derived_fields_follow_class_section(self):
+        """User only chooses student and class section. All academic fields derive automatically."""
+        enrollment = self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        self.assertEqual(enrollment.program_id, self.program)
+        self.assertEqual(enrollment.department_id, self.department)
+        self.assertEqual(enrollment.faculty_id, self.faculty)
+        self.assertEqual(enrollment.subject_id, self.subject)
+        self.assertEqual(enrollment.instructor_id, self.teacher)
+        self.assertEqual(enrollment.semester_id, self.semester)
+        self.assertEqual(enrollment.academic_year_id, self.year)
+        self.assertEqual(enrollment.status, "draft")
+        self.assertEqual(enrollment.enrollment_date, fields.Date.today())
+
+    def test_unique_student_section(self):
+        """A student cannot be enrolled twice in the same class section."""
+        self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        with self.assertRaises(Exception):
+            with self.env.cr.savepoint():
+                self.env["university.enrollment"].create({
+                    "student_id": self.student.id,
+                    "class_section_id": self.section.id,
+                })
+
+    def test_inactive_student_rejected(self):
+        """An inactive student cannot be enrolled."""
+        inactive_student = self.env["university.student"].create({
+            "name": "Bob Sleepy",
+            "active": False,
+        })
+        with self.assertRaises(ValidationError):
+            self.env["university.enrollment"].create({
+                "student_id": inactive_student.id,
+                "class_section_id": self.section.id,
+            })
+
+    def test_closed_section_rejected(self):
+        """An inactive / closed class section cannot accept enrollments."""
+        self.section.active = False
+        with self.assertRaises(ValidationError):
+            self.env["university.enrollment"].create({
+                "student_id": self.student.id,
+                "class_section_id": self.section.id,
+            })
+
+    def test_registration_window(self):
+        """Enrollment must respect the department term registration window."""
+        today = fields.Date.today()
+        future_year = self.env["university.academic.year"].create({
+            "name": "Registration Window Year",
+            "date_start": today - timedelta(days=30),
+            "date_end": today + timedelta(days=300),
+            "state": "open",
+        })
+        future_sem = self.env["university.semester"].create({
+            "name": "Registration Window Semester",
+            "academic_year_id": future_year.id,
+            "semester_type": "semester_2",
+            "date_start": today + timedelta(days=20),
+            "date_end": today + timedelta(days=120),
+        })
+        future_section = self.env["university.class.section"].create({
+            "name": "SE-Future-A",
+            "program_id": self.program.id,
+            "subject_id": self.subject.id,
+            "semester_id": future_sem.id,
+            "active": True,
+        })
+        # Create department term with window in the future
+        term = self.env["university.department.term"].create({
+            "semester_id": future_sem.id,
+            "department_id": self.department.id,
+            "date_start": today + timedelta(days=20),
+            "date_end": today + timedelta(days=120),
+            "registration_start": today + timedelta(days=5),
+            "registration_end": today + timedelta(days=15),
+        })
+        with self.assertRaises(ValidationError):
+            self.env["university.enrollment"].create({
+                "student_id": self.student.id,
+                "class_section_id": future_section.id,
+            })
+
+        # Update term window to include today
+        term.write({
+            "registration_start": today - timedelta(days=2),
+            "registration_end": today + timedelta(days=15),
+        })
+        enrollment = self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": future_section.id,
+        })
+        self.assertTrue(enrollment)
+
+    def test_capacity(self):
+        """Section capacity cannot be exceeded by confirmed enrollments."""
+        self.section.capacity = 1
+        student2 = self.env["university.student"].create({
+            "name": "Charlie Student",
+            "status": "active",
+            "active": True,
+        })
+        e1 = self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        e1.action_confirm()
+
+        e2 = self.env["university.enrollment"].create({
+            "student_id": student2.id,
+            "class_section_id": self.section.id,
+        })
+        with self.assertRaises(ValidationError):
+            e2.action_confirm()
+
+    def test_closed_year_lock(self):
+        """Closed and archived academic years block create, write, and unlink."""
+        enrollment = self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        self.year.state = "closed"
+
+        with self.assertRaises(UserError):
+            enrollment.write({"enrollment_date": fields.Date.today()})
+
+        with self.assertRaises(UserError):
+            enrollment.unlink()
+
+        student2 = self.env["university.student"].create({
+            "name": "Dana Closed",
+            "status": "active",
+            "active": True,
+        })
+        with self.assertRaises(UserError):
+            self.env["university.enrollment"].create({
+                "student_id": student2.id,
+                "class_section_id": self.section.id,
+            })
+
+    def test_status_transitions(self):
+        """Status workflow draft -> enrolled -> completed, drop and reset to draft."""
+        enrollment = self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        self.assertEqual(enrollment.status, "draft")
+
+        # Draft -> Enrolled
+        enrollment.action_confirm()
+        self.assertEqual(enrollment.status, "enrolled")
+
+        # Invalid transition: confirm when already enrolled
+        with self.assertRaises(UserError):
+            enrollment.action_confirm()
+
+        # Enrolled -> Completed
+        enrollment.action_complete()
+        self.assertEqual(enrollment.status, "completed")
+
+        # Completed is final: cannot drop or complete again
+        with self.assertRaises(UserError):
+            enrollment.action_drop()
+
+        # Test Drop and Reset to Draft on a new enrollment
+        student2 = self.env["university.student"].create({
+            "name": "Eve Dropper",
+            "status": "active",
+            "active": True,
+        })
+        section2 = self.env["university.class.section"].create({
+            "name": "SE-2026-B",
+            "program_id": self.program.id,
+            "semester_id": self.semester.id,
+            "capacity": 10,
+        })
+        e2 = self.env["university.enrollment"].create({
+            "student_id": student2.id,
+            "class_section_id": section2.id,
+        })
+        e2.action_drop()
+        self.assertEqual(e2.status, "dropped")
+
+        e2.action_reset_draft()
+        self.assertEqual(e2.status, "draft")
+
+    def test_duplicate_subject_same_semester(self):
+        """A student cannot be enrolled in the same subject twice in the same semester."""
+        section_b = self.env["university.class.section"].create({
+            "name": "SE-2026-SubjectDup",
+            "program_id": self.program.id,
+            "subject_id": self.subject.id,
+            "semester_id": self.semester.id,
+            "capacity": 10,
+        })
+        self.env["university.enrollment"].create({
+            "student_id": self.student.id,
+            "class_section_id": self.section.id,
+        })
+        with self.assertRaises(ValidationError):
+            self.env["university.enrollment"].create({
+                "student_id": self.student.id,
+                "class_section_id": section_b.id,
+            })

@@ -20,6 +20,7 @@ class UniversityFaculty(models.Model):
         "university.department", "faculty_id", string="Departments"
     )
     description = fields.Text(string="Description")
+    color = fields.Integer(string="Color Index", default=1)
     active = fields.Boolean(string="Active", default=True)
     state = fields.Selection(
         [

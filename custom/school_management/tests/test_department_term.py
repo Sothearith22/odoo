@@ -3,7 +3,7 @@ from datetime import timedelta
 from psycopg2 import IntegrityError
 
 from odoo import fields
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -252,7 +252,9 @@ class TestDepartmentTerm(TransactionCase):
         self.AcademicYear.with_context(active_test=False).search(
             [("current", "=", True)]
         ).write({"current": False})
+        self.env.flush_all()
         self.academic_year.write({"current": True})
+        self.env.flush_all()
         with self.assertRaises(IntegrityError):
             self.AcademicYear.create(
                 {
@@ -302,22 +304,66 @@ class TestDepartmentTerm(TransactionCase):
 
     def test_closed_year_locks_children(self):
         term = self.DepartmentTerm.create(self._term_values())
-        self.academic_year.write({"state": "closed"})
-        with self.assertRaises(AccessError):
-            self.academic_year.write({"date_end": "2026-12-30"})
-        with self.assertRaises(AccessError):
-            term.write({"date_end": "2026-06-29", "change_reason": "Correction"})
-
-    def test_teaching_weeks_subtracts_weekday_holidays(self):
-        term = self.DepartmentTerm.create(self._term_values())
-        self.Holiday.create({
-            "name": "Weekend and Weekday",
-            "date_start": "2026-01-02",
-            "date_end": "2026-01-05",
-            "academic_year_id": self.academic_year.id,
+        program = self.Program.create({
+            "name": "Lock Test Program",
+            "code": "LTP",
+            "department_id": self.department.id,
         })
-        term.invalidate_recordset(["teaching_weeks"])
-        self.assertEqual(term.teaching_weeks, round((181 - 2) / 7.0, 2))
+        student = self.Student.create({"name": "Lock Test Student"})
+        enrollment = self.Enrollment.create({
+            "student_id": student.id,
+            "program_id": program.id,
+            "academic_year_id": self.academic_year.id,
+            "semester_id": self.semester.id,
+            "status": "enrolled",
+        })
+        category = self.env["university.assessment.category"].search([], limit=1)
+        if not category:
+            category = self.env["university.assessment.category"].create({
+                "name": "Test Category", "code": "TC", "weight": 50
+            })
+        subject = self.Subject.create({
+            "name": "Lock Test Subject",
+            "code": "LTS",
+            "department_id": self.department.id,
+            "credits": 3,
+        })
+        grade_result = self.env["university.assessment.result"].create({
+            "student_id": student.id,
+            "subject_id": subject.id,
+            "academic_year_id": self.academic_year.id,
+            "semester_id": self.semester.id,
+            "category_id": category.id,
+            "score": 85.0,
+            "max_score": 100.0,
+        })
+
+        self.academic_year.write({"state": "closed"})
+        with self.assertRaises(UserError):
+            self.academic_year.write({"date_end": "2026-12-30"})
+        with self.assertRaises(UserError):
+            term.write({"date_end": "2026-06-29", "change_reason": "Correction"})
+        with self.assertRaises(UserError):
+            enrollment.write({"status": "completed"})
+        with self.assertRaises(UserError):
+            grade_result.write({"score": 90.0})
+
+    def test_teaching_weeks_and_minimum_weeks_warning(self):
+        term = self.DepartmentTerm.create(self._term_values())
+        # teaching_weeks = (date_end - date_start) / 7 rounded to 1 decimal
+        expected_weeks = round((term.date_end - term.date_start).days / 7.0, 1)
+        self.assertEqual(term.teaching_weeks, expected_weeks)
+        self.assertFalse(term.is_below_min_weeks)
+
+        # Term with duration less than default 14 weeks
+        short_term = self.DepartmentTerm.create(self._term_values(
+            department_id=self.other_department.id,
+            date_start="2026-01-01",
+            date_end="2026-02-12",
+        ))
+        # 42 days / 7 = 6.0 weeks
+        self.assertEqual(short_term.teaching_weeks, 6.0)
+        self.assertTrue(short_term.is_below_min_weeks)
 
     def test_holiday_and_milestone_ranges_are_validated(self):
         with self.assertRaises(IntegrityError):
@@ -360,12 +406,12 @@ class TestDepartmentTerm(TransactionCase):
         term = self.DepartmentTerm.create({
             "semester_id": semester.id,
             "department_id": self.department.id,
-            "date_start": today - timedelta(days=20),
+            "date_start": today + timedelta(days=5),
             "date_end": today + timedelta(days=60),
             "registration_start": today + timedelta(days=1),
             "registration_end": today + timedelta(days=2),
-            "add_drop_start": today + timedelta(days=3),
-            "add_drop_end": today + timedelta(days=5),
+            "add_drop_start": today + timedelta(days=5),
+            "add_drop_end": today + timedelta(days=10),
         })
         program = self.Program.create({
             "name": "Department Term Enrollment Program",

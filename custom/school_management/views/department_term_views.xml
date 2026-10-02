@@ -4,7 +4,8 @@
         <field name="name">university.department.term.list</field>
         <field name="model">university.department.term</field>
         <field name="arch" type="xml">
-            <list string="Department Terms" sample="1">
+            <list string="Department Terms" sample="1" decoration-warning="is_below_min_weeks">
+                <field name="is_below_min_weeks" column_invisible="True"/>
                 <field name="semester_id"/>
                 <field name="academic_year_id" optional="hide"/>
                 <field name="faculty_id"/>
@@ -13,10 +14,12 @@
                 <field name="date_end"/>
                 <field name="registration_start" optional="hide"/>
                 <field name="registration_end" optional="hide"/>
-                <field name="add_drop_start" optional="hide"/>
-                <field name="add_drop_end" optional="hide"/>
+                <field name="add_drop_deadline" optional="hide"/>
+                <field name="withdraw_deadline" optional="hide"/>
+                <field name="exam_start" optional="hide"/>
+                <field name="exam_end" optional="hide"/>
                 <field name="grade_deadline" optional="hide"/>
-                <field name="teaching_weeks" optional="hide"/>
+                <field name="teaching_weeks" optional="show" decoration-warning="is_below_min_weeks"/>
                 <field name="state"
                        widget="badge"
                        decoration-info="state == 'planned'"
@@ -38,6 +41,12 @@
                            readonly="1"/>
                 </header>
                 <sheet>
+                    <field name="is_below_min_weeks" invisible="1"/>
+                    <field name="min_teaching_weeks" invisible="1"/>
+                    <div class="alert alert-warning mb-3" role="alert" invisible="not is_below_min_weeks">
+                        <i class="fa fa-warning me-2" aria-hidden="true" title="Warning"/>
+                        <strong>Warning:</strong> Teaching duration (<field name="teaching_weeks" class="oe_inline"/> weeks) is below the minimum required duration (<field name="min_teaching_weeks" class="oe_inline"/> weeks).
+                    </div>
                     <group>
                         <group string="Semester">
                             <field name="semester_id"/>
@@ -54,12 +63,18 @@
                         <field name="teaching_weeks" readonly="1"/>
                     </group>
                     <group string="Milestones">
-                        <field name="registration_start"/>
-                        <field name="registration_end"/>
-                        <field name="add_drop_start"/>
-                        <field name="add_drop_end"/>
-                        <field name="grade_deadline"/>
-                        <field name="change_reason" placeholder="Reason for extending a started term..."/>
+                        <group>
+                            <field name="registration_start"/>
+                            <field name="registration_end"/>
+                            <field name="add_drop_deadline"/>
+                            <field name="withdraw_deadline"/>
+                        </group>
+                        <group>
+                            <field name="exam_start"/>
+                            <field name="exam_end"/>
+                            <field name="grade_deadline"/>
+                            <field name="change_reason" placeholder="Reason for extending a started term..."/>
+                        </group>
                     </group>
                 </sheet>
                 <chatter/>
@@ -79,6 +94,8 @@
                 <filter string="Planned" name="filter_planned" domain="[('state', '=', 'planned')]"/>
                 <filter string="Running" name="filter_running" domain="[('state', '=', 'running')]"/>
                 <filter string="Ended" name="filter_ended" domain="[('state', '=', 'ended')]"/>
+                <separator/>
+                <filter string="Below Minimum Weeks" name="filter_below_min_weeks" domain="[('is_below_min_weeks', '=', True)]"/>
                 <group>
                     <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
