@@ -86,7 +86,7 @@ The seed uses fixed IDs and `ON CONFLICT (id) DO NOTHING`, so rerunning it does 
 
 ## 6. Configure users and roles
 
-The addon defines School User, Student, Teacher, HOD, Dean, and School Admin groups. Record rules scope access through the chain:
+The addon implements six functional roles: **Student**, **Teacher/Advisor**, **Head of Department**, **Head of Faculty**, **Registrar**, and **University Administrator**. Supporting groups such as School User, Teacher Dashboard, and Student Portal are not separate functional roles. Record rules scope academic access through the chain:
 
 ```text
 res.users -> teacher_id -> teacher -> department/faculty
@@ -97,11 +97,13 @@ To configure a real user:
 1. Log in as an administrator.
 2. Open **Settings -> Users** and create or open a user.
 3. Assign the appropriate school group(s).
-4. For a teacher, HOD, or Dean, set the user’s `teacher_id` link to the matching teacher record.
-5. For a Dean, ensure that the linked teacher is the dean of the intended faculty.
+4. For a Teacher/Advisor, HOD, or Head of Faculty, set the user's `teacher_id` link to the matching teacher record.
+5. For an HOD or Head of Faculty, ensure that the linked teacher has the corresponding managed department or faculty assignment.
 6. Save, sign out, and test with the target user account.
 
-For the **Teacher Dashboard** menu to appear, the user must be a member of `group_teacher_dashboard`; being in `group_school_teacher` alone is not enough, and administrator (`admin`) is intentionally excluded. For the **Student Portal** portal pages, a user signed up through `auth_signup` is placed in `group_student_portal` (read-only backend access, portal page templates are currently a placeholder).
+Use the single **Dashboard** menu for backend users. It automatically loads the appropriate student, teacher/advisor, department, faculty, registrar, or university-administration view based on the user's role. `group_student_portal` remains available for external read-only portal users; its portal pages are currently a placeholder.
+
+University Administrators can manage users and the six roles from **University -> Administration -> Role Management**. This role includes Odoo System Administration, so assign it only to trusted institution-level administrators.
 
 The verified local demo accounts are documented in [`login_guide.md`](login_guide.md). Change those passwords before sharing the database or exposing the server beyond the local machine.
 
@@ -126,11 +128,11 @@ Check these application areas while logged in as the administrator:
 
 - The **Dashboard** opens and displays student, teacher, department, enrollment, fee, and payment KPIs.
 - The **Structure**, **Academic**, **Students**, **Teachers**, **Enrollment**, **Grading**, **Attendance**, and **Finance** menus are visible.
-- The **Teacher Dashboard** menu is visible to a user with `group_teacher_dashboard`; hidden from `admin`.
+- The single **Dashboard** loads a distinct, permission-safe view for each of the six functional roles.
 - A payment receipt can be generated from a posted payment.
 - An academic report (report card, transcript) can be generated from the grading menu.
 - A curriculum report can be opened from the relevant academic records.
-- A teacher, HOD, Dean, and Student user can only see the records allowed by their assigned role and links.
+- A Student, Teacher/Advisor, HOD, Head of Faculty, Registrar, and University Administrator can only see the records and actions allowed by their assigned role and links.
 
 Run the focused addon tests when the database is available:
 

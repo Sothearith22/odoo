@@ -424,7 +424,7 @@ school_management/
 │   ├── 19.0.1.2.0/pre-migrate.py
 │   └── 19.0.1.2.1/pre-migrate.py  # data repair before schema reload
 ├── security/
-│   ├── security.xml         # 8 role groups + res.groups.privilege "University Management"
+│   ├── security.xml         # six functional roles plus supporting access groups
 │   ├── ir.model.access.csv  # role-based grants (NOT broad base.group_user CRUD)
 │   ├── record_rules.xml     # teacher/hod/dean/student/portal record scoping
 │   └── fix_demo_staff_links.sql  # reference only; Odoo runs the XML <function> instead
@@ -447,7 +447,18 @@ school_management/
 
 ### Security highlights
 
-- Groups form a chain `group_school_user → teacher → hod → dean → admin`; `group_teacher_dashboard` is standalone (implies `group_school_teacher`) so admins do **not** get the Teacher Dashboard automatically; `group_student_portal` implies `base.group_portal` for external read-only portal users.
+#### Functional dashboard roles
+
+| Role | Group | Dashboard scope |
+|---|---|---|
+| Student | `group_school_student` | Own academic record, attendance, and finances |
+| Teacher/Advisor | `group_school_teacher` | Assigned classes, advisees, attendance, and follow-up |
+| Head of Department | `group_school_hod` | Managed department |
+| Head of Faculty | `group_school_dean` | Managed faculty and its departments |
+| Registrar | `group_school_registrar` | Student records and transcript-request queues |
+| University Administrator | `group_school_admin` | Institution-wide operations, role management, settings, and system administration |
+
+- Functional roles are Student, Teacher/Advisor, Head of Department, Head of Faculty, Registrar, and University Administrator. The academic hierarchy is `group_school_user → teacher → hod → dean → admin`; Registrar is separately assigned through `group_school_registrar`. `group_teacher_dashboard` and `group_student_portal` are supporting access groups, not functional roles.
 - Record rules scope through `res.users.teacher_id → teacher → department → faculty`.
 - Staff attendance uses `university.teacher` as its staff model. Admin has full access;
   teachers are scoped to their own linked staff record; department and faculty leaders
@@ -502,7 +513,7 @@ school_management/
 
                                  ┌──────────────────────────────────────────────┐
                                  │       University Management System           │
-                                 │           (4 Functional Roles)               │
+                                 │        (Simplified Scope Illustration)       │
                                  └──────────────────────┬───────────────────────┘
                                                         │
           ┌───────────────────────────┬─────────────────┴─────────────┬───────────────────────────┐

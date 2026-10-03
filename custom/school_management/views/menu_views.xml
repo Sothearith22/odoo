@@ -18,8 +18,17 @@
         parent="menu_school_root"
         action="action_school_dashboard_shell"
         sequence="1"
-        groups="base.group_system,school_management.group_school_user"
+        groups="base.group_system,school_management.group_school_student,school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin"
     />
+
+    <!--
+        Dashboard is the single home for the University app.  Its role-aware
+        client action opens the student experience for student-only users, so
+        a separate "Student Portal" item would only duplicate that destination.
+    -->
+    <record id="menu_student_dashboard" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 
     <menuitem
         id="menu_school_teacher_dashboard"
@@ -27,7 +36,7 @@
         parent="menu_school_root"
         action="action_teacher_dashboard_shell"
         sequence="2"
-        groups="school_management.group_teacher_dashboard"
+        groups="school_management.group_teacher_dashboard,school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
 
     <!-- ==================== STUDENT QUICK ACCESS NAVIGATION ==================== -->
@@ -41,10 +50,10 @@
     />
 
     <menuitem
-        id="menu_student_nav_classrooms"
-        name="Classrooms"
+        id="menu_student_nav_attendance"
+        name="Attendance"
         parent="menu_school_root"
-        action="action_university_classroom"
+        action="action_university_attendance_student"
         sequence="4"
         groups="school_management.group_school_student"
     />
@@ -59,10 +68,19 @@
     />
 
     <menuitem
+        id="menu_student_nav_classrooms"
+        name="Classrooms"
+        parent="menu_school_root"
+        action="action_university_classroom"
+        sequence="6"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
         id="menu_student_nav_transcripts"
         name="Transcripts"
         parent="menu_school_root"
-        sequence="6"
+        sequence="7"
         groups="school_management.group_school_student"
     />
     <menuitem
@@ -95,7 +113,16 @@
         name="My Fees"
         parent="menu_school_root"
         action="action_university_fee_student"
-        sequence="7"
+        sequence="8"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_notice_board"
+        name="Notice Board"
+        parent="menu_school_root"
+        action="action_university_notice_board"
+        sequence="9"
         groups="school_management.group_school_student"
     />
 
@@ -104,7 +131,7 @@
         name="My Profile"
         parent="menu_school_root"
         action="action_university_student_profile"
-        sequence="8"
+        sequence="10"
         groups="school_management.group_school_student"
     />
 
@@ -562,6 +589,14 @@
         groups="school_management.group_school_admin"
     />
     <menuitem
+        id="menu_university_notice_board"
+        name="Notice Board"
+        parent="menu_university_administration"
+        action="action_university_notice_board"
+        sequence="25"
+        groups="base.group_system,school_management.group_school_admin,school_management.group_school_teacher"
+    />
+    <menuitem
         id="menu_university_document_signature"
         name="Document Signatures"
         parent="menu_university_administration"
@@ -576,6 +611,14 @@
         name="System"
         parent="menu_university_administration"
         sequence="10"
+        groups="base.group_system,school_management.group_school_admin"
+    />
+    <menuitem
+        id="menu_university_role_management"
+        name="Role Management"
+        parent="menu_university_administration"
+        action="base.action_res_users"
+        sequence="15"
         groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem

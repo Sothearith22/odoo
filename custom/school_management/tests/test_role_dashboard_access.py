@@ -59,7 +59,9 @@ class TestRoleDashboardAccess(TransactionCase):
 
         # Security groups
         cls.group_admin = cls.env.ref("school_management.group_school_admin")
+        cls.group_dean = cls.env.ref("school_management.group_school_dean")
         cls.group_hod = cls.env.ref("school_management.group_school_hod")
+        cls.group_registrar = cls.env.ref("school_management.group_school_registrar")
         cls.group_teacher = cls.env.ref("school_management.group_school_teacher")
         cls.group_student = cls.env.ref("school_management.group_school_student")
         cls.group_user = cls.env.ref("base.group_user")
@@ -86,7 +88,28 @@ class TestRoleDashboardAccess(TransactionCase):
         cls.dept_cs._compute_head_id()
         cls.user_hod.sudo().write({"teacher_id": cls.teacher_hod.id})
 
-        # 3. Teacher CS user
+        # 3. Head of Faculty user & teacher.  This role inherits HOD, so its
+        # dashboard must still be identified as faculty-level rather than HOD.
+        cls.user_dean = cls._create_user("role.test.dean_eng", [cls.group_dean.id])
+        cls.teacher_dean = cls.env["university.teacher"].create({
+            "name": "Dr. Faculty Head Engineering",
+            "teacher_id": "ROLE-TDEAN-01",
+            "user_id": cls.user_dean.id,
+            "department_id": cls.dept_cs.id,
+        })
+        cls.env["university.academic.assignment"].create({
+            "staff_id": cls.teacher_dean.id,
+            "faculty_id": cls.faculty_eng.id,
+            "role": "dean",
+            "start_date": "2026-01-01",
+        })
+        cls.teacher_dean._compute_managed_scopes()
+        cls.user_dean.sudo().write({"teacher_id": cls.teacher_dean.id})
+
+        # 4. Registrar user.  This role is independent of the teaching chain.
+        cls.user_registrar = cls._create_user("role.test.registrar", [cls.group_registrar.id])
+
+        # 5. Teacher CS user
         cls.user_teacher_cs = cls._create_user("role.test.teacher_cs", [cls.group_teacher.id])
         cls.teacher_cs = cls.env["university.teacher"].create({
             "name": "Prof. Alan Turing",
@@ -104,7 +127,7 @@ class TestRoleDashboardAccess(TransactionCase):
             "teacher_id": cls.teacher_cs.id,
         })
 
-        # 4. Teacher MGMT user (unrelated department)
+        # 6. Teacher MGMT user (unrelated department)
         cls.user_teacher_mgmt = cls._create_user("role.test.teacher_mgmt", [cls.group_teacher.id])
         cls.teacher_mgmt = cls.env["university.teacher"].create({
             "name": "Dr. Peter Drucker",
@@ -114,7 +137,7 @@ class TestRoleDashboardAccess(TransactionCase):
         })
         cls.user_teacher_mgmt.sudo().write({"teacher_id": cls.teacher_mgmt.id})
 
-        # 5. Students in CS
+        # 7. Students in CS
         cls.user_student1 = cls._create_user("role.test.student1_cs", [cls.group_student.id])
         cls.student_cs1 = cls.env["university.student"].create({
             "name": "Alice CS",
@@ -134,7 +157,7 @@ class TestRoleDashboardAccess(TransactionCase):
             "current_semester_id": cls.semester.id,
         })
 
-        # 6. Student in MGMT
+        # 8. Student in MGMT
         cls.user_student_mgmt = cls._create_user("role.test.student_mgmt", [cls.group_student.id])
         cls.student_mgmt = cls.env["university.student"].create({
             "name": "Charlie Biz",
@@ -300,6 +323,16 @@ class TestRoleDashboardAccess(TransactionCase):
         self.assertEqual(dashboard_data["dashboard"]["user_role"], "student")
         self.assertIn("student_view", dashboard_data)
         self.assertEqual(dashboard_data["student_view"]["student"]["id"], self.student_cs1.id)
+
+    def test_06_faculty_and_registrar_dashboard_roles(self):
+        """Inherited groups must not collapse Faculty Head or Registrar dashboards."""
+        faculty_data = self.env["school.dashboard"].with_user(self.user_dean).get_role_dashboard_data()
+        self.assertEqual(faculty_data["dashboard"]["user_role"], "dean")
+        self.assertEqual(faculty_data["faculty_view"]["faculty_name"], self.faculty_eng.name)
+
+        registrar_data = self.env["school.dashboard"].with_user(self.user_registrar).get_role_dashboard_data()
+        self.assertEqual(registrar_data["dashboard"]["user_role"], "registrar")
+        self.assertIn("registrar_view", registrar_data)
 
     def test_06_configurable_risk_thresholds(self):
         """Changing risk thresholds in res.config.settings updates student risk calculations."""

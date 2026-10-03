@@ -18,11 +18,27 @@ class StudentDashboardShell extends Component {
             loading: true,
             error: null,
             student: null,
-            activeTab: "classes", // 'classes' | 'schedule' | 'transcript' | 'curriculum' | 'financial'
+            isPreviewMode: false,
+            previewStudents: [],
+            selectedPreviewStudentId: null,
+            activeTab: "classes", // 'classes' | 'attendance' | 'schedule' | 'transcript' | 'curriculum' | 'financial'
             scheduleViewMode: "calendar", // 'calendar' | 'list'
             currentWeekOffset: 0,
             enrolledClasses: [],
             scheduleSlots: [],
+            attendanceStats: {
+                rate: 100,
+                totalSessions: 0,
+                present: 0,
+                late: 0,
+                absent: 0,
+                excused: 0,
+                isLowAttendance: false,
+                byCourse: [],
+                recentLogs: [],
+            },
+            notices: [],
+            selectedNotice: null,
             transcripts: [],
             transcriptLines: [],
             transcriptRequests: [],
@@ -31,12 +47,14 @@ class StudentDashboardShell extends Component {
             programSubjects: [],
             counts: {
                 classes: 0,
+                attendance: 0,
                 schedule: 0,
                 transcript: 0,
                 requests: 0,
                 curriculum: 0,
                 financial: 0,
                 followups: 0,
+                notices: 0,
             },
             enrollmentCount: 0,
             feeCount: 0,
@@ -45,58 +63,89 @@ class StudentDashboardShell extends Component {
         });
 
         onWillStart(async () => {
-            const isStudent = await user.hasGroup("school_management.group_school_student");
-            const isTeacher = await user.hasGroup("school_management.group_school_teacher");
-            const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
-            const isDean = await user.hasGroup("school_management.group_school_dean");
-            const isHod = await user.hasGroup("school_management.group_school_hod");
-
-            if (!isStudent && !isAdmin) {
-                if (isTeacher && !isDean && !isHod) {
-                    await this.action.doAction("school_management.action_teacher_dashboard_shell", { clearBreadcrumbs: true });
-                    return;
-                } else if (isDean || isHod) {
-                    await this.action.doAction("school_management.action_school_dashboard_shell", { clearBreadcrumbs: true });
-                    return;
-                }
-            }
             await this.loadStudentData();
         });
     }
 
-    async loadStudentData() {
+    async loadStudentData(targetStudentId = null) {
         try {
-            const students = await this.orm.searchRead(
-                "university.student",
-                [["user_id", "=", user.userId]],
-                [
-                    "name",
-                    "student_id",
-                    "status",
-                    "program_id",
-                    "department_id",
-                    "faculty_id",
-                    "academic_year_id",
-                    "current_semester_id",
-                    "advisor_id",
-                    "gpa",
-                    "attendance_rate",
-                    "completed_credits",
-                    "risk_level",
-                    "risk_reason",
-                    "fee_total",
-                    "fee_paid",
-                    "fee_balance",
-                    "email",
-                    "phone",
-                    "gender",
-                    "date_of_birth",
-                    "address",
-                    "image_1920",
-                ],
-                { limit: 1 },
-            );
-            this.state.student = students[0] || null;
+            this.state.loading = true;
+            this.state.error = null;
+
+            const studentFields = [
+                "name",
+                "student_id",
+                "status",
+                "program_id",
+                "department_id",
+                "faculty_id",
+                "academic_year_id",
+                "current_semester_id",
+                "advisor_id",
+                "gpa",
+                "attendance_rate",
+                "completed_credits",
+                "risk_level",
+                "risk_reason",
+                "fee_total",
+                "fee_paid",
+                "fee_balance",
+                "email",
+                "phone",
+                "gender",
+                "date_of_birth",
+                "address",
+                "image_1920",
+            ];
+
+            let studentRecord = null;
+            if (targetStudentId) {
+                const results = await this.orm.searchRead(
+                    "university.student",
+                    [["id", "=", targetStudentId]],
+                    studentFields,
+                    { limit: 1 }
+                );
+                studentRecord = results[0] || null;
+            } else {
+                const students = await this.orm.searchRead(
+                    "university.student",
+                    [["user_id", "=", user.userId]],
+                    studentFields,
+                    { limit: 1 }
+                );
+                studentRecord = students[0] || null;
+
+                // If current user is staff/admin without a linked student record,
+                // enable preview mode so they can inspect/test the student portal.
+                if (!studentRecord) {
+                    const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
+                    const isStaff = (await user.hasGroup("school_management.group_school_teacher")) || (await user.hasGroup("school_management.group_school_registrar"));
+                    if (isAdmin || isStaff) {
+                        const previewStudents = await this.orm.searchRead(
+                            "university.student",
+                            [["status", "in", ["enrolled", "admitted", "graduated"]]],
+                            ["id", "name", "student_id", "status"],
+                            { order: "id asc", limit: 20 }
+                        );
+                        if (previewStudents.length) {
+                            this.state.previewStudents = previewStudents;
+                            this.state.isPreviewMode = true;
+                            const previewId = this.state.selectedPreviewStudentId || previewStudents[0].id;
+                            this.state.selectedPreviewStudentId = previewId;
+                            const res = await this.orm.searchRead(
+                                "university.student",
+                                [["id", "=", previewId]],
+                                studentFields,
+                                { limit: 1 }
+                            );
+                            studentRecord = res[0] || null;
+                        }
+                    }
+                }
+            }
+
+            this.state.student = studentRecord;
 
             if (this.state.student) {
                 const studentId = this.state.student.id;
@@ -160,7 +209,7 @@ class StudentDashboardShell extends Component {
                                 classroomsMap[c.id] = c;
                             });
                         } catch {
-                            // Non-fatal if classroom details restricted
+                            // Non-fatal
                         }
                     }
                 }
@@ -199,7 +248,154 @@ class StudentDashboardShell extends Component {
                 });
                 this.state.enrolledClasses = enrolledClasses;
 
-                // 2. Load Schedule & Timetable Slots
+                // 2. Load Attendance Records & Calculate Metrics
+                try {
+                    const attendances = await this.orm.searchRead(
+                        "university.attendance",
+                        [["student_id", "=", studentId]],
+                        ["id", "date", "section_id", "teacher_id", "status", "remark"],
+                        { order: "date desc, id desc", limit: 120 }
+                    );
+
+                    let present = 0, late = 0, absent = 0, excused = 0;
+                    const courseStatsMap = {};
+
+                    for (const cls of enrolledClasses) {
+                        if (cls.section_id) {
+                            courseStatsMap[cls.section_id] = {
+                                sectionId: cls.section_id,
+                                sectionName: cls.section_name,
+                                subjectName: cls.subject_name,
+                                instructorName: cls.instructor_name,
+                                total: 0,
+                                present: 0,
+                                late: 0,
+                                absent: 0,
+                                excused: 0,
+                                rate: 100,
+                                isLow: false,
+                            };
+                        }
+                    }
+
+                    attendances.forEach((att) => {
+                        const st = att.status;
+                        if (st === "present") present++;
+                        else if (st === "late") late++;
+                        else if (st === "absent") absent++;
+                        else if (st === "permission") excused++;
+
+                        const secId = att.section_id?.[0];
+                        if (secId) {
+                            if (!courseStatsMap[secId]) {
+                                courseStatsMap[secId] = {
+                                    sectionId: secId,
+                                    sectionName: att.section_id[1],
+                                    subjectName: "Course Section",
+                                    instructorName: att.teacher_id?.[1] || "Instructor",
+                                    total: 0,
+                                    present: 0,
+                                    late: 0,
+                                    absent: 0,
+                                    excused: 0,
+                                    rate: 100,
+                                    isLow: false,
+                                };
+                            }
+                            const cs = courseStatsMap[secId];
+                            cs.total++;
+                            if (st === "present") cs.present++;
+                            else if (st === "late") cs.late++;
+                            else if (st === "absent") cs.absent++;
+                            else if (st === "permission") cs.excused++;
+                        }
+                    });
+
+                    const byCourse = Object.values(courseStatsMap).map((cs) => {
+                        if (cs.total > 0) {
+                            cs.rate = Math.round((cs.present / cs.total) * 100);
+                            cs.isLow = cs.rate < 80;
+                        } else {
+                            cs.rate = 100;
+                            cs.isLow = false;
+                        }
+                        return cs;
+                    });
+
+                    const totalSessions = attendances.length;
+                    const overallRate = totalSessions > 0
+                        ? Math.round((present / totalSessions) * 100)
+                        : (this.state.student.attendance_rate || 100);
+
+                    const recentLogs = attendances.slice(0, 25).map((att) => {
+                        const timeInfo = this.parseSlotTimes(att.date ? `${att.date} 00:00:00` : "", "");
+                        const secId = att.section_id?.[0];
+                        const sec = secId ? enrolledClasses.find((c) => c.section_id === secId) : null;
+                        return {
+                            id: att.id,
+                            date: att.date,
+                            dateFormatted: timeInfo.dateFormatted || att.date,
+                            sectionName: att.section_id?.[1] || "Section",
+                            subjectName: sec?.subject_name || att.section_id?.[1] || "Subject",
+                            teacherName: att.teacher_id?.[1] || sec?.instructor_name || "Instructor",
+                            status: att.status,
+                            remark: att.remark || "",
+                        };
+                    });
+
+                    this.state.attendanceStats = {
+                        rate: overallRate,
+                        totalSessions,
+                        present,
+                        late,
+                        absent,
+                        excused,
+                        isLowAttendance: overallRate < 80 && totalSessions >= 3,
+                        byCourse,
+                        recentLogs,
+                    };
+                } catch {
+                    this.state.attendanceStats = {
+                        rate: this.state.student.attendance_rate || 100,
+                        totalSessions: 0,
+                        present: 0,
+                        late: 0,
+                        absent: 0,
+                        excused: 0,
+                        isLowAttendance: false,
+                        byCourse: [],
+                        recentLogs: [],
+                    };
+                }
+
+                // 3. Load Notice Board Announcements
+                try {
+                    const notices = await this.orm.searchRead(
+                        "university.notice.board",
+                        [["active", "=", true]],
+                        ["id", "name", "date", "content"],
+                        { order: "date desc, id desc", limit: 6 }
+                    );
+                    const now = new Date();
+                    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    this.state.notices = notices.map((n) => {
+                        const timeInfo = this.parseSlotTimes(n.date ? `${n.date} 00:00:00` : "", "");
+                        let isNew = false;
+                        if (n.date) {
+                            const nd = new Date(n.date);
+                            isNew = nd >= sevenDaysAgo;
+                        }
+                        return {
+                            ...n,
+                            dateFormatted: timeInfo.dateFormatted || n.date,
+                            isNew,
+                        };
+                    });
+                } catch {
+                    this.state.notices = [];
+                }
+
+                // 4. Load Schedule & Timetable Slots
                 let scheduleSlots = [];
                 if (sectionIds.length) {
                     try {
@@ -249,7 +445,7 @@ class StudentDashboardShell extends Component {
                 }
                 this.state.scheduleSlots = scheduleSlots;
 
-                // 3. Load Transcripts & Grades
+                // 5. Load Transcripts & Grades
                 let transcripts = [];
                 let transcriptLines = [];
                 try {
@@ -314,36 +510,10 @@ class StudentDashboardShell extends Component {
                 this.state.transcripts = transcripts;
                 this.state.transcriptLines = transcriptLines;
 
-                // 4. Load Student Transcript Requests
-                let transcriptRequests = [];
-                try {
-                    transcriptRequests = await this.orm.searchRead(
-                        "university.transcript.request",
-                        [["student_id", "=", studentId]],
-                        [
-                            "id",
-                            "name",
-                            "request_type",
-                            "copies",
-                            "purpose",
-                            "delivery_method",
-                            "state",
-                            "approved_date",
-                            "transcript_id",
-                            "verification_code",
-                            "create_date",
-                            "fee_amount",
-                            "payment_state",
-                            "reject_reason",
-                        ],
-                        { order: "create_date desc, id desc" }
-                    );
-                } catch {
-                    transcriptRequests = [];
-                }
-                this.state.transcriptRequests = transcriptRequests;
+                // 6. Load Student Transcript Requests
+                await this.reloadTranscriptRequests();
 
-                // 5. Load Program Curriculum
+                // 7. Load Program Curriculum
                 let programInfo = null;
                 let programSubjects = [];
                 if (this.state.student.program_id) {
@@ -403,7 +573,7 @@ class StudentDashboardShell extends Component {
                 this.state.programInfo = programInfo;
                 this.state.programSubjects = programSubjects;
 
-                // 6. Financials & Followups
+                // 8. Financials & Followups
                 const [feeCount, paymentCount, followups] = await Promise.all([
                     this.orm.searchCount("university.fee", [["student_id", "=", studentId]]),
                     this.orm.searchCount("university.payment", [["student_id", "=", studentId]]),
@@ -421,18 +591,59 @@ class StudentDashboardShell extends Component {
 
                 this.state.counts = {
                     classes: enrolledClasses.length,
+                    attendance: this.state.attendanceStats.totalSessions,
                     schedule: scheduleSlots.length,
                     transcript: transcriptLines.length,
-                    requests: transcriptRequests.length,
+                    requests: this.state.transcriptRequests.length,
                     curriculum: programSubjects.length,
                     financial: feeCount,
                     followups: followups.length,
+                    notices: this.state.notices.length,
                 };
             }
         } catch (error) {
-            this.state.error = error.message || "Unable to load your student dashboard.";
+            this.state.error = error.message || "Unable to load your student academic portal.";
         } finally {
             this.state.loading = false;
+        }
+    }
+
+    async reloadTranscriptRequests() {
+        if (!this.state.student) return;
+        try {
+            const requests = await this.orm.searchRead(
+                "university.transcript.request",
+                [["student_id", "=", this.state.student.id]],
+                [
+                    "id",
+                    "name",
+                    "request_type",
+                    "copies",
+                    "purpose",
+                    "delivery_method",
+                    "state",
+                    "approved_date",
+                    "transcript_id",
+                    "verification_code",
+                    "create_date",
+                    "fee_amount",
+                    "payment_state",
+                    "reject_reason",
+                ],
+                { order: "create_date desc, id desc" }
+            );
+            this.state.transcriptRequests = requests;
+            this.state.counts.requests = requests.length;
+        } catch {
+            this.state.transcriptRequests = [];
+        }
+    }
+
+    async onSelectPreviewStudent(ev) {
+        const selectedId = parseInt(ev.target.value, 10);
+        if (selectedId) {
+            this.state.selectedPreviewStudentId = selectedId;
+            await this.loadStudentData(selectedId);
         }
     }
 
@@ -550,7 +761,7 @@ class StudentDashboardShell extends Component {
                     localStorage.setItem(k, "week");
                 }
             }
-        } catch (e) {}
+        } catch {}
         this.action.doAction("school_management.action_university_timetable_slot_student", {
             additionalContext: {
                 default_mode: "week",
@@ -575,6 +786,22 @@ class StudentDashboardShell extends Component {
                 student_self_view: true,
             },
         });
+    }
+
+    openMyAttendance() {
+        this.action.doAction("school_management.action_university_attendance_student");
+    }
+
+    openNoticeBoardAction() {
+        this.action.doAction("school_management.action_university_notice_board");
+    }
+
+    openNoticeModal(notice) {
+        this.state.selectedNotice = notice;
+    }
+
+    closeNoticeModal() {
+        this.state.selectedNotice = null;
     }
 
     openTranscript() {
@@ -612,34 +839,48 @@ class StudentDashboardShell extends Component {
 
     openNewTranscriptRequest() {
         if (!this.state.student) return;
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "Request Official Transcript",
-            res_model: "university.transcript.request",
-            views: [[false, "form"]],
-            view_mode: "form",
-            target: "current",
-            context: {
-                default_student_id: this.state.student.id,
-                default_request_type: "official",
-                default_copies: 1,
-                default_purpose: "employment",
-                default_delivery_method: "download",
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                name: "Request Official Transcript",
+                res_model: "university.transcript.request",
+                views: [[false, "form"]],
+                view_mode: "form",
+                target: "new",
+                context: {
+                    default_student_id: this.state.student.id,
+                    default_request_type: "official",
+                    default_copies: 1,
+                    default_purpose: "employment",
+                    default_delivery_method: "download",
+                },
             },
-        });
+            {
+                onClose: async () => {
+                    await this.reloadTranscriptRequests();
+                },
+            }
+        );
     }
 
     openTranscriptRequest(reqId) {
         if (!reqId) return;
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "Transcript Request Details",
-            res_model: "university.transcript.request",
-            res_id: reqId,
-            views: [[false, "form"]],
-            view_mode: "form",
-            target: "current",
-        });
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                name: "Transcript Request Details",
+                res_model: "university.transcript.request",
+                res_id: reqId,
+                views: [[false, "form"]],
+                view_mode: "form",
+                target: "new",
+            },
+            {
+                onClose: async () => {
+                    await this.reloadTranscriptRequests();
+                },
+            }
+        );
     }
 
     async printCurriculum() {

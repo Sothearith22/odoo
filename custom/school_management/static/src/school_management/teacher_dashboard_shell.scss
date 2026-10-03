@@ -1,196 +1,296 @@
-// Teacher Dashboard — Modern Enterprise Styles
-// Scoped to .teacher_dashboard_shell to preserve global styles
+// Teacher Dashboard — Modern Enterprise Design matching Student Role Portal
+// Scoped to .o_teacher_dashboard to preserve global styling
 
-.teacher_dashboard_shell {
-    background-color: #f8f9fa;
-    min-height: 100%;
+.o_teacher_dashboard {
+    background: #f8fafc;
     color: #1e293b;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-    // Card styling
-    .card {
-        background-color: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    .o_teacher_dashboard_header {
+        background: #ffffff;
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
 
-        &.cursor-pointer:hover {
-            cursor: pointer;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-            border-color: #cbd5e1;
-        }
+    .o_teacher_header_avatar_wrap {
+        width: 48px;
+        height: 48px;
+    }
 
-        .card-header {
-            border-bottom: 1px solid #f1f5f9;
-            background-color: #ffffff;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+    .o_teacher_header_avatar {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border: 2px solid #e2e8f0;
+    }
+
+    .o_teacher_header_avatar_placeholder {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border: 2px solid #e2e8f0;
+
+        .o_teacher_header_avatar_letter {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1;
+            user-select: none;
         }
     }
 
-    // KPI Metrics Section
-    .o_kpi_card {
-        .o_kpi_icon_wrapper {
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
+    .o_teacher_dashboard_empty {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        text-align: center;
+    }
+
+    // Modern Top Stat Cards
+    .o_teacher_stat_card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+        &.cursor-pointer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+
+        .o_stat_icon_box {
+            width: 44px;
+            height: 44px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .o_kpi_label {
-            font-size: 0.72rem;
-            letter-spacing: 0.04em;
-            color: #64748b;
-        }
-
-        .o_kpi_val {
-            font-size: 1.65rem;
-            font-weight: 700;
-            line-height: 1.2;
-            color: #1e293b;
+            font-size: 1.25rem;
+            flex-shrink: 0;
         }
     }
 
-    // Today's Schedule item styling
-    .o_slot_item {
-        border-left: 3px solid #6366f1;
-        transition: all 0.2s ease;
+    // The doughnut needs room for both its centre label and its four-item
+    // legend.  A dedicated, responsive container prevents Chart.js from
+    // compressing those elements into the same visual space.
+    .o_teacher_attendance_chart {
+        height: 132px;
+    }
+
+    // Profile card avatar
+    .o_teacher_avatar_wrap {
+        width: 96px;
+        height: 96px;
+    }
+
+    .o_teacher_avatar {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border: 3px solid #e2e8f0;
+    }
+
+    .o_teacher_avatar_placeholder {
+        width: 96px;
+        height: 96px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        border: 3px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
+
+        .o_teacher_avatar_letter {
+            color: #ffffff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            user-select: none;
+        }
+    }
+
+    .o_teacher_profile_card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+
+        .card-footer {
+            background: transparent;
+        }
+    }
+
+    // Hub card tab bar
+    .o_teacher_hub_card {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        overflow: hidden;
+
+        .card-header-tabs {
+            .nav-link {
+                border-top: none;
+                border-left: none;
+                border-right: none;
+                border-bottom: 3px solid transparent;
+                border-radius: 0;
+                font-weight: 600;
+                color: #64748b;
+                transition: color 0.15s ease, border-color 0.15s ease;
+
+                &.active {
+                    border-bottom-color: #2563eb;
+                    color: #2563eb !important;
+                    background: transparent;
+                }
+
+                &:hover:not(.active) {
+                    color: #1e293b;
+                    border-bottom-color: #cbd5e1;
+                }
+            }
+        }
+    }
+
+    // Weekly Schedule Learning Time Calendar Styles
+    .o_schedule_calendar_grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.75rem;
+
+        @media (max-width: 1200px) {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .o_calendar_day_col {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+        overflow: hidden;
+
+        &.is_today {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+
+            .o_day_col_header {
+                background: #eff6ff;
+                border-bottom: 2px solid #3b82f6;
+                color: #1d4ed8;
+            }
+        }
+
+        .o_day_col_header {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.65rem 0.75rem;
+            text-align: center;
+        }
+
+        .o_day_col_body {
+            padding: 0.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    .o_calendar_slot_card {
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        border-left-width: 4px;
+        padding: 0.65rem 0.75rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
 
         &:hover {
-            background-color: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
 
-        .o_time_badge {
-            min-width: 80px;
-            font-variant-numeric: tabular-nums;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-
-            .very-small {
-                font-size: 0.7rem;
-                line-height: 1.3;
-            }
+        &.o_slot_palette_sapphire {
+            border-left-color: #2563eb;
+            .o_slot_accent { color: #2563eb; }
         }
-
-        .o_btn_track_att {
-            font-weight: 500;
-            border-radius: 8px;
-            padding: 0.35rem 0.85rem;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background-color: #6366f1;
-                border-color: #6366f1;
-                color: #ffffff;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-            }
+        &.o_slot_palette_emerald {
+            border-left-color: #059669;
+            .o_slot_accent { color: #059669; }
+        }
+        &.o_slot_palette_indigo {
+            border-left-color: #6366f1;
+            .o_slot_accent { color: #6366f1; }
+        }
+        &.o_slot_palette_amber {
+            border-left-color: #d97706;
+            .o_slot_accent { color: #d97706; }
+        }
+        &.o_slot_palette_teal {
+            border-left-color: #0d9488;
+            .o_slot_accent { color: #0d9488; }
+        }
+        &.o_slot_palette_rose {
+            border-left-color: #e11d48;
+            .o_slot_accent { color: #e11d48; }
         }
     }
 
-    // Typography helpers
+    // Staff Preview Mode Banner
+    .o_teacher_preview_banner {
+        background: #e0f2fe;
+        border-bottom: 2px solid #38bdf8 !important;
+        color: #0369a1;
+
+        select {
+            background-color: #ffffff;
+            border-color: #bae6fd;
+            color: #0369a1;
+            font-weight: 500;
+        }
+    }
+
+    // Notice item in widget card
+    .o_notice_item {
+        transition: background-color 0.15s ease, transform 0.15s ease;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #f1f5f9 !important;
+            transform: translateX(3px);
+        }
+    }
+
+    // Notice modal content reader
+    .o_notice_modal_content {
+        line-height: 1.6;
+        color: #334155;
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
     .very-small {
         font-size: 0.75rem;
     }
 
-    // Empty states
-    .o_dashboard_empty {
-        padding: 2rem 1.5rem;
-
-        .o_empty_icon {
-            width: 52px;
-            height: 52px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background-color: #f1f5f9;
-            color: #94a3b8;
-        }
-
-        .o_empty_title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .o_empty_desc {
-            font-size: 0.85rem;
-            color: #64748b;
-            max-width: 320px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-    }
-
-    // Chart container
-    .o_chart_wrapper {
-        position: relative;
-        width: 100%;
-    }
-
-    // Subtly tinted bootstrap utility fallbacks
-    .bg-primary-subtle {
-        background-color: rgba(99, 102, 241, 0.12) !important;
-        color: #4f46e5 !important;
-    }
-
-    .bg-info-subtle {
-        background-color: rgba(14, 165, 233, 0.12) !important;
-        color: #0284c7 !important;
-    }
-
-    .bg-warning-subtle {
-        background-color: rgba(245, 158, 11, 0.12) !important;
-        color: #d97706 !important;
-    }
-
-    .bg-success-subtle {
-        background-color: rgba(16, 185, 129, 0.12) !important;
-        color: #059669 !important;
-    }
-
-    .border-primary-subtle {
-        border-color: rgba(99, 102, 241, 0.25) !important;
-    }
-
-    // Tables
-    .table {
-        thead th {
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            color: #64748b;
-            border-bottom: 1px solid #e2e8f0;
-            padding-top: 0.65rem;
-            padding-bottom: 0.65rem;
-        }
-
-        tbody td {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-    }
-
-    // List group flush adjustments
-    .list-group-flush {
-        .list-group-item:first-child {
-            border-top: none;
-        }
-
-        .list-group-item:last-child {
-            border-bottom: none;
-        }
+    .cursor-pointer {
+        cursor: pointer;
     }
 }

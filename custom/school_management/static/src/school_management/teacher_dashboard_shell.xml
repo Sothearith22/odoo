@@ -1,499 +1,1032 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="school_management.TeacherDashboardShell">
-        <div class="o_action o_view_controller teacher_dashboard_shell">
-            <!-- Loading State -->
-            <div t-if="state.loading" class="o_view_nocontent d-flex align-items-center justify-content-center py-5">
-                <div class="text-center">
-                    <div class="spinner-border text-primary mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
-                        <span class="visually-hidden">Loading...</span>
+        <main class="o_teacher_dashboard h-100 overflow-auto bg-view">
+            <!-- Staff Preview Mode Banner -->
+            <t t-if="state.isPreviewMode and state.teacher">
+                <div class="alert alert-info border-0 rounded-0 mb-0 d-flex flex-wrap align-items-center justify-content-between px-4 py-2 o_teacher_preview_banner">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-eye text-primary" aria-hidden="true"/>
+                        <strong class="text-dark">Staff Preview Mode:</strong>
+                        <span class="text-muted small">Viewing Faculty Academic Portal for</span>
+                        <span class="badge bg-primary text-white" t-esc="state.teacher.name + ' (' + (state.teacher.teacher_id || 'Staff ID Pending') + ')'"/>
                     </div>
-                    <p class="text-muted fw-medium">Loading your teacher dashboard...</p>
+                    <div t-if="state.previewTeachers.length" class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                        <label class="small text-muted mb-0 fw-semibold">Switch Faculty:</label>
+                        <select class="form-select form-select-sm py-1" style="width: auto;" t-on-change="(ev) => this.onSelectPreviewTeacher(ev)">
+                            <t t-foreach="state.previewTeachers" t-as="pt" t-key="pt.id">
+                                <option t-att-value="pt.id" t-att-selected="pt.id === state.teacher.id">
+                                    <t t-esc="pt.name"/> (<t t-esc="pt.teacher_id || 'ID Pending'"/>)
+                                </option>
+                            </t>
+                        </select>
+                    </div>
                 </div>
-            </div>
+            </t>
+
+            <!-- Loading State -->
+            <t t-if="state.loading">
+                <div class="o_teacher_dashboard_empty text-muted">
+                    <i class="fa fa-spinner fa-spin fa-2x mb-3 text-primary" aria-hidden="true"/>
+                    <div>Loading faculty dashboard &amp; academic portal...</div>
+                </div>
+            </t>
 
             <!-- Error State -->
-            <div t-elif="state.error" class="o_view_nocontent d-flex align-items-center justify-content-center py-5">
-                <div class="text-center p-4 rounded-3 border bg-white shadow-sm" style="max-width: 480px;">
-                    <div class="o_empty_icon text-danger mb-3">
-                        <i class="fa fa-exclamation-triangle fa-3x" aria-hidden="true"/>
-                    </div>
-                    <h5 class="text-danger fw-bold mb-2">Error Loading Dashboard</h5>
-                    <p class="text-muted mb-3" t-esc="state.error"/>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" t-on-click="loadData">
-                        <i class="fa fa-refresh me-1" aria-hidden="true"/> Retry
-                    </button>
+            <t t-elif="state.error">
+                <div class="o_teacher_dashboard_empty text-danger">
+                    <i class="fa fa-exclamation-triangle fa-2x mb-3" aria-hidden="true"/>
+                    <t t-esc="state.error"/>
                 </div>
-            </div>
+            </t>
 
             <!-- Unlinked Account State -->
-            <div t-elif="!state.teacher" class="o_view_nocontent d-flex align-items-center justify-content-center py-5">
-                <div class="text-center p-4 rounded-3 border bg-white shadow-sm" style="max-width: 480px;">
-                    <div class="o_empty_icon text-warning mb-3">
-                        <i class="fa fa-user-circle-o fa-3x" aria-hidden="true"/>
-                    </div>
-                    <h5 class="fw-bold mb-2">No Teacher Profile Found</h5>
-                    <p class="text-muted mb-0">Your user account is not linked to an active academic staff member profile. Please contact your system administrator.</p>
+            <t t-elif="!state.teacher">
+                <div class="o_teacher_dashboard_empty">
+                    <i class="fa fa-user-circle-o fa-2x mb-3 text-muted" aria-hidden="true"/>
+                    <h2 class="h4">Faculty profile not linked</h2>
+                    <p class="text-muted mb-0">Ask a university administrator to link your user account to an academic staff record.</p>
                 </div>
-            </div>
+            </t>
 
             <!-- Main Dashboard Content -->
-            <div t-else="" class="container-fluid px-4 py-4">
-                <!-- Top Welcome & Actions Header -->
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                    <div>
-                        <h2 class="h3 fw-bold mb-1 text-dark">Teacher &amp; Advisor Dashboard</h2>
-                        <p class="text-muted mb-0 small">
-                            Welcome, <strong class="text-dark" t-esc="state.teacher.name"/>
-                            <t t-if="state.teacher.department_id"> · <span t-esc="state.teacher.department_id[1]"/></t>
-                        </p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm shadow-sm" t-on-click="openAdvisees">
-                            <i class="fa fa-graduation-cap me-1" aria-hidden="true"/> My Advisees (<t t-esc="state.stats.adviseeCount"/>)
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" t-on-click="openMyProfile">
-                            <i class="fa fa-user me-1" aria-hidden="true"/> My Profile
-                        </button>
-                        <button type="button" class="btn btn-primary btn-sm shadow-sm" t-on-click="openAttendanceSheet">
-                            <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Student Attendance Management
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 1. Responsive 4-Column KPI Section -->
-                <div class="row g-3 mb-4">
-                    <!-- KPI 1: Scheduled Classes -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openTimetable">
-                            <div class="card-body p-3 d-flex align-items-center gap-3">
-                                <div class="o_kpi_icon_wrapper rounded-3 d-flex align-items-center justify-content-center bg-primary-subtle text-primary">
-                                    <i class="fa fa-calendar-check-o fa-lg" aria-hidden="true"/>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Scheduled Classes</span>
-                                    <div class="o_kpi_val h4 fw-bold mb-0 text-dark" t-esc="state.stats.totalClasses"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KPI 2: Active Advisees -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openAdvisees">
-                            <div class="card-body p-3 d-flex align-items-center gap-3">
-                                <div class="o_kpi_icon_wrapper rounded-3 d-flex align-items-center justify-content-center bg-info-subtle text-info">
-                                    <i class="fa fa-graduation-cap fa-lg" aria-hidden="true"/>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Assigned Advisees</span>
-                                        <span t-if="state.stats.highRiskAdvisees > 0" class="badge rounded-pill bg-danger text-white px-2 py-1 small"><t t-esc="state.stats.highRiskAdvisees"/> At Risk</span>
+            <t t-else="">
+                <!-- Header Banner -->
+                <header class="o_teacher_dashboard_header">
+                    <div class="container-fluid px-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="o_teacher_header_avatar_wrap flex-shrink-0">
+                                <t t-if="state.teacher.image_1920">
+                                    <img t-att-src="'/web/image/university.teacher/' + state.teacher.id + '/image_1920'"
+                                         class="o_teacher_header_avatar rounded-circle"
+                                         alt="Faculty photo"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_teacher_header_avatar_placeholder rounded-circle d-flex align-items-center justify-content-center">
+                                        <span class="o_teacher_header_avatar_letter" t-esc="(state.teacher.name || '?').slice(0, 1).toUpperCase()"/>
                                     </div>
-                                    <div class="o_kpi_val h4 fw-bold mb-0 text-dark" t-esc="state.stats.adviseeCount"/>
+                                </t>
+                            </div>
+                            <div>
+                                <div class="text-uppercase small fw-bold text-primary tracking-wide">University Faculty Portal</div>
+                                <h1 class="h3 mb-0 fw-bold text-dark">Welcome, <t t-esc="state.teacher.name"/></h1>
+                                <div class="text-muted small mt-1">
+                                    <span class="badge bg-light text-dark border me-2" t-esc="state.teacher.teacher_id || 'Faculty Staff'"/>
+                                    <span t-if="state.teacher.department_id" class="badge bg-primary-subtle text-primary me-2" t-esc="state.teacher.department_id[1]"/>
+                                    <span t-if="state.teacher.position" class="badge bg-secondary-subtle text-secondary me-2 text-capitalize" t-esc="this.formatPosition(state.teacher.position)"/>
+                                    <span t-if="state.teacher.faculty_id" class="text-muted">• <t t-esc="state.teacher.faculty_id[1]"/></span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- KPI 3: Pending Reviews -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openSubmissions">
-                            <div class="card-body p-3 d-flex align-items-center gap-3">
-                                <div class="o_kpi_icon_wrapper rounded-3 d-flex align-items-center justify-content-center bg-warning-subtle text-warning">
-                                    <i class="fa fa-clock-o fa-lg" aria-hidden="true"/>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Pending Reviews</span>
-                                        <span t-if="state.stats.pendingReviews > 0" class="badge rounded-pill bg-warning text-dark px-2 py-1 small">Action</span>
-                                    </div>
-                                    <div class="o_kpi_val h4 fw-bold mb-0" t-att-class="state.stats.pendingReviews > 0 ? 'text-warning' : 'text-dark'" t-esc="state.stats.pendingReviews"/>
-                                </div>
-                            </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    t-on-click="() => this.openMyProfile()">
+                                <i class="fa fa-user me-1" aria-hidden="true"/>View My Profile
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                                    t-on-click="() => this.openAttendanceSheet()">
+                                <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/>Student Attendance Sheet
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    t-on-click="() => this.openMyTimetableCalendar()">
+                                <i class="fa fa-calendar me-1" aria-hidden="true"/>Full Timetable
+                            </button>
                         </div>
                     </div>
+                </header>
 
-                    <!-- KPI 4: Attendance Rate -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openAttendanceRecords">
-                            <div class="card-body p-3 d-flex align-items-center gap-3">
-                                <div class="o_kpi_icon_wrapper rounded-3 d-flex align-items-center justify-content-center bg-success-subtle text-success">
-                                    <i class="fa fa-check-circle-o fa-lg" aria-hidden="true"/>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Attendance Rate</span>
-                                    <div class="o_kpi_val h4 fw-bold mb-0 text-dark">
-                                        <t t-if="state.hasAttendanceData">
-                                            <span t-esc="state.attendanceRate"/>%
+                <div class="container-fluid px-4 py-4">
+                    <!-- Top Overview Section: Teacher Profile & Key Metrics -->
+                    <div class="row g-4 mb-4">
+                        <!-- Left: Compact Profile Card -->
+                        <div class="col-12 col-xl-4">
+                            <section class="card border-0 shadow-sm h-100 o_teacher_profile_card">
+                                <div class="card-body py-4 px-4 text-center">
+                                    <div class="o_teacher_avatar_wrap mx-auto mb-3">
+                                        <t t-if="state.teacher.image_1920">
+                                            <img t-att-src="'/web/image/university.teacher/' + state.teacher.id + '/image_1920'"
+                                                 class="o_teacher_avatar rounded-circle shadow-sm"
+                                                 alt="Faculty photo"/>
                                         </t>
                                         <t t-else="">
-                                            <span class="text-muted fw-normal fs-6">No data</span>
+                                            <div class="o_teacher_avatar_placeholder rounded-circle d-flex align-items-center justify-content-center">
+                                                <span class="o_teacher_avatar_letter" t-esc="(state.teacher.name || '?').slice(0, 1).toUpperCase()"/>
+                                            </div>
                                         </t>
                                     </div>
+                                    <h2 class="h5 mb-1 fw-bold text-dark" t-esc="state.teacher.name"/>
+                                    <div class="text-muted small mb-2" t-esc="state.teacher.teacher_id || 'Academic Staff'"/>
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-primary-subtle text-primary px-3 py-1 fw-semibold text-capitalize"
+                                              t-esc="this.formatPosition(state.teacher.position)"/>
+                                    </div>
+
+                                    <hr class="my-3"/>
+
+                                    <div class="text-start small">
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-building-o me-2 text-primary"/>Department</span>
+                                            <span class="fw-semibold text-truncate" style="max-width: 170px;" t-esc="state.teacher.department_id ? state.teacher.department_id[1] : 'General'"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-envelope-o me-2 text-primary"/>Email</span>
+                                            <span class="text-truncate" style="max-width: 170px;" t-esc="state.teacher.email || 'None'"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-phone me-2 text-primary"/>Phone</span>
+                                            <span t-esc="state.teacher.phone || 'None'"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom" t-if="state.teacher.specialization">
+                                            <span class="text-muted"><i class="fa fa-certificate me-2 text-primary"/>Specialty</span>
+                                            <span class="text-truncate" style="max-width: 170px;" t-esc="state.teacher.specialization"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1">
+                                            <span class="text-muted"><i class="fa fa-graduation-cap me-2 text-primary"/>Degrees</span>
+                                            <span class="text-truncate" style="max-width: 170px;" t-esc="state.teacher.qualification || 'Doctorate / Master'"/>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                                <div class="card-footer border-0 p-3 pt-0">
+                                    <button type="button" class="btn btn-outline-primary w-100 btn-sm"
+                                            t-on-click="() => this.openMyProfile()">
+                                        <i class="fa fa-id-card-o me-2" aria-hidden="true"/>
+                                        Manage Faculty Profile
+                                    </button>
+                                </div>
+                            </section>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 2. Balanced 2-Column Layout (8:4 / 7:5 ratio) -->
-                <div class="row g-4">
-                    <!-- Left Column (Primary Daily Work: 8 cols) -->
-                    <div class="col-12 col-lg-7 col-xl-8">
-                        <div class="d-flex flex-column gap-4">
-                            <!-- Widget 1: Classes & Schedule with Attendance Triggers -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-calendar text-primary" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Classes &amp; Schedule</h5>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openTimetable">
-                                        Full Timetable <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <t t-if="state.schedule.length">
-                                        <div class="list-group list-group-flush o_schedule_list">
-                                            <div t-foreach="state.schedule" t-as="slot" t-key="slot.id"
-                                                 class="list-group-item p-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3 o_slot_item">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="o_time_badge px-3 py-2 rounded-3 text-center">
-                                                        <div class="fw-bold text-dark small" t-esc="formatTime(slot.start_time)"/>
-                                                        <div class="text-muted very-small" t-esc="formatTime(slot.end_time)"/>
-                                                        <div t-if="slot.start_time" class="text-muted very-small mt-1" t-esc="formatDate(slot.start_time)"/>
-                                                    </div>
-                                                    <div>
-                                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                                                            <strong class="text-dark fs-6" t-esc="slot.subject_id ? slot.subject_id[1] : 'Subject'"/>
-                                                            <span t-if="slot.section_id" class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
-                                                                <i class="fa fa-users me-1" aria-hidden="true"/>
-                                                                <span t-esc="'Section ' + slot.section_id[1]"/>
-                                                            </span>
-                                                        </div>
-                                                        <div class="text-muted small d-flex flex-wrap align-items-center gap-2">
-                                                            <span t-if="slot.classroom_id" class="badge bg-light text-secondary border px-2 py-1">
-                                                                <i class="fa fa-map-marker text-danger me-1" aria-hidden="true"/>
-                                                                <span t-esc="'Room ' + slot.classroom_id[1]"/>
-                                                            </span>
-                                                            <span t-elif="slot.location" class="badge bg-light text-secondary border px-2 py-1">
-                                                                <i class="fa fa-map-marker text-danger me-1" aria-hidden="true"/>
-                                                                <span t-esc="slot.location"/>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <button type="button" class="btn btn-sm btn-outline-primary shadow-sm o_btn_track_att"
-                                                            title="Track attendance for this section today"
-                                                            t-on-click="() => this.trackAttendanceForSlot(slot)">
-                                                        <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Track Attendance
-                                                    </button>
-                                                </div>
+                        <!-- Right: KPI Stats + Department Track + Attendance Chart + Bulletins -->
+                        <div class="col-12 col-xl-8">
+                            <!-- Top KPI Stat Cards -->
+                            <div class="row g-3 mb-3">
+                                <!-- KPI 1: Scheduled Classes -->
+                                <div class="col-6 col-md-3">
+                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('schedule')"
+                                         title="Click to view weekly schedule">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Teaching</span>
+                                            <div class="o_stat_icon_box bg-primary-subtle text-primary">
+                                                <i class="fa fa-calendar-check-o" aria-hidden="true"/>
                                             </div>
                                         </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <p class="text-muted small mb-0">No classes scheduled for today.</p>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-dark" t-esc="state.stats.totalClasses"/>
+                                            <div class="very-small text-muted">Class Sessions</div>
                                         </div>
-                                    </t>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 2: Assigned Advisees -->
+                                <div class="col-6 col-md-3">
+                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('advising')"
+                                         title="Click to view assigned advisees">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Advisees</span>
+                                            <div class="o_stat_icon_box bg-info-subtle text-info">
+                                                <i class="fa fa-graduation-cap" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-dark" t-esc="state.stats.adviseeCount"/>
+                                            <div class="very-small text-muted">
+                                                <span t-if="state.stats.highRiskAdvisees > 0" class="badge bg-danger text-white">
+                                                    <t t-esc="state.stats.highRiskAdvisees"/> At Risk
+                                                </span>
+                                                <span t-else="" class="text-success fw-semibold">Good Standing</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 3: Pending Reviews -->
+                                <div class="col-6 col-md-3">
+                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('assignments')"
+                                         title="Click to view pending reviews">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Grading</span>
+                                            <div class="o_stat_icon_box bg-warning-subtle text-warning">
+                                                <i class="fa fa-clock-o" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold" t-att-class="state.stats.pendingReviews > 0 ? 'text-warning' : 'text-dark'"
+                                                 t-esc="state.stats.pendingReviews"/>
+                                            <div class="very-small text-muted">
+                                                <span t-if="state.stats.pendingReviews > 0" class="badge bg-warning-subtle text-warning">Action Req</span>
+                                                <span t-else="" class="text-muted">All Reviewed</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- KPI 4: Attendance Rate -->
+                                <div class="col-6 col-md-3">
+                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('attendance')"
+                                         title="Click to manage class attendance">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Attendance</span>
+                                            <div class="o_stat_icon_box bg-success-subtle text-success">
+                                                <i class="fa fa-check-circle" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-success">
+                                                <t t-if="state.hasAttendanceData">
+                                                    <span t-esc="state.attendanceRate + '%'"/>
+                                                </t>
+                                                <t t-else="">100%</t>
+                                            </div>
+                                            <div class="very-small text-muted">Present Rate</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Widget 2: Assigned Advisees & Academic Risk -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-graduation-cap text-primary" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Assigned Advisees &amp; Academic Progress</h5>
-                                        <span t-if="state.stats.highRiskAdvisees > 0" class="badge rounded-pill bg-danger text-white ms-1" t-esc="state.stats.highRiskAdvisees + ' High Risk'"/>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openAdvisees">
-                                        View All Advisees <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <t t-if="state.advisees.length">
-                                        <div class="table-responsive mb-0">
-                                            <table class="table table-hover align-middle mb-0">
-                                                <thead class="table-light small text-uppercase text-muted">
-                                                    <tr>
-                                                        <th class="ps-4">Advisee</th>
-                                                        <th>ID</th>
-                                                        <th>GPA</th>
-                                                        <th>Attendance</th>
-                                                        <th>Standing</th>
-                                                        <th class="text-end pe-4">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="small">
-                                                    <tr t-foreach="state.advisees" t-as="adv" t-key="adv.id">
-                                                        <td class="ps-4 fw-semibold text-dark" t-esc="adv.name"/>
-                                                        <td class="text-muted" t-esc="adv.student_id || '—'"/>
-                                                        <td class="fw-bold text-primary" t-esc="adv.gpa || 0.0"/>
-                                                        <td class="text-muted"><t t-esc="adv.attendance_rate || 0.0"/>%</td>
-                                                        <td>
-                                                            <span t-if="adv.risk_level === 'low'" class="badge text-bg-success">On Track</span>
-                                                            <span t-elif="adv.risk_level === 'medium'" class="badge text-bg-warning">Watch</span>
-                                                            <span t-elif="adv.risk_level === 'high'" class="badge text-bg-danger">High Risk</span>
-                                                            <span t-else="" class="badge text-bg-secondary">Good</span>
-                                                        </td>
-                                                        <td class="text-end pe-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2"
-                                                                    t-on-click="() => this.openStudentProfile(adv.id)">
-                                                                Profile <i class="fa fa-external-link ms-1" aria-hidden="true"/>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                            <!-- 3 Equal-Height Middle Cards: Academic Track, Attendance Doughnut, Bulletins -->
+                            <div class="row g-3">
+                                <!-- Academic Department Track -->
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <section class="card border-0 shadow-sm h-100 o_teacher_stat_card">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                                            <h3 class="h6 mb-0 fw-bold text-dark">
+                                                <i class="fa fa-university me-2 text-primary" aria-hidden="true"/>
+                                                Faculty Track
+                                            </h3>
                                         </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
-                                                <i class="fa fa-user-o fa-2x" aria-hidden="true"/>
+                                        <div class="small">
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Faculty</span>
+                                                <span class="fw-semibold text-truncate" style="max-width: 140px;"
+                                                      t-esc="state.teacher.faculty_id ? state.teacher.faculty_id[1] : 'General'"/>
                                             </div>
-                                            <h6 class="fw-bold text-dark mb-1">No Advisees Assigned</h6>
-                                            <p class="text-muted small mb-0">You currently have no students assigned for academic advising.</p>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Department</span>
+                                                <span class="text-truncate" style="max-width: 140px;"
+                                                      t-esc="state.teacher.department_id ? state.teacher.department_id[1] : 'General'"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Class Sections</span>
+                                                <span class="fw-semibold text-primary" t-esc="state.enrolledSections.length"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1">
+                                                <span class="text-muted">Advisee Count</span>
+                                                <span class="fw-semibold text-dark" t-esc="state.stats.adviseeCount"/>
+                                            </div>
                                         </div>
-                                    </t>
+                                    </section>
                                 </div>
-                            </div>
 
-                            <!-- Widget 3: Pending Reviews & Grading -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-check-square-o text-warning" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Pending Reviews &amp; Grading</h5>
-                                        <span t-if="state.pendingSubmissions.length" class="badge bg-warning text-dark rounded-pill ms-1" t-esc="state.pendingSubmissions.length"/>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openSubmissions">
-                                        View All <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <t t-if="state.pendingSubmissions.length">
-                                        <div class="table-responsive mb-0">
-                                            <table class="table table-hover align-middle mb-0">
-                                                <thead class="table-light small text-uppercase text-muted">
-                                                    <tr>
-                                                        <th class="ps-4">Student</th>
-                                                        <th>Assignment</th>
-                                                        <th>Submitted</th>
-                                                        <th class="text-end pe-4">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="small">
-                                                    <tr t-foreach="state.pendingSubmissions" t-as="sub" t-key="sub.id">
-                                                        <td class="ps-4 fw-semibold text-dark" t-esc="sub.student_id ? sub.student_id[1] : 'Student'"/>
-                                                        <td class="text-muted" t-esc="sub.assignment_id ? sub.assignment_id[1] : 'Assignment'"/>
-                                                        <td class="text-muted" t-esc="formatDate(sub.create_date)"/>
-                                                        <td class="text-end pe-4">
-                                                            <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2"
-                                                                    t-on-click="() => this.openSubmission(sub.id)">
-                                                                Grade <i class="fa fa-pencil ms-1" aria-hidden="true"/>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-success-subtle text-success mb-2" style="width: 48px; height: 48px;">
-                                                <i class="fa fa-check-circle-o fa-2x" aria-hidden="true"/>
-                                            </div>
-                                            <h6 class="fw-bold text-dark mb-1">All Caught Up!</h6>
-                                            <p class="text-muted small mb-0">No student submissions or tasks are currently waiting for your review.</p>
-                                        </div>
-                                    </t>
-                                </div>
-                            </div>
-
-                            <!-- Widget 4: Lesson Plans -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-file-text-o text-info" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Lesson Plans</h5>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary py-1" t-on-click="createLessonPlan">
-                                            <i class="fa fa-plus me-1" aria-hidden="true"/> New Plan
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openLessonPlans">
-                                            View All <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body p-0">
-                                    <t t-if="state.lessonPlans.length">
-                                        <div class="table-responsive mb-0">
-                                            <table class="table table-hover align-middle mb-0">
-                                                <thead class="table-light small text-uppercase text-muted">
-                                                    <tr>
-                                                        <th class="ps-4">Title</th>
-                                                        <th>Subject</th>
-                                                        <th class="text-end pe-4">Created</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="small">
-                                                    <tr t-foreach="state.lessonPlans" t-as="plan" t-key="plan.id">
-                                                        <td class="ps-4 fw-semibold text-dark" t-esc="plan.name"/>
-                                                        <td>
-                                                            <span class="badge bg-light text-secondary border px-2 py-1" t-esc="plan.subject_id ? plan.subject_id[1] : 'Subject'"/>
-                                                        </td>
-                                                        <td class="text-end pe-4 text-muted" t-esc="formatDate(plan.create_date)"/>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
-                                                <i class="fa fa-file-text-o fa-2x" aria-hidden="true"/>
-                                            </div>
-                                            <h6 class="fw-bold text-dark mb-1">No Lesson Plans Yet</h6>
-                                            <p class="text-muted small mb-3">Organize your course syllabus and track curriculum coverage.</p>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="createLessonPlan">
-                                                <i class="fa fa-plus me-1" aria-hidden="true"/> Create Lesson Plan
+                                <!-- Attendance Overview Chart Card -->
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <section class="card border-0 shadow-sm h-100 o_teacher_stat_card">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2">
+                                            <h3 class="h6 mb-0 fw-bold text-dark">
+                                                <i class="fa fa-pie-chart me-2 text-success" aria-hidden="true"/>
+                                                Attendance
+                                            </h3>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none"
+                                                    t-on-click="() => this.setActiveTab('attendance')">
+                                                Sheet &gt;
                                             </button>
                                         </div>
-                                    </t>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column (Analytics, Announcements, Quick Actions: 4 cols) -->
-                    <div class="col-12 col-lg-5 col-xl-4">
-                        <div class="d-flex flex-column gap-4">
-                            <!-- Widget 5: Students Attendance Analytics Card -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-pie-chart text-success" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Attendance Overview</h5>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openAttendanceRecords">
-                                        Records <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                                    </button>
-                                </div>
-                                <div class="card-body p-3">
-                                    <t t-if="state.hasAttendanceData">
-                                        <div class="o_chart_wrapper position-relative" style="height: 200px;">
-                                            <canvas t-ref="attendanceChart"></canvas>
-                                        </div>
-                                        <div class="d-flex justify-content-around text-center pt-2 border-top mt-2 small">
-                                            <div>
-                                                <div class="text-success fw-bold" t-esc="state.presentCount"/>
-                                                <div class="text-muted very-small">Present</div>
+                                        <t t-if="state.hasAttendanceData">
+                                            <div class="o_teacher_attendance_chart position-relative">
+                                                <canvas t-ref="attendanceChart"></canvas>
                                             </div>
-                                            <div>
-                                                <div class="text-warning fw-bold" t-esc="state.lateCount"/>
-                                                <div class="text-muted very-small">Late</div>
-                                            </div>
-                                            <div>
-                                                <div class="text-danger fw-bold" t-esc="state.absentCount"/>
-                                                <div class="text-muted very-small">Absent</div>
-                                            </div>
-                                        </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
-                                                <i class="fa fa-pie-chart fa-2x" aria-hidden="true"/>
-                                            </div>
-                                            <h6 class="fw-bold text-dark mb-1">No Attendance Logged</h6>
-                                            <p class="text-muted small mb-3">No student attendance has been recorded for your sections yet.</p>
-                                        </div>
-                                    </t>
-                                </div>
-                            </div>
-
-                            <!-- Widget 6: Quick Shortcuts -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4">
-                                    <h5 class="h6 mb-0 fw-bold text-dark">Advising &amp; Quick Actions</h5>
-                                </div>
-                                <div class="card-body p-3">
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAdvisees">
-                                            <span><i class="fa fa-graduation-cap text-primary me-2" aria-hidden="true"/> My Advisees</span>
-                                            <span class="badge bg-primary-subtle text-primary" t-esc="state.stats.adviseeCount"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAdvisingNotes">
-                                            <span><i class="fa fa-comments text-info me-2" aria-hidden="true"/> Advising Notes</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openFollowups">
-                                            <span><i class="fa fa-check-square-o text-warning me-2" aria-hidden="true"/> Follow-up Actions</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAttendanceSheet">
-                                            <span><i class="fa fa-calendar-check-o text-primary me-2" aria-hidden="true"/> Student Attendance Management</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAssignments">
-                                            <span><i class="fa fa-tasks text-info me-2" aria-hidden="true"/> Manage Assignments</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="createLessonPlan">
-                                            <span><i class="fa fa-plus-circle text-warning me-2" aria-hidden="true"/> Create New Lesson Plan</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Widget 7: Notice Board & Announcements -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="fa fa-bell-o text-primary" aria-hidden="true"/>
-                                        <h5 class="h6 mb-0 fw-bold text-dark">Notice Board</h5>
-                                    </div>
-                                    <span class="badge bg-light text-muted border small">Bulletins</span>
-                                </div>
-                                <div class="card-body p-0">
-                                    <t t-if="state.noticeBoard.length">
-                                        <div class="list-group list-group-flush">
-                                            <div t-foreach="state.noticeBoard" t-as="notice" t-key="notice.id"
-                                                 class="list-group-item p-3 px-4">
-                                                <div class="d-flex align-items-start justify-content-between gap-2">
-                                                    <span class="fw-semibold text-dark small" t-esc="notice.name"/>
-                                                    <span class="badge bg-light text-muted border very-small text-nowrap" t-esc="notice.date"/>
+                                            <div class="d-flex justify-content-around text-center pt-2 border-top mt-1 very-small">
+                                                <div>
+                                                    <span class="text-success fw-bold" t-esc="state.presentCount"/>
+                                                    <div class="text-muted">Present</div>
+                                                </div>
+                                                <div>
+                                                    <span class="text-warning fw-bold" t-esc="state.lateCount"/>
+                                                    <div class="text-muted">Late</div>
+                                                </div>
+                                                <div>
+                                                    <span class="text-danger fw-bold" t-esc="state.absentCount"/>
+                                                    <div class="text-muted">Absent</div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-4 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
-                                                <i class="fa fa-bell-o fa-2x" aria-hidden="true"/>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="text-center py-3 text-muted small my-auto">
+                                                <i class="fa fa-calendar-check-o fa-2x mb-1 text-muted"/>
+                                                <div>No logs recorded yet</div>
                                             </div>
-                                            <h6 class="fw-bold text-dark mb-1">No Notices Published</h6>
-                                            <p class="text-muted small mb-0">University announcements and faculty circulars will appear here.</p>
+                                        </t>
+                                    </section>
+                                </div>
+
+                                <!-- Campus Notices & Announcements -->
+                                <div class="col-12 col-md-12 col-lg-4">
+                                    <section class="card border-0 shadow-sm h-100 o_teacher_stat_card">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                                            <h3 class="h6 mb-0 fw-bold text-dark">
+                                                <i class="fa fa-bullhorn me-2 text-primary" aria-hidden="true"/>
+                                                Campus Notices
+                                            </h3>
+                                            <button t-if="state.noticeBoard.length" type="button" class="btn btn-link btn-sm p-0 text-decoration-none"
+                                                    t-on-click="() => this.openNoticeBoardAction()">
+                                                View All &gt;
+                                            </button>
                                         </div>
-                                    </t>
+                                        <t t-if="state.noticeBoard.length">
+                                            <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 160px;">
+                                                <div t-foreach="state.noticeBoard" t-as="notice" t-key="notice.id"
+                                                     class="p-2 rounded bg-light border-start border-3 border-primary o_notice_item cursor-pointer"
+                                                     t-on-click="() => this.openNoticeModal(notice)"
+                                                     title="Click to read announcement">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <span class="very-small text-muted"><i class="fa fa-clock-o me-1"/> <t t-esc="notice.dateFormatted"/></span>
+                                                        <span t-if="notice.isNew" class="badge bg-danger text-white very-small">NEW</span>
+                                                    </div>
+                                                    <div class="fw-semibold text-dark small text-truncate mt-1" t-esc="notice.name"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="p-3 text-center bg-light rounded text-muted small my-auto">
+                                                <i class="fa fa-info-circle me-1"/> No active campus notices posted.
+                                            </div>
+                                        </t>
+                                    </section>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Academic Hub: Tabbed Sections -->
+                    <div class="card border-0 shadow-sm mb-4 o_teacher_hub_card">
+                        <div class="card-header bg-white border-bottom p-0">
+                            <ul class="nav nav-tabs card-header-tabs mx-3 mt-2 border-bottom-0">
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'schedule' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('schedule')">
+                                        <i class="fa fa-calendar me-2" aria-hidden="true"/>Classes &amp; Timetable
+                                        <span class="badge rounded-pill bg-primary ms-1" t-esc="state.counts.schedule"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'attendance' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('attendance')">
+                                        <i class="fa fa-calendar-check-o me-2" aria-hidden="true"/>Attendance Management
+                                        <span class="badge rounded-pill bg-success ms-1" t-esc="state.counts.attendance"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'advising' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('advising')">
+                                        <i class="fa fa-graduation-cap me-2" aria-hidden="true"/>Academic Advisees
+                                        <span class="badge rounded-pill bg-info ms-1" t-esc="state.counts.advising"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'assignments' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('assignments')">
+                                        <i class="fa fa-tasks me-2" aria-hidden="true"/>Assignments &amp; Grading
+                                        <span class="badge rounded-pill bg-warning text-dark ms-1" t-esc="state.counts.assignments"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'lesson_plans' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('lesson_plans')">
+                                        <i class="fa fa-file-text-o me-2" aria-hidden="true"/>Lesson Plans
+                                        <span class="badge rounded-pill bg-secondary ms-1" t-esc="state.counts.lessonPlans"/>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- TAB 1: CLASSES & TIMETABLE SCHEDULE -->
+                            <div t-if="state.activeTab === 'schedule'">
+                                <!-- Schedule Header Controls -->
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-calendar me-2 text-primary"/>Weekly Teaching Schedule &amp; Timetable
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Review scheduled course sessions, room assignments, and launch attendance tracking with one click.
+                                        </p>
+                                    </div>
+
+                                    <!-- Controls: Navigation & View Toggle -->
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <!-- Week Navigator -->
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" title="Previous Week"
+                                                    t-on-click="() => this.prevWeek()">
+                                                <i class="fa fa-chevron-left"/>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary px-3"
+                                                    t-on-click="() => this.resetWeekToToday()">
+                                                Today / This Week
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" title="Next Week"
+                                                    t-on-click="() => this.nextWeek()">
+                                                <i class="fa fa-chevron-right"/>
+                                            </button>
+                                        </div>
+
+                                        <!-- View Mode Switcher -->
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button"
+                                                    t-att-class="'btn ' + (state.scheduleViewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary')"
+                                                    t-on-click="() => this.setScheduleViewMode('calendar')">
+                                                <i class="fa fa-calendar-check-o me-1"/>Calendar Grid
+                                            </button>
+                                            <button type="button"
+                                                    t-att-class="'btn ' + (state.scheduleViewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary')"
+                                                    t-on-click="() => this.setScheduleViewMode('list')">
+                                                <i class="fa fa-list me-1"/>Agenda List
+                                            </button>
+                                        </div>
+
+                                        <!-- Full Odoo Calendar Action -->
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.openMyTimetableCalendar()">
+                                            <i class="fa fa-external-link me-1"/>Full Calendar View
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Current Week Range Sub-Banner -->
+                                <div class="d-flex align-items-center justify-content-between p-2 px-3 mb-3 bg-light rounded border">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa fa-clock-o text-primary"/>
+                                        <span class="fw-semibold text-dark small" t-esc="this.weekRangeLabel"/>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary small">
+                                        <t t-esc="this.currentWeekTotalSlots"/> Sessions This Week
+                                    </span>
+                                </div>
+
+                                <!-- MODE 1: WEEKLY CALENDAR GRID -->
+                                <t t-if="state.scheduleViewMode === 'calendar'">
+                                    <div class="o_schedule_calendar_grid">
+                                        <div t-foreach="this.currentWeekDays" t-as="day" t-key="day.dateStr"
+                                             t-att-class="'o_calendar_day_col ' + (day.isToday ? 'is_today' : '')">
+                                            <!-- Day Column Header -->
+                                            <div class="o_day_col_header">
+                                                <div class="fw-bold fs-6 text-dark">
+                                                    <t t-esc="day.shortName"/>
+                                                    <span t-if="day.isToday" class="badge bg-primary text-white ms-1 very-small">TODAY</span>
+                                                </div>
+                                                <div class="text-muted very-small" t-esc="day.formattedDate"/>
+                                            </div>
+
+                                            <!-- Day Column Sessions -->
+                                            <div class="o_day_col_body">
+                                                <t t-if="day.hasSlots">
+                                                    <div t-foreach="day.slots" t-as="slot" t-key="slot.id"
+                                                         t-att-class="'o_calendar_slot_card shadow-sm ' + slot.color_class">
+                                                        <!-- Time Badge -->
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="badge bg-light text-dark border very-small">
+                                                                <i class="fa fa-clock-o me-1"/> <t t-esc="slot.time_formatted"/>
+                                                            </span>
+                                                            <span t-if="slot.state === 'completed'" class="badge bg-success-subtle text-success very-small">Done</span>
+                                                            <span t-elif="slot.state === 'running'" class="badge bg-warning-subtle text-warning very-small">Active</span>
+                                                            <span t-else="" class="badge bg-info-subtle text-info very-small">Upcoming</span>
+                                                        </div>
+
+                                                        <!-- Subject & Section -->
+                                                        <div class="fw-bold small text-dark mb-1 text-truncate" t-esc="slot.subject_name"/>
+                                                        <div class="very-small text-primary mb-1 fw-semibold text-truncate">
+                                                            <i class="fa fa-users me-1"/> <t t-esc="slot.section_name"/>
+                                                        </div>
+
+                                                        <!-- Room -->
+                                                        <div class="very-small text-muted mb-2 text-truncate">
+                                                            <i class="fa fa-map-marker text-danger me-1"/>
+                                                            <span class="fw-semibold text-dark" t-esc="slot.classroom_name"/>
+                                                        </div>
+
+                                                        <!-- Action: Track Attendance -->
+                                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 py-0 very-small"
+                                                                t-on-click="() => this.trackAttendanceForSlot(slot)">
+                                                            <i class="fa fa-calendar-check-o me-1"/>Take Attendance
+                                                        </button>
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="text-muted very-small text-center py-4 my-auto">
+                                                        No teaching sessions
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+
+                                <!-- MODE 2: AGENDA LIST VIEW -->
+                                <t t-if="state.scheduleViewMode === 'list'">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Date &amp; Day</th>
+                                                    <th>Session Time</th>
+                                                    <th>Course / Subject</th>
+                                                    <th>Section</th>
+                                                    <th>Assigned Classroom</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <t t-if="state.scheduleSlots.length">
+                                                    <tr t-foreach="state.scheduleSlots" t-as="slot" t-key="slot.id">
+                                                        <td class="fw-semibold text-dark">
+                                                            <i class="fa fa-calendar-o me-1 text-primary"/> <t t-esc="slot.date_formatted"/>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <i class="fa fa-clock-o me-1"/> <t t-esc="slot.time_formatted"/>
+                                                            </span>
+                                                        </td>
+                                                        <td class="fw-bold text-primary" t-esc="slot.subject_name"/>
+                                                        <td><span class="badge bg-primary-subtle text-primary" t-esc="slot.section_name"/></td>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <i class="fa fa-map-marker text-danger me-1"/> <t t-esc="slot.classroom_name"/>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span t-if="slot.state === 'completed'" class="badge bg-success-subtle text-success">Completed</span>
+                                                            <span t-elif="slot.state === 'running'" class="badge bg-warning-subtle text-warning">In Session</span>
+                                                            <span t-else="" class="badge bg-info-subtle text-info">Upcoming</span>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm py-1"
+                                                                    t-on-click="() => this.trackAttendanceForSlot(slot)">
+                                                                <i class="fa fa-calendar-check-o me-1"/>Track Attendance
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                                <t t-else="">
+                                                    <tr>
+                                                        <td colspan="7" class="text-center py-4 text-muted">
+                                                            No timetable sessions found for your classes.
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 2: ATTENDANCE MANAGEMENT -->
+                            <div t-if="state.activeTab === 'attendance'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-check-circle me-2 text-success"/>Student Attendance &amp; Classroom Tracking
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Mark daily class attendance sheets, review student compliance against the 80% threshold, and view historical logs.
+                                        </p>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.openAttendanceRecords()">
+                                            <i class="fa fa-list me-1"/>All Attendance Records
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                                t-on-click="() => this.openAttendanceSheet()">
+                                            <i class="fa fa-calendar-check-o me-1"/>Student Attendance Management
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Attendance Summary Metrics -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded border text-center h-100">
+                                            <div class="text-muted small fw-semibold">Class Sections</div>
+                                            <div class="fs-3 fw-bold text-dark mt-1" t-esc="state.enrolledSections.length"/>
+                                            <div class="very-small text-muted">Active Teaching Units</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded border text-center h-100">
+                                            <div class="text-muted small fw-semibold">Total Attendance Logs</div>
+                                            <div class="fs-3 fw-bold text-primary mt-1" t-esc="state.totalAttendance"/>
+                                            <div class="very-small text-muted">Student-Session Records</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded border text-center h-100">
+                                            <div class="text-muted small fw-semibold">Overall Present Rate</div>
+                                            <div class="fs-3 fw-bold text-success mt-1" t-esc="state.attendanceRate + '%'"/>
+                                            <div class="very-small text-muted">Across All Sections</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-3 bg-light rounded border text-center h-100">
+                                            <div class="text-muted small fw-semibold">Absences Logged</div>
+                                            <div class="fs-3 fw-bold text-danger mt-1" t-esc="state.absentCount"/>
+                                            <div class="very-small text-muted">Requiring Follow-up</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- My Class Sections for Direct Attendance Tracking -->
+                                <h4 class="h6 mb-3 fw-bold text-dark">
+                                    <i class="fa fa-users me-2 text-primary"/>Assigned Class Sections (Direct Attendance)
+                                </h4>
+                                <t t-if="state.enrolledSections.length">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Class Section</th>
+                                                    <th>Subject / Course</th>
+                                                    <th>Classroom</th>
+                                                    <th class="text-center">Enrolled Students</th>
+                                                    <th class="text-center">Room Capacity</th>
+                                                    <th class="text-end pe-3">Direct Attendance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.enrolledSections" t-as="sec" t-key="sec.id">
+                                                    <td class="fw-bold text-dark" t-esc="sec.name"/>
+                                                    <td class="text-primary fw-semibold" t-esc="sec.subject_id ? sec.subject_id[1] : 'General'"/>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark border">
+                                                            <i class="fa fa-map-marker text-danger me-1"/>
+                                                            <t t-esc="sec.classroom_id ? sec.classroom_id[1] : 'Room TBA'"/>
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center fw-bold" t-esc="sec.enrolled_student_count || 0"/>
+                                                    <td class="text-center text-muted" t-esc="sec.capacity || '—'"/>
+                                                    <td class="text-end pe-3">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                t-on-click="() => this.trackAttendanceForSection(sec.id)">
+                                                            <i class="fa fa-calendar-check-o me-1"/>Take Attendance
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <i class="fa fa-users fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">No Class Sections Assigned</h4>
+                                        <p class="text-muted small mb-0">Contact your Head of Department or Registrar to assign you to class sections.</p>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 3: ACADEMIC ADVISEES & RISK MONITORING -->
+                            <div t-if="state.activeTab === 'advising'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-graduation-cap me-2 text-primary"/>Academic Advisees &amp; Student Standing
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Monitor student GPA progress, track high-risk indicators, and manage proactive academic follow-up tasks.
+                                        </p>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                t-on-click="() => this.openAdvisingNotes()">
+                                            <i class="fa fa-comments me-1"/>Advising Notes
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.openFollowups()">
+                                            <i class="fa fa-check-square-o me-1"/>Follow-up Actions
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- High-Risk Warning if any -->
+                                <div t-if="state.stats.highRiskAdvisees > 0" class="alert alert-danger d-flex align-items-center gap-3 p-3 mb-4 rounded-3 border-danger shadow-sm">
+                                    <i class="fa fa-exclamation-triangle fa-2x text-danger flex-shrink-0" aria-hidden="true"/>
+                                    <div>
+                                        <h4 class="h6 fw-bold mb-1 text-danger">Academic Advisory Notice</h4>
+                                        <div class="small">
+                                            You have <strong><t t-esc="state.stats.highRiskAdvisees"/> advisee(s)</strong> flagged as High Risk (GPA below threshold or low attendance). Please schedule advising check-ins with them.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Advisees Table -->
+                                <t t-if="state.advisees.length">
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Student Name</th>
+                                                    <th>Student ID</th>
+                                                    <th>Current Semester</th>
+                                                    <th>Cumulative GPA</th>
+                                                    <th>Attendance Rate</th>
+                                                    <th>Academic Standing</th>
+                                                    <th>Risk Reason</th>
+                                                    <th class="text-end pe-3">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.advisees" t-as="adv" t-key="adv.id">
+                                                    <td class="fw-semibold text-dark" t-esc="adv.name"/>
+                                                    <td><span class="badge bg-light text-dark border" t-esc="adv.student_id || 'ID Pending'"/></td>
+                                                    <td class="text-muted small" t-esc="adv.current_semester_id ? adv.current_semester_id[1] : 'Current'"/>
+                                                    <td><strong class="text-primary fs-6" t-esc="adv.gpa || 0.0"/></td>
+                                                    <td>
+                                                        <span t-att-class="'badge ' + ((adv.attendance_rate || 100) >= 80 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')"
+                                                              t-esc="(adv.attendance_rate || 100) + '%'"/>
+                                                    </td>
+                                                    <td>
+                                                        <span t-if="adv.risk_level === 'low'" class="badge bg-success-subtle text-success">On Track</span>
+                                                        <span t-elif="adv.risk_level === 'medium'" class="badge bg-warning-subtle text-warning">Watch</span>
+                                                        <span t-elif="adv.risk_level === 'high'" class="badge bg-danger-subtle text-danger">High Risk</span>
+                                                        <span t-else="" class="badge bg-success-subtle text-success">Good</span>
+                                                    </td>
+                                                    <td class="small text-muted text-truncate" style="max-width: 180px;" t-esc="adv.risk_reason || 'Academic progress on track'"/>
+                                                    <td class="text-end pe-3">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm py-1"
+                                                                t-on-click="() => this.openStudentProfile(adv.id)">
+                                                            <i class="fa fa-user me-1"/>Profile
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border mb-4">
+                                        <i class="fa fa-graduation-cap fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">No Advisees Assigned</h4>
+                                        <p class="text-muted small mb-0">You currently have no students assigned for academic advising.</p>
+                                    </div>
+                                </t>
+
+                                <!-- Follow-up Advising Actions -->
+                                <h4 class="h6 mb-3 fw-bold text-dark">
+                                    <i class="fa fa-bell-o me-2 text-warning"/>Pending Advisory Follow-up Tasks (<t t-esc="state.followups.length"/>)
+                                </h4>
+                                <t t-if="state.followups.length">
+                                    <ul class="list-group">
+                                        <li t-foreach="state.followups" t-as="item" t-key="item.id"
+                                            class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="fw-semibold text-dark" t-esc="item.title"/>
+                                                <div class="text-muted small" t-esc="item.description"/>
+                                                <div class="text-muted very-small mt-1" t-if="item.date_deadline">
+                                                    Deadline: <strong t-esc="item.date_deadline"/>
+                                                    <span t-if="item.student_id"> • Student: <strong t-esc="item.student_id[1]"/></span>
+                                                </div>
+                                            </div>
+                                            <span class="badge text-capitalize bg-info-subtle text-info" t-esc="item.state"/>
+                                        </li>
+                                    </ul>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-3 text-center bg-light rounded text-muted small">
+                                        All advising follow-up tasks are completed.
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 4: ASSIGNMENTS & GRADING -->
+                            <div t-if="state.activeTab === 'assignments'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-tasks me-2 text-primary"/>Course Assignments &amp; Submission Grading
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Review pending submissions from your students, grade coursework, and create new class assignments.
+                                        </p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            t-on-click="() => this.openAssignments()">
+                                        <i class="fa fa-external-link me-1"/>Manage Assignments
+                                    </button>
+                                </div>
+
+                                <!-- Pending Submissions for Grading -->
+                                <h4 class="h6 mb-3 fw-bold text-dark">
+                                    <i class="fa fa-clock-o me-2 text-warning"/>Pending Student Submissions Waiting for Review (<t t-esc="state.pendingSubmissions.length"/>)
+                                </h4>
+                                <t t-if="state.pendingSubmissions.length">
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Student Name</th>
+                                                    <th>Assignment</th>
+                                                    <th>Submission Date</th>
+                                                    <th>Status</th>
+                                                    <th class="text-end pe-3">Grade Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.pendingSubmissions" t-as="sub" t-key="sub.id">
+                                                    <td class="fw-semibold text-dark" t-esc="sub.student_id ? sub.student_id[1] : 'Student'"/>
+                                                    <td class="text-primary fw-semibold" t-esc="sub.assignment_id ? sub.assignment_id[1] : 'Assignment'"/>
+                                                    <td class="text-muted small" t-esc="formatDate(sub.create_date)"/>
+                                                    <td><span class="badge bg-warning-subtle text-warning">Submitted</span></td>
+                                                    <td class="text-end pe-3">
+                                                        <button type="button" class="btn btn-primary btn-sm py-1"
+                                                                t-on-click="() => this.openSubmission(sub.id)">
+                                                            <i class="fa fa-pencil me-1"/>Grade Now
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-3 text-center bg-light rounded text-muted small mb-4">
+                                        <i class="fa fa-check-circle text-success me-1"/> All student submissions have been graded!
+                                    </div>
+                                </t>
+
+                                <!-- Teacher's Published Assignments -->
+                                <h4 class="h6 mb-3 fw-bold text-dark">
+                                    <i class="fa fa-list me-2 text-primary"/>Published Course Assignments
+                                </h4>
+                                <t t-if="state.teacherAssignments.length">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Assignment Name</th>
+                                                    <th>Subject / Course</th>
+                                                    <th>Class Section</th>
+                                                    <th>Due Date</th>
+                                                    <th>Max Score</th>
+                                                    <th>Submissions</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.teacherAssignments" t-as="asg" t-key="asg.id">
+                                                    <td class="fw-bold text-dark" t-esc="asg.name"/>
+                                                    <td class="text-primary fw-semibold" t-esc="asg.subject_id ? asg.subject_id[1] : 'General'"/>
+                                                    <td class="text-muted small" t-esc="asg.section_id ? asg.section_id[1] : 'All'"/>
+                                                    <td class="text-muted small" t-esc="asg.due_date || 'No deadline'"/>
+                                                    <td><span class="badge bg-light text-dark border" t-esc="asg.max_score + ' pts'"/></td>
+                                                    <td><span class="badge bg-primary-subtle text-primary" t-esc="(asg.submission_count || 0) + ' received'"/></td>
+                                                    <td>
+                                                        <span t-if="asg.state === 'approved'" class="badge bg-success-subtle text-success">Active</span>
+                                                        <span t-else="" class="badge bg-secondary">Draft</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <p class="text-muted small mb-0">No assignments created yet for your courses.</p>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 5: LESSON PLANS & SYLLABUS -->
+                            <div t-if="state.activeTab === 'lesson_plans'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-file-text-o me-2 text-primary"/>Course Lesson Plans &amp; Curriculum Outline
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Plan teaching weeks, attach syllabus materials, and structure lecture objectives.
+                                        </p>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                            t-on-click="() => this.createLessonPlan()">
+                                        <i class="fa fa-plus me-1"/>Create Lesson Plan
+                                    </button>
+                                </div>
+
+                                <t t-if="state.lessonPlans.length">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Lesson Plan Title</th>
+                                                    <th>Subject / Course</th>
+                                                    <th>Created Date</th>
+                                                    <th class="text-end pe-3">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.lessonPlans" t-as="plan" t-key="plan.id">
+                                                    <td class="fw-semibold text-dark" t-esc="plan.name"/>
+                                                    <td>
+                                                        <span class="badge bg-primary-subtle text-primary"
+                                                              t-esc="plan.subject_id ? plan.subject_id[1] : 'Subject'"/>
+                                                    </td>
+                                                    <td class="text-muted small" t-esc="formatDate(plan.create_date)"/>
+                                                    <td class="text-end pe-3">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm py-1"
+                                                                t-on-click="() => this.openLessonPlans()">
+                                                            <i class="fa fa-eye me-1"/>View Plan
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <i class="fa fa-file-text-o fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">No Lesson Plans Created Yet</h4>
+                                        <p class="text-muted small mb-3">Structure your course outline and syllabus objectives for the semester.</p>
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.createLessonPlan()">
+                                            <i class="fa fa-plus me-1"/>Create Lesson Plan
+                                        </button>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Quick Links Bar -->
+                    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('schedule')">
+                            <i class="fa fa-calendar me-1"/>My Schedule
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('attendance')">
+                            <i class="fa fa-calendar-check-o me-1"/>Attendance
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('advising')">
+                            <i class="fa fa-graduation-cap me-1"/>My Advisees
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('assignments')">
+                            <i class="fa fa-tasks me-1"/>Assignments
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('lesson_plans')">
+                            <i class="fa fa-file-text-o me-1"/>Lesson Plans
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.openMyProfile()">
+                            <i class="fa fa-user me-1"/>My Profile
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.openNoticeBoardAction()">
+                            <i class="fa fa-bullhorn me-1"/>Notice Board
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
+
+                <!-- Campus Notice Reader Modal Dialog -->
+                <t t-if="state.selectedNotice">
+                    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5); z-index: 1055;">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-white border-bottom">
+                                    <div>
+                                        <span class="badge bg-primary-subtle text-primary me-2">Campus Announcement</span>
+                                        <span class="text-muted small"><i class="fa fa-calendar me-1"/> <t t-esc="state.selectedNotice.dateFormatted"/></span>
+                                        <h4 class="modal-title h5 fw-bold text-dark mt-2" t-esc="state.selectedNotice.name"/>
+                                    </div>
+                                    <button type="button" class="btn-close" t-on-click="() => this.closeNoticeModal()" aria-label="Close"/>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div t-if="state.selectedNotice.content" class="o_notice_modal_content" t-out="state.selectedNotice.content"/>
+                                    <div t-else="" class="text-muted">No additional details provided for this announcement.</div>
+                                </div>
+                                <div class="modal-footer bg-light border-top">
+                                    <button type="button" class="btn btn-secondary btn-sm" t-on-click="() => this.closeNoticeModal()">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </main>
     </t>
 </templates>

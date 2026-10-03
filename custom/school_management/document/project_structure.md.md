@@ -83,11 +83,16 @@
 #     group_school_teacher            Teacher (implies group_school_user)
 #     group_school_hod                Head of Department (implies group_school_teacher)
 #     group_school_dean               Head of Faculty (implies group_school_hod)
-#     group_school_admin              University Administrator (implies group_school_dean)
-#     group_teacher_dashboard         Teacher Dashboard (implies group_school_teacher;
-#                                     standalone - NOT in the admin chain)
+#     group_school_registrar          Registrar (implies group_school_user)
+#     group_school_admin              University Administrator (implies dean, registrar,
+#                                     teacher workspace, and base.group_system)
+#     group_teacher_dashboard         Teacher dashboard support group
+#                                     (implies group_school_teacher)
 #     group_student_portal            Student Portal (implies base.group_portal;
 #                                     external role, no backend access)
+#
+# Functional dashboard roles: Student, Teacher/Advisor, Head of Department,
+# Head of Faculty, Registrar, University Administrator.
 
 # Security flow reference
 #     res.users.teacher_id -> university.teacher

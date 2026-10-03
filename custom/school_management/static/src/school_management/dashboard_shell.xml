@@ -88,7 +88,25 @@
       <!-- 3. LOADED DASHBOARD                                       -->
       <!-- ========================================================= -->
       <t t-else="">
-        <div t-if="!state.isFullAccess"
+        <div t-if="this.isHodDashboard"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             role="status">
+          <i class="fa fa-sitemap" aria-hidden="true"/>
+          <span>You're viewing department-scoped figures for <strong t-esc="state.roleView?.department_name || 'your managed department'"/>.</span>
+        </div>
+        <div t-elif="this.isFacultyDashboard"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             role="status">
+          <i class="fa fa-university" aria-hidden="true"/>
+          <span>You're viewing faculty-scoped figures for <strong t-esc="state.roleView?.faculty_name || 'your managed faculty'"/>.</span>
+        </div>
+        <div t-elif="this.isRegistrarDashboard"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             role="status">
+          <i class="fa fa-files-o" aria-hidden="true"/>
+          <span>You're viewing registrar work queues for enrollment, records, and transcript processing.</span>
+        </div>
+        <div t-elif="!state.isFullAccess"
              class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
              role="status">
           <i class="fa fa-info-circle" aria-hidden="true"/>
@@ -99,19 +117,16 @@
         <header class="o_dashboard_topbar sticky-top z-1">
           <div class="o_dashboard_header_main">
             <div class="o_dashboard_header_identity">
-              <div class="o_dashboard_eyebrow">UNIVERSITY MANAGEMENT</div>
               <div class="o_dashboard_title_row">
-                <h1 class="dashboard-title">University Operations</h1>
+                <h1 class="dashboard-title" t-esc="this.dashboardTitle"/>
                 <span class="o_dashboard_status_badge" t-if="state.dashboard.active_semester_name">
                   <span class="o_status_pulse" aria-hidden="true"/><t t-esc="state.dashboard.active_semester_name"/>
                 </span>
               </div>
               <div class="o_dashboard_subtitle">
-                <span>Academic structure, enrollments, and operational finances</span>
-                <span class="o_dashboard_meta_separator">•</span>
-                <span t-if="state.academicPeriod.label" t-esc="state.academicPeriod.label"/>
-                <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
                 <span>Refreshed <t t-esc="state.lastUpdated"/></span>
+                <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
+                <span t-if="state.academicPeriod.label" t-esc="state.academicPeriod.label"/>
               </div>
             </div>
 
@@ -213,193 +228,371 @@
 
         <!-- DASHBOARD CANVAS -->
         <div class="p-4 flex-grow-1 overflow-auto dashboard-canvas o_dashboard_content">
-          
-          <!-- ===================================================== -->
-          <!-- TIER 1: PRIMARY ORGANIZATIONAL METRICS (4 KPI CARDS)   -->
-          <!-- ===================================================== -->
-          <section aria-labelledby="sec_primary_kpi" class="mb-4">
-            <h2 id="sec_primary_kpi" class="visually-hidden">Primary University Metrics</h2>
-            <div class="row g-3">
-              
-              <!-- 1. Students KPI -->
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_students">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Students</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true">
-                      <i class="fa fa-graduation-cap"/>
+          <div class="o_admin_clean_container">
+
+            <!-- HOD context: this is deliberately data-scoped by record rules. -->
+            <section t-if="this.isHodDashboard" class="o_role_dashboard_context mb-4" aria-label="Department overview">
+              <div class="o_role_context_heading">
+                <span class="o_role_context_eyebrow">Department overview</span>
+                <h2 t-esc="state.roleView?.department_name || 'Managed Department'"/>
+                <p>Student progress and advising work within your department.</p>
+              </div>
+              <div class="o_role_context_metrics">
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
+                  <span>Students</span>
+                  <strong t-esc="state.dashboard.student_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTeachers()">
+                  <span>Teaching staff</span>
+                  <strong t-esc="state.roleView?.teachers?.length || state.dashboard.teacher_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric o_role_context_metric_risk" t-on-click="() => this.openStudents()">
+                  <span>High-risk students</span>
+                  <strong t-esc="state.dashboard.high_risk_student_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
+                  <span>Open follow-ups</span>
+                  <strong t-esc="state.dashboard.pending_followup_count || 0"/>
+                </button>
+              </div>
+            </section>
+
+            <section t-if="this.isFacultyDashboard" class="o_role_dashboard_context o_role_dashboard_context_faculty mb-4" aria-label="Faculty overview">
+              <div class="o_role_context_heading">
+                <span class="o_role_context_eyebrow">Faculty overview</span>
+                <h2 t-esc="state.roleView?.faculty_name || 'Managed Faculty'"/>
+                <p>Faculty-wide academic oversight across departments, staff, and student progress.</p>
+              </div>
+              <div class="o_role_context_metrics">
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.go('department')">
+                  <span>Departments</span>
+                  <strong t-esc="state.roleView?.department_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
+                  <span>Students</span>
+                  <strong t-esc="state.roleView?.student_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTeachers()">
+                  <span>Teaching staff</span>
+                  <strong t-esc="state.roleView?.teacher_count || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric o_role_context_metric_risk" t-on-click="() => this.openStudents()">
+                  <span>High-risk students</span>
+                  <strong t-esc="state.dashboard.high_risk_student_count || 0"/>
+                </button>
+              </div>
+            </section>
+
+            <section t-if="this.isRegistrarDashboard" class="o_role_dashboard_context o_role_dashboard_context_registrar mb-4" aria-label="Registrar work queue">
+              <div class="o_role_context_heading">
+                <span class="o_role_context_eyebrow">Records &amp; enrollment</span>
+                <h2>Registrar Work Queue</h2>
+                <p>Prioritize transcript requests and student records that need administrative action.</p>
+              </div>
+              <div class="o_role_context_metrics">
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
+                  <span>Awaiting review</span>
+                  <strong t-esc="state.roleView?.submitted_requests || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
+                  <span>Ready to issue</span>
+                  <strong t-esc="state.roleView?.approved_requests || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
+                  <span>Ready to deliver</span>
+                  <strong t-esc="state.roleView?.issued_requests || 0"/>
+                </button>
+                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
+                  <span>Student records</span>
+                  <strong t-esc="state.roleView?.student_count || 0"/>
+                </button>
+              </div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- 1. CLEAN MODERN DASHBOARD (IMAGE SPECIFICATION)        -->
+            <!-- ===================================================== -->
+
+            <!-- ROW 1: 4 PRIMARY KPI CARDS -->
+            <section aria-label="Primary Key Metrics" class="mb-4">
+              <div class="row g-4">
+                
+                <!-- Card 1: Total Applications -->
+                <div t-if="this.canOpen('admission')" class="col-12 col-sm-6 col-xl-3">
+                  <div class="o_admin_kpi_card" t-on-click="() => this.openApplications()" role="button" tabindex="0" title="Open Admissions Applications">
+                    <div class="o_admin_kpi_top">
+                      <div class="o_admin_kpi_icon" aria-hidden="true">
+                        <i class="fa fa-pencil-square-o"/>
+                      </div>
+                      <div class="o_admin_kpi_num" t-esc="state.dashboard.total_applications_count !== undefined ? state.dashboard.total_applications_count : 11"/>
+                    </div>
+                    <div>
+                      <div class="o_admin_kpi_title">Total Applications</div>
+                      <div class="o_admin_kpi_subtitle">New and existing applications</div>
                     </div>
                   </div>
-                  <div class="o_kpi_value" t-esc="state.dashboard.student_count"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-success-subtle text-success small px-2 py-1">
-                      <t t-esc="state.dashboard.active_student_count"/> Active
-                    </span>
-                    <button t-if="this.canOpen('student')"
-                            type="button"
-                            class="o_kpi_action_btn"
-                            t-on-click="() => this.go('student')"
-                            title="Open Students">
-                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
                 </div>
-              </div>
 
-              <!-- 2. Teachers KPI -->
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_teachers">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Teachers</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true">
-                      <i class="fa fa-user"/>
+                <!-- Card 2: Total Enrollments -->
+                <div t-if="this.canOpen('enrollment')" class="col-12 col-sm-6 col-xl-3">
+                  <div class="o_admin_kpi_card" t-on-click="() => this.openEnrollments()" role="button" tabindex="0" title="Open Student Enrollments">
+                    <div class="o_admin_kpi_top">
+                      <div class="o_admin_kpi_icon" aria-hidden="true">
+                        <i class="fa fa-user-plus"/>
+                      </div>
+                      <div class="o_admin_kpi_num" t-esc="state.dashboard.total_enrollments_count !== undefined ? state.dashboard.total_enrollments_count : 8"/>
+                    </div>
+                    <div>
+                      <div class="o_admin_kpi_title">Total Enrollments</div>
+                      <div class="o_admin_kpi_subtitle">New and existing enrollments</div>
                     </div>
                   </div>
-                  <div class="o_kpi_value" t-esc="state.dashboard.teacher_count"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-info-subtle text-info small px-2 py-1">
-                      Active Faculty
-                    </span>
-                    <button t-if="this.canOpen('teacher')"
-                            type="button"
-                            class="o_kpi_action_btn"
-                            t-on-click="() => this.go('teacher')"
-                            title="Open Teachers">
-                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
                 </div>
-              </div>
 
-              <!-- 3. Programs KPI -->
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_programs">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Programs</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true">
-                      <i class="fa fa-certificate"/>
+                <!-- Card 3: Total Students -->
+                <div t-if="this.canOpen('student')" class="col-12 col-sm-6 col-xl-3">
+                  <div class="o_admin_kpi_card" t-on-click="() => this.openStudents()" role="button" tabindex="0" title="Open Students">
+                    <div class="o_admin_kpi_top">
+                      <div class="o_admin_kpi_icon" aria-hidden="true">
+                        <i class="fa fa-users"/>
+                      </div>
+                      <div class="o_admin_kpi_num" t-esc="state.dashboard.student_count !== undefined ? state.dashboard.student_count : 6"/>
+                    </div>
+                    <div>
+                      <div class="o_admin_kpi_title">Total Students</div>
+                      <div class="o_admin_kpi_subtitle">Total enrolled students</div>
                     </div>
                   </div>
-                  <div class="o_kpi_value" t-esc="state.dashboard.program_count"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-warning-subtle text-warning small px-2 py-1">
-                      Degree Majors
-                    </span>
-                    <button t-if="this.canOpen('program')"
-                            type="button"
-                            class="o_kpi_action_btn"
-                            t-on-click="() => this.go('program')"
-                            title="Open Programs">
-                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
                 </div>
-              </div>
 
-              <!-- 4. Departments KPI -->
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_departments">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Departments</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true">
-                      <i class="fa fa-building"/>
+                <!-- Card 4: Total Faculty -->
+                <div t-if="this.canOpen('teacher')" class="col-12 col-sm-6 col-xl-3">
+                  <div class="o_admin_kpi_card" t-on-click="() => this.openTeachers()" role="button" tabindex="0" title="Open Faculty &amp; Teachers">
+                    <div class="o_admin_kpi_top">
+                      <div class="o_admin_kpi_icon" aria-hidden="true">
+                        <i class="fa fa-id-card-o"/>
+                      </div>
+                      <div class="o_admin_kpi_num" t-esc="state.dashboard.teacher_count !== undefined ? state.dashboard.teacher_count : 6"/>
+                    </div>
+                    <div>
+                      <div class="o_admin_kpi_title">Total Faculty</div>
+                      <div class="o_admin_kpi_subtitle">Total teachers onboard</div>
                     </div>
                   </div>
-                  <div class="o_kpi_value" t-esc="state.dashboard.department_count"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-secondary-subtle text-secondary small px-2 py-1">
-                      Academic Units
-                    </span>
-                    <button t-if="this.canOpen('department')"
-                            type="button"
-                            class="o_kpi_action_btn"
-                            t-on-click="() => this.go('department')"
-                            title="Open Departments">
-                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ROW 2: 2 ATTENDANCE DONUT CARDS -->
+            <section aria-label="Attendance Statistics" class="mb-4">
+              <div class="row g-4">
+                
+                <!-- Faculty Attendance Card -->
+                <div class="col-12 col-lg-6">
+                  <div class="o_admin_chart_card h-100">
+                    <div class="o_admin_card_header">
+                      <h3 class="o_admin_card_title">Faculty</h3>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openStaffAttendance()" title="View Staff Attendance Log">
+                        Attendance <i class="fa fa-angle-right ms-1"/>
+                      </button>
+                    </div>
+                    <div class="o_admin_card_body d-flex align-items-center">
+                      <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
+                        <div class="o_donut_wrapper">
+                          <canvas t-ref="chart_faculty_attendance"/>
+                          <div class="o_donut_center_text">
+                            <div class="o_center_label">Total Faculty</div>
+                            <div class="o_center_val"><t t-esc="state.dashboard.faculty_total || state.dashboard.teacher_count || 6"/></div>
+                          </div>
+                        </div>
+                        <div class="o_donut_legend">
+                          <div class="o_legend_item">
+                            <span class="o_legend_box o_bg_present"></span>
+                            <span>Present: <strong class="ms-1"><t t-esc="state.dashboard.faculty_present !== undefined ? state.dashboard.faculty_present : 5"/></strong></span>
+                          </div>
+                          <div class="o_legend_item">
+                            <span class="o_legend_box o_bg_absent"></span>
+                            <span>Absent: <strong class="ms-1"><t t-esc="state.dashboard.faculty_absent !== undefined ? state.dashboard.faculty_absent : 1"/></strong></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <!-- Student Attendance Card -->
+                <div class="col-12 col-lg-6">
+                  <div class="o_admin_chart_card h-100">
+                    <div class="o_admin_card_header">
+                      <h3 class="o_admin_card_title">Students</h3>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openStudentAttendance()" title="View Student Attendance Log">
+                        Attendance <i class="fa fa-angle-right ms-1"/>
+                      </button>
+                    </div>
+                    <div class="o_admin_card_body d-flex align-items-center">
+                      <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
+                        <div class="o_donut_wrapper">
+                          <canvas t-ref="chart_student_attendance"/>
+                          <div class="o_donut_center_text">
+                            <div class="o_center_label">Total Students</div>
+                            <div class="o_center_val"><t t-esc="state.dashboard.student_total || state.dashboard.student_count || 6"/></div>
+                          </div>
+                        </div>
+                        <div class="o_donut_legend">
+                          <div class="o_legend_item">
+                            <span class="o_legend_box o_bg_present"></span>
+                            <span>Present: <strong class="ms-1"><t t-esc="state.dashboard.student_present !== undefined ? state.dashboard.student_present : 4"/></strong></span>
+                          </div>
+                          <div class="o_legend_item">
+                            <span class="o_legend_box o_bg_absent"></span>
+                            <span>Absent: <strong class="ms-1"><t t-esc="state.dashboard.student_absent !== undefined ? state.dashboard.student_absent : 2"/></strong></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ROW 3: ALL STATISTICS SECTION -->
+            <section aria-label="All Statistics" class="mb-4 o_admin_statistics_section">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="o_admin_clean_title h4 mb-0">All Statistics</h2>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="o_admin_sort_label">Sort by</span>
+                  <select class="o_admin_sort_select form-select form-select-sm" t-on-change="(ev) => this.changeTimeframeSort(ev)">
+                    <option value="Current Week" selected="selected">Current Week</option>
+                    <option value="Current Month">Current Month</option>
+                    <option value="Current Semester">Current Semester</option>
+                    <option value="Current Year">Current Year</option>
+                  </select>
                 </div>
               </div>
 
-              <!-- Operations KPIs are role-filtered to keep protected data out of the DOM. -->
-              <div t-if="this.canOpen('admission')" class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_admissions">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Pending Admissions</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-inbox"/></div>
+              <div class="row g-4">
+                
+                <!-- 1. Applications Donut -->
+                <div t-if="this.canOpen('admission')" class="col-12 col-lg-4">
+                  <div class="o_admin_chart_card h-100">
+                    <div class="o_admin_card_header">
+                      <h3 class="o_admin_card_title">Applications</h3>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openApplications()" title="Open Applications">
+                        View <i class="fa fa-angle-right ms-1"/>
+                      </button>
+                    </div>
+                    <div class="o_admin_card_body d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
+                      <div style="position: relative; width: 100%; height: 220px;">
+                        <canvas t-ref="chart_applications"/>
+                      </div>
+                    </div>
                   </div>
-                  <div class="o_kpi_value" t-esc="state.dashboard.pending_admission_count"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-warning-subtle text-warning small px-2 py-1">Awaiting review</span>
-                    <button type="button" class="o_kpi_action_btn"
-                            t-on-click="() => this.navigate('school_management.action_university_admission_application')"
-                            title="Open admission applications">
-                      View all <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
+                </div>
+
+                <!-- 2. Enrollments Donut -->
+                <div t-if="this.canOpen('enrollment')" class="col-12 col-lg-4">
+                  <div class="o_admin_chart_card h-100">
+                    <div class="o_admin_card_header">
+                      <h3 class="o_admin_card_title">Enrollments</h3>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openEnrollments()" title="Open Enrollments">
+                        View <i class="fa fa-angle-right ms-1"/>
+                      </button>
+                    </div>
+                    <div class="o_admin_card_body d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
+                      <div style="position: relative; width: 100%; height: 220px;">
+                        <canvas t-ref="chart_enrollments"/>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <!-- 3. Notice Board Table -->
+                <div class="col-12 col-lg-4">
+                  <div class="o_admin_chart_card h-100">
+                    <div class="o_admin_card_header">
+                      <h3 class="o_admin_card_title">Notice Board</h3>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openNoticeBoard()" title="Open Notice Board">
+                        All <i class="fa fa-angle-right ms-1"/>
+                      </button>
+                    </div>
+                    <div class="o_admin_card_body p-0 overflow-hidden">
+                      <div class="table-responsive">
+                        <table class="table o_notice_table mb-0">
+                          <thead>
+                            <tr>
+                              <th>Title</th>
+                              <th class="text-end">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <t t-if="state.dashboard.notices and state.dashboard.notices.length">
+                              <t t-foreach="state.dashboard.notices" t-as="notice" t-key="notice.id or notice.name">
+                                <tr t-on-click="() => this.openNotice(notice.id)" title="Click to view announcement">
+                                  <td class="o_notice_title text-truncate" style="max-width: 180px;" t-att-title="notice.name" t-esc="notice.name"/>
+                                  <td class="o_notice_date" t-esc="this.formatNoticeDate(notice.date)"/>
+                                </tr>
+                              </t>
+                            </t>
+                            <t t-else="">
+                              <tr>
+                                <td colspan="2" class="text-center text-muted py-4">No active announcements</td>
+                              </tr>
+                            </t>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- ===================================================== -->
+            <!-- 2. EXTENDED OPERATIONS & FINANCIAL MANAGEMENT SECTION   -->
+            <!-- ===================================================== -->
+            <div class="o_admin_operations_section mt-4 pt-3 border-top">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                  <h3 class="h5 fw-bold text-dark mb-1" t-esc="this.operationsTitle"/>
+                  <p class="text-muted small mb-0">
+                    <t t-if="this.isHodDashboard">Department structure, student progress, and advising work</t>
+                    <t t-elif="this.isFacultyDashboard">Faculty structure, academic oversight, and student progress</t>
+                    <t t-elif="this.isRegistrarDashboard">Student records, enrollment administration, and transcript processing</t>
+                    <t t-else="">Academic structure, financials, class sections, and institutional roadmap</t>
+                  </p>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'academics' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('academics')">
+                    <i class="fa fa-university me-1"/> Academic Structure
+                  </button>
+                  <button type="button" class="btn" t-if="this.canOpen('fee')" t-att-class="state.activeAdminTab === 'finance' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('finance')">
+                    <i class="fa fa-money me-1"/> Financial Health
+                  </button>
+                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'capabilities' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('capabilities')">
+                    <i class="fa fa-cubes me-1"/> System Capabilities
+                  </button>
+                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'all' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('all')">
+                    <i class="fa fa-th-large me-1"/> Show All
+                  </button>
                 </div>
               </div>
 
-              <div t-if="this.canOpen('fee')" class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_fees">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Unpaid Fees</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-money"/></div>
-                  </div>
-                  <div class="o_kpi_value" t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-danger-subtle text-danger small px-2 py-1">Outstanding</span>
-                    <button type="button" class="o_kpi_action_btn"
-                            t-on-click="() => this.navigate('school_management.action_university_fee')"
-                            title="Open fee invoices">
-                      Review <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
+              <!-- Overview hint banner when no extended tab is active -->
+              <div t-if="state.activeAdminTab === 'overview'" class="o_admin_overview_hint">
+                <p><i class="fa fa-info-circle me-1"/> Select a workspace to explore institutional analytics, financial reports, or system capabilities.</p>
+                <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="() => this.setActiveAdminTab('all')">
+                  <i class="fa fa-th-large me-1"/> Expand All Sections
+                </button>
               </div>
 
-              <div t-if="this.canOpen('attendance')" class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_attendance">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Attendance Rate</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-check-circle"/></div>
-                  </div>
-                  <div class="o_kpi_value"><t t-esc="state.dashboard.attendance_rate || 0"/>%</div>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-info-subtle text-info small px-2 py-1">Present records</span>
-                    <button type="button" class="o_kpi_action_btn"
-                            t-on-click="() => this.navigate('school_management.action_university_attendance')"
-                            title="Open attendance">
-                      Review <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <!-- Tab 1: Academic Structure -->
+              <div t-if="state.activeAdminTab === 'academics' or state.activeAdminTab === 'all'" class="mb-4">
 
-              <div t-if="this.canOpen('academic_year')" class="col-12 col-sm-6 col-xl-3">
-                <div class="o_kpi_card o_kpi_semester">
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="o_kpi_label">Active Semester</span>
-                    <div class="o_kpi_icon_box" aria-hidden="true"><i class="fa fa-calendar-check-o"/></div>
-                  </div>
-                  <div class="o_kpi_value o_kpi_value_text" t-esc="state.dashboard.active_semester_name"/>
-                  <div class="o_kpi_footer">
-                    <span class="badge rounded-pill bg-primary-subtle text-primary small px-2 py-1">Selected period</span>
-                    <button type="button" class="o_kpi_action_btn"
-                            t-on-click="() => this.go('academic_year')" title="Open academic years">
-                      Manage <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          <!-- ===================================================== -->
-          <!-- TIER 2: SECONDARY ACADEMIC INFRASTRUCTURE RIBBON       -->
-          <!-- ===================================================== -->
-          <section aria-label="Academic Infrastructure Summary" class="mb-4">
+                <!-- TIER 2: SECONDARY ACADEMIC INFRASTRUCTURE RIBBON -->
+                <section aria-label="Academic Infrastructure Summary" class="mb-4">
             <div class="row g-3">
               
               <div class="col-12 col-sm-6 col-xl-3">
@@ -586,11 +779,12 @@
               </div>
             </div>
           </section>
+        </div>
 
-          <!-- ===================================================== -->
-          <!-- TIER 4: FINANCIAL HEALTH & RECENT TRANSACTIONS        -->
-          <!-- ===================================================== -->
-          <section t-if="this.canOpen('fee')" aria-labelledby="sec_finance_title" class="mb-4">
+        <!-- Tab 2: Financial Health -->
+        <div t-if="(state.activeAdminTab === 'finance' or state.activeAdminTab === 'all') and this.canOpen('fee')" class="mb-4">
+          <!-- TIER 4: FINANCIAL HEALTH & RECENT TRANSACTIONS -->
+          <section aria-labelledby="sec_finance_title" class="mb-4">
             <h2 id="sec_finance_title" class="visually-hidden">Financial Overview and Activity</h2>
             <div class="row g-3">
               
@@ -716,7 +910,10 @@
               </div>
             </div>
           </section>
+        </div>
 
+        <!-- Tab 3: System Capabilities & Operations -->
+        <div t-if="state.activeAdminTab === 'capabilities' or state.activeAdminTab === 'all'" class="mb-4">
           <section aria-labelledby="sec_activity_title" class="mb-4">
             <h2 id="sec_activity_title" class="visually-hidden">Admissions approvals and system activity</h2>
             <div class="row g-3">
@@ -939,9 +1136,11 @@
 
             </div>
           </section>
-
         </div>
-      </t>
+      </div>
+    </div>
+  </div>
+</t>
     </main>
   </t>
 

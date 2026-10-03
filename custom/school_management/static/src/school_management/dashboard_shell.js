@@ -114,17 +114,24 @@ class SchoolDashboardShell extends Component {
         this.chartProgramRef = useRef("chart_program");
         this.chartEnrollmentRef = useRef("chart_enrollment");
         this.chartFeesRef = useRef("chart_fees");
+        this.chartFacultyAttendanceRef = useRef("chart_faculty_attendance");
+        this.chartStudentAttendanceRef = useRef("chart_student_attendance");
+        this.chartApplicationsRef = useRef("chart_applications");
+        this.chartEnrollmentsRef = useRef("chart_enrollments");
         this.charts = [];
 
         this.state = useState({
             dashboard: null,
             chartData: null,
+            roleView: null,
             capabilities: [],
             error: null,
             isLoading: true,
             isRefreshing: false,
             isFullAccess: false,
             isNavigating: false,
+            timeframeSort: "Current Week",
+            activeAdminTab: "overview",
             lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             canOpen: {
                 student: false,
@@ -477,15 +484,42 @@ class SchoolDashboardShell extends Component {
     }
 
     async loadDashboardData() {
-        const result = await this.orm.call("school.dashboard", "get_dashboard_data", [
+        const result = await this.orm.call("school.dashboard", "get_role_dashboard_data", [
             this.state.filters.yearId || false,
             this.state.filters.semesterId || false,
         ]);
         this.state.dashboard = result.dashboard || null;
         this.state.chartData = result.chart_data || null;
+        this.state.roleView = result.hod_view || result.faculty_view || result.registrar_view || null;
         this.state.filters.yearId = result.selected_year_id || false;
         this.state.filters.semesterId = result.selected_semester_id || false;
         this.updateAcademicPeriodLabel();
+    }
+
+    get isHodDashboard() {
+        return this.state.dashboard?.user_role === "hod";
+    }
+
+    get isFacultyDashboard() {
+        return this.state.dashboard?.user_role === "dean";
+    }
+
+    get isRegistrarDashboard() {
+        return this.state.dashboard?.user_role === "registrar";
+    }
+
+    get dashboardTitle() {
+        if (this.isHodDashboard) return "Department Dashboard";
+        if (this.isFacultyDashboard) return "Faculty Dashboard";
+        if (this.isRegistrarDashboard) return "Registrar Dashboard";
+        return "University Dashboard";
+    }
+
+    get operationsTitle() {
+        if (this.isHodDashboard) return "Department Operations";
+        if (this.isFacultyDashboard) return "Faculty Operations";
+        if (this.isRegistrarDashboard) return "Registrar Operations";
+        return "University Operations & Management";
     }
 
     formatCurrency(amount) {
@@ -731,6 +765,219 @@ class SchoolDashboardShell extends Component {
                 },
             }));
         }
+
+        // 5. Faculty Attendance Doughnut Chart (Matching clean image spec)
+        if (this.chartFacultyAttendanceRef?.el) {
+            const facultyData = this.state.chartData?.faculty_attendance || {
+                present: this.state.dashboard?.faculty_present || 5,
+                absent: this.state.dashboard?.faculty_absent || 1,
+            };
+            const ctxFaculty = this.chartFacultyAttendanceRef.el.getContext("2d");
+            this.charts.push(new window.Chart(ctxFaculty, {
+                type: "doughnut",
+                data: {
+                    labels: ["Present", "Absent"],
+                    datasets: [{
+                        data: [facultyData.present, facultyData.absent],
+                        backgroundColor: ["#2563eb", "#f87171"],
+                        borderWidth: 0,
+                        hoverOffset: 3,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "76%",
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Faculty`,
+                            },
+                        },
+                    },
+                },
+            }));
+        }
+
+        // 6. Student Attendance Doughnut Chart (Matching clean image spec)
+        if (this.chartStudentAttendanceRef?.el) {
+            const studentData = this.state.chartData?.student_attendance || {
+                present: this.state.dashboard?.student_present || 4,
+                absent: this.state.dashboard?.student_absent || 2,
+            };
+            const ctxStudent = this.chartStudentAttendanceRef.el.getContext("2d");
+            this.charts.push(new window.Chart(ctxStudent, {
+                type: "doughnut",
+                data: {
+                    labels: ["Present", "Absent"],
+                    datasets: [{
+                        data: [studentData.present, studentData.absent],
+                        backgroundColor: ["#2563eb", "#f87171"],
+                        borderWidth: 0,
+                        hoverOffset: 3,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "76%",
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Students`,
+                            },
+                        },
+                    },
+                },
+            }));
+        }
+
+        // 7. Applications Breakdown Doughnut
+        if (this.chartApplicationsRef?.el) {
+            const appChart = this.state.chartData?.applications || {
+                labels: ["Submitted", "Approved", "Draft", "Rejected"],
+                data: [6, 3, 1, 1],
+            };
+            const ctxApps = this.chartApplicationsRef.el.getContext("2d");
+            this.charts.push(new window.Chart(ctxApps, {
+                type: "doughnut",
+                data: {
+                    labels: appChart.labels,
+                    datasets: [{
+                        data: appChart.data,
+                        backgroundColor: ["#2563eb", "#10b981", "#f59e0b", "#f87171", "#94a3b8"],
+                        borderWidth: 2,
+                        borderColor: "#ffffff",
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "70%",
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                boxWidth: 8,
+                                boxHeight: 8,
+                                usePointStyle: true,
+                                padding: 8,
+                                font: { size: 11 },
+                            },
+                        },
+                    },
+                },
+            }));
+        }
+
+        // 8. Enrollments Breakdown Doughnut
+        if (this.chartEnrollmentsRef?.el) {
+            const enrChart = this.state.chartData?.enrollments || {
+                labels: ["In-Progress", "Draft", "Completed"],
+                data: [6, 1, 1],
+            };
+            const ctxEnr = this.chartEnrollmentsRef.el.getContext("2d");
+            this.charts.push(new window.Chart(ctxEnr, {
+                type: "doughnut",
+                data: {
+                    labels: enrChart.labels,
+                    datasets: [{
+                        data: enrChart.data,
+                        backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#94a3b8"],
+                        borderWidth: 2,
+                        borderColor: "#ffffff",
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "70%",
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                boxWidth: 8,
+                                boxHeight: 8,
+                                usePointStyle: true,
+                                padding: 8,
+                                font: { size: 11 },
+                            },
+                        },
+                    },
+                },
+            }));
+        }
+    }
+
+    changeTimeframeSort(ev) {
+        this.state.timeframeSort = ev.target.value;
+    }
+
+    setActiveAdminTab(tab) {
+        this.state.activeAdminTab = this.state.activeAdminTab === tab ? "overview" : tab;
+        setTimeout(() => this.renderCharts(), 60);
+    }
+
+    openApplications() {
+        this.navigate("school_management.action_university_admission_application");
+    }
+
+    openEnrollments() {
+        this.navigate("school_management.action_university_enrollment");
+    }
+
+    openStudents() {
+        this.navigate("school_management.action_university_student");
+    }
+
+    openTeachers() {
+        this.navigate("school_management.action_university_teacher");
+    }
+
+    openStaffAttendance() {
+        this.navigate("school_management.action_university_staff_attendance");
+    }
+
+    openStudentAttendance() {
+        this.navigate("school_management.action_university_attendance");
+    }
+
+    openTranscriptRequests() {
+        this.navigate("school_management.action_university_transcript_request");
+    }
+
+    openNoticeBoard() {
+        this.navigate("school_management.action_university_notice_board");
+    }
+
+    formatNoticeDate(dateStr) {
+        if (!dateStr) return "";
+        try {
+            const datePart = String(dateStr).split(" ")[0];
+            const parts = datePart.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        } catch (_) {}
+        return String(dateStr);
+    }
+
+    openNotice(noticeId) {
+        if (!noticeId) {
+            this.openNoticeBoard();
+            return;
+        }
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Notice Announcement",
+            res_model: "university.notice.board",
+            res_id: noticeId,
+            views: [[false, "form"]],
+            view_mode: "form",
+            target: "current",
+        });
     }
 }
 

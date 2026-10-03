@@ -137,11 +137,14 @@ Groups are grouped under one privilege, `res.groups.privilege` "University Manag
 | `group_school_teacher` | Teacher | `group_school_user` |
 | `group_school_hod` | Head of Department | `group_school_teacher` |
 | `group_school_dean` | Head of Faculty | `group_school_hod` |
+| `group_school_registrar` | Registrar | `group_school_user` |
 | `group_school_admin` | University Administrator | `group_school_dean` |
-| `group_teacher_dashboard` | Teacher Dashboard | `group_school_teacher` (standalone, not in the admin chain) |
+| `group_teacher_dashboard` | Teacher dashboard support group | `group_school_teacher` |
 | `group_student_portal` | Student Portal | `base.group_portal` (external portal role, not `base.group_user`) |
 
-Note: `group_teacher_dashboard` deliberately does **not** sit inside the admin → dean → hod → teacher hierarchy, so administrators do not automatically gain the Teacher Dashboard; only explicitly assigned users see it. This is what hides the Teacher Dashboard menu from `admin`.
+The six functional roles are **Student**, **Teacher/Advisor**, **Head of Department**, **Head of Faculty**, **Registrar**, and **University Administrator**. The dashboard selects its data and actions from the signed-in user's highest applicable functional role. `group_teacher_dashboard` remains a supporting access group for teacher-specific screens, not a separate business role.
+
+University Administrators also inherit Odoo System Administration. They can use **University -> Administration -> Role Management** to manage users and the six University Management roles, as well as the native settings and technical administration available to system administrators.
 
 ### Why `res.users.teacher_id` matters
 
@@ -242,9 +245,9 @@ The addon ships three OWL dashboard shells under `static/src/school_management/`
 
 - **Operational dashboard** (`school.dashboard` + `dashboard_shell`) — KPI counts and finance totals with actions that open the corresponding models.
 - **Student dashboard shell** (`student_dashboard_shell`) — the student-facing start screen.
-- **Teacher dashboard shell** (`teacher_dashboard_shell`) — the teacher-facing start screen, gated by `group_teacher_dashboard`.
+- **Teacher dashboard shell** (`teacher_dashboard_shell`) — teacher/advisor-focused attendance, class, and follow-up information.
 
-The custom `layout/school_layout.js` wraps the sidebar; the Teacher Dashboard entry is only shown to users with `group_teacher_dashboard` (system administrators are intentionally excluded). The backend also patches the webclient topbar/sidebar via `layout/webclient_patch.js`.
+The custom `layout/school_layout.js` wraps the sidebar, while the main Dashboard routes each of the six roles to the data and quick actions appropriate to its scope. The backend also patches the webclient topbar/sidebar via `layout/webclient_patch.js`.
 
 ## Reports
 
@@ -260,8 +263,8 @@ The payment receipt action is `school_management.action_report_university_paymen
 
 Main areas:
 
-- University root menu with Dashboard, Teacher Dashboard, Structure, Students, Teachers, Academic, Enrollment, Finance, Grading, Attendance, and the teacher-portal menus (Lesson Plans, Assignments, Timetables, Notice Board, Service Hours).
-- Dedicated **Student Portal** root menu for backend students (`group_school_student`).
+- University root menu with a single **Dashboard**, Structure, Students, Teachers, Academic, Enrollment, Finance, Grading, Attendance, and the teacher-portal menus (Lesson Plans, Assignments, Timetables, Notice Board, Service Hours).
+- The single Dashboard is role-aware: students receive their personal dashboard; teachers/advisors receive their teaching dashboard; HOD, Head of Faculty, Registrar, and University Administrator receive their respective operational views. There is no duplicate backend Student Portal menu.
 - A separate student **portal** flow is scaffolded: `views/portal_templates.xml` is currently a placeholder for portal pages, and `group_student_portal` (implies `base.group_portal`) grants read-only access to the student's own records.
 
 ## Migrations

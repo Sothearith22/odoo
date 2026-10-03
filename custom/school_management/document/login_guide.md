@@ -26,13 +26,16 @@ These accounts exist in the `odoo` database (`admin` is created by Odoo itself; 
 | `teacher` | Teacher | Teacher | School User, Teacher | Teacher **Dr. Gregory Hous** | Set at account creation |
 | `student` | Student | Student (internal) | School User, Student | Student record **Test** (student 6) | **`1234` (verified)** |
 
+The system's functional roles are Student, Teacher/Advisor, Head of Department, Head of Faculty, Registrar, and University Administrator. Create a Registrar account in **Settings -> Users** when one is not included in the local seed.
+
 ### What each role can see
 
-- **admin** — full access. Because `admin` is *not* in `school_management.group_teacher_dashboard`, the **Teacher Dashboard** sidebar/menu is hidden for it by design.
-- **dean** — sees the Faculty of Engineering & Technology scope and its departments/subjects/students/sections/enrollments (HOD + Dean record rules).
-- **hod** — sees the Department of Clinical Medicine scope (teachers, subjects, students, sections, enrollments) and can manage assignments.
-- **teacher** — sees only its own teacher profile and subjects it teaches; sees nothing outside that scope.
-- **student** — sees only its own student record and transactions (fees, payments, enrollments).
+- **admin** — University Administrator with full institutional access and an institution-wide dashboard.
+- **dean** — Head of Faculty, with faculty-wide information and a faculty dashboard.
+- **hod** — Head of Department, with managed-department information and a department dashboard.
+- **teacher** — Teacher/Advisor, with assigned classes, advisees, attendance, and follow-up information.
+- **student** — personal profile, enrollments, fees, payments, and student dashboard.
+- **registrar** — student-record and transcript request queues, with a registrar dashboard. Create this account if it is absent from the demo seed.
 
 After signing in as a user, if access does not match the table above, sign out and back in (record-rule group changes are loaded at login). Verify the user‑to‑teacher link under **Settings -> Users -> the user -> Academic Staff** if it still looks wrong. Until the `-u school_management` upgrade runs, the live database still holds the original (broken) user‑to‑teacher links, so dean/hod/teacher scopes will be smaller than the table shows.
 

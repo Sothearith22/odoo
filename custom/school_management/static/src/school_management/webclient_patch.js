@@ -193,9 +193,12 @@ patch(WebClient.prototype, {
             const isDean = await user.hasGroup("school_management.group_school_dean");
             const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
             const isTeacher = await user.hasGroup("school_management.group_school_teacher");
+            const isStudent = await user.hasGroup(STUDENT_GROUP_XMLID);
 
             let targetAction = SCHOOL_DASHBOARD_XMLID;
-            if (isTeacher && !isAdmin && !isDean && !isHod) {
+            if (isStudent && !isAdmin && !isTeacher) {
+                targetAction = STUDENT_ACTION_XMLID;
+            } else if (isTeacher && !isAdmin && !isDean && !isHod) {
                 targetAction = TEACHER_ACTION_XMLID;
             }
 

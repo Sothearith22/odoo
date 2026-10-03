@@ -47,13 +47,7 @@
         <field name="implied_ids" eval="[(4, ref('group_school_user'))]"/>
     </record>
 
-    <!--
-        Teacher Dashboard – isolated group for the Teacher Dashboard menu/action.
-        This group does NOT sit in the admin → dean → hod → teacher hierarchy,
-        so administrators (who inherit group_school_teacher via group_school_admin)
-        will NOT automatically gain access.  Only users explicitly assigned to this
-        group (or group_school_teacher AND this group) will see the dashboard.
-    -->
+    <!-- Supporting group for teacher-focused workspace actions. -->
     <record id="group_teacher_dashboard" model="res.groups">
         <field name="name">Teacher Dashboard</field>
         <field name="privilege_id" ref="school_management_privilege"/>
@@ -81,7 +75,7 @@
     <record id="group_school_admin" model="res.groups">
         <field name="name">University Administrator</field>
         <field name="privilege_id" ref="school_management_privilege"/>
-        <field name="implied_ids" eval="[(4, ref('group_school_dean')), (4, ref('group_school_registrar'))]"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_dean')), (4, ref('group_school_registrar')), (4, ref('group_teacher_dashboard')), (4, ref('base.group_system'))]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 

@@ -79,7 +79,8 @@
     "views/payment_views.xml",
     "views/document_signature_views.xml",
 
-    # Dashboard
+    # Dashboard & Notices
+    "views/notice_board_views.xml",
     "views/dashboard_views.xml",
     "views/school_dashboard_shell_actions.xml",
 
