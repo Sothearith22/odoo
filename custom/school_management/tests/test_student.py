@@ -156,3 +156,26 @@ class TestStudentModel(TransactionCase):
         from odoo.exceptions import UserError
         with self.assertRaises(UserError):
             student.unlink()
+
+    def test_student_avatar_color_and_counts(self):
+        """Verify avatar.mixin, color, and computed counts on student."""
+        student = self.Student.create({
+            "name": "Kesor Meas",
+            "program_id": self.program_cs.id,
+        })
+        self.assertIn("avatar_128", self.Student._fields)
+        self.assertIn("color", self.Student._fields)
+        self.assertEqual(student.color, self.faculty_eng.color)
+        self.assertEqual(student.enrollment_count, 0)
+        self.assertEqual(student.submission_count, 0)
+        self.assertEqual(student.report_card_count, 0)
+
+        # Test stat button actions
+        action_enrollments = student.action_view_enrollments()
+        self.assertEqual(action_enrollments["res_model"], "university.enrollment")
+        action_fees = student.action_view_fees()
+        self.assertEqual(action_fees["res_model"], "university.fee")
+        action_subs = student.action_view_submissions()
+        self.assertEqual(action_subs["res_model"], "university.assignment.submission")
+        action_rc = student.action_view_report_cards()
+        self.assertEqual(action_rc["res_model"], "university.report.card")

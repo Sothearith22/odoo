@@ -1,6 +1,7 @@
 from . import faculty
 from . import department
 from . import program
+from . import academic_lock
 from . import academic_year
 from . import semester
 from . import department_term
@@ -32,3 +33,5 @@ from . import service_hour
 from . import attendance
 from . import staff_attendance
 from . import exam
+from . import advising
+from . import transcript_request

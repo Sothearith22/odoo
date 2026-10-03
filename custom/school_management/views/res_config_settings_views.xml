@@ -55,6 +55,74 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Staff Attendance">
+                        <setting
+                            id="university_staff_attendance_policy"
+                            string="Working Hours &amp; Lateness Policy"
+                            help="Configure expected daily staff check-in/out times and grace period before arrival is considered late."
+                        >
+                            <div class="row mt16">
+                                <label
+                                    for="staff_expected_check_in"
+                                    string="Expected Check-In"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4">
+                                    <field name="staff_expected_check_in" widget="float_time"/>
+                                </div>
+                            </div>
+                            <div class="row mt16">
+                                <label
+                                    for="staff_expected_check_out"
+                                    string="Expected Check-Out"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4">
+                                    <field name="staff_expected_check_out" widget="float_time"/>
+                                </div>
+                            </div>
+                            <div class="row mt16">
+                                <label
+                                    for="staff_late_grace_minutes"
+                                    string="Late Grace Period"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4 d-flex align-items-center gap-2">
+                                    <field name="staff_late_grace_minutes"/>
+                                    <span class="text-muted">minutes</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Student Academic Risk Thresholds">
+                        <setting
+                            id="university_student_risk_thresholds"
+                            string="GPA &amp; Attendance Risk Thresholds"
+                            help="Configure risk thresholds used to identify students at academic or attendance risk."
+                        >
+                            <div class="row mt16">
+                                <label
+                                    for="risk_gpa_threshold"
+                                    string="Minimum GPA Threshold"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4">
+                                    <field name="risk_gpa_threshold"/>
+                                </div>
+                            </div>
+                            <div class="row mt16">
+                                <label
+                                    for="risk_attendance_threshold"
+                                    string="Minimum Attendance Rate"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4 d-flex align-items-center gap-2">
+                                    <field name="risk_attendance_threshold"/>
+                                    <span class="text-muted">%</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

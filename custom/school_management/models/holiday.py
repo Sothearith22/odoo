@@ -1,5 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversityHoliday(models.Model):
@@ -31,7 +32,7 @@ class UniversityHoliday(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             year_ids = [vals.get("academic_year_id") for vals in vals_list if vals.get("academic_year_id")]
             if year_ids:
                 years = self.env["university.academic.year"].browse(year_ids).exists()
@@ -40,13 +41,13 @@ class UniversityHoliday(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(holiday.academic_year_id.state in ("closed", "archived") for holiday in self):
                 raise UserError("Holidays of a closed or archived academic year cannot be modified.")
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(holiday.academic_year_id.state in ("closed", "archived") for holiday in self):
                 raise UserError("Holidays of a closed or archived academic year cannot be deleted.")
         return super().unlink()

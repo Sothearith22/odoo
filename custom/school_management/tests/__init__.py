@@ -13,3 +13,8 @@ from . import test_department_term
 from . import test_record_rules
 from . import test_student
 from . import test_teacher
+from . import test_teacher_managed_scopes
+from . import test_semester_subject
+from . import test_staff_attendance
+from . import test_role_dashboard_access
+from . import test_transcript_request

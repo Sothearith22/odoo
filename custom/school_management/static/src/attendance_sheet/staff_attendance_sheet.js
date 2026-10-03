@@ -5,20 +5,29 @@ import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
+import { Chatter } from "@mail/chatter/web_portal/chatter";
+import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 
 const STATUS_OPTIONS = [
-    { value: "present", label: "Present",  key: "P", icon: "fa-check" },
-    { value: "absent",  label: "Absent",   key: "A", icon: "fa-times" },
-    { value: "late",    label: "Late",     key: "L", icon: "fa-clock-o" },
-    { value: "leave",   label: "On Leave", key: "E", icon: "fa-plane" },
+    { value: "present",       label: "Present",       key: "P", icon: "fa-check" },
+    { value: "absent",        label: "Absent",        key: "A", icon: "fa-times" },
+    { value: "late",          label: "Late",          key: "L", icon: "fa-clock-o" },
+    { value: "leave",         label: "On Leave",      key: "E", icon: "fa-plane" },
+    { value: "official_duty", label: "Official Duty", key: "D", icon: "fa-briefcase" },
+    { value: "half_day",      label: "Half Day",      key: "H", icon: "fa-adjust" },
 ];
 
 const FILTERS = [
-    { value: "all",    label: "All" },
-    { value: "absent", label: "Absent" },
-    { value: "late",   label: "Late" },
-    { value: "leave",  label: "On Leave" },
+    { value: "all",           label: "All" },
+    { value: "present",       label: "Present" },
+    { value: "absent",        label: "Absent" },
+    { value: "late",          label: "Late" },
+    { value: "leave",         label: "On Leave" },
+    { value: "official_duty", label: "Official Duty" },
+    { value: "half_day",      label: "Half Day" },
 ];
+
+const AVATAR_TONES = 4;
 
 function today() {
     const now = new Date();
@@ -36,6 +45,36 @@ function clockTime(value) {
     return match ? `${match[1]}:${match[2]}` : "";
 }
 
+function utcToLocalTime(utcStr) {
+    if (!utcStr) return "";
+    const dateObj = new Date(utcStr.replace(" ", "T") + "Z");
+    if (isNaN(dateObj.getTime())) {
+        const match = String(utcStr).match(/(\d{2}):(\d{2})/);
+        return match ? `${match[1]}:${match[2]}` : "";
+    }
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+}
+
+function localTimeToUtc(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return false;
+    const parts = timeStr.split(":").map(Number);
+    const dateParts = dateStr.split("-").map(Number);
+    if (parts.length < 2 || dateParts.length < 3) return false;
+    const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], parts[0], parts[1], 0);
+    if (isNaN(localDate.getTime())) return false;
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${localDate.getUTCFullYear()}-${pad(localDate.getUTCMonth() + 1)}-${pad(localDate.getUTCDate())} ${pad(localDate.getUTCHours())}:${pad(localDate.getUTCMinutes())}:${pad(localDate.getUTCSeconds())}`;
+}
+
+function formatFloatTime(floatVal) {
+    if (floatVal === undefined || floatVal === null || isNaN(floatVal)) return "08:00";
+    const hours = Math.floor(floatVal);
+    const minutes = Math.round((floatVal - hours) * 60);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(hours)}:${pad(minutes)}`;
+}
+
 function initials(name) {
     const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return "?";
@@ -46,7 +85,7 @@ function initials(name) {
 function nameTone(name) {
     let sum = 0;
     for (const c of String(name || "")) sum += c.charCodeAt(0);
-    return sum % 4;
+    return sum % AVATAR_TONES;
 }
 
 function fmtHours(h) {
@@ -59,6 +98,7 @@ function fmtHours(h) {
 
 class StaffAttendanceSheet extends Component {
     static template = "school_management.StaffAttendanceSheet";
+    static components = { Chatter };
     static props = ["*"];
 
     setup() {
@@ -75,20 +115,29 @@ class StaffAttendanceSheet extends Component {
         const context = this.props.action?.context || {};
 
         this.state = useState({
-            date:         context.default_date || context.date || today(),
-            departmentId: context.default_department_id || context.department_id || "",
-            departments:  [],
-            lines:        [],
-            taken:        false,
-            lastSaved:    "",
-            loading:      false,
-            saving:       false,
-            error:        null,
-            query:        "",
-            filter:       "all",
-            activeId:     false,
-            openNoteId:   false,
-            isAdmin:      true,
+            date:                 context.default_date || context.date || today(),
+            departmentId:         context.default_department_id || context.department_id || "",
+            departments:          [],
+            lines:                [],
+            taken:                false,
+            lastSaved:            "",
+            loading:              false,
+            saving:               false,
+            error:                null,
+            query:                "",
+            filter:               "all",
+            activeId:             false,
+            openNoteId:           false,
+            isAdmin:              true,
+            holidayName:          "",
+            tab:                  "attendance",
+            notes:                "",
+            chatterRevision:      0,
+            expectedCheckInTime:  "08:00",
+            expectedCheckOutTime: "17:00",
+            graceMinutes:         15,
+            viewMode:             "timeline",
+            isFullscreen:         false,
         });
 
         useEffect(() => {
@@ -118,21 +167,51 @@ class StaffAttendanceSheet extends Component {
                 this.state.isAdmin = false;
             }
 
-            // Fetch active departments
+            // Fetch active departments with faculty and head
             try {
                 this.state.departments = await this.orm.searchRead(
                     "university.department",
                     [["active", "=", true]],
-                    ["id", "display_name"],
+                    ["id", "name", "display_name", "faculty_id", "head_id"],
                     { order: "name asc" }
                 );
             } catch (err) {
                 this.state.departments = [];
             }
 
+            // Fetch configurable policy parameters
+            try {
+                const params = await this.orm.searchRead(
+                    "ir.config_parameter",
+                    [["key", "in", [
+                        "school_management.staff_expected_check_in",
+                        "school_management.staff_expected_check_out",
+                        "school_management.staff_late_grace_minutes",
+                    ]]],
+                    ["key", "value"],
+                    {}
+                );
+                const map = {};
+                for (const p of params) map[p.key] = p.value;
+                if (map["school_management.staff_expected_check_in"]) {
+                    this.state.expectedCheckInTime = formatFloatTime(parseFloat(map["school_management.staff_expected_check_in"]));
+                }
+                if (map["school_management.staff_expected_check_out"]) {
+                    this.state.expectedCheckOutTime = formatFloatTime(parseFloat(map["school_management.staff_expected_check_out"]));
+                }
+                if (map["school_management.staff_late_grace_minutes"]) {
+                    this.state.graceMinutes = parseInt(map["school_management.staff_late_grace_minutes"], 10) || 15;
+                }
+            } catch {
+                // Keep defaults
+            }
+
             const passedDept = context.default_department_id || context.department_id;
             if (passedDept) {
                 this.state.departmentId = passedDept === "all" ? "all" : Number(passedDept);
+                await this.loadSheet();
+            } else if (this.state.departments.length) {
+                this.state.departmentId = this.state.departments[0].id;
                 await this.loadSheet();
             }
         });
@@ -140,7 +219,7 @@ class StaffAttendanceSheet extends Component {
 
     // ── Derived Properties ────────────────────────────────────
     get counts() {
-        const c = { present: 0, absent: 0, late: 0, leave: 0, total: this.state.lines.length };
+        const c = { present: 0, absent: 0, late: 0, leave: 0, official_duty: 0, half_day: 0, total: this.state.lines.length };
         for (const l of this.state.lines) {
             if (c[l.status] !== undefined) {
                 c[l.status] += 1;
@@ -149,11 +228,205 @@ class StaffAttendanceSheet extends Component {
         return c;
     }
 
+    get currentDepartment() {
+        if (!this.state.departmentId || this.state.departmentId === "all") return null;
+        return this.state.departments.find((d) => d.id === this.state.departmentId) || null;
+    }
+
     get currentDepartmentName() {
         if (!this.state.departmentId) return "";
         if (this.state.departmentId === "all") return _t("All Departments");
-        const dept = this.state.departments.find((d) => d.id === this.state.departmentId);
+        const dept = this.currentDepartment;
         return dept ? dept.display_name : "";
+    }
+
+    get currentFacultyName() {
+        const dept = this.currentDepartment;
+        return dept?.faculty_id ? dept.faculty_id[1] : "";
+    }
+
+    get currentHeadName() {
+        const dept = this.currentDepartment;
+        return dept?.head_id ? dept.head_id[1] : "";
+    }
+
+    get recordLabel() {
+        if (!this.state.departmentId || !this.state.date) {
+            return _t("Staff Attendance");
+        }
+        try {
+            return `${this.currentDepartmentName} - ${formatDate(deserializeDate(this.state.date))}`;
+        } catch {
+            return `${this.currentDepartmentName} - ${this.state.date}`;
+        }
+    }
+
+    get expectedHoursLabel() {
+        return `${this.state.expectedCheckInTime} - ${this.state.expectedCheckOutTime}`;
+    }
+
+    get activeStaffAttendanceId() {
+        if (!this.state.activeId) return false;
+        const line = this.state.lines.find((l) => l.teacher_id === this.state.activeId);
+        return line?.record_id || false;
+    }
+
+    setTab(tab) {
+        this.state.tab = tab;
+    }
+
+    setViewMode(mode) {
+        this.state.viewMode = mode;
+    }
+
+    openAttendanceReport() {
+        this.action.doAction("school_management.action_university_staff_attendance");
+    }
+
+    get isToday() {
+        return this.state.date === today();
+    }
+
+    get timelineFormattedDate() {
+        if (!this.state.date) return "";
+        try {
+            const parts = this.state.date.split("-").map(Number);
+            const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+            return dt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+        } catch {
+            return this.state.date;
+        }
+    }
+
+    get timelineHours() {
+        return [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    }
+
+    formatHourLabel(h) {
+        if (h === 12) return "12pm";
+        if (h > 12) return `${h - 12}pm`;
+        return `${h}am`;
+    }
+
+    isCurrentHour(h) {
+        if (!this.isToday) return false;
+        const nowH = new Date().getHours();
+        return nowH === h;
+    }
+
+    isLinePresent(line) {
+        return Boolean(line.check_in && !line.check_out) || (line.status === "present" && Boolean(line.check_in));
+    }
+
+    getLineTimeline(line) {
+        if (line.status === "absent") {
+            return { hasPill: false, statusText: _t("Absent"), statusClass: "o_att_pill--absent" };
+        }
+        if (line.status === "leave") {
+            return { hasPill: false, statusText: _t("On Leave"), statusClass: "o_att_pill--leave" };
+        }
+        if (line.status === "official_duty") {
+            return { hasPill: false, statusText: _t("Official Duty"), statusClass: "o_att_pill--duty" };
+        }
+        if (!line.check_in) {
+            return { hasPill: false, statusText: "", statusClass: "" };
+        }
+
+        const inParts = line.check_in.split(":").map(Number);
+        const startHour = (inParts[0] || 0) + (inParts[1] || 0) / 60.0;
+
+        let endHour;
+        let isOngoing = false;
+        if (line.check_out) {
+            const outParts = line.check_out.split(":").map(Number);
+            endHour = (outParts[0] || 0) + (outParts[1] || 0) / 60.0;
+            if (endHour <= startHour) endHour = startHour + 1;
+        } else {
+            isOngoing = true;
+            const now = new Date();
+            const currentHour = now.getHours() + now.getMinutes() / 60.0;
+            endHour = this.isToday ? Math.max(startHour + 0.5, Math.min(18.0, currentHour)) : Math.max(startHour + 1, 17.0);
+        }
+
+        const minH = 7.0;
+        const maxH = 18.0;
+        const totalH = maxH - minH; // 11 hours (7:00 to 18:00)
+
+        const clampedStart = Math.max(minH, Math.min(maxH, startHour));
+        const clampedEnd = Math.max(clampedStart + 0.25, Math.min(maxH, endHour));
+
+        const left = ((clampedStart - minH) / totalH) * 100;
+        const width = Math.max(3.8, ((clampedEnd - clampedStart) / totalH) * 100);
+
+        const format12h = (timeStr) => {
+            if (!timeStr) return "";
+            const [h, m] = timeStr.split(":").map(Number);
+            const ampm = (h || 0) >= 12 ? "PM" : "AM";
+            const h12 = (h || 0) % 12 || 12;
+            const pad = (n) => String(n).padStart(2, "0");
+            return `${pad(h12)}:${pad(m || 0)}:00 ${ampm}`;
+        };
+
+        let label = "";
+        if (isOngoing) {
+            label = `From ${format12h(line.check_in)}`;
+        } else {
+            const durHours = Math.floor(line.worked_hours || (endHour - startHour));
+            const durMins = Math.round(((line.worked_hours || (endHour - startHour)) - durHours) * 60);
+            const pad = (n) => String(n).padStart(2, "0");
+            label = `${pad(durHours)}:${pad(durMins)} (${format12h(line.check_in)}-${format12h(line.check_out)})`;
+        }
+
+        return {
+            hasPill: true,
+            left: `${left}%`,
+            width: `${width}%`,
+            isOngoing,
+            label,
+            pillClass: isOngoing ? "o_att_pill--ongoing" : "o_att_pill--completed",
+        };
+    }
+
+    onPrevDay() {
+        const parts = this.state.date.split("-").map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() - 1);
+        const pad = (n) => String(n).padStart(2, "0");
+        this.state.date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        this.loadSheet();
+    }
+
+    onNextDay() {
+        const parts = this.state.date.split("-").map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() + 1);
+        const pad = (n) => String(n).padStart(2, "0");
+        this.state.date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        this.loadSheet();
+    }
+
+    onToday() {
+        this.state.date = today();
+        this.loadSheet();
+    }
+
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            this.rootRef.el?.requestFullscreen().catch(() => {});
+            this.state.isFullscreen = true;
+        } else {
+            document.exitFullscreen().catch(() => {});
+            this.state.isFullscreen = false;
+        }
+    }
+
+    onTabKeydown(ev) {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) {
+            ev.preventDefault();
+            this.state.tab = ev.key === "Home" ? "attendance" : ev.key === "End" ? "details" :
+                this.state.tab === "attendance" ? "details" : "attendance";
+            this._pendingFocus = `[role="tab"][data-tab="${this.state.tab}"]`;
+        }
     }
 
     get visibleLines() {
@@ -204,11 +477,12 @@ class StaffAttendanceSheet extends Component {
     // ── Data Loading ──────────────────────────────────────────
     async loadSheet() {
         if (!this.state.departmentId || !this.state.date) {
-            this.state.lines     = [];
-            this.state.taken     = false;
-            this.state.lastSaved = "";
-            this.state.activeId  = false;
-            this._baseline       = this.snapshot();
+            this.state.lines       = [];
+            this.state.taken       = false;
+            this.state.lastSaved   = "";
+            this.state.activeId    = false;
+            this.state.holidayName = "";
+            this._baseline         = this.snapshot();
             return;
         }
 
@@ -238,9 +512,25 @@ class StaffAttendanceSheet extends Component {
             const records = await this.orm.searchRead(
                 "university.staff.attendance",
                 attDomain,
-                ["id", "staff_id", "status", "check_in", "check_out", "worked_hours", "remark", "write_date"],
+                ["id", "staff_id", "status", "state", "check_in", "check_out", "worked_hours", "remark", "write_date"],
                 {}
             );
+
+            // 2b. Check university holiday for this date
+            try {
+                const holidays = await this.orm.searchRead(
+                    "university.holiday",
+                    [
+                        ["date_start", "<=", this.state.date],
+                        ["date_end", ">=", this.state.date],
+                    ],
+                    ["name"],
+                    { limit: 1 }
+                );
+                this.state.holidayName = holidays.length ? holidays[0].name : "";
+            } catch {
+                this.state.holidayName = "";
+            }
 
             const recMap = {};
             let latestWrite = "";
@@ -257,8 +547,8 @@ class StaffAttendanceSheet extends Component {
             // 3. Assemble staff rows
             this.state.lines = teachers.map((t) => {
                 const rec = recMap[t.id] || null;
-                const checkIn  = rec?.check_in  ? rec.check_in.substring(11, 16)  : "";
-                const checkOut = rec?.check_out ? rec.check_out.substring(11, 16) : "";
+                const checkIn  = utcToLocalTime(rec?.check_in);
+                const checkOut = utcToLocalTime(rec?.check_out);
                 return {
                     teacher_id:   t.id,
                     record_id:    rec?.id || false,
@@ -267,6 +557,7 @@ class StaffAttendanceSheet extends Component {
                     department:   t.department_id ? t.department_id[1] : "",
                     has_image:    Boolean(t.image_1920),
                     status:       rec?.status || "present",
+                    state:        rec?.state || "draft",
                     check_in:     checkIn,
                     check_out:    checkOut,
                     worked_hours: rec?.worked_hours || 0,
@@ -351,7 +642,7 @@ class StaffAttendanceSheet extends Component {
         const isOpen = this.state.openNoteId === line.teacher_id;
         this.state.activeId   = line.teacher_id;
         this.state.openNoteId = isOpen ? false : line.teacher_id;
-        this._pendingFocus    = isOpen ? null : ".o_satt_note_input";
+        this._pendingFocus    = isOpen ? null : ".o_att_note_input";
     }
 
     closeNote() { this.state.openNoteId = false; }
@@ -419,8 +710,13 @@ class StaffAttendanceSheet extends Component {
             const toWrite  = [];
 
             for (const line of this.state.lines) {
-                const checkIn  = line.check_in  ? `${this.state.date} ${line.check_in}:00` : false;
-                const checkOut = line.check_out ? `${this.state.date} ${line.check_out}:00` : false;
+                // If record is already approved, it is locked against modification
+                if (line.record_id && line.state === "approved") {
+                    continue;
+                }
+
+                const checkIn  = localTimeToUtc(this.state.date, line.check_in);
+                const checkOut = localTimeToUtc(this.state.date, line.check_out);
 
                 const vals = {
                     staff_id:  line.teacher_id,
@@ -434,6 +730,7 @@ class StaffAttendanceSheet extends Component {
                 if (line.record_id) {
                     toWrite.push([line.record_id, vals]);
                 } else {
+                    vals.state = "draft";
                     toCreate.push(vals);
                 }
             }
@@ -447,14 +744,24 @@ class StaffAttendanceSheet extends Component {
 
             await this.loadSheet();
             this.state.lastSaved = clockTime(new Date());
+            this.state.chatterRevision += 1;
 
             const c = this.counts;
             const deptLabel = this.currentDepartmentName;
+            const summaryParts = [
+                `${c.total} staff`,
+                `${c.present} present`,
+                `${c.absent} absent`,
+                `${c.late} late`,
+                `${c.leave} on leave`,
+            ];
+            if (c.official_duty > 0) summaryParts.push(`${c.official_duty} official duty`);
+            if (c.half_day > 0) summaryParts.push(`${c.half_day} half day`);
             this.notification.add(
                 deptLabel ? _t("Attendance saved for %(dept)s", { dept: deptLabel }) : _t("Staff attendance saved"),
                 {
                     type: "success",
-                    message: `${c.total} staff · ${c.present} present · ${c.absent} absent · ${c.late} late · ${c.leave} on leave`,
+                    message: summaryParts.join(" · "),
                 }
             );
         } catch (e) {

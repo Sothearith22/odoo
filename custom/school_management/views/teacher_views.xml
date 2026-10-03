@@ -341,9 +341,23 @@
                     <filter string="Status" name="group_by_status" context="{'group_by': 'active'}"/>
                 </group>
                 <searchpanel>
-                    <field name="faculty_id" icon="fa-university" enable_counters="1"/>
-                    <field name="department_id" icon="fa-building" enable_counters="1"/>
-                    <field name="position" icon="fa-briefcase" enable_counters="1" expand="1" select="multi"/>
+                    <field
+                        name="faculty_id"
+                        icon="fa-university"
+                        enable_counters="1"
+                    />
+                    <field
+                        name="department_id"
+                        icon="fa-building"
+                        enable_counters="1"
+                    />
+                    <field
+                        name="position"
+                        icon="fa-briefcase"
+                        enable_counters="1"
+                        expand="1"
+                        select="multi"
+                    />
                 </searchpanel>
             </search>
         </field>

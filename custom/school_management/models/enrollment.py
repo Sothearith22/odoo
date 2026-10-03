@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversityEnrollment(models.Model):
@@ -310,7 +311,7 @@ class UniversityEnrollment(models.Model):
 
             # 3. Closed / archived academic year lock
             year = rec.academic_year_id or (rec.class_section_id.semester_id.academic_year_id if rec.class_section_id and rec.class_section_id.semester_id else False)
-            if year and year.state in ("closed", "archived") and not self.env.context.get("allow_closed_year_write"):
+            if year and year.state in ("closed", "archived") and not can_maintain_closed_year_records(self.env):
                 raise UserError("Enrollments cannot be created or modified for a closed or archived academic year.")
 
     def action_confirm(self):
@@ -366,7 +367,7 @@ class UniversityEnrollment(models.Model):
             if not vals.get("status"):
                 vals["status"] = "draft"
 
-            if not self.env.context.get("allow_closed_year_write"):
+            if not can_maintain_closed_year_records(self.env):
                 year_id = vals.get("academic_year_id")
                 if not year_id and vals.get("class_section_id"):
                     section = self.env["university.class.section"].browse(vals["class_section_id"]).exists()
@@ -380,7 +381,7 @@ class UniversityEnrollment(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(rec.academic_year_id.state in ("closed", "archived") for rec in self):
                 raise UserError("Enrollments in a closed or archived academic year cannot be modified.")
         if "section_id" in vals and "class_section_id" not in vals:
@@ -390,7 +391,7 @@ class UniversityEnrollment(models.Model):
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(rec.academic_year_id.state in ("closed", "archived") for rec in self):
                 raise UserError("Enrollments of a closed or archived academic year cannot be deleted.")
         return super().unlink()

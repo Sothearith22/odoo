@@ -1,6 +1,6 @@
 {
     "name": "University Management System",
-    "version": "19.0.1.3.3",
+    "version": "19.0.1.3.5",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -59,11 +59,13 @@
     "views/academic_assignment_views.xml",
     "views/teacher_views.xml",
     "views/student_views.xml",
+    "views/advising_views.xml",
 
     # Configuration
     "views/res_config_settings_views.xml",
     "views/capability_views.xml",
     "views/grading_views.xml",
+    "views/transcript_request_views.xml",
 
     # Reports
     "reports/payment_report_template.xml",

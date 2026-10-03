@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ==================== ADVISING NOTES VIEWS ==================== -->
+    <record id="view_university_student_advising_note_list" model="ir.ui.view">
+        <field name="name">university.student.advising.note.list</field>
+        <field name="model">university.student.advising.note</field>
+        <field name="arch" type="xml">
+            <list string="Advising Notes" default_order="date desc, id desc">
+                <field name="date"/>
+                <field name="student_id"/>
+                <field name="advisor_id"/>
+                <field name="category"
+                       widget="badge"
+                       decoration-info="category == 'academic'"
+                       decoration-warning="category == 'attendance'"
+                       decoration-success="category == 'career'"
+                       decoration-muted="category == 'personal'"/>
+                <field name="is_private" widget="boolean_toggle"/>
+                <field name="department_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_student_advising_note_form" model="ir.ui.view">
+        <field name="name">university.student.advising.note.form</field>
+        <field name="model">university.student.advising.note</field>
+        <field name="arch" type="xml">
+            <form string="Advising Note">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="student_id"/>
+                            <field name="advisor_id"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="category"/>
+                            <field name="is_private" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Advising Note Content">
+                        <field name="note" nolabel="1" placeholder="Enter confidential or guidance observations and recommendations..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_university_student_advising_note_search" model="ir.ui.view">
+        <field name="name">university.student.advising.note.search</field>
+        <field name="model">university.student.advising.note</field>
+        <field name="arch" type="xml">
+            <search string="Search Advising Notes">
+                <field name="student_id"/>
+                <field name="advisor_id"/>
+                <field name="category"/>
+                <filter string="My Notes" name="my_notes" domain="[('advisor_id.user_id', '=', uid)]"/>
+                <filter string="Academic" name="academic" domain="[('category', '=', 'academic')]"/>
+                <filter string="Attendance" name="attendance" domain="[('category', '=', 'attendance')]"/>
+                <filter string="Career" name="career" domain="[('category', '=', 'career')]"/>
+                <separator/>
+                <filter string="Confidential / Private" name="private" domain="[('is_private', '=', True)]"/>
+                <filter string="Standard (Public)" name="public" domain="[('is_private', '=', False)]"/>
+                <group>
+                    <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
+                    <filter string="Advisor" name="group_by_advisor" context="{'group_by': 'advisor_id'}"/>
+                    <filter string="Category" name="group_by_category" context="{'group_by': 'category'}"/>
+                    <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_university_student_advising_note" model="ir.actions.act_window">
+        <field name="name">Advising Notes</field>
+        <field name="res_model">university.student.advising.note</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_university_student_advising_note_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Record student academic and wellbeing advising notes.
+            </p>
+        </field>
+    </record>
+
+    <!-- ==================== FOLLOW-UP ACTION VIEWS ==================== -->
+    <record id="view_university_student_followup_list" model="ir.ui.view">
+        <field name="name">university.student.followup.list</field>
+        <field name="model">university.student.followup</field>
+        <field name="arch" type="xml">
+            <list string="Follow-up Actions" default_order="date_deadline asc, id desc">
+                <field name="date_deadline"/>
+                <field name="title"/>
+                <field name="student_id"/>
+                <field name="advisor_id"/>
+                <field name="action_type"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-warning="state == 'pending'"
+                       decoration-info="state == 'in_progress'"
+                       decoration-success="state == 'completed'"
+                       decoration-muted="state == 'cancelled'"/>
+                <field name="visible_to_student" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_university_student_followup_form" model="ir.ui.view">
+        <field name="name">university.student.followup.form</field>
+        <field name="model">university.student.followup</field>
+        <field name="arch" type="xml">
+            <form string="Follow-up Action">
+                <header>
+                    <button name="action_start"
+                            string="Start Progress"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'pending'"/>
+                    <button name="action_complete"
+                            string="Mark Completed"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state not in ('pending', 'in_progress')"/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state in ('completed', 'cancelled')"/>
+                    <button name="action_reset"
+                            string="Reset"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="title" string="Action Title"/>
+                        <h1>
+                            <field name="title" placeholder="e.g. Schedule GPA improvement review meeting"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="student_id"/>
+                            <field name="advisor_id"/>
+                            <field name="action_type"/>
+                        </group>
+                        <group>
+                            <field name="date_deadline"/>
+                            <field name="visible_to_student" widget="boolean_toggle"/>
+                            <field name="department_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Action Plan &amp; Guidance Notes">
+                        <field name="description" nolabel="1" placeholder="Specify next steps, recommended interventions, or agreed student goals..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_university_student_followup_search" model="ir.ui.view">
+        <field name="name">university.student.followup.search</field>
+        <field name="model">university.student.followup</field>
+        <field name="arch" type="xml">
+            <search string="Search Follow-up Actions">
+                <field name="title"/>
+                <field name="student_id"/>
+                <field name="advisor_id"/>
+                <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completed" name="completed" domain="[('state', '=', 'completed')]"/>
+                <filter string="My Assigned" name="my_assigned" domain="[('advisor_id.user_id', '=', uid)]"/>
+                <separator/>
+                <filter string="Visible to Student" name="shared" domain="[('visible_to_student', '=', True)]"/>
+                <group>
+                    <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
+                    <filter string="Advisor" name="group_by_advisor" context="{'group_by': 'advisor_id'}"/>
+                    <filter string="Action Type" name="group_by_type" context="{'group_by': 'action_type'}"/>
+                    <filter string="Deadline" name="group_by_deadline" context="{'group_by': 'date_deadline'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_university_student_followup" model="ir.actions.act_window">
+        <field name="name">Follow-up Actions</field>
+        <field name="res_model">university.student.followup</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_university_student_followup_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage academic advising follow-up actions and student interventions.
+            </p>
+        </field>
+    </record>
+
+</odoo>

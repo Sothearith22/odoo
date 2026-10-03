@@ -42,4 +42,11 @@
         <field name="padding" eval="4"/>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="seq_university_transcript_request" model="ir.sequence">
+        <field name="name">University Transcript Request</field>
+        <field name="code">university.transcript.request</field>
+        <field name="prefix">TR-%(year)s-</field>
+        <field name="padding" eval="4"/>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

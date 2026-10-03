@@ -30,12 +30,90 @@
         groups="school_management.group_teacher_dashboard"
     />
 
+    <!-- ==================== STUDENT QUICK ACCESS NAVIGATION ==================== -->
+    <menuitem
+        id="menu_student_nav_classes"
+        name="My Classes"
+        parent="menu_school_root"
+        action="action_university_class_section_student"
+        sequence="3"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_classrooms"
+        name="Classrooms"
+        parent="menu_school_root"
+        action="action_university_classroom"
+        sequence="4"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_schedule"
+        name="Schedule"
+        parent="menu_school_root"
+        action="action_university_timetable_slot_student"
+        sequence="5"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_transcripts"
+        name="Transcripts"
+        parent="menu_school_root"
+        sequence="6"
+        groups="school_management.group_school_student"
+    />
+    <menuitem
+        id="menu_student_nav_my_transcript"
+        name="My Transcript"
+        parent="menu_student_nav_transcripts"
+        action="action_university_transcript_student"
+        sequence="1"
+        groups="school_management.group_school_student"
+    />
+    <menuitem
+        id="menu_student_nav_report_cards"
+        name="Report Cards"
+        parent="menu_student_nav_transcripts"
+        action="action_university_report_card_student"
+        sequence="2"
+        groups="school_management.group_school_student"
+    />
+    <menuitem
+        id="menu_student_nav_transcript_requests"
+        name="Transcript Requests"
+        parent="menu_student_nav_transcripts"
+        action="action_university_transcript_request_student"
+        sequence="3"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_fees"
+        name="My Fees"
+        parent="menu_school_root"
+        action="action_university_fee_student"
+        sequence="7"
+        groups="school_management.group_school_student"
+    />
+
+    <menuitem
+        id="menu_student_nav_profile"
+        name="My Profile"
+        parent="menu_school_root"
+        action="action_university_student_profile"
+        sequence="8"
+        groups="school_management.group_school_student"
+    />
+
     <!-- ==================== 1. ACADEMIC STRUCTURE ==================== -->
     <menuitem
         id="menu_university_structure"
         name="Academic Structure"
         parent="menu_school_root"
-        sequence="10"
+        sequence="20"
         groups="school_management.group_school_hod"
     />
     <menuitem
@@ -116,7 +194,7 @@
         parent="menu_university_structure"
         action="action_university_classroom"
         sequence="70"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_hod,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_timeslot"
@@ -166,6 +244,14 @@
         sequence="105"
         groups="school_management.group_school_admin"
     />
+    <menuitem
+        id="menu_university_transcript_request"
+        name="Transcript Requests"
+        parent="menu_university_structure"
+        action="action_university_transcript_request"
+        sequence="106"
+        groups="school_management.group_school_registrar"
+    />
 
     <menuitem
         id="menu_university_people"
@@ -192,6 +278,31 @@
         name="Academic Staff"
         parent="menu_university_people"
         action="action_university_teacher"
+        sequence="20"
+        groups="school_management.group_school_teacher"
+    />
+
+    <!-- Student Advising Submenu -->
+    <menuitem
+        id="menu_university_advising_category"
+        name="Student Advising"
+        parent="menu_university_people"
+        sequence="25"
+        groups="school_management.group_school_teacher"
+    />
+    <menuitem
+        id="menu_university_advising_notes"
+        name="Advising Notes"
+        parent="menu_university_advising_category"
+        action="action_university_student_advising_note"
+        sequence="10"
+        groups="school_management.group_school_teacher"
+    />
+    <menuitem
+        id="menu_university_student_followups"
+        name="Follow-up Actions"
+        parent="menu_university_advising_category"
+        action="action_university_student_followup"
         sequence="20"
         groups="school_management.group_school_teacher"
     />
@@ -239,7 +350,7 @@
     />
     <menuitem
         id="menu_university_staff_attendance_sheet"
-        name="Check-in Log"
+        name="Staff Attendance"
         parent="menu_university_staff_attendance_category"
         action="action_university_staff_attendance_sheet"
         sequence="10"
@@ -264,7 +375,7 @@
     />
     <menuitem
         id="menu_university_take_attendance"
-        name="Track Attendance"
+        name="Student Attendance Management"
         parent="menu_university_academic_category"
         action="action_university_attendance_sheet"
         sequence="5"
@@ -294,6 +405,14 @@
         parent="menu_university_academic_category"
         action="action_university_class_section"
         sequence="20"
+        groups="school_management.group_school_teacher"
+    />
+    <menuitem
+        id="menu_university_teaching_classroom"
+        name="Classrooms"
+        parent="menu_university_academic_category"
+        action="action_university_classroom"
+        sequence="25"
         groups="school_management.group_school_teacher"
     />
     <menuitem

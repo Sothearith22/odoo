@@ -498,3 +498,24 @@ school_management/
 - [Coding Guidelines](https://www.odoo.com/documentation/latest/contributing/development/coding_guidelines.html)
 - [CONTRIBUTING.md](../../../CONTRIBUTING.md)
 - [`local_configuration_guide.md`](local_configuration_guide.md) — install/upgrade/verify the addon; use `start_odoo.ps1` to launch Odoo with wkhtmltopdf on `PATH`.
+
+
+                                 ┌──────────────────────────────────────────────┐
+                                 │       University Management System           │
+                                 │           (4 Functional Roles)               │
+                                 └──────────────────────┬───────────────────────┘
+                                                        │
+          ┌───────────────────────────┬─────────────────┴─────────────┬───────────────────────────┐
+          ▼                           ▼                               ▼                           ▼
+┌──────────────────┐        ┌──────────────────┐            ┌──────────────────┐        ┌──────────────────┐
+│  Administrator   │        │Head of Department│            │ Teacher/Advisor  │        │     Student      │
+│(Global Authority)│        │(Dept Scoped Org) │            │ (Advisees/Teach) │        │ (Personal Scope) │
+├──────────────────┤        ├──────────────────┤            ├──────────────────┤        ├──────────────────┤
+│• Global KPI view │        │• Managed Dept only│            │• Advisees + class│        │• Own profile &   │
+│• All depts/facs  │        │• Assign advisors │            │  sections only   │          metrics (GPA,    │
+│• All teachers/   │        │  within dept     │            │• Advising notes &│          attendance %,    │
+│  students        │        │• Dept risk/GPA/  │            │  interventions   │          standing)        │
+│• Configure risk  │        │  attendance trend│            │• Private notes   │        │• Assigned advisor│
+│  thresholds      │        │• No unrelated    │            │  confidential    │        │• Shared follow-up│
+│• No sudo() hacks │        │  dept access     │            │• Zero fee access │          actions only     │
+└──────────────────┘        └──────────────────┘            └──────────────────┘        └──────────────────┘

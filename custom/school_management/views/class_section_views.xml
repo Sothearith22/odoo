@@ -28,9 +28,9 @@
         <field name="arch" type="xml">
             <form string="Class Section">
                 <header>
-                    <button name="action_open_bulk_enroll_wizard" string="Enroll Multiple Students" type="object" class="oe_highlight"/>
-                    <button name="action_open_populate_class_wizard" string="Populate Class" type="object" class="btn-secondary"/>
-                    <button name="action_open_timetable_generation_wizard" string="Generate Timetable" type="object" class="btn-secondary"/>
+                    <button name="action_open_bulk_enroll_wizard" string="Enroll Multiple Students" type="object" class="oe_highlight" groups="school_management.group_school_teacher"/>
+                    <button name="action_open_populate_class_wizard" string="Populate Class" type="object" class="btn-secondary" groups="school_management.group_school_teacher"/>
+                    <button name="action_open_timetable_generation_wizard" string="Generate Timetable" type="object" class="btn-secondary" groups="school_management.group_school_teacher"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -191,6 +191,16 @@
         <field name="name">Class Sections</field>
         <field name="res_model">university.class.section</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_university_class_section_search"/>
+    </record>
+
+    <record id="action_university_class_section_student" model="ir.actions.act_window">
+        <field name="name">My Classes</field>
+        <field name="res_model">university.class.section</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_id" ref="view_university_class_section_kanban"/>
+        <field name="domain">[('enrollment_ids.student_id.user_id', '=', uid)]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_class_section_search"/>
     </record>
 

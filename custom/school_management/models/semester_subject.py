@@ -1,5 +1,6 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversitySemesterSubject(models.Model):
@@ -45,41 +46,62 @@ class UniversitySemesterSubject(models.Model):
     )
     active = fields.Boolean(string="Active", default=True)
 
+    _unique_semester_subject = models.Constraint(
+        "UNIQUE (semester_id, subject_id)",
+        "This subject is already offered in the selected semester. An archived offering may already exist.",
+    )
+
+    def _effective_semesters_for_create(self, vals_list):
+        default_semester_id = self.default_get(["semester_id"]).get("semester_id")
+        semester_ids = {
+            vals["semester_id"]
+            if "semester_id" in vals
+            else default_semester_id
+            for vals in vals_list
+        }
+        return self.env["university.semester"].browse(
+            [semester_id for semester_id in semester_ids if semester_id]
+        ).exists()
+
+    @staticmethod
+    def _has_locked_year(records):
+        return any(
+            record.academic_year_id.state in ("closed", "archived")
+            for record in records
+        )
+
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("allow_closed_year_write"):
-            semester_ids = [vals.get("semester_id") for vals in vals_list if vals.get("semester_id")]
-            if semester_ids:
-                semesters = self.env["university.semester"].browse(semester_ids).exists()
-                if any(s.academic_year_id.state in ("closed", "archived") for s in semesters):
-                    raise UserError("Cannot create semester subjects in a closed or archived academic year.")
+        if not can_maintain_closed_year_records(self.env):
+            semesters = self._effective_semesters_for_create(vals_list)
+            if any(
+                semester.academic_year_id.state in ("closed", "archived")
+                for semester in semesters
+            ):
+                raise UserError(
+                    "Cannot create semester subjects in a closed or archived academic year."
+                )
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
-            if any(subj.academic_year_id.state in ("closed", "archived") for subj in self):
+        if not can_maintain_closed_year_records(self.env):
+            if self._has_locked_year(self):
                 raise UserError("Semester subjects of a closed or archived academic year are read-only and cannot be modified.")
+            if "semester_id" in vals:
+                destination = self.env["university.semester"].browse(
+                    vals["semester_id"]
+                ).exists()
+                if destination.academic_year_id.state in ("closed", "archived"):
+                    raise UserError(
+                        "Cannot move a semester subject into a closed or archived academic year."
+                    )
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
-            if any(subj.academic_year_id.state in ("closed", "archived") for subj in self):
+        if not can_maintain_closed_year_records(self.env):
+            if self._has_locked_year(self):
                 raise UserError("Cannot delete semester subjects of a closed or archived academic year.")
         return super().unlink()
-
-    @api.constrains("semester_id", "subject_id")
-    def _check_unique_semester_subject(self):
-        for rec in self:
-            if rec.semester_id and rec.subject_id:
-                domain = [
-                    ("id", "!=", rec.id),
-                    ("semester_id", "=", rec.semester_id.id),
-                    ("subject_id", "=", rec.subject_id.id),
-                ]
-                if self.search_count(domain):
-                    raise ValidationError(
-                        "This subject is already offered in the selected semester."
-                    )
 
     @api.depends("semester_id.name", "subject_id.name")
     def _compute_display_name(self):

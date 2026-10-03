@@ -108,14 +108,34 @@ class UniversityTimetableSlot(models.Model):
         store=True,
     )
 
-    @api.depends("section_id", "subject_id", "start_time")
+    @api.depends("section_id.name", "subject_id.name", "classroom_id.name", "location")
     def _compute_name(self):
         for slot in self:
-            if slot.section_id and slot.subject_id and slot.start_time:
-                date_str = slot.start_time.strftime("%Y-%m-%d")
-                slot.name = f"{slot.section_id.name}-{slot.subject_id.name}({date_str})"
+            subj = slot.subject_id.name if slot.subject_id else "Class"
+            room = slot.classroom_id.name or slot.location or ""
+            sec = slot.section_id.name or ""
+            if room and sec:
+                slot.name = f"{subj} ({sec} - {room})"
+            elif room:
+                slot.name = f"{subj} [{room}]"
+            elif sec:
+                slot.name = f"{subj} ({sec})"
             else:
-                slot.name = "New Slot"
+                slot.name = subj
+
+    def _compute_display_name(self):
+        for slot in self:
+            subj = slot.subject_id.name if slot.subject_id else "Class"
+            room = slot.classroom_id.name or slot.location or ""
+            sec = slot.section_id.name or ""
+            if room and sec:
+                slot.display_name = f"{subj} ({sec} - {room})"
+            elif room:
+                slot.display_name = f"{subj} [{room}]"
+            elif sec:
+                slot.display_name = f"{subj} ({sec})"
+            else:
+                slot.display_name = subj
 
     @api.onchange("classroom_id")
     def _onchange_classroom_id(self):

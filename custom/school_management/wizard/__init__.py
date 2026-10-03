@@ -4,3 +4,4 @@ from . import populate_class_wizard
 from . import timetable_generation_wizard
 from . import teacher_account_wizard
 from . import year_rollover_wizard
+from . import transcript_request_reject_wizard

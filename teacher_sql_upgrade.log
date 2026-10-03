@@ -1,0 +1,101 @@
+2026-10-02 03:08:48,680 12640 INFO ? odoo: Odoo version 19.0 
+2026-10-02 03:08:48,680 12640 INFO ? odoo: Using configuration file at c:\odoo\odoo\odoo.conf 
+2026-10-02 03:08:48,680 12640 INFO ? odoo: addons paths: _NamespacePath(['C:\\Odoo\\odoo\\odoo\\addons', 'C:\\Users\\Rith2\\AppData\\Local\\OpenERP S.A.\\Odoo\\addons\\19.0', 'c:\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\odoo\\addons', 'c:\\odoo\\odoo\\custom']) 
+2026-10-02 03:08:48,680 12640 INFO ? odoo: database: odoo@127.0.0.1:5432 
+2026-10-02 03:08:48,958 12640 INFO ? odoo.service.server: HTTP service (werkzeug) running on kubernetes.docker.internal:8070 
+2026-10-02 03:08:49,006 12640 INFO odoo odoo.tests.common: Importing test framework 
+2026-10-02 03:08:49,050 12640 INFO odoo odoo.modules.loading: loading 1 modules... 
+2026-10-02 03:08:49,052 12640 INFO odoo odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-10-02 03:08:49,068 12640 INFO odoo odoo.modules.loading: updating modules list 
+2026-10-02 03:08:49,071 12640 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on [] to user __system__ #1 via n/a 
+2026-10-02 03:08:49,978 12640 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_upgrade on ['University Management System'] to user __system__ #1 via n/a 
+2026-10-02 03:08:49,978 12640 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.update_list on ['University Management System'] to user __system__ #1 via n/a 
+2026-10-02 03:08:50,541 12640 INFO odoo odoo.addons.base.models.ir_module: ALLOW access to module.button_install on [] to user __system__ #1 via n/a 
+2026-10-02 03:08:50,568 12640 INFO odoo odoo.modules.loading: loading 131 modules... 
+2026-10-02 03:08:50,913 12640 INFO odoo odoo.modules.loading: Loading module school_management (58/131) 
+2026-10-02 03:08:51,013 12640 INFO odoo odoo.registry: module school_management: creating or updating database tables 
+2026-10-02 03:08:51,040 12640 INFO odoo odoo.models: Prepare computation of university.teacher.managed_faculty_id 
+2026-10-02 03:08:51,040 12640 INFO odoo odoo.models: Prepare computation of university.teacher.managed_department_id 
+2026-10-02 03:08:51,283 12640 INFO odoo odoo.modules.loading: loading school_management/security/security.xml 
+2026-10-02 03:08:51,463 12640 INFO odoo odoo.modules.loading: loading school_management/security/ir.model.access.csv 
+2026-10-02 03:08:51,602 12640 INFO odoo odoo.modules.loading: loading school_management/security/record_rules.xml 
+2026-10-02 03:08:51,932 12640 INFO odoo odoo.modules.loading: loading school_management/data/cleanup_legacy_models.xml 
+2026-10-02 03:08:51,933 12640 INFO odoo odoo.modules.loading: loading school_management/data/dashboard_data.xml 
+2026-10-02 03:08:51,936 12640 INFO odoo odoo.modules.loading: loading school_management/data/fee_sequence.xml 
+2026-10-02 03:08:51,942 12640 INFO odoo odoo.modules.loading: loading school_management/data/student_sequence.xml 
+2026-10-02 03:08:51,944 12640 INFO odoo odoo.modules.loading: loading school_management/data/teacher_sequence.xml 
+2026-10-02 03:08:51,945 12640 INFO odoo odoo.modules.loading: loading school_management/data/academic_defaults.xml 
+2026-10-02 03:08:51,959 12640 INFO odoo odoo.modules.loading: loading school_management/data/admission_stage_data.xml 
+2026-10-02 03:08:51,964 12640 INFO odoo odoo.modules.loading: loading school_management/data/mail_template.xml 
+2026-10-02 03:08:51,985 12640 INFO odoo odoo.modules.loading: loading school_management/data/university_capability_data.xml 
+2026-10-02 03:08:51,997 12640 INFO odoo odoo.modules.loading: loading school_management/data/fix_user_teacher_links.xml 
+2026-10-02 03:08:51,997 12640 INFO odoo odoo.modules.loading: loading school_management/data/exam_cron_data.xml 
+2026-10-02 03:08:52,000 12640 INFO odoo odoo.modules.loading: loading school_management/data/ir_cron.xml 
+2026-10-02 03:08:52,002 12640 INFO odoo odoo.modules.loading: loading school_management/views/portal_templates.xml 
+2026-10-02 03:08:52,003 12640 INFO odoo odoo.modules.loading: loading school_management/wizard/student_enrollment_wizard_views.xml 
+2026-10-02 03:08:52,014 12640 INFO odoo odoo.modules.loading: loading school_management/wizard/bulk_enrollment_wizard_views.xml 
+2026-10-02 03:08:52,022 12640 INFO odoo odoo.modules.loading: loading school_management/wizard/populate_class_wizard_views.xml 
+2026-10-02 03:08:52,035 12640 INFO odoo odoo.modules.loading: loading school_management/wizard/teacher_account_wizard_views.xml 
+2026-10-02 03:08:52,043 12640 INFO odoo odoo.modules.loading: loading school_management/wizard/year_rollover_wizard_views.xml 
+2026-10-02 03:08:52,050 12640 INFO odoo odoo.modules.loading: loading school_management/views/faculty_views.xml 
+2026-10-02 03:08:52,101 12640 INFO odoo odoo.modules.loading: loading school_management/views/department_views.xml 
+2026-10-02 03:08:52,130 12640 INFO odoo odoo.modules.loading: loading school_management/views/program_views.xml 
+2026-10-02 03:08:52,164 12640 INFO odoo odoo.modules.loading: loading school_management/views/academic_year_views.xml 
+2026-10-02 03:08:52,233 12640 INFO odoo odoo.modules.loading: loading school_management/views/department_term_views.xml 
+2026-10-02 03:08:52,273 12640 INFO odoo odoo.modules.loading: loading school_management/views/holiday_views.xml 
+2026-10-02 03:08:52,292 12640 INFO odoo odoo.modules.loading: loading school_management/views/semester_subject_views.xml 
+2026-10-02 03:08:52,314 12640 INFO odoo odoo.modules.loading: loading school_management/views/classroom_views.xml 
+2026-10-02 03:08:52,344 12640 INFO odoo odoo.modules.loading: loading school_management/views/admission_views.xml 
+2026-10-02 03:08:52,364 12640 INFO odoo odoo.modules.loading: loading school_management/views/admission_lead_views.xml 
+2026-10-02 03:08:52,385 12640 INFO odoo odoo.modules.loading: loading school_management/views/subject_views.xml 
+2026-10-02 03:08:52,420 12640 INFO odoo odoo.modules.loading: loading school_management/views/class_section_views.xml 
+2026-10-02 03:08:52,443 12640 INFO odoo odoo.modules.loading: loading school_management/views/academic_assignment_views.xml 
+2026-10-02 03:08:52,470 12640 INFO odoo odoo.modules.loading: loading school_management/views/teacher_views.xml 
+2026-10-02 03:08:52,530 12640 INFO odoo odoo.modules.loading: loading school_management/views/student_views.xml 
+2026-10-02 03:08:52,568 12640 INFO odoo odoo.modules.loading: loading school_management/views/res_config_settings_views.xml 
+2026-10-02 03:08:52,630 12640 INFO odoo odoo.modules.loading: loading school_management/views/capability_views.xml 
+2026-10-02 03:08:52,648 12640 INFO odoo odoo.modules.loading: loading school_management/views/grading_views.xml 
+2026-10-02 03:08:52,721 12640 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report_template.xml 
+2026-10-02 03:08:52,732 12640 INFO odoo odoo.modules.loading: loading school_management/reports/payment_report.xml 
+2026-10-02 03:08:52,735 12640 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report_template.xml 
+2026-10-02 03:08:52,742 12640 INFO odoo odoo.modules.loading: loading school_management/reports/curriculum_report.xml 
+2026-10-02 03:08:52,747 12640 INFO odoo odoo.modules.loading: loading school_management/views/enrollment_views.xml 
+2026-10-02 03:08:52,782 12640 INFO odoo odoo.modules.loading: loading school_management/views/fee_views.xml 
+2026-10-02 03:08:52,829 12640 INFO odoo odoo.modules.loading: loading school_management/views/payment_views.xml 
+2026-10-02 03:08:52,853 12640 INFO odoo odoo.modules.loading: loading school_management/views/document_signature_views.xml 
+2026-10-02 03:08:52,868 12640 INFO odoo odoo.modules.loading: loading school_management/views/dashboard_views.xml 
+2026-10-02 03:08:52,892 12640 INFO odoo odoo.modules.loading: loading school_management/views/school_dashboard_shell_actions.xml 
+2026-10-02 03:08:52,901 12640 INFO odoo odoo.modules.loading: loading school_management/views/teacher_dashboard_shell_actions.xml 
+2026-10-02 03:08:52,904 12640 INFO odoo odoo.modules.loading: loading school_management/views/lesson_plan_views.xml 
+2026-10-02 03:08:52,939 12640 INFO odoo odoo.modules.loading: loading school_management/views/assignment_views.xml 
+2026-10-02 03:08:52,991 12640 INFO odoo odoo.modules.loading: loading school_management/views/timetable_views.xml 
+2026-10-02 03:08:53,043 12640 INFO odoo odoo.modules.loading: loading school_management/views/attendance_sheet_views.xml 
+2026-10-02 03:08:53,051 12640 INFO odoo odoo.modules.loading: loading school_management/views/attendance_views.xml 
+2026-10-02 03:08:53,068 12640 INFO odoo odoo.modules.loading: loading school_management/views/staff_attendance_views.xml 
+2026-10-02 03:08:53,088 12640 INFO odoo odoo.modules.loading: loading school_management/views/service_hour_views.xml 
+2026-10-02 03:08:53,106 12640 INFO odoo odoo.modules.loading: loading school_management/views/exam_views.xml 
+2026-10-02 03:08:53,162 12640 INFO odoo odoo.modules.loading: loading school_management/reports/academic_report_templates.xml 
+2026-10-02 03:08:53,173 12640 INFO odoo odoo.modules.loading: loading school_management/reports/academic_reports.xml 
+2026-10-02 03:08:53,173 12640 INFO odoo odoo.modules.loading: loading school_management/views/menu_views.xml 
+2026-10-02 03:08:53,498 12640 INFO odoo odoo.addons.school_management.tests.test_teacher_managed_scopes: Starting TestTeacherManagedScopes.test_department_membership_does_not_imply_management ... 
+2026-10-02 03:08:53,532 12640 INFO odoo odoo.addons.school_management.tests.test_teacher_managed_scopes: Starting TestTeacherManagedScopes.test_managed_department_recomputes_after_assignment_changes ... 
+2026-10-02 03:08:53,578 12640 INFO odoo odoo.models.unlink: User #1 deleted university.academic.assignment records with IDs: [281] 
+2026-10-02 03:08:53,580 12640 INFO odoo odoo.addons.school_management.tests.test_teacher_managed_scopes: Starting TestTeacherManagedScopes.test_managed_faculty_recomputes_after_role_changes ... 
+2026-10-02 03:08:53,602 12640 INFO odoo odoo.addons.school_management.tests.test_teacher_managed_scopes: Starting TestTeacherManagedScopes.test_managed_scope_search_panel_counters_and_grouping ... 
+2026-10-02 03:08:53,732 12640 INFO odoo odoo.addons.base.models.ir_attachment: filestore gc 0 checked, 0 removed 
+2026-10-02 03:08:53,741 12640 INFO odoo odoo.modules.loading: Module school_management loaded in 2.83s (incl. 0.27s test), 3897 queries (+130 test, +3897 other) 
+2026-10-02 03:08:54,256 12640 INFO odoo odoo.modules.loading: 131 modules loaded in 3.69s, 3897 queries (+4027 extra) 
+2026-10-02 03:08:55,208 12640 INFO odoo odoo.registry: verifying fields for every extended model 
+2026-10-02 03:08:56,827 12640 INFO odoo odoo.modules.loading: Modules loaded. 
+2026-10-02 03:08:56,847 12640 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.autopost_bills 
+2026-10-02 03:08:56,848 12640 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_rfq 
+2026-10-02 03:08:56,848 12640 WARNING odoo odoo.schema: Missing not-null constraint on res.partner.group_on 
+2026-10-02 03:08:56,862 12640 INFO odoo odoo.registry: Registry changed, signaling through the database 
+2026-10-02 03:08:56,864 12640 INFO odoo odoo.registry: Registry loaded in 7.897s 
+2026-10-02 03:08:56,864 12640 INFO odoo odoo.service.server: Starting post tests 
+2026-10-02 03:08:56,865 12640 INFO odoo odoo.service.server: 0 post-tests in 0.00s, 0 queries 
+2026-10-02 03:08:56,865 12640 INFO odoo odoo.tests.stats: school_management: 6 tests 0.27s 130 queries 
+2026-10-02 03:08:56,865 12640 INFO odoo odoo.tests.result: 0 failed, 0 error(s) of 4 tests when loading database 'odoo' 
+2026-10-02 03:08:56,865 12640 INFO odoo odoo.service.server: Initiating shutdown 
+2026-10-02 03:08:56,865 12640 INFO odoo odoo.service.server: Hit CTRL-C again or send a second signal to force the shutdown. 
+2026-10-02 03:08:57,079 12640 INFO odoo odoo.sql_db: ConnectionPool(read/write;used=0/count=0/max=32): Closed 2 connections  

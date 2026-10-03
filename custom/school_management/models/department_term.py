@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversityDepartmentTerm(models.Model):
@@ -115,7 +116,7 @@ class UniversityDepartmentTerm(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             semester_ids = [vals.get("semester_id") for vals in vals_list if vals.get("semester_id")]
             if semester_ids:
                 semesters = self.env["university.semester"].browse(semester_ids).exists()
@@ -219,7 +220,7 @@ class UniversityDepartmentTerm(models.Model):
                 raise ValidationError("Add/drop cannot start before registration ends.")
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(term.academic_year_id.state in ("closed", "archived") for term in self):
                 raise UserError("Department terms of a closed or archived academic year are read-only and cannot be modified.")
 
@@ -255,7 +256,7 @@ class UniversityDepartmentTerm(models.Model):
         return result
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(term.academic_year_id.state in ("closed", "archived") for term in self):
                 raise UserError("Cannot delete department terms of a closed or archived academic year.")
         return super().unlink()

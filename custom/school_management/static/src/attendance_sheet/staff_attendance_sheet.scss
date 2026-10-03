@@ -1,895 +1,214 @@
-// Staff Attendance Sheet — Admin daily staff attendance tracker
-// Purple palette (#6f5f9e) with high-polish responsive UI matching student Track Attendance
+// Extensions and refinements for Staff Attendance matching Student Attendance page
 
-.o_satt_sheet {
-    --satt-primary:        #6f5f9e;
-    --satt-primary-hover:  #5a4b85;
-    --satt-primary-soft:   #f4f1fa;
-    --satt-primary-border: #dcd6ec;
+.o_att_sheet {
+    .o_att_listhead--staff, .o_att_row--staff {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) 350px 85px 85px 65px 36px;
+        align-items: center;
+        gap: 12px;
+    }
 
-    --satt-green:       #15803d;
-    --satt-green-soft:  #ecfdf3;
-    --satt-green-bar:   #22c55e;
-    --satt-green-bdr:   #a7f3d0;
+    .o_att_seg--staff {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        min-height: 36px;
+    }
 
-    --satt-red:         #b42318;
-    --satt-red-soft:    #fef3f2;
-    --satt-red-bar:     #ef4444;
-    --satt-red-bdr:     #fecdca;
+    .o_att_seg__btn--leave.o_att_seg__btn--on {
+        background: #eff6ff;
+        color: #2563eb;
+    }
 
-    --satt-amber:       #b45309;
-    --satt-amber-soft:  #fffbeb;
-    --satt-amber-bar:   #f59e0b;
-    --satt-amber-bdr:   #fde68a;
+    .o_att_seg__btn--official_duty.o_att_seg__btn--on {
+        background: #f5f3ff;
+        color: #7c3aed;
+    }
 
-    --satt-blue:        #2563eb;
-    --satt-blue-soft:   #eff6ff;
-    --satt-blue-bar:    #3b82f6;
-    --satt-blue-bdr:    #bfdbfe;
+    .o_att_seg__btn--half_day.o_att_seg__btn--on {
+        background: #f0fdfa;
+        color: #0d9488;
+    }
 
-    --satt-border:      #e5e7eb;
-    --satt-border-str:  #d1d5db;
-    --satt-text:        #1f2937;
-    --satt-muted:       #6b7280;
-    --satt-faint:       #9ca3af;
-    --satt-sunken:      #f9fafb;
-    --satt-radius:      12px;
-    --satt-radius-ctl:  8px;
-    --satt-shadow:      0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-    --satt-shadow-card: 0 1px 4px rgba(15, 23, 42, 0.06);
-    --satt-shadow-bar:  0 -4px 18px rgba(15, 23, 42, 0.06);
-    --satt-t:           150ms cubic-bezier(0.4, 0, 0.2, 1);
+    // ── Time Input Cells ──────────────────────────────────────────────────
+    .o_att_timecell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-    min-height: 100%;
-    padding-bottom: 16px;
-    background: #f8f9fc;
-    color: var(--satt-text);
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-}
+    .o_att_time_wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 6px;
+        border: 1px solid var(--att-border);
+        border-radius: 4px;
+        background: #fff;
+        transition: border-color 0.15s ease-in-out;
 
-.o_satt_sheet * { box-sizing: border-box; }
+        &:focus-within {
+            border-color: var(--att-primary);
+        }
 
-.o_satt_sheet :focus-visible {
-    outline: 2px solid var(--satt-primary);
-    outline-offset: 2px;
-    border-radius: 4px;
-}
+        &--disabled {
+            background: var(--att-sunken);
+            opacity: 0.6;
+        }
+    }
 
-.o_satt_shell {
-    max-width: 1260px;
-    margin: 0 auto;
-    padding: 24px 24px 0;
-}
+    .o_att_time_icon {
+        font-size: 11px;
+    }
 
-// ── Header ─────────────────────────────────────────────────────────────
-.o_satt_hdr {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 22px;
-}
+    .o_att_time_input {
+        width: 52px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        font-size: 12px;
+        color: var(--att-text);
+        outline: none;
+        font-variant-numeric: tabular-nums;
+    }
 
-.o_satt_hdr_main { min-width: 0; }
+    // ── Worked Hours Badge ────────────────────────────────────────────────
+    .o_att_hourscell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.o_satt_title_row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
+    .o_att_hours_badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--att-sunken);
+        color: var(--att-muted);
+        font-size: 11px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        text-align: center;
 
-.o_satt_back_btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 34px;
-    padding: 0 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #4b5563;
-    border: 1px solid var(--satt-border-str);
-    border-radius: var(--satt-radius-ctl);
-    background: #fff;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all var(--satt-t);
+        &--filled {
+            background: var(--att-primary-soft);
+            color: var(--att-primary);
+            font-weight: 600;
+        }
+    }
 
-    &:hover {
-        color: var(--satt-primary);
-        border-color: var(--satt-primary-border);
-        background: var(--satt-primary-soft);
+    // ── Timeline Schedule View (Matching Image 1) ───────────────────────
+    .o_att_tl_wrapper {
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        background: #fff;
+    }
+
+    .o_att_tl_topbar {
+        background-color: #f8fafc;
+        border-color: #e2e8f0 !important;
+    }
+
+    .o_att_tl_container {
+        border-color: #e2e8f0 !important;
+        background: #fff;
+    }
+
+    .o_att_tl_table {
+        border-collapse: collapse;
+        min-width: 820px;
+    }
+
+    .o_att_tl_col_days {
+        background-color: #f8fafc;
+        color: #334155;
+        border-color: #e2e8f0 !important;
+    }
+
+    .o_att_tl_col_h {
+        border-color: #f1f5f9 !important;
+        background-color: #f8fafc;
+        font-weight: 500;
+        font-size: 11px;
+    }
+
+    .o_att_tl_col--current {
+        background-color: #fefce8 !important;
+        border-left: 1px solid #fef08a !important;
+        border-right: 1px solid #fef08a !important;
+    }
+
+    .o_att_tl_cell_staff {
+        background: #fff;
+        border-color: #e2e8f0 !important;
+        transition: background-color 0.15s ease-in-out;
+        cursor: pointer;
+
+        &:hover {
+            background-color: #f8fafc;
+        }
+
+        &.o_att_tl_staff--present {
+            background-color: #dcfce7 !important;
+            border-left: 3px solid #22c55e !important;
+        }
+    }
+
+    .o_att_tl_staff_name {
+        font-size: 12px;
+        color: #1e293b;
+    }
+
+    .o_att_tl_cell_track {
+        height: 48px;
+        border-color: #f1f5f9 !important;
+        background: #fff;
+    }
+
+    .o_att_tl_grid_bg {
+        pointer-events: none;
+        z-index: 1;
+
+        div {
+            border-color: #f1f5f9 !important;
+        }
+    }
+
+    .o_att_pill {
+        top: 8px;
+        height: 32px;
+        border-radius: 6px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        padding: 0 8px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        white-space: nowrap;
+        overflow: hidden;
+
+        &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+        }
+
+        &--completed {
+            background-color: #94a3b8;
+            color: #ffffff;
+        }
+
+        &--ongoing {
+            background-color: #86efac;
+            color: #14532d;
+            font-weight: 600;
+            border: 1px solid #4ade80;
+        }
+
+        &_label {
+            font-size: 11px;
+        }
     }
 }
 
-.o_satt_h1 {
-    margin: 0;
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: #111827;
-}
-
-.o_satt_badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 26px;
-    padding: 0 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.o_satt_badge--recorded {
-    color: var(--satt-green);
-    background: var(--satt-green-soft);
-    border: 1px solid var(--satt-green-bdr);
-}
-
-.o_satt_badge--pending {
-    color: var(--satt-muted);
-    background: #f3f4f6;
-    border: 1px solid var(--satt-border);
-}
-
-.o_satt_badge_dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.o_satt_meta {
-    margin: 4px 0 0 2px;
-    color: var(--satt-muted);
-    font-size: 13px;
-}
-
-// ── Right Header Controls Box ───────────────────────────────────────────
-.o_satt_controls {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.o_satt_control_group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.o_satt_control_label {
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--satt-muted);
-    margin: 0;
-    line-height: 1;
-}
-
-.o_satt_pill_box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 38px;
-    padding: 0 14px;
-    background: #ffffff;
-    border: 1px solid var(--satt-border-str);
-    border-radius: var(--satt-radius-ctl);
-    transition: all var(--satt-t);
-
-    &:focus-within {
-        border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
-    }
-}
-
-.o_satt_pill_input,
-.o_satt_pill_select {
-    border: 0;
-    background: transparent;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--satt-text);
-    outline: none;
-    padding: 0;
-    cursor: pointer;
-    min-width: 140px;
-}
-
-.o_satt_pill_icon {
-    font-size: 13px;
-    color: var(--satt-faint);
-}
-
-// ── Error Banner ───────────────────────────────────────────────────────
-.o_satt_error {
-    margin-bottom: 16px;
-    padding: 12px 14px;
-    background: var(--satt-red-soft);
-    border: 1px solid var(--satt-red-bdr);
-    border-radius: var(--satt-radius-ctl);
-    color: var(--satt-red);
-    font-size: 13px;
-}
-
-// ── Stats ──────────────────────────────────────────────────────────────
-.o_satt_stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.o_satt_stat {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 20px;
-    background: #ffffff;
-    border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius);
-    box-shadow: var(--satt-shadow);
-    transition: all 180ms ease;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    &--present { border-left: 4px solid var(--satt-green-bar); }
-    &--absent  { border-left: 4px solid var(--satt-red-bar);   }
-    &--late    { border-left: 4px solid var(--satt-amber-bar); }
-    &--leave   { border-left: 4px solid var(--satt-blue-bar);  }
-}
-
-.o_satt_stat_icon_wrap {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    border-radius: 10px;
-    display: grid;
-    place-items: center;
-    font-size: 18px;
-    flex: none;
-}
-
-.o_satt_stat_body {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.o_satt_stat_value {
-    display: block;
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: #111827;
-    font-variant-numeric: tabular-nums;
-}
-
-.o_satt_stat_label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--satt-muted);
-    margin-top: 4px;
-}
-
-// ── Main Attendance Card ───────────────────────────────────────────────
-.o_satt_card {
-    background: #ffffff;
-    border: 1px solid var(--satt-border);
-    border-radius: var(--satt-radius);
-    box-shadow: var(--satt-shadow-card);
-    overflow: hidden;
-}
-
-.o_satt_toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--satt-border);
-}
-
-.o_satt_search {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1 1 280px;
-    max-width: 440px;
-}
-
-.o_satt_search_icon {
-    position: absolute;
-    left: 14px;
-    color: var(--satt-faint);
-    font-size: 13px;
-    pointer-events: none;
-}
-
-.o_satt_search_input {
-    width: 100%;
-    height: 38px;
-    padding: 0 14px 0 38px;
-    background: var(--satt-sunken);
-    border: 1px solid var(--satt-border);
-    border-radius: 999px;
-    font-size: 13px;
-    color: var(--satt-text);
-    outline: none;
-    transition: all var(--satt-t);
-
-    &:focus {
-        background: #ffffff;
-        border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.12);
-    }
-
-    &::placeholder { color: var(--satt-faint); }
-}
-
-.o_satt_filter {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px;
-    background: #f3f4f6;
-    border-radius: 999px;
-    border: 1px solid var(--satt-border);
-    flex: none;
-}
-
-.o_satt_filter_btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 30px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: #4b5563;
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--satt-t);
-
-    &:hover:not(.o_satt_filter_btn--active) {
-        color: #111827;
-        background: rgba(255, 255, 255, 0.6);
-    }
-
-    &--active {
-        background: #ffffff !important;
-        color: #111827 !important;
-        font-weight: 600 !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    }
-}
-
-.o_satt_filter_count {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--satt-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.o_satt_filter_btn--active .o_satt_filter_count { color: var(--satt-primary); }
-
-// ── Column Headings ────────────────────────────────────────────────────
-.o_satt_listhead {
-    display: grid;
-    grid-template-columns: minmax(240px, 1fr) 300px 115px 115px 85px 50px;
-    gap: 12px;
-    align-items: center;
-    padding: 10px 20px;
-    background: #fafafc;
-    border-bottom: 1px solid var(--satt-border);
-}
-
-.o_satt_listhead_label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--satt-muted);
-}
-
-.o_satt_listhead_label--center { text-align: center; }
-
-// ── Staff Rows ─────────────────────────────────────────────────────────
-.o_satt_rows {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.o_satt_row {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(240px, 1fr) 300px 115px 115px 85px 50px;
-    gap: 12px;
-    align-items: center;
-    min-height: 72px;
-    padding: 10px 20px;
-    border-bottom: 1px solid #f3f4f6;
-    transition: background-color var(--satt-t);
-
-    &:last-child { border-bottom: 0; }
-    &:hover { background: #fafafc; }
-}
-
-.o_satt_row--active {
-    background: #fbfaff;
-
-    &::before {
-        content: "";
-        position: absolute;
-        inset: 0 auto 0 0;
-        width: 3px;
-        background: var(--satt-primary);
-    }
-}
-
-// ── Staff Cell ─────────────────────────────────────────────────────────
-.o_satt_staff {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    cursor: pointer;
-}
-
-.o_satt_avatar {
-    display: grid;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    border-radius: 50%;
-    object-fit: cover;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    user-select: none;
-    flex: none;
-}
-
-.o_satt_avatar--0 { background: #efebf8; color: #5a4b85; }
-.o_satt_avatar--1 { background: #e7f3ee; color: #1f6a50; }
-.o_satt_avatar--2 { background: #fbede6; color: #96532b; }
-.o_satt_avatar--3 { background: #e9f0f7; color: #3a5b7d; }
-
-.o_satt_staff_text { min-width: 0; }
-
-.o_satt_staff_name {
-    display: block;
-    font-size: 14.5px;
-    font-weight: 600;
-    line-height: 1.3;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #111827;
-}
-
-.o_satt_staff_meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--satt-muted);
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
-}
-
-.o_satt_code { font-variant-numeric: tabular-nums; }
-.o_satt_staff_sep { color: var(--satt-faint); }
-
-.o_satt_chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 1px 7px;
-    border-radius: 4px;
-    background: var(--satt-primary-soft);
-    color: var(--satt-primary);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-}
-
-// ── Segmented Status Control ───────────────────────────────────────────
-.o_satt_seg_cell {
-    display: flex;
-    justify-content: center;
-}
-
-.o_satt_seg {
-    display: inline-flex;
-    gap: 3px;
-    padding: 3px;
-    background: #f3f4f6;
-    border: 1px solid var(--satt-border);
-    border-radius: 8px;
-}
-
-.o_satt_seg__btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    height: 32px;
-    padding: 0 9px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: #4b5563;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 140ms ease;
-
-    i { font-size: 11px; }
-
-    &:hover:not(:disabled):not(.o_satt_seg__btn--on) {
-        background: #ffffff;
-        color: #111827;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    &:disabled { opacity: 0.65; cursor: not-allowed; }
-}
-
-.o_satt_seg__btn--on {
-    color: #ffffff !important;
-    font-weight: 600;
-}
-
-.o_satt_seg__btn--present.o_satt_seg__btn--on {
-    background: var(--satt-green) !important;
-    box-shadow: 0 1px 3px rgba(21, 128, 61, 0.3);
-}
-
-.o_satt_seg__btn--absent.o_satt_seg__btn--on {
-    background: var(--satt-red) !important;
-    box-shadow: 0 1px 3px rgba(180, 35, 24, 0.3);
-}
-
-.o_satt_seg__btn--late.o_satt_seg__btn--on {
-    background: var(--satt-amber) !important;
-    box-shadow: 0 1px 3px rgba(180, 83, 9, 0.3);
-}
-
-.o_satt_seg__btn--leave.o_satt_seg__btn--on {
-    background: var(--satt-blue) !important;
-    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
-}
-
-// ── Time Cells ─────────────────────────────────────────────────────────
-.o_satt_timecell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.o_satt_time_wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 32px;
-    padding: 0 8px;
-    background: #ffffff;
-    border: 1px solid var(--satt-border-str);
-    border-radius: 6px;
-    transition: all var(--satt-t);
-
-    &:focus-within {
-        border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
-    }
-}
-
-.o_satt_time_wrap--disabled {
-    opacity: 0.45;
-    pointer-events: none;
-    background: var(--satt-sunken);
-}
-
-.o_satt_time_icon { font-size: 11px; flex: none; }
-
-.o_satt_time_input {
-    border: 0;
-    background: transparent;
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--satt-text);
-    outline: none;
-    min-width: 65px;
-    cursor: pointer;
-}
-
-// ── Hours Badge ────────────────────────────────────────────────────────
-.o_satt_hourscell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.o_satt_hours_badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 52px;
-    height: 24px;
-    padding: 0 8px;
-    border-radius: 999px;
-    font-size: 11.5px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    background: #f3f4f6;
-    border: 1px solid var(--satt-border);
-    color: var(--satt-muted);
-
-    &.o_satt_hours_badge--filled {
-        background: var(--satt-green-soft);
-        border-color: var(--satt-green-bdr);
-        color: var(--satt-green);
-    }
-}
-
-// ── Note Cell ──────────────────────────────────────────────────────────
-.o_satt_notecell {
-    display: flex;
-    justify-content: center;
-}
-
-.o_satt_notebtn {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--satt-border);
-    border-radius: 8px;
-    background: #ffffff;
-    color: var(--satt-muted);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all var(--satt-t);
-
-    &:hover { background: var(--satt-sunken); color: var(--satt-text); }
-}
-
-.o_satt_notebtn--has-note,
-.o_satt_notebtn--open {
-    background: var(--satt-primary-soft);
-    border-color: var(--satt-primary-border);
-    color: var(--satt-primary);
-}
-
-.o_satt_notebtn_dot {
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 8px;
-    height: 8px;
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    background: var(--satt-primary);
-}
-
-// ── Inline Note Drawer ─────────────────────────────────────────────────
-.o_satt_noterow { background: #fbfaff; min-height: auto !important; }
-
-.o_satt_noterow_inner {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0 12px 54px;
-}
-
-.o_satt_noterow_field {
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid var(--satt-primary-border);
-    border-radius: var(--satt-radius-ctl);
-    transition: all var(--satt-t);
-
-    &:focus-within {
-        border-color: var(--satt-primary);
-        box-shadow: 0 0 0 3px rgba(111, 95, 158, 0.15);
-    }
-}
-
-.o_satt_note_input {
-    width: 100%;
-    min-height: 36px;
-    padding: 0 12px;
-    border: 0;
-    background: transparent;
-    font-family: inherit;
-    font-size: 13px;
-    color: var(--satt-text);
-    outline: none;
-
-    &::placeholder { color: var(--satt-faint); }
-}
-
-.o_satt_linkbtn {
-    height: 34px;
-    padding: 0 12px;
-    font-size: 13px;
-    font-weight: 500;
-    border-radius: 6px;
-    white-space: nowrap;
-}
-
-// ── Empty States ───────────────────────────────────────────────────────
-.o_satt_empty {
-    padding: 56px 24px;
-    text-align: center;
-    color: var(--satt-muted);
-}
-
-.o_satt_empty_icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: #f3f4f6;
-    color: var(--satt-faint);
-}
-
-.o_satt_empty_title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #111827;
-    margin: 12px 0 6px;
-}
-
-// ── Sticky Footer (Action Bar) ─────────────────────────────────────────
-.o_satt_actionbar {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: 16px;
-    padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: saturate(1.4) blur(10px);
-    border: 1px solid var(--satt-border);
-    border-bottom: 0;
-    border-radius: var(--satt-radius) var(--satt-radius) 0 0;
-    box-shadow: var(--satt-shadow-bar);
-}
-
-.o_satt_hint {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 13px;
-    color: var(--satt-muted);
-}
-
-.o_satt_hint_dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex: none;
-    background: var(--satt-green-bar);
-    transition: background-color var(--satt-t);
-}
-
-.o_satt_hint--dirty { color: var(--satt-amber); font-weight: 500; }
-.o_satt_hint--dirty .o_satt_hint_dot { background: var(--satt-amber-bar); }
-
-.o_satt_actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.o_satt_btn_ghost {
-    height: 36px;
-    padding: 0 14px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid var(--satt-border-str);
-    background: #ffffff;
-    color: #374151;
-    border-radius: 8px;
-
-    &:hover {
-        background: #f9fafb;
-        border-color: #9ca3af;
-        color: #111827;
-    }
-}
-
-.o_satt_btn_save {
-    height: 36px;
-    padding: 0 18px;
-    font-size: 13px;
-    font-weight: 600;
-    background: var(--satt-primary) !important;
-    border-color: var(--satt-primary) !important;
-    color: #ffffff !important;
-    border-radius: 8px;
-
-    &:hover {
-        background: var(--satt-primary-hover) !important;
-        border-color: var(--satt-primary-hover) !important;
-    }
-}
-
-// ── Subtle Bootstrap Color Helpers ─────────────────────────────────────
-.o_satt_sheet {
-    .bg-success-subtle { background-color: var(--satt-green-soft) !important; }
-    .bg-danger-subtle  { background-color: var(--satt-red-soft)   !important; }
-    .bg-warning-subtle { background-color: var(--satt-amber-soft) !important; }
-    .bg-info-subtle    { background-color: var(--satt-blue-soft)  !important; }
-    .text-success { color: var(--satt-green) !important; }
-    .text-danger  { color: var(--satt-red)   !important; }
-    .text-warning { color: var(--satt-amber) !important; }
-    .text-info    { color: var(--satt-blue)  !important; }
-}
-
-// ── Responsive Adaptations ─────────────────────────────────────────────
-@media (max-width: 1024px) {
-    .o_satt_listhead,
-    .o_satt_row { grid-template-columns: minmax(200px, 1fr) 280px 105px 105px 75px 44px; }
-}
-
-@media (max-width: 820px) {
-    .o_satt_shell { padding: 16px 12px 0; }
-    .o_satt_h1 { font-size: 20px; }
-    .o_satt_stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    .o_satt_listhead { display: none; }
-
-    .o_satt_row {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 14px;
-    }
-
-    .o_satt_seg_cell,
-    .o_satt_timecell,
-    .o_satt_hourscell,
-    .o_satt_notecell { justify-content: flex-start; }
-
-    .o_satt_seg { width: 100%; }
-    .o_satt_seg__btn { min-height: 38px; }
-    .o_satt_noterow_inner { padding: 0 0 10px; flex-wrap: wrap; }
-    .o_satt_actionbar { padding: 12px 14px; }
-}

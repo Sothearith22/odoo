@@ -18,6 +18,8 @@ class TestSecurityMenus(TransactionCase):
         self.Program = self.env["university.program"].sudo()
         self.Student = self.env["university.student"].sudo()
         self.Teacher = self.env["university.teacher"].sudo()
+        self.ClassSection = self.env["university.class.section"].sudo()
+        self.Enrollment = self.env["university.enrollment"].sudo()
         self.Dashboard = self.env["school.dashboard"].sudo()
 
         self.g_user = self.env.ref("school_management.group_school_user")
@@ -277,5 +279,40 @@ class TestSecurityMenus(TransactionCase):
         (fac_a, fac_b, dep_a, dep_b, prog_a, prog_b,
          hod, hod_user, teacher, teacher_user, section_a, section_b) = self._scope_setup()
         visible = self.env["university.class.section"].sudo().with_user(teacher_user).search([])
+        self.assertIn(section_a, visible)
+        self.assertNotIn(section_b, visible)
+
+    def test_student_sees_only_enrolled_class_sections(self):
+        (
+            _fac_a,
+            _fac_b,
+            _dep_a,
+            _dep_b,
+            prog_a,
+            _prog_b,
+            _hod,
+            _hod_user,
+            _teacher,
+            _teacher_user,
+            section_a,
+            section_b,
+        ) = self._scope_setup()
+        student_user = self._make_user("student_sections", self.g_student)
+        student = self.Student.create(
+            {
+                "name": "Student Sections",
+                "program_id": prog_a.id,
+                "user_id": student_user.id,
+            }
+        )
+        self.Enrollment.create(
+            {
+                "student_id": student.id,
+                "class_section_id": section_a.id,
+                "status": "enrolled",
+            }
+        )
+
+        visible = self.ClassSection.with_user(student_user).search([])
         self.assertIn(section_a, visible)
         self.assertNotIn(section_b, visible)

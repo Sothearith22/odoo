@@ -4,12 +4,18 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 
 class Student(models.Model):
     _name = "university.student"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "avatar.mixin"]
     _description = "University Student"
 
     # Identity
     name = fields.Char(string="Student Name", required=True)
     student_id = fields.Char(string="Student ID", copy=False, index=True)
+    color = fields.Integer(
+        string="Color Index",
+        related="faculty_id.color",
+        store=True,
+        readonly=True,
+    )
     user_id = fields.Many2one(
         "res.users",
         string="Related User",
@@ -78,6 +84,76 @@ class Student(models.Model):
         "university.semester",
         string="Current Semester",
     )
+    advisor_id = fields.Many2one(
+        "university.teacher",
+        string="Academic Advisor",
+        index=True,
+        tracking=True,
+        help="Teacher acting as academic advisor for this student.",
+    )
+    advising_note_ids = fields.One2many(
+        "university.student.advising.note",
+        "student_id",
+        string="Advising Notes",
+    )
+    followup_ids = fields.One2many(
+        "university.student.followup",
+        "student_id",
+        string="Follow-up Actions",
+    )
+    advising_note_count = fields.Integer(
+        string="Advising Notes Count",
+        compute="_compute_advising_counts",
+    )
+    followup_count = fields.Integer(
+        string="Follow-up Count",
+        compute="_compute_advising_counts",
+    )
+    pending_followup_count = fields.Integer(
+        string="Pending Follow-ups",
+        compute="_compute_advising_counts",
+    )
+
+    # Academic Performance & Risk Metrics
+    gpa = fields.Float(
+        string="Cumulative GPA",
+        compute="_compute_academic_metrics",
+        store=True,
+        digits=(3, 2),
+    )
+    attendance_rate = fields.Float(
+        string="Attendance Rate (%)",
+        compute="_compute_academic_metrics",
+        store=True,
+        digits=(5, 1),
+    )
+    completed_credits = fields.Integer(
+        string="Completed Credits",
+        compute="_compute_academic_metrics",
+        store=True,
+    )
+    failed_subject_count = fields.Integer(
+        string="Failed Subjects",
+        compute="_compute_academic_metrics",
+        store=True,
+    )
+    risk_level = fields.Selection(
+        [
+            ("low", "On Track"),
+            ("medium", "Watch"),
+            ("high", "High Risk"),
+        ],
+        string="Risk Level",
+        compute="_compute_academic_metrics",
+        store=True,
+        index=True,
+        default="low",
+    )
+    risk_reason = fields.Char(
+        string="Risk Reason",
+        compute="_compute_academic_metrics",
+        store=True,
+    )
 
     # Status
     status = fields.Selection(
@@ -119,6 +195,11 @@ class Student(models.Model):
         "student_id",
         string="Transcripts",
     )
+    transcript_request_ids = fields.One2many(
+        "university.transcript.request",
+        "student_id",
+        string="Transcript Requests",
+    )
     fee_ids = fields.One2many(
         "university.fee",
         "student_id",
@@ -149,6 +230,21 @@ class Student(models.Model):
         compute="_compute_fee_totals",
         currency_field="currency_id",
     )
+    enrollment_count = fields.Integer(
+        string="Enrollment Count",
+        compute="_compute_counts",
+        store=True,
+    )
+    submission_count = fields.Integer(
+        string="Submission Count",
+        compute="_compute_counts",
+        store=True,
+    )
+    report_card_count = fields.Integer(
+        string="Report Card Count",
+        compute="_compute_counts",
+        store=True,
+    )
 
     _unique_student_id = models.UniqueIndex(
         "(lower(student_id)) WHERE student_id IS NOT NULL",
@@ -177,6 +273,50 @@ class Student(models.Model):
             "view_mode": "list,form",
             "domain": [("fee_id.student_id", "=", self.id)],
             "context": {"default_fee_id": False},
+        }
+
+    def action_view_enrollments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Enrollments - %s", self.name),
+            "res_model": "university.enrollment",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_fees(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Fee Invoices - %s", self.name),
+            "res_model": "university.fee",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_submissions(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Submissions - %s", self.name),
+            "res_model": "university.assignment.submission",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_report_cards(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Report Cards - %s", self.name),
+            "res_model": "university.report.card",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
         }
 
     def action_open_enrollment_registration(self):
@@ -282,6 +422,34 @@ class Student(models.Model):
             },
         }
 
+    @api.depends("enrollment_ids", "submission_ids", "report_card_ids")
+    def _compute_counts(self):
+        enrollment_data = dict(
+            self.env["university.enrollment"]._read_group(
+                [("student_id", "in", self.ids)],
+                groupby=["student_id"],
+                aggregates=["__count"],
+            )
+        )
+        submission_data = dict(
+            self.env["university.assignment.submission"]._read_group(
+                [("student_id", "in", self.ids)],
+                groupby=["student_id"],
+                aggregates=["__count"],
+            )
+        )
+        report_card_data = dict(
+            self.env["university.report.card"]._read_group(
+                [("student_id", "in", self.ids)],
+                groupby=["student_id"],
+                aggregates=["__count"],
+            )
+        )
+        for student in self:
+            student.enrollment_count = enrollment_data.get(student, 0)
+            student.submission_count = submission_data.get(student, 0)
+            student.report_card_count = report_card_data.get(student, 0)
+
     @api.depends(
         "fee_ids.total_amount",
         "fee_ids.paid_amount",
@@ -333,9 +501,127 @@ class Student(models.Model):
                 vals["student_id"] = raw_id.strip()
         return super().create(vals_list)
 
+    def _compute_advising_counts(self):
+        for student in self:
+            notes = self.env["university.student.advising.note"].search([("student_id", "=", student.id)])
+            followups = self.env["university.student.followup"].search([("student_id", "=", student.id)])
+            student.advising_note_count = len(notes)
+            student.followup_count = len(followups)
+            student.pending_followup_count = len(followups.filtered(lambda f: f.state in ("pending", "in_progress")))
+
+    @api.depends(
+        "report_card_ids.state",
+        "report_card_ids.line_ids.is_passing",
+        "report_card_ids.line_ids.credits",
+        "report_card_ids.line_ids.grade_point",
+        "transcript_ids.cumulative_gpa",
+        "transcript_ids.total_credits",
+    )
+    def _compute_academic_metrics(self):
+        ICP = self.env["ir.config_parameter"].sudo()
+        try:
+            gpa_thresh = float(ICP.get_param("school_management.risk_gpa_threshold", 2.0))
+        except (ValueError, TypeError):
+            gpa_thresh = 2.0
+        try:
+            att_thresh = float(ICP.get_param("school_management.risk_attendance_threshold", 75.0))
+        except (ValueError, TypeError):
+            att_thresh = 75.0
+
+        for student in self:
+            # 1. GPA and Credits
+            transcripts = student.transcript_ids.filtered(lambda t: t.state in ("generated", "approved"))
+            if transcripts:
+                gpa = transcripts[0].cumulative_gpa
+                credits = transcripts[0].total_credits
+            else:
+                cards = student.report_card_ids.filtered(lambda c: c.state in ("generated", "approved"))
+                if cards:
+                    total_pts = sum(line.credits * line.grade_point for c in cards for line in c.line_ids)
+                    total_creds = sum(line.credits for c in cards for line in c.line_ids)
+                    gpa = round(total_pts / total_creds, 2) if total_creds else 0.0
+                    credits = sum(line.credits for c in cards for line in c.line_ids if line.is_passing)
+                else:
+                    gpa = 0.0
+                    credits = 0
+
+            # 2. Failed Subjects
+            cards = student.report_card_ids.filtered(lambda c: c.state in ("generated", "approved"))
+            failed_count = sum(1 for c in cards for line in c.line_ids if not line.is_passing)
+
+            # 3. Attendance Rate
+            attendances = self.env["university.attendance"].search([("student_id", "=", student.id)])
+            if attendances:
+                present_cnt = sum(1 for a in attendances if a.status in ("present", "late"))
+                attendance_rate = round(present_cnt * 100.0 / len(attendances), 1)
+            else:
+                attendance_rate = 100.0
+
+            # 4. Risk Level & Reason
+            reasons = []
+            risk = "low"
+            if gpa > 0 and gpa < gpa_thresh:
+                reasons.append(_("GPA is %.2f (below threshold %.2f)") % (gpa, gpa_thresh))
+                risk = "high"
+            if len(attendances) >= 3 and attendance_rate < att_thresh:
+                reasons.append(_("Attendance is %.1f%% (below threshold %.1f%%)") % (attendance_rate, att_thresh))
+                if risk != "high":
+                    risk = "medium"
+            if failed_count > 0:
+                reasons.append(_("%d failed subject(s)") % failed_count)
+                if risk == "low":
+                    risk = "medium"
+
+            student.gpa = gpa
+            student.completed_credits = credits
+            student.failed_subject_count = failed_count
+            student.attendance_rate = attendance_rate
+            student.risk_level = risk
+            student.risk_reason = " | ".join(reasons) if reasons else _("Academic progress on track")
+
+    def action_view_advising_notes(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Advising Notes - %s", self.name),
+            "res_model": "university.student.advising.note",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_followups(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Follow-up Actions - %s", self.name),
+            "res_model": "university.student.followup",
+            "view_mode": "list,form",
+            "domain": [("student_id", "=", self.id)],
+            "context": {"default_student_id": self.id},
+        }
+
     def write(self, vals):
         if "student_id" in vals and isinstance(vals["student_id"], str):
             vals["student_id"] = vals["student_id"].strip()
+
+        if "advisor_id" in vals:
+            is_admin = self.env.su or self.env.user.has_group("school_management.group_school_admin")
+            is_hod = self.env.user.has_group("school_management.group_school_hod")
+            if not is_admin and not is_hod:
+                raise AccessError(_("Only University Administrators and Heads of Department can assign academic advisors."))
+            if is_hod and not is_admin:
+                hod_teacher = self.env.user.teacher_id or self.env["university.teacher"].sudo().search([("user_id", "=", self.env.user.id)], limit=1)
+                managed_dept = (hod_teacher.managed_department_id if hod_teacher else False) or (self.env["university.department"].search([("head_id", "=", hod_teacher.id)], limit=1) if hod_teacher else False)
+                new_advisor_id = vals.get("advisor_id")
+                if new_advisor_id:
+                    advisor = self.env["university.teacher"].browse(new_advisor_id)
+                    if not managed_dept or advisor.department_id != managed_dept:
+                        raise AccessError(_("Heads of Department can only assign advisors within their managed department."))
+                for student in self:
+                    if not managed_dept or student.department_id != managed_dept:
+                        raise AccessError(_("Heads of Department can only assign advisors for students in their managed department."))
+
         return super().write(vals)
 
     def unlink(self):

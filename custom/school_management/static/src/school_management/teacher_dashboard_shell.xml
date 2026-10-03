@@ -42,18 +42,21 @@
                 <!-- Top Welcome & Actions Header -->
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
                     <div>
-                        <h2 class="h3 fw-bold mb-1 text-dark">Teacher Dashboard</h2>
+                        <h2 class="h3 fw-bold mb-1 text-dark">Teacher &amp; Advisor Dashboard</h2>
                         <p class="text-muted mb-0 small">
                             Welcome, <strong class="text-dark" t-esc="state.teacher.name"/>
                             <t t-if="state.teacher.department_id"> · <span t-esc="state.teacher.department_id[1]"/></t>
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm shadow-sm" t-on-click="openAdvisees">
+                            <i class="fa fa-graduation-cap me-1" aria-hidden="true"/> My Advisees (<t t-esc="state.stats.adviseeCount"/>)
+                        </button>
                         <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" t-on-click="openMyProfile">
                             <i class="fa fa-user me-1" aria-hidden="true"/> My Profile
                         </button>
                         <button type="button" class="btn btn-primary btn-sm shadow-sm" t-on-click="openAttendanceSheet">
-                            <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Track Attendance
+                            <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Student Attendance Management
                         </button>
                     </div>
                 </div>
@@ -75,16 +78,19 @@
                         </div>
                     </div>
 
-                    <!-- KPI 2: Active Assignments -->
+                    <!-- KPI 2: Active Advisees -->
                     <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openAssignments">
+                        <div class="card h-100 border-0 shadow-sm o_kpi_card cursor-pointer" t-on-click="openAdvisees">
                             <div class="card-body p-3 d-flex align-items-center gap-3">
                                 <div class="o_kpi_icon_wrapper rounded-3 d-flex align-items-center justify-content-center bg-info-subtle text-info">
-                                    <i class="fa fa-tasks fa-lg" aria-hidden="true"/>
+                                    <i class="fa fa-graduation-cap fa-lg" aria-hidden="true"/>
                                 </div>
                                 <div class="flex-grow-1 overflow-hidden">
-                                    <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Active Assignments</span>
-                                    <div class="o_kpi_val h4 fw-bold mb-0 text-dark" t-esc="state.stats.totalAssignments"/>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="o_kpi_label text-uppercase text-muted fw-semibold small d-block mb-1">Assigned Advisees</span>
+                                        <span t-if="state.stats.highRiskAdvisees > 0" class="badge rounded-pill bg-danger text-white px-2 py-1 small"><t t-esc="state.stats.highRiskAdvisees"/> At Risk</span>
+                                    </div>
+                                    <div class="o_kpi_val h4 fw-bold mb-0 text-dark" t-esc="state.stats.adviseeCount"/>
                                 </div>
                             </div>
                         </div>
@@ -148,13 +154,11 @@
                                     </button>
                                 </div>
                                 <div class="card-body p-0">
-                                    <!-- Populated Class Slots -->
                                     <t t-if="state.schedule.length">
                                         <div class="list-group list-group-flush o_schedule_list">
                                             <div t-foreach="state.schedule" t-as="slot" t-key="slot.id"
                                                  class="list-group-item p-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3 o_slot_item">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <!-- Time badge -->
                                                     <div class="o_time_badge px-3 py-2 rounded-3 text-center">
                                                         <div class="fw-bold text-dark small" t-esc="formatTime(slot.start_time)"/>
                                                         <div class="text-muted very-small" t-esc="formatTime(slot.end_time)"/>
@@ -177,17 +181,9 @@
                                                                 <i class="fa fa-map-marker text-danger me-1" aria-hidden="true"/>
                                                                 <span t-esc="slot.location"/>
                                                             </span>
-                                                            <span t-if="slot.state === 'completed'" class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                                                <i class="fa fa-check-circle me-1" aria-hidden="true"/> Completed
-                                                            </span>
-                                                            <span t-elif="slot.state === 'in_progress'" class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
-                                                                <i class="fa fa-clock-o me-1" aria-hidden="true"/> In Progress
-                                                            </span>
-                                                            <span t-elif="slot.state" class="badge rounded-pill bg-light text-secondary border px-2 py-1" t-esc="slot.state"/>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <!-- Actionable Attendance Trigger -->
                                                 <div>
                                                     <button type="button" class="btn btn-sm btn-outline-primary shadow-sm o_btn_track_att"
                                                             title="Track attendance for this section today"
@@ -198,23 +194,76 @@
                                             </div>
                                         </div>
                                     </t>
-                                    <!-- Empty State: No Classes Scheduled -->
                                     <t t-else="">
-                                        <div class="o_dashboard_empty text-center py-5 px-3">
-                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-3" style="width: 56px; height: 56px;">
-                                                <i class="fa fa-calendar-o fa-2x" aria-hidden="true"/>
-                                            </div>
-                                            <h6 class="fw-bold text-dark mb-1">No Classes Scheduled</h6>
-                                            <p class="text-muted small mb-3">You don't have any timetable slots assigned yet. Contact your administrator to set up your schedule.</p>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" t-on-click="openTimetable">
-                                                <i class="fa fa-calendar me-1" aria-hidden="true"/> View Full Timetable
-                                            </button>
+                                        <div class="o_dashboard_empty text-center py-4 px-3">
+                                            <p class="text-muted small mb-0">No classes scheduled for today.</p>
                                         </div>
                                     </t>
                                 </div>
                             </div>
 
-                            <!-- Widget 2: Pending Reviews & Submissions -->
+                            <!-- Widget 2: Assigned Advisees & Academic Risk -->
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa fa-graduation-cap text-primary" aria-hidden="true"/>
+                                        <h5 class="h6 mb-0 fw-bold text-dark">Assigned Advisees &amp; Academic Progress</h5>
+                                        <span t-if="state.stats.highRiskAdvisees > 0" class="badge rounded-pill bg-danger text-white ms-1" t-esc="state.stats.highRiskAdvisees + ' High Risk'"/>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 fw-semibold" t-on-click="openAdvisees">
+                                        View All Advisees <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    <t t-if="state.advisees.length">
+                                        <div class="table-responsive mb-0">
+                                            <table class="table table-hover align-middle mb-0">
+                                                <thead class="table-light small text-uppercase text-muted">
+                                                    <tr>
+                                                        <th class="ps-4">Advisee</th>
+                                                        <th>ID</th>
+                                                        <th>GPA</th>
+                                                        <th>Attendance</th>
+                                                        <th>Standing</th>
+                                                        <th class="text-end pe-4">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="small">
+                                                    <tr t-foreach="state.advisees" t-as="adv" t-key="adv.id">
+                                                        <td class="ps-4 fw-semibold text-dark" t-esc="adv.name"/>
+                                                        <td class="text-muted" t-esc="adv.student_id || '—'"/>
+                                                        <td class="fw-bold text-primary" t-esc="adv.gpa || 0.0"/>
+                                                        <td class="text-muted"><t t-esc="adv.attendance_rate || 0.0"/>%</td>
+                                                        <td>
+                                                            <span t-if="adv.risk_level === 'low'" class="badge text-bg-success">On Track</span>
+                                                            <span t-elif="adv.risk_level === 'medium'" class="badge text-bg-warning">Watch</span>
+                                                            <span t-elif="adv.risk_level === 'high'" class="badge text-bg-danger">High Risk</span>
+                                                            <span t-else="" class="badge text-bg-secondary">Good</span>
+                                                        </td>
+                                                        <td class="text-end pe-4">
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2"
+                                                                    t-on-click="() => this.openStudentProfile(adv.id)">
+                                                                Profile <i class="fa fa-external-link ms-1" aria-hidden="true"/>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="o_dashboard_empty text-center py-4 px-3">
+                                            <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
+                                                <i class="fa fa-user-o fa-2x" aria-hidden="true"/>
+                                            </div>
+                                            <h6 class="fw-bold text-dark mb-1">No Advisees Assigned</h6>
+                                            <p class="text-muted small mb-0">You currently have no students assigned for academic advising.</p>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- Widget 3: Pending Reviews & Grading -->
                             <div class="card border-0 shadow-sm rounded-3">
                                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                                     <div class="d-flex align-items-center gap-2">
@@ -254,7 +303,6 @@
                                             </table>
                                         </div>
                                     </t>
-                                    <!-- Empty State: All Caught Up -->
                                     <t t-else="">
                                         <div class="o_dashboard_empty text-center py-4 px-3">
                                             <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-success-subtle text-success mb-2" style="width: 48px; height: 48px;">
@@ -267,7 +315,7 @@
                                 </div>
                             </div>
 
-                            <!-- Widget 3: Lesson Plans -->
+                            <!-- Widget 4: Lesson Plans -->
                             <div class="card border-0 shadow-sm rounded-3">
                                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                                     <div class="d-flex align-items-center gap-2">
@@ -306,7 +354,6 @@
                                             </table>
                                         </div>
                                     </t>
-                                    <!-- Empty State: No Lesson Plans -->
                                     <t t-else="">
                                         <div class="o_dashboard_empty text-center py-4 px-3">
                                             <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
@@ -327,7 +374,7 @@
                     <!-- Right Column (Analytics, Announcements, Quick Actions: 4 cols) -->
                     <div class="col-12 col-lg-5 col-xl-4">
                         <div class="d-flex flex-column gap-4">
-                            <!-- Widget 4: Students Attendance Analytics Card with Zero-Data Fallback -->
+                            <!-- Widget 5: Students Attendance Analytics Card -->
                             <div class="card border-0 shadow-sm rounded-3">
                                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                                     <div class="d-flex align-items-center gap-2">
@@ -339,7 +386,6 @@
                                     </button>
                                 </div>
                                 <div class="card-body p-3">
-                                    <!-- Chart when data exists -->
                                     <t t-if="state.hasAttendanceData">
                                         <div class="o_chart_wrapper position-relative" style="height: 200px;">
                                             <canvas t-ref="attendanceChart"></canvas>
@@ -359,7 +405,6 @@
                                             </div>
                                         </div>
                                     </t>
-                                    <!-- Clean Fallback State when zero data is logged -->
                                     <t t-else="">
                                         <div class="o_dashboard_empty text-center py-4 px-3">
                                             <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
@@ -367,15 +412,53 @@
                                             </div>
                                             <h6 class="fw-bold text-dark mb-1">No Attendance Logged</h6>
                                             <p class="text-muted small mb-3">No student attendance has been recorded for your sections yet.</p>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="openAttendanceSheet">
-                                                <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Take Attendance
-                                            </button>
                                         </div>
                                     </t>
                                 </div>
                             </div>
 
-                            <!-- Widget 5: Notice Board & Announcements -->
+                            <!-- Widget 6: Quick Shortcuts -->
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-header bg-white border-bottom py-3 px-4">
+                                    <h5 class="h6 mb-0 fw-bold text-dark">Advising &amp; Quick Actions</h5>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="openAdvisees">
+                                            <span><i class="fa fa-graduation-cap text-primary me-2" aria-hidden="true"/> My Advisees</span>
+                                            <span class="badge bg-primary-subtle text-primary" t-esc="state.stats.adviseeCount"/>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="openAdvisingNotes">
+                                            <span><i class="fa fa-comments text-info me-2" aria-hidden="true"/> Advising Notes</span>
+                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="openFollowups">
+                                            <span><i class="fa fa-check-square-o text-warning me-2" aria-hidden="true"/> Follow-up Actions</span>
+                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="openAttendanceSheet">
+                                            <span><i class="fa fa-calendar-check-o text-primary me-2" aria-hidden="true"/> Student Attendance Management</span>
+                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="openAssignments">
+                                            <span><i class="fa fa-tasks text-info me-2" aria-hidden="true"/> Manage Assignments</span>
+                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
+                                                t-on-click="createLessonPlan">
+                                            <span><i class="fa fa-plus-circle text-warning me-2" aria-hidden="true"/> Create New Lesson Plan</span>
+                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget 7: Notice Board & Announcements -->
                             <div class="card border-0 shadow-sm rounded-3">
                                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                                     <div class="d-flex align-items-center gap-2">
@@ -396,7 +479,6 @@
                                             </div>
                                         </div>
                                     </t>
-                                    <!-- Empty State: No Notices -->
                                     <t t-else="">
                                         <div class="o_dashboard_empty text-center py-4 px-3">
                                             <div class="o_empty_icon rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-2" style="width: 48px; height: 48px;">
@@ -406,37 +488,6 @@
                                             <p class="text-muted small mb-0">University announcements and faculty circulars will appear here.</p>
                                         </div>
                                     </t>
-                                </div>
-                            </div>
-
-                            <!-- Widget 6: Quick Shortcuts -->
-                            <div class="card border-0 shadow-sm rounded-3">
-                                <div class="card-header bg-white border-bottom py-3 px-4">
-                                    <h5 class="h6 mb-0 fw-bold text-dark">Quick Actions</h5>
-                                </div>
-                                <div class="card-body p-3">
-                                    <div class="d-grid gap-2">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAttendanceSheet">
-                                            <span><i class="fa fa-calendar-check-o text-primary me-2" aria-hidden="true"/> Track Attendance Sheet</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAttendanceRecords">
-                                            <span><i class="fa fa-check-square-o text-success me-2" aria-hidden="true"/> View Attendance Records</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="openAssignments">
-                                            <span><i class="fa fa-tasks text-info me-2" aria-hidden="true"/> Manage Assignments</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm text-start py-2 px-3 d-flex align-items-center justify-content-between"
-                                                t-on-click="createLessonPlan">
-                                            <span><i class="fa fa-plus-circle text-warning me-2" aria-hidden="true"/> Create New Lesson Plan</span>
-                                            <i class="fa fa-chevron-right text-muted very-small" aria-hidden="true"/>
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>

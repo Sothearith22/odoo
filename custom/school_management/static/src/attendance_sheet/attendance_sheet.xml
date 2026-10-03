@@ -7,7 +7,7 @@
         <div class="o_att_sheet" t-ref="root">
             <nav class="o_att_breadcrumb" aria-label="Breadcrumb">
                 <button type="button" class="o_att_breadcrumb_link" t-on-click="onBack" title="Back to Attendance List">
-                    <i class="fa fa-arrow-left" aria-hidden="true"/> Track Attendance
+                    <i class="fa fa-arrow-left" aria-hidden="true"/> Student Attendance Management
                 </button>
                 <span aria-hidden="true">/</span>
                 <span class="o_att_breadcrumb_record" aria-current="page" t-esc="recordLabel"/>
@@ -19,7 +19,7 @@
                 <header class="o_att_hdr">
                     <div class="o_att_hdr_main">
                         <div class="o_att_title_row">
-                            <h1 class="o_att_h1">Track Attendance</h1>
+                            <h1 class="o_att_h1">Student Attendance Management</h1>
                             <span t-att-class="'o_att_badge ' + (state.taken ? 'o_att_badge--recorded' : 'o_att_badge--pending')">
                                 <span class="o_att_badge_dot" aria-hidden="true"/>
                                 <span t-esc="state.taken ? 'Recorded' : 'Not recorded'"/>

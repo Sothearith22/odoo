@@ -46,4 +46,71 @@
             </div>
         </field>
     </record>
+
+    <!-- Transcript Request Templates -->
+    <record id="mail_template_transcript_request_submitted" model="mail.template">
+        <field name="name">Transcript Request: Received</field>
+        <field name="model_id" ref="model_university_transcript_request"/>
+        <field name="subject">Transcript Request Received - {{ object.name }}</field>
+        <field name="email_to">{{ object.student_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+                <p>Dear {{ object.student_id.name }},</p>
+                <p>We have successfully received your request for an <b>{{ object.request_type }} transcript</b> (Reference: <b>{{ object.name }}</b>).</p>
+                <p>Our registrar office is currently reviewing your academic record and active holds. You will receive an email update once your request is processed.</p>
+                <p>Best regards,<br/>University Registrar Office</p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_transcript_request_approved" model="mail.template">
+        <field name="name">Transcript Request: Approved</field>
+        <field name="model_id" ref="model_university_transcript_request"/>
+        <field name="subject">Transcript Request Approved - {{ object.name }}</field>
+        <field name="email_to">{{ object.student_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+                <p>Dear {{ object.student_id.name }},</p>
+                <p>Your transcript request (<b>{{ object.name }}</b>) has been <b>approved</b> by the Registrar Office.</p>
+                <p>Your official academic transcript is being prepared and will be issued shortly.</p>
+                <p>Best regards,<br/>University Registrar Office</p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_transcript_request_rejected" model="mail.template">
+        <field name="name">Transcript Request: Rejected</field>
+        <field name="model_id" ref="model_university_transcript_request"/>
+        <field name="subject">Transcript Request Notice - {{ object.name }}</field>
+        <field name="email_to">{{ object.student_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+                <p>Dear {{ object.student_id.name }},</p>
+                <p>Your transcript request (<b>{{ object.name }}</b>) could not be approved at this time.</p>
+                <p><b>Reason:</b> {{ object.reject_reason }}</p>
+                <p>Please resolve any outstanding academic or bursar matters and submit a new request or contact the registrar office.</p>
+                <p>Best regards,<br/>University Registrar Office</p>
+            </div>
+        </field>
+    </record>
+
+    <record id="mail_template_transcript_request_issued" model="mail.template">
+        <field name="name">Transcript Request: Issued</field>
+        <field name="model_id" ref="model_university_transcript_request"/>
+        <field name="subject">Your Official Transcript is Ready - {{ object.name }}</field>
+        <field name="email_to">{{ object.student_id.email }}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
+                <p>Dear {{ object.student_id.name }},</p>
+                <p>Your official academic transcript has been <b>issued</b>!</p>
+                <p>
+                    <b>Transcript Reference:</b> {{ object.transcript_id.name or 'Official Transcript' }}<br/>
+                    <b>Verification Security Code:</b> <code>{{ object.verification_code }}</code><br/>
+                    <b>Delivery Method:</b> {{ object.delivery_method }}
+                </p>
+                <p>You may view or download your transcript directly from your student portal dashboard.</p>
+                <p>Best regards,<br/>University Registrar Office</p>
+            </div>
+        </field>
+    </record>
 </odoo>

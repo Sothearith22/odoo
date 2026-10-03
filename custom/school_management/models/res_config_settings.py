@@ -25,6 +25,36 @@ class UniversityResConfigSettings(models.TransientModel):
         default=14.0,
         help="Minimum required teaching weeks per department term.",
     )
+    staff_expected_check_in = fields.Float(
+        string="Expected Check-In",
+        config_parameter="school_management.staff_expected_check_in",
+        default=8.0,
+        help="Standard university check-in time (e.g., 8.0 = 08:00 AM).",
+    )
+    staff_expected_check_out = fields.Float(
+        string="Expected Check-Out",
+        config_parameter="school_management.staff_expected_check_out",
+        default=17.0,
+        help="Standard university check-out time (e.g., 17.0 = 05:00 PM).",
+    )
+    staff_late_grace_minutes = fields.Integer(
+        string="Late Grace Period (Minutes)",
+        config_parameter="school_management.staff_late_grace_minutes",
+        default=15,
+        help="Minutes after expected check-in before an arrival is flagged as late.",
+    )
+    risk_gpa_threshold = fields.Float(
+        string="Risk GPA Threshold",
+        config_parameter="school_management.risk_gpa_threshold",
+        default=2.0,
+        help="Students with a cumulative GPA below this threshold are flagged as academic risk.",
+    )
+    risk_attendance_threshold = fields.Float(
+        string="Risk Attendance Threshold (%)",
+        config_parameter="school_management.risk_attendance_threshold",
+        default=75.0,
+        help="Students with an attendance rate below this percentage are flagged as attendance risk.",
+    )
 
     @api.onchange("current_academic_year_id")
     def _onchange_current_academic_year_id(self):

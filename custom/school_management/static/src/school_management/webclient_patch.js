@@ -47,6 +47,8 @@ const SCHOOL_MODELS = new Set([
     "university.teacher",
     "university.timetable.slot",
     "university.transcript",
+    "university.transcript.request",
+    "university.transcript.request.reject.wizard",
     "university.exam",
     "university.exam.score",
 ]);
@@ -63,7 +65,14 @@ const STUDENT_SAFE_MODELS = new Set([
     "university.report.card",
     "university.timetable.slot",
     "university.transcript",
+    "university.transcript.request",
     "university.exam.score",
+    "university.notice.board",
+    "university.service.hour",
+    "university.class.section",
+    "university.classroom",
+    "university.program",
+    "university.subject",
 ]);
 
 function debugNavigation(...args) {

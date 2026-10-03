@@ -2,6 +2,7 @@ import logging
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from .academic_lock import can_maintain_closed_year_records
 from .semester import UniversitySemester
 
 _logger = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ class UniversityAcademicYear(models.Model):
                 )
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             closed_years = self.filtered(lambda y: y.state in ("closed", "archived"))
             if closed_years:
                 is_reopening = set(vals.keys()) <= {"state"} and vals.get("state") in ("draft", "open", "running")
@@ -139,7 +140,7 @@ class UniversityAcademicYear(models.Model):
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(year.state in ("closed", "archived") for year in self):
                 raise UserError("Closed and archived academic years cannot be deleted.")
         return super().unlink()

@@ -339,6 +339,37 @@ class UniversityDashboard(models.Model):
         semester_name = _("No active semester")
         if semester_id and self._can_read("university.semester"):
             semester_name = self.env["university.semester"].browse(semester_id).display_name or semester_name
+        # Academic risk metrics & advising
+        high_risk_count = self._safe_count("university.student", student_domain + [("risk_level", "=", "high")])
+        watch_count = self._safe_count("university.student", student_domain + [("risk_level", "=", "medium")])
+        on_track_count = self._safe_count("university.student", student_domain + [("risk_level", "=", "low")])
+        pending_followup_count = self._safe_count("university.student.followup", [("state", "in", ("pending", "in_progress"))])
+
+        high_risk_students = self._safe_search_read(
+            "university.student",
+            student_domain + [("risk_level", "=", "high")],
+            ["name", "student_id", "gpa", "attendance_rate", "risk_reason", "department_id"],
+            limit=5,
+            order="gpa asc, id desc",
+        )
+
+        user = self.env.user
+        is_admin = self.env.su or user.has_group("school_management.group_school_admin") or user.has_group("base.group_system")
+        is_hod = user.has_group("school_management.group_school_hod")
+        is_teacher = user.has_group("school_management.group_school_teacher")
+        is_student = user.has_group("school_management.group_school_student")
+
+        if is_admin:
+            role = "admin"
+        elif is_hod:
+            role = "hod"
+        elif is_teacher:
+            role = "teacher"
+        elif is_student:
+            role = "student"
+        else:
+            role = "user"
+
         dashboard = {
             "student_count": self._safe_count("university.student", student_domain),
             "teacher_count": self._safe_count("university.teacher", [("active", "=", True)]),
@@ -377,6 +408,12 @@ class UniversityDashboard(models.Model):
             "attendance_rate": attendance["rate"],
             "active_semester_name": semester_name,
             "currency_symbol": self.env.company.currency_id.symbol or self.env.company.currency_id.name,
+            "high_risk_student_count": high_risk_count,
+            "watch_student_count": watch_count,
+            "on_track_student_count": on_track_count,
+            "pending_followup_count": pending_followup_count,
+            "high_risk_students": high_risk_students,
+            "user_role": role,
         }
 
         recent_admissions = self._safe_search_read(
@@ -433,6 +470,10 @@ class UniversityDashboard(models.Model):
                     "labels": [self._group_label(row[0]) for row in fee_rows],
                     "data": [float(row[1] or 0.0) for row in fee_rows],
                 },
+                "risk_distribution": {
+                    "labels": ["On Track", "Watch", "High Risk"],
+                    "data": [on_track_count, watch_count, high_risk_count],
+                },
                 "attendance_summary": attendance,
                 "recent_admissions": recent_admissions,
                 "recent_payments": recent_payments,
@@ -440,6 +481,78 @@ class UniversityDashboard(models.Model):
                 "recent_activity": recent_activity,
             },
         }
+
+    @api.model
+    def get_role_dashboard_data(self, year_id=False, semester_id=False):
+        """Unified entry point returning role-tailored dashboard datasets without sudo bypass."""
+        data = self.get_dashboard_data(year_id=year_id, semester_id=semester_id)
+        user = self.env.user
+        is_admin = self.env.su or user.has_group("school_management.group_school_admin") or user.has_group("base.group_system")
+        is_hod = user.has_group("school_management.group_school_hod")
+        is_teacher = user.has_group("school_management.group_school_teacher")
+        is_student = user.has_group("school_management.group_school_student")
+
+        if is_student and not is_admin and not is_hod and not is_teacher:
+            student_records = self._safe_search_read(
+                "university.student",
+                [("user_id", "=", user.id)],
+                [
+                    "name", "student_id", "status", "gpa", "attendance_rate",
+                    "completed_credits", "risk_level", "risk_reason",
+                    "advisor_id", "program_id", "department_id", "faculty_id",
+                    "fee_total", "fee_paid", "fee_balance",
+                ],
+                limit=1,
+            )
+            student = student_records[0] if student_records else False
+            followups = []
+            if student:
+                followups = self._safe_search_read(
+                    "university.student.followup",
+                    [("student_id", "=", student["id"]), ("visible_to_student", "=", True)],
+                    ["title", "description", "action_type", "date_deadline", "state"],
+                    order="date_deadline asc, id desc",
+                )
+            data["student_view"] = {
+                "student": student,
+                "followups": followups,
+            }
+        elif is_teacher and not is_admin and not is_hod:
+            teacher = user.teacher_id
+            advisees = self._safe_search_read(
+                "university.student",
+                [("advisor_id.user_id", "=", user.id)],
+                ["name", "student_id", "gpa", "attendance_rate", "risk_level", "risk_reason"],
+                order="risk_level desc, gpa asc",
+            )
+            my_followups = self._safe_search_read(
+                "university.student.followup",
+                [("advisor_id.user_id", "=", user.id), ("state", "in", ("pending", "in_progress"))],
+                ["title", "student_id", "action_type", "date_deadline", "state"],
+                order="date_deadline asc",
+            )
+            data["teacher_view"] = {
+                "teacher_name": teacher.display_name if teacher else user.name,
+                "advisee_count": len(advisees),
+                "advisees": advisees,
+                "pending_followups": my_followups,
+            }
+        elif is_hod and not is_admin:
+            teacher = user.teacher_id
+            dept = teacher.managed_department_id if teacher else False
+            dept_teachers = self._safe_search_read(
+                "university.teacher",
+                [],
+                ["name", "teacher_id", "title", "advisee_count"],
+                order="name asc",
+            )
+            data["hod_view"] = {
+                "department_name": dept.name if dept else _("Managed Department"),
+                "teachers": dept_teachers,
+                "high_risk_students": data["dashboard"].get("high_risk_students", []),
+            }
+
+        return data
 
     @api.model
     def get_chart_data(self):

@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversityGradeScale(models.Model):
@@ -144,7 +145,7 @@ class UniversityAssessmentResult(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             for vals in vals_list:
                 year_id = vals.get("academic_year_id")
                 if not year_id and vals.get("semester_id"):
@@ -157,13 +158,13 @@ class UniversityAssessmentResult(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(res.academic_year_id.state in ("closed", "archived") for res in self):
                 raise UserError("Grades of a closed or archived academic year cannot be modified.")
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(res.academic_year_id.state in ("closed", "archived") for res in self):
                 raise UserError("Grades of a closed or archived academic year cannot be deleted.")
         return super().unlink()
@@ -220,10 +221,11 @@ class UniversityReportCard(models.Model):
         string="Status",
         default="draft",
     )
+    verification_code = fields.Char(string="Verification Code", copy=False, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             for vals in vals_list:
                 year_id = vals.get("academic_year_id")
                 if not year_id and vals.get("semester_id"):
@@ -239,13 +241,13 @@ class UniversityReportCard(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(card.academic_year_id.state in ("closed", "archived") for card in self):
                 raise UserError("Report cards of a closed or archived academic year cannot be modified.")
         return super().write(vals)
 
     def unlink(self):
-        if not self.env.context.get("allow_closed_year_write"):
+        if not can_maintain_closed_year_records(self.env):
             if any(card.academic_year_id.state in ("closed", "archived") for card in self):
                 raise UserError("Report cards of a closed or archived academic year cannot be deleted.")
         return super().unlink()
@@ -476,6 +478,7 @@ class UniversityTranscript(models.Model):
         string="Status",
         default="draft",
     )
+    verification_code = fields.Char(string="Verification Code", copy=False, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):

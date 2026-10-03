@@ -52,11 +52,15 @@ export class TeacherDashboardShell extends Component {
                 totalAssignments: 0,
                 pendingReviews: 0,
                 pendingServiceHours: 0,
+                adviseeCount: 0,
+                highRiskAdvisees: 0,
             },
             noticeBoard: [],
             lessonPlans: [],
             schedule: [],
             pendingSubmissions: [],
+            advisees: [],
+            followups: [],
             presentCount: 0,
             absentCount: 0,
             lateCount: 0,
@@ -100,7 +104,7 @@ export class TeacherDashboardShell extends Component {
                 const teacherId = this.state.teacher.id;
 
                 // 1. Fetch KPI counts
-                const [totalClasses, totalAssignments, pendingSubmissionsCount, pendingServiceHours] = await Promise.all([
+                const [totalClasses, totalAssignments, pendingSubmissionsCount, pendingServiceHours, adviseeCount, highRiskAdvisees] = await Promise.all([
                     this.orm.searchCount("university.timetable.slot", [["teacher_id", "=", teacherId]]),
                     this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId]]),
                     this.orm.searchCount("university.assignment.submission", [
@@ -111,6 +115,8 @@ export class TeacherDashboardShell extends Component {
                         ["teacher_id", "=", teacherId],
                         ["state", "=", "pending"],
                     ]),
+                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId]]),
+                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId], ["risk_level", "=", "high"]]),
                 ]);
 
                 this.state.stats = {
@@ -118,6 +124,8 @@ export class TeacherDashboardShell extends Component {
                     totalAssignments,
                     pendingReviews: pendingSubmissionsCount + pendingServiceHours,
                     pendingServiceHours,
+                    adviseeCount,
+                    highRiskAdvisees,
                 };
 
                 // 2. Fetch All Slots for teacher (upcoming + recent), sorted by start_time
@@ -155,7 +163,25 @@ export class TeacherDashboardShell extends Component {
                     { limit: 5, order: "create_date desc" }
                 );
 
-                // 6. Fetch Attendance stats
+                // 6. Fetch Advisees & Follow-ups
+                const [advisees, followups] = await Promise.all([
+                    this.orm.searchRead(
+                        "university.student",
+                        [["advisor_id", "=", teacherId]],
+                        ["name", "student_id", "gpa", "attendance_rate", "risk_level", "risk_reason"],
+                        { limit: 6, order: "risk_level desc, gpa asc" }
+                    ),
+                    this.orm.searchRead(
+                        "university.student.followup",
+                        [["advisor_id", "=", teacherId], ["state", "in", ["pending", "in_progress"]]],
+                        ["title", "student_id", "action_type", "date_deadline", "state"],
+                        { limit: 5, order: "date_deadline asc" }
+                    ),
+                ]);
+                this.state.advisees = advisees;
+                this.state.followups = followups;
+
+                // 7. Fetch Attendance stats
                 const [presentCount, absentCount, lateCount] = await Promise.all([
                     this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]),
                     this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]),
@@ -245,7 +271,6 @@ export class TeacherDashboardShell extends Component {
 
     // Direct Actionable Attendance Trigger
     trackAttendanceForSlot(slot) {
-        // Use today's date for attendance (slots may have historical dates)
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
@@ -285,6 +310,52 @@ export class TeacherDashboardShell extends Component {
             type: "ir.actions.act_window",
             res_model: "university.assignment.submission",
             res_id: submissionId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openAdvisees() {
+        if (!this.state.teacher) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "My Advisees",
+            res_model: "university.student",
+            view_mode: "list,kanban,form",
+            domain: [["advisor_id", "=", this.state.teacher.id]],
+            context: { default_advisor_id: this.state.teacher.id },
+        });
+    }
+
+    openAdvisingNotes() {
+        if (!this.state.teacher) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Advising Notes",
+            res_model: "university.student.advising.note",
+            view_mode: "list,form",
+            domain: [["advisor_id", "=", this.state.teacher.id]],
+            context: { default_advisor_id: this.state.teacher.id },
+        });
+    }
+
+    openFollowups() {
+        if (!this.state.teacher) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Follow-up Actions",
+            res_model: "university.student.followup",
+            view_mode: "list,form",
+            domain: [["advisor_id", "=", this.state.teacher.id]],
+            context: { default_advisor_id: this.state.teacher.id },
+        });
+    }
+
+    openStudentProfile(studentId) {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.student",
+            res_id: studentId,
             views: [[false, "form"]],
             target: "current",
         });

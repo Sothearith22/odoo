@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Student Views - Redesigned matching Academic Staff (Odoo 19)
+-->
 <odoo>
 
     <!-- ==================== LIST VIEW ==================== -->
@@ -14,17 +17,31 @@
                             class="btn-primary"
                             icon="fa-graduation-cap"/>
                 </header>
-                <field name="image_128" widget="image" options="{'preview_image': 'image_128', 'size': [32, 32]}" string="Photo"/>
-                <field name="student_id" decoration-bf="1"/>
+                <field name="avatar_128" widget="image" options="{'size': [32, 32]}" string="Avatar"/>
+                <field name="student_id" decoration-bf="1" string="Student ID"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="program_id"/>
                 <field name="department_id"/>
                 <field name="faculty_id"/>
-                <field name="status" widget="badge" decoration-success="status == 'active'" decoration-warning="status == 'suspended'" decoration-info="status == 'graduated'" decoration-danger="status == 'dropped'"/>
-                <field name="academic_year_id" optional="hide"/>
+                <field name="advisor_id" optional="show"/>
+                <field name="gpa" optional="show"/>
+                <field name="risk_level"
+                       widget="badge"
+                       optional="show"
+                       decoration-success="risk_level == 'low'"
+                       decoration-warning="risk_level == 'medium'"
+                       decoration-danger="risk_level == 'high'"/>
+                <field name="enrollment_count" string="Classes" optional="show"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'active'"
+                       decoration-warning="status == 'suspended'"
+                       decoration-info="status == 'graduated'"
+                       decoration-danger="status == 'dropped'"/>
+                <field name="academic_year_id" optional="show"/>
+                <field name="fee_balance" widget="monetary" string="Balance" optional="show"/>
+                <field name="email" widget="email"/>
                 <field name="phone" widget="phone" optional="hide"/>
-                <field name="email" widget="email" optional="hide"/>
-                <field name="active" widget="boolean_toggle" optional="hide"/>
+                <field name="active" widget="boolean_toggle" optional="hide" string="Active"/>
             </list>
         </field>
     </record>
@@ -34,58 +51,80 @@
         <field name="name">university.student.kanban</field>
         <field name="model">university.student</field>
         <field name="arch" type="xml">
-            <kanban class="o_university_student_kanban" sample="1" records_draggable="0">
+            <kanban class="o_university_teacher_kanban" sample="1" records_draggable="0" highlight_color="color">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
-                <field name="image_128"/>
+                <field name="avatar_128"/>
                 <field name="program_id"/>
                 <field name="department_id"/>
+                <field name="academic_year_id"/>
+                <field name="enrollment_count"/>
+                <field name="email"/>
                 <field name="status"/>
+                <field name="color"/>
                 <templates>
-                    <t t-name="card" class="o_university_kanban_card o_student_kanban_card">
-                        <main class="o_student_kanban_body">
-                            <div class="o_student_kanban_header">
-                                <div class="o_student_kanban_avatar" aria-label="Student photo">
-                                    <t t-if="record.image_128.raw_value">
-                                        <field name="image_128"
-                                               widget="image"
-                                               class="o_student_kanban_avatar_img rounded-circle object-fit-cover"
-                                               options="{'preview_image': 'image_128', 'size': [64, 64]}"/>
-                                    </t>
-                                    <t t-else="">
-                                        <div class="o_student_kanban_avatar_fallback rounded-circle">
-                                            <i class="fa fa-user" title="Student" aria-hidden="true"/>
-                                        </div>
-                                    </t>
+                    <t t-name="card" class="o_teacher_kanban_card d-flex flex-column justify-content-between p-3">
+                        <main class="d-flex gap-3 align-items-start min-w-0">
+                            <!-- Left: round 64x64 avatar with initials fallback -->
+                            <div class="o_teacher_avatar flex-shrink-0" style="width: 64px; height: 64px;">
+                                <field name="avatar_128" widget="image"
+                                       class="rounded-circle object-fit-cover w-100 h-100"
+                                       options="{'preview_image': 'avatar_128', 'size': [64, 64]}"/>
+                            </div>
+                            <!-- Right content -->
+                            <div class="flex-grow-1 min-w-0">
+                                <!-- Top row: Name + Status badge -->
+                                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                    <strong class="text-truncate fs-6 text-dark" t-att-title="record.name.value">
+                                        <field name="name"/>
+                                    </strong>
+                                    <field name="status"
+                                           widget="badge"
+                                           decoration-success="status == 'active'"
+                                           decoration-warning="status == 'suspended'"
+                                           decoration-info="status == 'graduated'"
+                                           decoration-danger="status == 'dropped'"/>
                                 </div>
-                                <div class="o_student_kanban_content">
-                                    <div class="o_student_kanban_title_row">
-                                        <span class="o_student_kanban_name fw-bold text-truncate" t-att-title="record.name.value">
-                                            <field name="name"/>
-                                        </span>
-                                        <field name="status"
-                                               widget="badge"
-                                               decoration-success="status == 'active'"
-                                               decoration-warning="status == 'suspended'"
-                                               decoration-info="status == 'graduated'"
-                                               decoration-danger="status == 'dropped'"/>
-                                    </div>
-                                    <div class="o_student_kanban_line text-muted" t-if="record.student_id.value">
-                                        <i class="fa fa-id-card text-muted" title="Student ID" aria-hidden="true"/>
-                                        <span class="text-truncate"><field name="student_id"/></span>
-                                    </div>
-                                    <div class="o_student_kanban_line" t-if="record.program_id.value">
-                                        <i class="fa fa-graduation-cap" title="Program" aria-hidden="true"/>
-                                        <span class="text-truncate"><field name="program_id" options="{'no_open': True}"/></span>
-                                    </div>
-                                    <div class="o_student_kanban_line" t-if="record.department_id.value">
-                                        <i class="fa fa-building" title="Department" aria-hidden="true"/>
-                                        <span class="text-truncate"><field name="department_id" options="{'no_open': True}"/></span>
-                                    </div>
+
+                                <!-- Student ID and Academic Year chip -->
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="text-muted small text-truncate" t-if="record.student_id.value">
+                                        <field name="student_id"/>
+                                    </span>
+                                    <span class="badge text-bg-light border text-muted small text-truncate" t-if="record.academic_year_id.value">
+                                        <field name="academic_year_id" options="{'no_open': True}"/>
+                                    </span>
+                                </div>
+
+                                <!-- Program with graduation-cap icon, no open -->
+                                <div class="text-muted small text-truncate" t-if="record.program_id.value">
+                                    <i class="fa fa-graduation-cap me-1 text-muted" title="Program"/>
+                                    <span class="text-truncate">
+                                        <field name="program_id" options="{'no_open': True}"/>
+                                    </span>
+                                </div>
+
+                                <!-- Department with building icon, no open -->
+                                <div class="text-muted small text-truncate" t-if="record.department_id.value">
+                                    <i class="fa fa-building me-1 text-muted" title="Department"/>
+                                    <span class="text-truncate">
+                                        <field name="department_id" options="{'no_open': True}"/>
+                                    </span>
                                 </div>
                             </div>
                         </main>
+
+                        <!-- Footer: enrolled classes chip and email widget -->
+                        <footer class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
+                            <span class="badge text-bg-light border text-muted small" title="Enrolled Classes">
+                                <i class="fa fa-book me-1"/>
+                                <t t-out="record.enrollment_count.raw_value"/> Classes
+                            </span>
+                            <div class="text-truncate small ms-2">
+                                <field name="email" widget="email"/>
+                            </div>
+                        </footer>
                     </t>
                 </templates>
             </kanban>
@@ -132,6 +171,30 @@
                            groups="school_management.group_school_admin"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_enrollments" type="object" class="oe_stat_button" icon="fa-graduation-cap">
+                            <field name="enrollment_count" widget="statinfo" string="Enrollments"/>
+                        </button>
+                        <button name="action_view_fees" type="object" class="oe_stat_button" icon="fa-money" groups="school_management.group_school_admin,school_management.group_school_student">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="fee_balance" widget="monetary"/></span>
+                                <span class="o_stat_text">Fee Balance</span>
+                            </div>
+                        </button>
+                        <button name="action_view_submissions" type="object" class="oe_stat_button" icon="fa-tasks">
+                            <field name="submission_count" widget="statinfo" string="Submissions"/>
+                        </button>
+                        <button name="action_view_report_cards" type="object" class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="report_card_count" widget="statinfo" string="Report Cards"/>
+                        </button>
+                        <button name="action_view_advising_notes" type="object" class="oe_stat_button" icon="fa-comments" groups="school_management.group_school_teacher">
+                            <field name="advising_note_count" widget="statinfo" string="Advising Notes"/>
+                        </button>
+                        <button name="action_view_followups" type="object" class="oe_stat_button" icon="fa-check-square-o">
+                            <field name="followup_count" widget="statinfo" string="Follow-ups"/>
+                        </button>
+                    </div>
+
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
@@ -145,54 +208,53 @@
                         <h1>
                             <field name="name" placeholder="e.g. Sothearith Kim" required="1"/>
                         </h1>
-<div class="text-muted">
-                        <i class="fa fa-id-card me-1" title="Student ID"/>
-                        <field name="student_id" placeholder="e.g. STD-2026-001"/>
+                        <div class="text-muted">
+                            <i class="fa fa-id-card me-1" title="Student ID"/>
+                            <field name="student_id" placeholder="e.g. STD-2026-0001"/>
+                        </div>
                     </div>
-                    <div groups="!school_management.group_school_admin">
-                        <field name="status"
-                               widget="badge"
-                               decoration-success="status == 'active'"
-                               decoration-warning="status == 'suspended'"
-                               decoration-info="status == 'graduated'"
-                               decoration-danger="status == 'dropped'"/>
-                    </div>
-                </div>
-
-                    <group string="Student Snapshot">
-                        <group string="Academic Placement">
-                            <field name="program_id"/>
-                            <field name="department_id"/>
-                            <field name="faculty_id" readonly="1"/>
-                            <field name="academic_year_id"/>
-                            <field name="current_semester_id"/>
-                        </group>
-                        <group string="Contact">
-                            <field name="email" widget="email"/>
-                            <field name="phone" widget="phone"/>
-                            <field name="emergency_contact_name"/>
-                            <field name="emergency_contact_phone" widget="phone"/>
-                        </group>
-                    </group>
 
                     <notebook>
-                        <page string="Personal Details" name="personal_details_tab">
+                        <page string="Overview" name="overview_tab">
                             <group>
-                                <group string="Identity">
+                                <group string="Academic Placement">
+                                    <field name="program_id"/>
+                                    <field name="department_id"/>
+                                    <field name="faculty_id" readonly="1"/>
+                                    <field name="academic_year_id"/>
+                                    <field name="current_semester_id"/>
+                                    <field name="advisor_id"/>
+                                    <field name="risk_level"
+                                           widget="badge"
+                                           decoration-success="risk_level == 'low'"
+                                           decoration-warning="risk_level == 'medium'"
+                                           decoration-danger="risk_level == 'high'"/>
+                                    <field name="gpa"/>
+                                    <field name="attendance_rate"/>
+                                    <field name="completed_credits"/>
+                                </group>
+                                <group string="Personal Information">
                                     <field name="gender" widget="radio" options="{'horizontal': true}"/>
                                     <field name="date_of_birth"/>
                                     <field name="active" widget="boolean_toggle"/>
+                                    <field name="user_id" readonly="1" groups="school_management.group_school_admin"/>
                                 </group>
-                                <group string="System Access" groups="school_management.group_school_admin">
-                                    <field name="user_id"/>
+                            </group>
+                            <group string="Contact Details">
+                                <group>
+                                    <field name="email" widget="email"/>
+                                    <field name="phone" widget="phone"/>
+                                </group>
+                                <group string="Emergency Contact">
+                                    <field name="emergency_contact_name"/>
+                                    <field name="emergency_contact_phone" widget="phone"/>
                                 </group>
                             </group>
                             <group string="Address">
-                                <field name="address"
-                                       nolabel="1"
-                                       placeholder="Street, city, province, and any other address details..."/>
+                                <field name="address" nolabel="1" placeholder="Street, city, province, and address details..."/>
                             </group>
                         </page>
+
                         <page string="Enrollments" name="enrollments_tab">
                             <field name="enrollment_ids">
                                 <list editable="bottom">
@@ -219,6 +281,7 @@
                                 </form>
                             </field>
                         </page>
+
                         <page string="Fees &amp; Payments" name="fees_tab" groups="school_management.group_school_admin,school_management.group_school_student">
                             <group>
                                 <group string="Fee Summary">
@@ -254,6 +317,7 @@
                                 </list>
                             </field>
                         </page>
+
                         <page string="Academic Results" name="academic_results_tab" groups="school_management.group_school_admin,school_management.group_school_student">
                             <separator string="Report Cards"/>
                             <field name="report_card_ids" readonly="1">
@@ -275,6 +339,7 @@
                                 </list>
                             </field>
                         </page>
+
                         <page string="Submissions" name="submissions_tab">
                             <field name="submission_ids" readonly="1">
                                 <list>
@@ -287,6 +352,52 @@
                                 </list>
                             </field>
                         </page>
+
+                        <page string="Advising &amp; Academic Progress" name="advising_tab" groups="school_management.group_school_teacher">
+                            <group string="Academic Standing &amp; Risk Indicators">
+                                <group>
+                                    <field name="risk_level" widget="badge"
+                                           decoration-success="risk_level == 'low'"
+                                           decoration-warning="risk_level == 'medium'"
+                                           decoration-danger="risk_level == 'high'"/>
+                                    <field name="risk_reason"/>
+                                    <field name="failed_subject_count"/>
+                                </group>
+                                <group>
+                                    <field name="gpa"/>
+                                    <field name="attendance_rate"/>
+                                    <field name="completed_credits"/>
+                                </group>
+                            </group>
+                            <group string="Advising Notes">
+                                <field name="advising_note_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="date"/>
+                                        <field name="advisor_id"/>
+                                        <field name="category"/>
+                                        <field name="note"/>
+                                        <field name="is_private" widget="boolean_toggle"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Follow-up Actions">
+                                <field name="followup_ids" nolabel="1">
+                                    <list editable="bottom">
+                                        <field name="date_deadline"/>
+                                        <field name="title"/>
+                                        <field name="advisor_id"/>
+                                        <field name="action_type"/>
+                                        <field name="state" widget="badge"
+                                               decoration-warning="state == 'pending'"
+                                               decoration-info="state == 'in_progress'"
+                                               decoration-success="state == 'completed'"
+                                               decoration-muted="state == 'cancelled'"/>
+                                        <field name="visible_to_student" widget="boolean_toggle"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
                         <page string="Notes &amp; Remarks" name="notes_tab">
                             <field name="notes"
                                    nolabel="1"
@@ -311,6 +422,11 @@
                 <field name="program_id"/>
                 <field name="department_id"/>
                 <field name="faculty_id"/>
+                <field name="advisor_id"/>
+                <separator/>
+                <filter string="My Advisees" name="filter_my_advisees" domain="[('advisor_id.user_id', '=', uid)]"/>
+                <filter string="High Risk" name="filter_risk_high" domain="[('risk_level', '=', 'high')]"/>
+                <filter string="Watch List" name="filter_risk_watch" domain="[('risk_level', 'in', ('medium', 'high'))]"/>
                 <separator/>
                 <filter string="Active Students" name="filter_status_active" domain="[('status', '=', 'active')]"/>
                 <filter string="Suspended" name="filter_status_suspended" domain="[('status', '=', 'suspended')]"/>
@@ -320,6 +436,8 @@
                 <filter string="Active Records" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived Records" name="filter_inactive" domain="[('active', '=', False)]"/>
                 <group>
+                    <filter string="Academic Advisor" name="group_by_advisor" context="{'group_by': 'advisor_id'}"/>
+                    <filter string="Risk Level" name="group_by_risk" context="{'group_by': 'risk_level'}"/>
                     <filter string="Program" name="group_by_program" context="{'group_by': 'program_id'}"/>
                     <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
                     <filter string="Faculty" name="group_by_faculty" context="{'group_by': 'faculty_id'}"/>
@@ -347,8 +465,6 @@
             <p>Add students and manage their academic and personal records.</p>
         </field>
     </record>
-
-
 
     <record id="action_university_student_profile" model="ir.actions.act_window">
         <field name="name">My Profile</field>

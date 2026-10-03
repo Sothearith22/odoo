@@ -236,12 +236,25 @@ class Teacher(models.Model):
     managed_faculty_id = fields.Many2one(
         "university.faculty",
         string="Managed Faculty",
-        compute="_compute_admin_appointments",
+        compute="_compute_managed_scopes",
+        store=True,
+        index=True,
     )
     managed_department_id = fields.Many2one(
         "university.department",
         string="Managed Department",
-        compute="_compute_admin_appointments",
+        compute="_compute_managed_scopes",
+        store=True,
+        index=True,
+    )
+    advisee_ids = fields.One2many(
+        "university.student",
+        "advisor_id",
+        string="Advisees",
+    )
+    advisee_count = fields.Integer(
+        string="Advisee Count",
+        compute="_compute_advisee_count",
     )
 
     # Odoo 19 Constraints / Indexes
@@ -306,7 +319,7 @@ class Teacher(models.Model):
         present_ids = set()
         leave_ids = set()
         for staff, status, count in attendance_records:
-            if status in ("present", "late"):
+            if status in ("present", "late", "official_duty", "half_day"):
                 present_ids.add(staff.id)
             elif status == "leave":
                 leave_ids.add(staff.id)
@@ -319,7 +332,7 @@ class Teacher(models.Model):
         today = fields.Date.context_today(self)
         attendances = self.env["university.staff.attendance"].search([
             ("date", "=", today),
-            ("status", "in", ("present", "late")),
+            ("status", "in", ("present", "late", "official_duty", "half_day")),
         ])
         staff_ids = attendances.mapped("staff_id").ids
         if _is_positive_boolean_search(operator, value):
@@ -378,6 +391,30 @@ class Teacher(models.Model):
             teacher.is_hod = bool(_hod_assignment(teacher))
 
     @api.depends(
+        "assignment_ids",
+        "assignment_ids.staff_id",
+        "assignment_ids.role",
+        "assignment_ids.active",
+        "assignment_ids.faculty_id",
+        "assignment_ids.department_id",
+        "assignment_ids.start_date",
+    )
+    def _compute_managed_scopes(self):
+        for teacher in self:
+            # Match the assignment model's ordering independently of cached relation order.
+            assignments = teacher.with_context(active_test=False).assignment_ids.sorted(
+                key=lambda assignment: (
+                    assignment.start_date or fields.Date.to_date("0001-01-01"),
+                    assignment.id or 0,
+                ),
+                reverse=True,
+            )
+            dean = assignments.filtered(lambda assignment: assignment.active and assignment.role == "dean")[:1]
+            head = assignments.filtered(lambda assignment: assignment.active and assignment.role == "department_head")[:1]
+            teacher.managed_faculty_id = dean.faculty_id
+            teacher.managed_department_id = head.department_id
+
+    @api.depends(
         "assignment_ids.role",
         "assignment_ids.active",
         "assignment_ids.faculty_id",
@@ -392,11 +429,9 @@ class Teacher(models.Model):
 
             teacher.dean_appointment_start = dean_asg.start_date
             teacher.dean_appointment_end = dean_asg.end_date
-            teacher.managed_faculty_id = dean_asg.faculty_id
 
             teacher.hod_appointment_start = head_asg.start_date
             teacher.hod_appointment_end = head_asg.end_date
-            teacher.managed_department_id = head_asg.department_id
 
     @api.onchange("department_id")
     def _onchange_department_id(self):
@@ -426,7 +461,11 @@ class Teacher(models.Model):
             if "email" in vals and isinstance(vals["email"], str):
                 vals["email"] = vals["email"].strip()
 
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.user_id and rec.user_id.teacher_id != rec:
+                rec.user_id.sudo().write({"teacher_id": rec.id})
+        return records
 
     def write(self, vals):
         clean_vals = dict(vals)
@@ -442,7 +481,12 @@ class Teacher(models.Model):
         if "email" in clean_vals and isinstance(clean_vals["email"], str):
             clean_vals["email"] = clean_vals["email"].strip()
 
-        return super().write(clean_vals)
+        res = super().write(clean_vals)
+        if "user_id" in clean_vals:
+            for rec in self:
+                if rec.user_id and rec.user_id.teacher_id != rec:
+                    rec.user_id.sudo().write({"teacher_id": rec.id})
+        return res
 
     def unlink(self):
         for rec in self:
@@ -479,6 +523,21 @@ class Teacher(models.Model):
         action["domain"] = [("staff_id", "=", self.id)]
         action["context"] = {"default_staff_id": self.id}
         return action
+
+    def _compute_advisee_count(self):
+        for teacher in self:
+            teacher.advisee_count = len(teacher.advisee_ids)
+
+    def action_view_advisees(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Assigned Advisees - %s", self.display_name),
+            "res_model": "university.student",
+            "view_mode": "list,kanban,form",
+            "domain": [("advisor_id", "=", self.id)],
+            "context": {"default_advisor_id": self.id},
+        }
 
     def action_create_user(self):
         self.ensure_one()

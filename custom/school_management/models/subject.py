@@ -1,4 +1,6 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError
+from .academic_lock import can_maintain_closed_year_records
 
 
 class UniversitySubject(models.Model):
@@ -54,3 +56,16 @@ class UniversitySubject(models.Model):
     def _onchange_program_ids(self):
         if self.program_ids and not self.department_id:
             self.department_id = self.program_ids[0].department_id
+
+    def unlink(self):
+        if not can_maintain_closed_year_records(self.env):
+            locked_offering = self.with_context(active_test=False).mapped(
+                "semester_subject_ids"
+            ).filtered(
+                lambda offering: offering.academic_year_id.state in ("closed", "archived")
+            )[:1]
+            if locked_offering:
+                raise UserError(
+                    "Cannot delete a subject with semester offerings in a closed or archived academic year."
+                )
+        return super().unlink()

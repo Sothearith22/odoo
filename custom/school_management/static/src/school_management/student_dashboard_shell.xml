@@ -4,59 +4,76 @@
     <t t-name="school_management.StudentDashboardShell" owl="1">
         <main class="o_student_dashboard h-100 overflow-auto bg-view">
             <t t-if="state.loading">
-                <div class="o_student_dashboard_empty text-muted">Loading your dashboard...</div>
+                <div class="o_student_dashboard_empty text-muted">
+                    <i class="fa fa-spinner fa-spin fa-2x mb-3 text-primary" aria-hidden="true"/>
+                    <div>Loading your student academic portal...</div>
+                </div>
             </t>
             <t t-elif="state.error">
                 <div class="o_student_dashboard_empty text-danger">
-                    <i class="fa fa-exclamation-triangle me-2" aria-hidden="true"></i>
+                    <i class="fa fa-exclamation-triangle fa-2x mb-3" aria-hidden="true"/>
                     <t t-esc="state.error"/>
                 </div>
             </t>
             <t t-elif="!state.student">
                 <div class="o_student_dashboard_empty">
-                    <i class="fa fa-user-o fa-2x mb-3 text-muted" aria-hidden="true"></i>
+                    <i class="fa fa-user-o fa-2x mb-3 text-muted" aria-hidden="true"/>
                     <h2 class="h4">Student profile not linked</h2>
                     <p class="text-muted mb-0">Ask an administrator to link this login to your student record.</p>
                 </div>
             </t>
             <t t-else="">
-                <header class="o_student_dashboard_header border-bottom">
-                    <div class="container-fluid px-0 d-flex align-items-center gap-3">
-                        <div class="o_student_header_avatar_wrap flex-shrink-0">
-                            <t t-if="state.student.image_1920">
-                                <img t-att-src="'/web/image/university.student/' + state.student.id + '/image_1920'"
-                                     class="o_student_header_avatar rounded-circle"
-                                     alt="Student photo"/>
-                            </t>
-                            <t t-else="">
-                                <div class="o_student_header_avatar_placeholder rounded-circle d-flex align-items-center justify-content-center">
-                                    <span class="o_student_header_avatar_letter" t-esc="(state.student.name || '?').slice(0, 1).toUpperCase()"/>
-                                </div>
-                            </t>
-                        </div>
-                        <div>
-                            <div class="text-uppercase small fw-semibold text-muted">University</div>
-                            <h1 class="h2 mb-1 mt-1">Welcome, <t t-esc="state.student.name"/></h1>
-                            <div class="text-muted">
-                                <span t-esc="state.student.student_id || 'Student ID not assigned'"/>
-                                <span class="mx-2">•</span>
-                                <span t-esc="state.student.status"/>
+                <!-- Header Banner -->
+                <header class="o_student_dashboard_header">
+                    <div class="container-fluid px-0 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="o_student_header_avatar_wrap flex-shrink-0">
+                                <t t-if="state.student.image_1920">
+                                    <img t-att-src="'/web/image/university.student/' + state.student.id + '/image_1920'"
+                                         class="o_student_header_avatar rounded-circle"
+                                         alt="Student photo"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_student_header_avatar_placeholder rounded-circle d-flex align-items-center justify-content-center">
+                                        <span class="o_student_header_avatar_letter" t-esc="(state.student.name || '?').slice(0, 1).toUpperCase()"/>
+                                    </div>
+                                </t>
                             </div>
+                            <div>
+                                <div class="text-uppercase small fw-bold text-primary tracking-wide">University Academic Portal</div>
+                                <h1 class="h3 mb-0 fw-bold text-dark">Welcome, <t t-esc="state.student.name"/></h1>
+                                <div class="text-muted small mt-1">
+                                    <span class="badge bg-light text-dark border me-2" t-esc="state.student.student_id || 'ID Pending'"/>
+                                    <span class="badge bg-success-subtle text-success text-capitalize me-2" t-esc="state.student.status"/>
+                                    <span t-if="state.student.program_id" class="text-muted">• <t t-esc="this.relationLabel(state.student.program_id)"/></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    t-on-click="() => this.openMyProfile()">
+                                <i class="fa fa-user me-1" aria-hidden="true"/>View My Profile
+                            </button>
+                            <button t-if="state.student.program_id" type="button" class="btn btn-outline-secondary btn-sm"
+                                    t-on-click="() => this.printCurriculum()">
+                                <i class="fa fa-book me-1" aria-hidden="true"/>Curriculum PDF
+                            </button>
                         </div>
                     </div>
                 </header>
 
                 <div class="container-fluid px-4 py-4">
+                    <!-- Top Overview Section: Student Profile & Key Metrics -->
                     <div class="row g-4 mb-4">
-                        <!-- Profile Card -->
+                        <!-- Left: Compact Profile Card -->
                         <div class="col-12 col-xl-4">
                             <section class="card border-0 shadow-sm h-100 o_student_profile_card">
-                                <div class="card-body text-center py-4">
-                                    <!-- Avatar -->
+                                <div class="card-body py-4 px-4 text-center">
                                     <div class="o_student_avatar_wrap mx-auto mb-3">
                                         <t t-if="state.student.image_1920">
                                             <img t-att-src="'/web/image/university.student/' + state.student.id + '/image_1920'"
-                                                 class="o_student_avatar rounded-circle"
+                                                 class="o_student_avatar rounded-circle shadow-sm"
                                                  alt="Student photo"/>
                                         </t>
                                         <t t-else="">
@@ -65,122 +82,175 @@
                                             </div>
                                         </t>
                                     </div>
-                                    <h2 class="h4 mb-1" t-esc="state.student.name"/>
-                                    <div class="text-muted small mb-2" t-esc="state.student.student_id || '—'"/>
-                                    <!-- Status badge -->
-                                    <span t-if="state.student.status === 'active'" class="badge text-bg-success">Active</span>
-                                    <span t-elif="state.student.status === 'suspended'" class="badge text-bg-warning">Suspended</span>
-                                    <span t-elif="state.student.status === 'graduated'" class="badge text-bg-info">Graduated</span>
-                                    <span t-elif="state.student.status === 'dropped'" class="badge text-bg-danger">Dropped</span>
+                                    <h2 class="h5 mb-1 fw-bold text-dark" t-esc="state.student.name"/>
+                                    <div class="text-muted small mb-2" t-esc="state.student.student_id"/>
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-success-subtle text-success px-3 py-1 fw-semibold text-capitalize" t-esc="state.student.status"/>
+                                    </div>
+
+                                    <hr class="my-3"/>
+
+                                    <div class="text-start small">
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-graduation-cap me-2 text-primary"/>Advisor</span>
+                                            <span class="fw-semibold text-truncate" style="max-width: 170px;" t-esc="this.relationLabel(state.student.advisor_id)"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-envelope-o me-2 text-primary"/>Email</span>
+                                            <span class="text-truncate" style="max-width: 170px;" t-esc="state.student.email || 'None'"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom">
+                                            <span class="text-muted"><i class="fa fa-phone me-2 text-primary"/>Phone</span>
+                                            <span t-esc="state.student.phone || 'None'"/>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1">
+                                            <span class="text-muted"><i class="fa fa-user me-2 text-primary"/>Gender</span>
+                                            <span class="text-capitalize" t-esc="state.student.gender || 'None'"/>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-footer bg-transparent border-top-0 pb-4 px-4">
-                                    <dl class="row mb-0 text-start">
-                                        <t t-if="state.student.email">
-                                            <dt class="col-sm-4 text-muted fw-normal small">Email</dt>
-                                            <dd class="col-sm-8 small text-truncate" t-esc="state.student.email"/>
-                                        </t>
-                                        <t t-if="state.student.phone">
-                                            <dt class="col-sm-4 text-muted fw-normal small">Phone</dt>
-                                            <dd class="col-sm-8 small" t-esc="state.student.phone"/>
-                                        </t>
-                                        <t t-if="state.student.gender">
-                                            <dt class="col-sm-4 text-muted fw-normal small">Gender</dt>
-                                            <dd class="col-sm-8 small text-capitalize" t-esc="state.student.gender"/>
-                                        </t>
-                                        <t t-if="state.student.date_of_birth">
-                                            <dt class="col-sm-4 text-muted fw-normal small">Birthday</dt>
-                                            <dd class="col-sm-8 small" t-esc="state.student.date_of_birth"/>
-                                        </t>
-                                    </dl>
-                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-3"
+                                <div class="card-footer border-0 p-3 pt-0">
+                                    <button type="button" class="btn btn-outline-primary w-100 btn-sm"
                                             t-on-click="() => this.openMyProfile()">
-                                        <i class="fa fa-user me-2" aria-hidden="true"/>View My Full Profile
+                                        <i class="fa fa-id-card-o me-2" aria-hidden="true"/>
+                                        Manage Student Profile
                                     </button>
                                 </div>
                             </section>
                         </div>
 
-                        <!-- Stats + Academic + Fee -->
+                        <!-- Right: KPI Stats + Academic Profile + Fee Summary -->
                         <div class="col-12 col-xl-8">
-                            <!-- Stat Cards -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-12 col-md-4">
-                                    <div class="card h-100 border-0 shadow-sm o_student_stat_card">
-                                        <div class="card-body">
-                                            <div class="text-muted small">Enrollments</div>
-                                            <div class="fs-2 fw-bold mt-2" t-esc="state.enrollmentCount"/>
-                                            <i class="fa fa-book text-primary o_student_stat_icon" aria-hidden="true"></i>
+                            <!-- Top KPI Stat Cards -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">GPA</span>
+                                            <div class="o_stat_icon_box bg-primary-subtle text-primary">
+                                                <i class="fa fa-graduation-cap" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-dark" t-esc="state.student.gpa || 0.0"/>
+                                            <div class="very-small text-muted">Scale 4.00</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="card h-100 border-0 shadow-sm o_student_stat_card">
-                                        <div class="card-body">
-                                            <div class="text-muted small">Fee invoices</div>
-                                            <div class="fs-2 fw-bold mt-2" t-esc="state.feeCount"/>
-                                            <i class="fa fa-file-text-o text-warning o_student_stat_icon" aria-hidden="true"></i>
+                                <div class="col-6 col-md-3">
+                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Attendance</span>
+                                            <div class="o_stat_icon_box bg-success-subtle text-success">
+                                                <i class="fa fa-check-circle" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-success" t-esc="(state.student.attendance_rate || 100) + '%'"/>
+                                            <div class="very-small text-muted">Present Rate</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <div class="card h-100 border-0 shadow-sm o_student_stat_card">
-                                        <div class="card-body">
-                                            <div class="text-muted small">Payments</div>
-                                            <div class="fs-2 fw-bold mt-2" t-esc="state.paymentCount"/>
-                                            <i class="fa fa-credit-card text-success o_student_stat_icon" aria-hidden="true"></i>
+                                <div class="col-6 col-md-3">
+                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Credits</span>
+                                            <div class="o_stat_icon_box bg-info-subtle text-info">
+                                                <i class="fa fa-book" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="fs-4 fw-bold text-info" t-esc="state.student.completed_credits || 0"/>
+                                            <div class="very-small text-muted">Completed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-muted small fw-semibold">Standing</span>
+                                            <div class="o_stat_icon_box bg-warning-subtle text-warning">
+                                                <i class="fa fa-shield" aria-hidden="true"/>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span t-if="state.student.risk_level === 'low'" class="badge bg-success-subtle text-success fs-6">On Track</span>
+                                            <span t-elif="state.student.risk_level === 'medium'" class="badge bg-warning-subtle text-warning fs-6">Watch</span>
+                                            <span t-elif="state.student.risk_level === 'high'" class="badge bg-danger-subtle text-danger fs-6">High Risk</span>
+                                            <span t-else="" class="badge bg-success-subtle text-success fs-6">Good</span>
+                                            <div class="very-small text-muted mt-1">Status</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="row g-4">
-                                <!-- Academic profile -->
+                            <!-- Academic Profile & Fee Summary -->
+                            <div class="row g-3">
+                                <!-- Academic Profile -->
                                 <div class="col-12 col-md-6">
-                                    <section class="card border-0 shadow-sm h-100">
-                                        <div class="card-header bg-transparent py-3">
-                                            <h2 class="h5 mb-0">
-                                                <i class="fa fa-graduation-cap me-2 text-primary" aria-hidden="true"/>
-                                                Academic Profile
-                                            </h2>
+                                    <section class="card border-0 shadow-sm h-100 o_student_stat_card">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                                            <h3 class="h6 mb-0 fw-bold text-dark">
+                                                <i class="fa fa-university me-2 text-primary" aria-hidden="true"/>
+                                                Academic Program
+                                            </h3>
                                         </div>
-                                        <div class="card-body">
-                                            <dl class="row mb-0">
-                                                <dt class="col-sm-5 text-muted fw-normal">Program</dt>
-                                                <dd class="col-sm-7" t-esc="this.relationLabel(state.student.program_id)"/>
-                                                <dt class="col-sm-5 text-muted fw-normal">Department</dt>
-                                                <dd class="col-sm-7" t-esc="this.relationLabel(state.student.department_id)"/>
-                                                <dt class="col-sm-5 text-muted fw-normal">Faculty</dt>
-                                                <dd class="col-sm-7" t-esc="this.relationLabel(state.student.faculty_id)"/>
-                                                <dt class="col-sm-5 text-muted fw-normal">Academic year</dt>
-                                                <dd class="col-sm-7" t-esc="this.relationLabel(state.student.academic_year_id)"/>
-                                                <dt class="col-sm-5 text-muted fw-normal">Semester</dt>
-                                                <dd class="col-sm-7 mb-0" t-esc="this.relationLabel(state.student.current_semester_id)"/>
-                                            </dl>
+                                        <div class="small">
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Program</span>
+                                                <span class="fw-semibold text-truncate" style="max-width: 180px;" t-esc="this.relationLabel(state.student.program_id)"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Department</span>
+                                                <span class="text-truncate" style="max-width: 180px;" t-esc="this.relationLabel(state.student.department_id)"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Faculty</span>
+                                                <span class="text-truncate" style="max-width: 180px;" t-esc="this.relationLabel(state.student.faculty_id)"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Academic Year</span>
+                                                <span t-esc="this.relationLabel(state.student.academic_year_id)"/>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1">
+                                                <span class="text-muted">Semester</span>
+                                                <span class="fw-semibold text-primary" t-esc="this.relationLabel(state.student.current_semester_id)"/>
+                                            </div>
                                         </div>
                                     </section>
                                 </div>
 
                                 <!-- Fee Summary -->
                                 <div class="col-12 col-md-6">
-                                    <section class="card border-0 shadow-sm h-100">
-                                        <div class="card-header bg-transparent py-3">
-                                            <h2 class="h5 mb-0">
+                                    <section class="card border-0 shadow-sm h-100 o_student_stat_card">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                                            <h3 class="h6 mb-0 fw-bold text-dark">
                                                 <i class="fa fa-money me-2 text-success" aria-hidden="true"/>
-                                                Fee Summary
-                                            </h2>
+                                                Tuition &amp; Fees
+                                            </h3>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none"
+                                                    t-on-click="() => this.setActiveTab('financial')">
+                                                View Breakdown &gt;
+                                            </button>
                                         </div>
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between py-2 border-bottom">
-                                                <span class="text-muted">Total</span>
-                                                <strong t-esc="state.student.fee_total"/>
+                                        <div class="small">
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Total Tuition</span>
+                                                <strong class="text-dark" t-esc="state.student.fee_total"/>
                                             </div>
-                                            <div class="d-flex justify-content-between py-2 border-bottom">
-                                                <span class="text-muted">Paid</span>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Amount Paid</span>
                                                 <strong class="text-success" t-esc="state.student.fee_paid"/>
                                             </div>
-                                            <div class="d-flex justify-content-between py-2">
-                                                <span class="text-muted">Balance</span>
+                                            <div class="d-flex justify-content-between py-1 border-bottom">
+                                                <span class="text-muted">Outstanding Balance</span>
                                                 <strong class="text-danger" t-esc="state.student.fee_balance"/>
+                                            </div>
+                                            <div class="mt-3">
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" role="progressbar"
+                                                         t-att-style="'width: ' + ((state.student.fee_total ? (state.student.fee_paid / state.student.fee_total * 100) : 100)) + '%'"/>
+                                                </div>
                                             </div>
                                         </div>
                                     </section>
@@ -189,21 +259,659 @@
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="d-flex flex-wrap gap-2 mt-2">
-                        <button type="button" class="btn btn-primary" t-on-click="() => this.navigate('school_management.action_university_enrollment_student')">
-                            <i class="fa fa-book me-2" aria-hidden="true"></i>My Enrollments
+                    <!-- Academic Hub: Tabbed Sections -->
+                    <div class="card border-0 shadow-sm mb-4 o_student_hub_card">
+                        <div class="card-header bg-white border-bottom p-0">
+                            <ul class="nav nav-tabs card-header-tabs mx-3 mt-2 border-bottom-0">
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'classes' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('classes')">
+                                        <i class="fa fa-graduation-cap me-2" aria-hidden="true"/>My Classes &amp; Classrooms
+                                        <span class="badge rounded-pill bg-primary ms-1" t-esc="state.counts.classes"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'schedule' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('schedule')">
+                                        <i class="fa fa-calendar me-2" aria-hidden="true"/>Schedule &amp; Timetable
+                                        <span class="badge rounded-pill bg-info ms-1" t-esc="state.counts.schedule"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'transcript' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('transcript')">
+                                        <i class="fa fa-file-text-o me-2" aria-hidden="true"/>Transcript &amp; Grades
+                                        <span class="badge rounded-pill bg-success ms-1" t-esc="state.counts.transcript"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'curriculum' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('curriculum')">
+                                        <i class="fa fa-book me-2" aria-hidden="true"/>Major Curriculum
+                                        <span class="badge rounded-pill bg-secondary ms-1" t-esc="state.counts.curriculum"/>
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button type="button"
+                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'financial' ? 'active' : '')"
+                                            t-on-click="() => this.setActiveTab('financial')">
+                                        <i class="fa fa-credit-card me-2" aria-hidden="true"/>Financial Summary
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- TAB 1: MY CLASSES & CLASSROOMS -->
+                            <div t-if="state.activeTab === 'classes'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">My Enrolled Classes &amp; Assigned Classrooms</h3>
+                                        <p class="text-muted small mb-0">Review your class section allocations, assigned physical classrooms, and instructors.</p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            t-on-click="() => this.navigate('school_management.action_university_class_section')">
+                                        <i class="fa fa-th-list me-1"/>View All Class Sections
+                                    </button>
+                                </div>
+
+                                <t t-if="state.enrolledClasses.length">
+                                    <div class="row g-3">
+                                        <div t-foreach="state.enrolledClasses" t-as="cls" t-key="cls.id" class="col-12 col-lg-6">
+                                            <div class="card h-100 shadow-sm border o_student_class_card">
+                                                <div class="card-header bg-white border-bottom py-3 px-3 d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h4 class="h6 mb-0 fw-bold text-dark" t-esc="cls.section_name"/>
+                                                        <span class="text-muted very-small text-uppercase" t-esc="cls.section_type"/>
+                                                    </div>
+                                                    <span t-att-class="'badge px-2 py-1 text-capitalize ' + (cls.status === 'enrolled' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning')" t-esc="cls.status"/>
+                                                </div>
+                                                <div class="card-body p-3">
+                                                    <!-- Subject -->
+                                                    <div class="mb-3">
+                                                        <div class="text-muted very-small text-uppercase fw-semibold">Course / Subject</div>
+                                                        <div class="fw-bold text-primary fs-6">
+                                                            <i class="fa fa-book me-1"/> <t t-esc="cls.subject_name"/>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Physical Classroom Details -->
+                                                    <div class="p-3 mb-3 border rounded o_student_classroom_badge">
+                                                        <div class="d-flex align-items-start gap-2">
+                                                            <i class="fa fa-map-marker text-primary fs-5 mt-1" aria-hidden="true"/>
+                                                            <div>
+                                                                <div class="fw-bold text-dark">
+                                                                    Classroom: <t t-esc="cls.classroom ? cls.classroom.name : 'Room Assignment in Progress'"/>
+                                                                </div>
+                                                                <div class="text-muted small" t-if="cls.classroom">
+                                                                    <span t-esc="cls.classroom.building"/> • <span t-esc="this.formatRoomType(cls.classroom.room_type)"/>
+                                                                    <span t-if="cls.classroom.capacity"> • Cap: <t t-esc="cls.classroom.capacity"/></span>
+                                                                </div>
+                                                                <div class="text-muted very-small" t-else="">
+                                                                    Physical classroom will be assigned before lecture begins.
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Instructor & Schedule Info -->
+                                                    <div class="small text-muted mb-2">
+                                                        <i class="fa fa-user-circle-o me-1 text-secondary"/> Instructor: <strong class="text-dark" t-esc="cls.instructor_name"/>
+                                                    </div>
+                                                    <div class="text-muted small">
+                                                        <i class="fa fa-calendar me-1 text-secondary"/> <t t-esc="cls.semester_name"/> • <t t-esc="cls.academic_year_name"/>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-transparent border-top-0 pt-0 px-3 pb-3">
+                                                    <button t-if="cls.section_id" type="button" class="btn btn-outline-secondary btn-sm w-100"
+                                                            t-on-click="() => this.openClassSection(cls.section_id)">
+                                                        <i class="fa fa-external-link me-1"/>View Section Details
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <i class="fa fa-graduation-cap fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">No Classes Currently Enrolled</h4>
+                                        <p class="text-muted small mb-0">Your university administrator or academic advisor will enroll you in class sections for your program.</p>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 2: SCHEDULE & TIMETABLE (CALENDAR VIEW OF LEARNING TIME) -->
+                            <div t-if="state.activeTab === 'schedule'">
+                                <!-- Schedule Header Controls -->
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">
+                                            <i class="fa fa-calendar me-2 text-primary"/>Weekly Learning Schedule &amp; Timetable
+                                        </h3>
+                                        <p class="text-muted small mb-0">
+                                            Scheduled class sessions, learning hours, classrooms, and instructors.
+                                        </p>
+                                    </div>
+
+                                    <!-- Controls: Navigation & View Toggle -->
+                                    <div class="d-flex flex-wrap align-items-center gap-2">
+                                        <!-- Week Navigator -->
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" title="Previous Week"
+                                                    t-on-click="() => this.prevWeek()">
+                                                <i class="fa fa-chevron-left"/>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary px-3"
+                                                    t-on-click="() => this.resetWeekToToday()">
+                                                Today / This Week
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" title="Next Week"
+                                                    t-on-click="() => this.nextWeek()">
+                                                <i class="fa fa-chevron-right"/>
+                                            </button>
+                                        </div>
+
+                                        <!-- View Mode Switcher -->
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button"
+                                                    t-att-class="'btn ' + (state.scheduleViewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary')"
+                                                    t-on-click="() => this.setScheduleViewMode('calendar')">
+                                                <i class="fa fa-calendar-check-o me-1"/>Calendar Grid
+                                            </button>
+                                            <button type="button"
+                                                    t-att-class="'btn ' + (state.scheduleViewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary')"
+                                                    t-on-click="() => this.setScheduleViewMode('list')">
+                                                <i class="fa fa-list me-1"/>Agenda List
+                                            </button>
+                                        </div>
+
+                                        <!-- Full Odoo Calendar Action -->
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.openMyTimetableCalendar()">
+                                            <i class="fa fa-external-link me-1"/>Full Calendar View
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Current Week Range Sub-Banner -->
+                                <div class="d-flex align-items-center justify-content-between p-2 px-3 mb-3 bg-light rounded border">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa fa-clock-o text-primary"/>
+                                        <span class="fw-semibold text-dark small" t-esc="this.weekRangeLabel"/>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary small">
+                                        <t t-esc="this.currentWeekTotalSlots"/> Class Sessions This Week
+                                    </span>
+                                </div>
+
+                                <!-- MODE 1: WEEKLY CALENDAR GRID -->
+                                <t t-if="state.scheduleViewMode === 'calendar'">
+                                    <div class="o_schedule_calendar_grid">
+                                        <div t-foreach="this.currentWeekDays" t-as="day" t-key="day.dateStr"
+                                             t-att-class="'o_calendar_day_col ' + (day.isToday ? 'is_today' : '')">
+                                            <!-- Day Column Header -->
+                                            <div class="o_day_col_header">
+                                                <div class="fw-bold fs-6 text-dark">
+                                                    <t t-esc="day.shortName"/>
+                                                    <span t-if="day.isToday" class="badge bg-primary text-white ms-1 very-small">TODAY</span>
+                                                </div>
+                                                <div class="text-muted very-small" t-esc="day.formattedDate"/>
+                                            </div>
+
+                                            <!-- Day Column Sessions -->
+                                            <div class="o_day_col_body">
+                                                <t t-if="day.hasSlots">
+                                                    <div t-foreach="day.slots" t-as="slot" t-key="slot.id"
+                                                         t-att-class="'o_calendar_slot_card shadow-sm ' + slot.color_class"
+                                                         t-on-click="() => this.openSlot(slot.id)"
+                                                         title="Click to view session details">
+                                                        <!-- Time Badge -->
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="badge bg-light text-dark border very-small">
+                                                                <i class="fa fa-clock-o me-1"/> <t t-esc="slot.time_formatted"/>
+                                                            </span>
+                                                            <span t-if="slot.state === 'completed'" class="badge bg-success-subtle text-success very-small">Done</span>
+                                                            <span t-elif="slot.state === 'running'" class="badge bg-warning-subtle text-warning very-small">In Session</span>
+                                                            <span t-else="" class="badge bg-info-subtle text-info very-small">Upcoming</span>
+                                                        </div>
+
+                                                        <!-- Subject & Section -->
+                                                        <div class="fw-bold text-dark small mb-1 o_slot_accent" t-esc="slot.subject_name"/>
+                                                        <div class="very-small text-muted mb-2">
+                                                            <span class="badge bg-light text-secondary border very-small me-1" t-esc="slot.section_name"/>
+                                                        </div>
+
+                                                        <!-- Classroom & Teacher -->
+                                                        <div class="very-small text-dark mb-1">
+                                                            <i class="fa fa-map-marker text-danger me-1"/>
+                                                            <strong t-esc="slot.classroom_name"/>
+                                                        </div>
+                                                        <div class="very-small text-muted">
+                                                            <i class="fa fa-user-circle-o me-1"/>
+                                                            <t t-esc="slot.teacher_name"/>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-3 text-muted">
+                                                        <i class="fa fa-coffee text-muted opacity-50 mb-1"/>
+                                                        <span class="very-small text-muted">No classes scheduled</span>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+
+                                <!-- MODE 2: AGENDA / LIST VIEW -->
+                                <t t-else="">
+                                    <t t-if="state.scheduleSlots.length">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0 border">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Date &amp; Day</th>
+                                                        <th>Time</th>
+                                                        <th>Class / Section</th>
+                                                        <th>Subject</th>
+                                                        <th>Classroom Location</th>
+                                                        <th>Instructor</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr t-foreach="state.scheduleSlots" t-as="slot" t-key="slot.id">
+                                                        <td class="fw-semibold text-dark" t-esc="slot.date_formatted"/>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark border">
+                                                                <i class="fa fa-clock-o me-1"/> <t t-esc="slot.time_formatted"/>
+                                                            </span>
+                                                        </td>
+                                                        <td><strong t-esc="slot.section_name"/></td>
+                                                        <td class="text-primary fw-semibold" t-esc="slot.subject_name"/>
+                                                        <td>
+                                                            <span class="badge bg-info-subtle text-info border">
+                                                                <i class="fa fa-map-marker me-1"/> <t t-esc="slot.classroom_name"/>
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-muted small" t-esc="slot.teacher_name"/>
+                                                        <td>
+                                                            <span t-if="slot.state === 'completed'" class="badge bg-success-subtle text-success">Completed</span>
+                                                            <span t-elif="slot.state === 'running'" class="badge bg-warning-subtle text-warning">In Session</span>
+                                                            <span t-else="" class="badge bg-info-subtle text-info">Scheduled</span>
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm py-0"
+                                                                    t-on-click="() => this.openSlot(slot.id)">
+                                                                <i class="fa fa-external-link"/>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="p-4 text-center bg-light rounded border">
+                                            <i class="fa fa-calendar-o fa-2x text-muted mb-2"/>
+                                            <h4 class="h6 text-dark mb-1">No Upcoming Timetable Sessions Scheduled</h4>
+                                            <p class="text-muted small mb-0">Class sessions scheduled by administration will automatically display here.</p>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+
+                            <!-- TAB 3: TRANSCRIPT, GRADES & TRANSCRIPT REQUESTS -->
+                            <div t-if="state.activeTab === 'transcript'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2 border-bottom pb-3">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">Academic Transcript, Grades &amp; Requests</h3>
+                                        <p class="text-muted small mb-0">Official academic standing, semester scores, and graduation credit summary.</p>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm"
+                                                t-on-click="() => this.openNewTranscriptRequest()">
+                                            <i class="fa fa-paper-plane me-1"/>Request Official Transcript
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.printTranscript()">
+                                            <i class="fa fa-print me-1"/>Print Transcript (PDF)
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                t-on-click="() => this.openReportCards()">
+                                            <i class="fa fa-file-text-o me-1"/>Report Cards
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- GPA Summary Ribbon -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Cumulative GPA</div>
+                                            <div class="fs-3 fw-bold text-primary mt-1" t-esc="state.student.gpa || 0.0"/>
+                                            <div class="very-small text-muted">Scale: 4.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Completed Credits</div>
+                                            <div class="fs-3 fw-bold text-success mt-1" t-esc="state.student.completed_credits || 0"/>
+                                            <div class="very-small text-muted">Total Degree Credits</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Official Transcript Status</div>
+                                            <div class="mt-2">
+                                                <span t-if="state.transcripts.length" class="badge bg-success-subtle text-success fs-6">Available</span>
+                                                <span t-else="" class="badge bg-warning-subtle text-warning fs-6">In Progress</span>
+                                            </div>
+                                            <div class="very-small text-muted mt-1">Registrar Office</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Student Transcript Requests Section -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h4 class="h6 mb-0 fw-bold text-dark">
+                                            <i class="fa fa-send-o me-2 text-primary"/>My Transcript Requests
+                                        </h4>
+                                        <span class="badge bg-primary-subtle text-primary" t-esc="state.transcriptRequests.length + ' requests'"/>
+                                    </div>
+
+                                    <t t-if="state.transcriptRequests.length">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle mb-0 border">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Request Ref</th>
+                                                        <th>Type</th>
+                                                        <th>Copies</th>
+                                                        <th>Purpose</th>
+                                                        <th>Delivery</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr t-foreach="state.transcriptRequests" t-as="req" t-key="req.id">
+                                                        <td>
+                                                            <strong class="text-primary cursor-pointer" t-esc="req.name"
+                                                                    t-on-click="() => this.openTranscriptRequest(req.id)"/>
+                                                        </td>
+                                                        <td class="text-capitalize" t-esc="req.request_type"/>
+                                                        <td t-esc="req.copies"/>
+                                                        <td class="text-capitalize" t-esc="req.purpose"/>
+                                                        <td class="text-capitalize" t-esc="req.delivery_method"/>
+                                                        <td>
+                                                            <span t-if="req.state === 'draft'" class="badge bg-secondary">Draft</span>
+                                                            <span t-elif="req.state === 'submitted'" class="badge bg-info-subtle text-info">Submitted</span>
+                                                            <span t-elif="req.state === 'approved'" class="badge bg-primary-subtle text-primary">Approved</span>
+                                                            <span t-elif="req.state === 'issued'" class="badge bg-success-subtle text-success">Issued</span>
+                                                            <span t-elif="req.state === 'delivered'" class="badge bg-success">Delivered</span>
+                                                            <span t-elif="req.state === 'rejected'" class="badge bg-danger-subtle text-danger">Rejected</span>
+                                                            <span t-elif="req.state === 'cancelled'" class="badge bg-light text-muted border">Cancelled</span>
+                                                        </td>
+                                                        <td>
+                                                            <button t-if="req.state === 'issued' and req.transcript_id" type="button"
+                                                                    class="btn btn-outline-success btn-sm py-0"
+                                                                    t-on-click="() => this.printTranscript()">
+                                                                <i class="fa fa-download me-1"/>Download
+                                                            </button>
+                                                            <button t-else="" type="button"
+                                                                    class="btn btn-outline-secondary btn-sm py-0"
+                                                                    t-on-click="() => this.openTranscriptRequest(req.id)">
+                                                                <i class="fa fa-eye"/>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="p-3 text-center bg-light rounded border">
+                                            <p class="text-muted small mb-2">You haven't requested any transcripts yet.</p>
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    t-on-click="() => this.openNewTranscriptRequest()">
+                                                <i class="fa fa-plus me-1"/>Create New Request
+                                            </button>
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <!-- Course Grades & Performance Table -->
+                                <h4 class="h6 mb-2 fw-bold text-dark">
+                                    <i class="fa fa-graduation-cap me-2 text-primary"/>Course Grades &amp; Performance
+                                </h4>
+                                <t t-if="state.transcriptLines.length">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Course / Subject</th>
+                                                    <th>Academic Period</th>
+                                                    <th>Credits</th>
+                                                    <th>Final Score</th>
+                                                    <th>Grade</th>
+                                                    <th>Grade Points</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.transcriptLines" t-as="line" t-key="line.id">
+                                                    <td class="fw-semibold text-dark" t-esc="line.subject_id ? line.subject_id[1] : 'Subject'"/>
+                                                    <td class="text-muted small">
+                                                        <t t-esc="line.semester_id ? line.semester_id[1] : ''"/>
+                                                        <span t-if="line.academic_year_id"> • <t t-esc="line.academic_year_id[1]"/></span>
+                                                    </td>
+                                                    <td t-esc="line.credits"/>
+                                                    <td><strong t-esc="line.final_score"/></td>
+                                                    <td><span class="badge bg-light text-dark border fs-6" t-esc="line.grade"/></td>
+                                                    <td t-esc="line.grade_point"/>
+                                                    <td>
+                                                        <span t-if="line.is_passing" class="badge bg-success-subtle text-success">Passed</span>
+                                                        <span t-else="" class="badge bg-danger-subtle text-danger">Failed</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <i class="fa fa-file-text-o fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">No Academic Grades Recorded Yet</h4>
+                                        <p class="text-muted small mb-0">Completed course scores will appear here after final grading by instructors.</p>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 4: MAJOR CURRICULUM -->
+                            <div t-if="state.activeTab === 'curriculum'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">Degree Major Curriculum</h3>
+                                        <p class="text-muted small mb-0">Overview of required and elective courses in your program of study.</p>
+                                    </div>
+                                    <button t-if="state.student.program_id" type="button" class="btn btn-outline-primary btn-sm"
+                                            t-on-click="() => this.printCurriculum()">
+                                        <i class="fa fa-print me-1"/>Print Curriculum (PDF)
+                                    </button>
+                                </div>
+
+                                <div t-if="state.programInfo" class="row g-3 mb-4">
+                                    <div class="col-12 col-md-3">
+                                        <div class="p-3 bg-light rounded border">
+                                            <div class="text-muted small">Degree</div>
+                                            <div class="fw-bold text-dark mt-1" t-esc="this.formatDegreeType(state.programInfo.degree_type)"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="p-3 bg-light rounded border">
+                                            <div class="text-muted small">Duration</div>
+                                            <div class="fw-bold text-dark mt-1" t-esc="state.programInfo.duration_years + ' Years'"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="p-3 bg-light rounded border">
+                                            <div class="text-muted small">Total Program Credits</div>
+                                            <div class="fw-bold text-primary mt-1" t-esc="state.programInfo.total_credits + ' Credits'"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <div class="p-3 bg-light rounded border">
+                                            <div class="text-muted small">Department</div>
+                                            <div class="fw-bold text-dark mt-1" t-esc="state.programInfo.department_id ? state.programInfo.department_id[1] : 'General'"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <t t-if="state.programSubjects.length">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0 border">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Course Code</th>
+                                                    <th>Subject Name</th>
+                                                    <th>Credits</th>
+                                                    <th>Curriculum Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr t-foreach="state.programSubjects" t-as="sub" t-key="sub.id">
+                                                    <td><strong class="text-dark" t-esc="sub.code || 'N/A'"/></td>
+                                                    <td class="text-primary fw-semibold" t-esc="sub.name"/>
+                                                    <td><span class="badge bg-light text-dark border" t-esc="sub.credits + ' cr'"/></td>
+                                                    <td>
+                                                        <span t-if="sub.status === 'completed'" class="badge bg-success-subtle text-success">Completed</span>
+                                                        <span t-elif="sub.status === 'enrolled'" class="badge bg-info-subtle text-info">Currently Enrolled</span>
+                                                        <span t-else="" class="badge bg-secondary-subtle text-secondary">Required</span>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="p-4 text-center bg-light rounded border">
+                                        <i class="fa fa-book fa-2x text-muted mb-2"/>
+                                        <h4 class="h6 text-dark mb-1">Curriculum Details Not Configured</h4>
+                                        <p class="text-muted small mb-0">Course requirements for this program will be published by your faculty department.</p>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <!-- TAB 5: FINANCIAL SUMMARY -->
+                            <div t-if="state.activeTab === 'financial'">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                                    <div>
+                                        <h3 class="h5 mb-1 text-dark fw-bold">Tuition Fees &amp; Payment Ledger</h3>
+                                        <p class="text-muted small mb-0">Comprehensive record of tuition invoices, scholarships, and recorded payments.</p>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                t-on-click="() => this.navigate('school_management.action_university_fee_student')">
+                                            <i class="fa fa-list me-1"/>View Invoices
+                                        </button>
+                                        <button type="button" class="btn btn-outline-success btn-sm"
+                                                t-on-click="() => this.navigate('school_management.action_university_payment_student')">
+                                            <i class="fa fa-money me-1"/>View Payment History
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Total Assessed Tuition</div>
+                                            <div class="fs-4 fw-bold text-dark mt-1" t-esc="state.student.fee_total"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Total Paid Amount</div>
+                                            <div class="fs-4 fw-bold text-success mt-1" t-esc="state.student.fee_paid"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="p-3 bg-light rounded border text-center">
+                                            <div class="text-muted small">Outstanding Balance</div>
+                                            <div class="fs-4 fw-bold text-danger mt-1" t-esc="state.student.fee_balance"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 bg-light rounded border text-center">
+                                    <i class="fa fa-shield fa-2x text-primary mb-2"/>
+                                    <h4 class="h6 text-dark mb-1">Secure University Bursar Payment Portal</h4>
+                                    <p class="text-muted small mb-3">Please settle any outstanding tuition balance before final semester exam periods to prevent academic registration holds.</p>
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                            t-on-click="() => this.navigate('school_management.action_university_fee_student')">
+                                        <i class="fa fa-credit-card me-1"/>Access Bursar Invoices
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow-up Advising Actions if any -->
+                    <div t-if="state.followups.length" class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h3 class="h6 mb-0 fw-bold text-dark">
+                                <i class="fa fa-bell-o text-warning me-2" aria-hidden="true"/>
+                                Academic Advisor Follow-up Tasks (<t t-esc="state.followups.length"/>)
+                            </h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li t-foreach="state.followups" t-as="item" t-key="item.id" class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-semibold text-dark" t-esc="item.title"/>
+                                        <div class="text-muted small" t-esc="item.description"/>
+                                        <div class="text-muted very-small mt-1" t-if="item.date_deadline">
+                                            Deadline: <strong t-esc="item.date_deadline"/>
+                                        </div>
+                                    </div>
+                                    <span class="badge text-capitalize bg-info-subtle text-info" t-esc="item.state"/>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Quick Links Bar -->
+                    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('classes')">
+                            <i class="fa fa-graduation-cap me-1"/>My Classes
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" t-on-click="() => this.navigate('school_management.action_university_fee_student')">
-                            <i class="fa fa-file-text-o me-2" aria-hidden="true"></i>My Fees
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.openMyProfile()">
+                            <i class="fa fa-user me-1"/>My Profile
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" t-on-click="() => this.navigate('school_management.action_university_payment_student')">
-                            <i class="fa fa-credit-card me-2" aria-hidden="true"></i>My Payments
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('schedule')">
+                            <i class="fa fa-calendar me-1"/>My Schedule
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('transcript')">
+                            <i class="fa fa-file-text-o me-1"/>My Transcripts
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                t-on-click="() => this.setActiveTab('financial')">
+                            <i class="fa fa-credit-card me-1"/>My Fees
                         </button>
                     </div>
                 </div>
             </t>
         </main>
     </t>
-
 </templates>
