@@ -1,7 +1,7 @@
 from datetime import datetime, time, timedelta
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 
 class UniversityTimeslot(models.Model):
@@ -183,9 +183,58 @@ class UniversityTimetableSlot(models.Model):
                     "Timetable conflict detected for: %s." % ", ".join(conflicts)
                 )
 
+    def check_can_manage_attendance(self):
+        self.ensure_one()
+        user = self.env.user
+        if self.env.is_system() or user.has_group("school_management.group_school_admin"):
+            return True
+
+        # Students cannot manage attendance
+        if user.has_group("school_management.group_school_student") and not (
+            user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_school_hod")
+            or user.has_group("school_management.group_school_dean")
+            or user.has_group("school_management.group_school_admin")
+        ):
+            return False
+
+        # Inspect section and slot relations via sudo to avoid triggering record rules during role evaluation
+        slot_sudo = self.sudo()
+        section_sudo = slot_sudo.section_id
+
+        # Head of Faculty (Dean)
+        if user.has_group("school_management.group_school_dean"):
+            dean_user = (
+                section_sudo.program_id.department_id.faculty_id.dean_id.user_id
+                or section_sudo.subject_id.department_id.faculty_id.dean_id.user_id
+            )
+            if dean_user and dean_user == user:
+                return True
+
+        # Head of Department (HOD)
+        if user.has_group("school_management.group_school_hod"):
+            hod_user = (
+                section_sudo.program_id.department_id.head_id.user_id
+                or section_sudo.subject_id.department_id.head_id.user_id
+            )
+            if hod_user and hod_user == user:
+                return True
+
+        # Teacher assigned to slot or section
+        if user.has_group("school_management.group_school_teacher"):
+            if (
+                (slot_sudo.teacher_id and slot_sudo.teacher_id.user_id == user)
+                or (section_sudo.teacher_id and section_sudo.teacher_id.user_id == user)
+            ):
+                return True
+
+        return False
+
     def action_track_attendance(self):
         self.ensure_one()
-        action = self.env.ref("school_management.action_university_attendance_sheet").read()[0]
+        if not self.check_can_manage_attendance():
+            raise AccessError(_("You do not have permission to manage attendance for this class."))
+        action = self.env.ref("school_management.action_university_attendance_sheet").sudo().read()[0]
         attendance_date = fields.Date.context_today(self)
         if self.start_time:
             attendance_date = fields.Datetime.context_timestamp(self, self.start_time).date()

@@ -128,6 +128,8 @@
             "school_management/static/src/school_management/teacher_dashboard_shell.js",
             "school_management/static/src/school_management/teacher_dashboard_shell.xml",
             "school_management/static/src/school_management/teacher_dashboard_shell.scss",
+            "school_management/static/src/timetable/timetable_popover.js",
+            "school_management/static/src/timetable/timetable_popover.xml",
         ],
     },
     "installable": True,

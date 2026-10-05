@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.CalendarCommonPopover.footer" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='isEventEditable or isEventViewable']" position="before">
+            <button t-if="canTrackAttendance"
+                    type="button"
+                    class="btn btn-primary o_timetable_track_attendance me-1"
+                    t-on-click="onTrackAttendance">
+                <i class="fa fa-calendar-check-o me-1"/> Track Attendance
+            </button>
+        </xpath>
+    </t>
+
+</templates>
