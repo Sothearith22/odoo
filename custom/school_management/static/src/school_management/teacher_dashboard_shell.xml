@@ -444,13 +444,21 @@
                                         <div class="btn-group btn-group-sm" role="group">
                                             <button type="button"
                                                     t-att-class="'btn ' + (state.scheduleViewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary')"
-                                                    t-on-click="() => this.setScheduleViewMode('calendar')">
+                                                    t-on-click="() => this.setScheduleViewMode('calendar')"
+                                                    title="Calendar View">
                                                 <i class="fa fa-calendar-check-o me-1"/>Calendar Grid
                                             </button>
                                             <button type="button"
                                                     t-att-class="'btn ' + (state.scheduleViewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary')"
-                                                    t-on-click="() => this.setScheduleViewMode('list')">
+                                                    t-on-click="() => this.setScheduleViewMode('list')"
+                                                    title="List View">
                                                 <i class="fa fa-list me-1"/>Agenda List
+                                            </button>
+                                            <button type="button"
+                                                    t-att-class="'btn ' + (state.scheduleViewMode === 'kanban' ? 'btn-primary' : 'btn-outline-secondary')"
+                                                    t-on-click="() => this.setScheduleViewMode('kanban')"
+                                                    title="Kanban View">
+                                                <i class="fa fa-th-large me-1"/>Kanban
                                             </button>
                                         </div>
 
@@ -504,8 +512,12 @@
 
                                                         <!-- Subject & Section -->
                                                         <div class="fw-bold small text-dark mb-1 text-truncate" t-esc="slot.subject_name"/>
-                                                        <div class="very-small text-primary mb-1 fw-semibold text-truncate">
-                                                            <i class="fa fa-users me-1"/> <t t-esc="slot.section_name"/>
+                                                        <div class="d-flex align-items-center justify-content-between very-small mb-1">
+                                                            <span class="text-primary fw-semibold text-truncate"><i class="fa fa-users me-1"/> <t t-esc="slot.section_name"/></span>
+                                                            <span class="badge bg-light text-muted border py-0"><t t-esc="slot.student_count"/> students</span>
+                                                        </div>
+                                                        <div t-if="slot.conflict" class="badge bg-danger text-white very-small mb-1 w-100 text-truncate" title="Overlap Detected">
+                                                            <i class="fa fa-exclamation-triangle me-1"/>Time / Room Overlap
                                                         </div>
 
                                                         <!-- Room -->
@@ -586,6 +598,60 @@
                                                 </t>
                                             </tbody>
                                         </table>
+                                    </div>
+                                </t>
+
+                                <!-- MODE 3: KANBAN CARDS VIEW -->
+                                <t t-if="state.scheduleViewMode === 'kanban'">
+                                    <div class="row g-3">
+                                        <t t-if="this.currentWeekSlots.length">
+                                            <div t-foreach="this.currentWeekSlots" t-as="slot" t-key="slot.id" class="col-12 col-md-6 col-lg-4 col-xl-3">
+                                                <div t-att-class="'card border shadow-sm h-100 p-3 o_calendar_slot_card ' + slot.color_class">
+                                                    <!-- Header: Date & Time -->
+                                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                                        <span class="badge bg-primary text-white very-small px-2 py-1">
+                                                            <t t-esc="slot.shortName"/>, <t t-esc="slot.formattedDate"/>
+                                                        </span>
+                                                        <span class="badge bg-light text-primary border very-small fw-semibold">
+                                                            <i class="fa fa-clock-o me-1"/><t t-esc="slot.time_formatted"/>
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Status badge -->
+                                                    <div class="mb-2">
+                                                        <span t-if="slot.state === 'completed'" class="badge bg-success-subtle text-success very-small">Completed</span>
+                                                        <span t-elif="slot.state === 'running'" class="badge bg-warning-subtle text-warning very-small">In Session</span>
+                                                        <span t-else="" class="badge bg-info-subtle text-info very-small">Upcoming</span>
+                                                    </div>
+
+                                                    <!-- Subject & Section -->
+                                                    <h4 class="h6 fw-bold text-dark mb-1 text-truncate" t-esc="slot.subject_name"/>
+                                                    <div class="very-small text-primary mb-2 fw-semibold text-truncate">
+                                                        <i class="fa fa-users me-1"/><t t-esc="slot.section_name"/>
+                                                    </div>
+
+                                                    <!-- Room -->
+                                                    <div class="very-small text-muted mb-3 text-truncate">
+                                                        <i class="fa fa-map-marker text-danger me-1"/>
+                                                        <span class="fw-semibold text-dark" t-esc="slot.classroom_name"/>
+                                                    </div>
+
+                                                    <!-- Track Attendance Button -->
+                                                    <div class="mt-auto pt-2 border-top">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 py-1 very-small"
+                                                                t-on-click="() => this.trackAttendanceForSlot(slot)">
+                                                            <i class="fa fa-calendar-check-o me-1"/>Track Attendance
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                        <t t-else="">
+                                            <div class="col-12 text-center py-5 text-muted bg-light rounded-3 border">
+                                                <i class="fa fa-th-large fa-2x mb-2 d-block opacity-50"/>
+                                                No teaching sessions found for this week.
+                                            </div>
+                                        </t>
                                     </div>
                                 </t>
                             </div>

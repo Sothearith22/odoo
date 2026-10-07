@@ -10,15 +10,17 @@ import { onMounted, useState } from "@odoo/owl";
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";
 const TEACHER_ACTION_XMLID = "school_management.action_teacher_dashboard_shell";
+const SCHEDULE_ACTION_XMLID = "school_management.action_university_schedule_view";
 const STUDENT_ACTION_XMLID = "school_management.action_student_dashboard_shell";
 const SCHOOL_DASHBOARD_TAG = "school_dashboard_shell";
 const TEACHER_DASHBOARD_TAG = "teacher_dashboard_shell";
+const SCHEDULE_ACTION_TAG = "university_schedule_view";
 const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STAFF_GROUP_XMLID = "school_management.group_school_teacher";
 
-const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID, TEACHER_ACTION_XMLID]);
-const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG, "university_attendance_sheet"]);
+const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID, TEACHER_ACTION_XMLID, SCHEDULE_ACTION_XMLID]);
+const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG, SCHEDULE_ACTION_TAG, "university_attendance_sheet"]);
 const SCHOOL_MODELS = new Set([
     "school.dashboard",
     "university.academic.assignment",
@@ -52,7 +54,7 @@ const SCHOOL_MODELS = new Set([
     "university.exam",
     "university.exam.score",
 ]);
-const STUDENT_SAFE_ACTION_TAGS = new Set([STUDENT_DASHBOARD_TAG]);
+const STUDENT_SAFE_ACTION_TAGS = new Set([STUDENT_DASHBOARD_TAG, SCHEDULE_ACTION_TAG]);
 const STUDENT_SAFE_MODELS = new Set([
     "university.student",
     "university.enrollment",

@@ -212,34 +212,58 @@ export class TeacherDashboardShell extends Component {
                     highRiskAdvisees,
                 };
 
-                // 2. Fetch Slots for teacher (rich objects for calendar grid + list view)
-                const rawSlots = await this.orm.searchRead(
-                    "university.timetable.slot",
-                    [["teacher_id", "=", teacherId]],
-                    ["id", "name", "section_id", "subject_id", "classroom_id", "start_time", "end_time", "location", "state"],
-                    { limit: 80, order: "start_time asc" }
-                );
+                // 2. Fetch Slots for teacher via unified get_schedule API
+                let rawSlots = [];
+                try {
+                    const today = new Date();
+                    const dayOfWeek = today.getDay();
+                    const mondayDist = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                    const monday = new Date(today);
+                    monday.setDate(today.getDate() + mondayDist);
+                    const sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+
+                    const pad = (n) => String(n).padStart(2, "0");
+                    const startStr = `${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`;
+                    const endStr = `${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`;
+
+                    const schedRes = await this.orm.call(
+                        "university.timetable.slot",
+                        "get_schedule",
+                        [startStr, endStr]
+                    );
+                    rawSlots = schedRes.sessions || [];
+                } catch {
+                    rawSlots = [];
+                }
 
                 this.state.scheduleSlots = rawSlots.map((s) => {
-                    const timeInfo = this.parseSlotTimes(s.start_time, s.end_time);
+                    const timeInfo = this.parseSlotTimes(s.start || s.start_time, s.end || s.end_time);
                     return {
                         id: s.id,
                         name: s.name,
                         section_id: s.section_id,
-                        section_name: s.section_id ? s.section_id[1] : "Section",
+                        section_name: s.section_code || s.section_name || "Section",
                         subject_id: s.subject_id,
-                        subject_name: s.subject_id ? s.subject_id[1] : "Subject",
+                        subject_name: s.subject || s.subject_name || "Subject",
                         classroom_id: s.classroom_id,
-                        classroom_name: s.classroom_id ? s.classroom_id[1] : (s.location || "Room TBA"),
-                        start_time: s.start_time,
-                        end_time: s.end_time,
-                        state: s.state || "todo",
-                        date_key: timeInfo.dateStr,
+                        classroom_name: s.room || s.classroom_name || "Room TBA",
+                        start_time: s.start || s.start_time,
+                        end_time: s.end || s.end_time,
+                        state: s.state || "scheduled",
+                        status: s.status || "upcoming",
+                        student_count: s.student_count || 0,
+                        enrolled_student_count: s.student_count || 0,
+                        conflict: s.conflict || false,
+                        conflict_flag: s.conflict_flag || false,
+                        conflict_details: s.conflict_details || [],
+                        notes: s.notes || "",
+                        date_key: s.date_str || timeInfo.dateStr,
                         date_formatted: timeInfo.dateFormatted,
-                        time_formatted: timeInfo.timeFormatted,
-                        start_display: timeInfo.startTimeStr,
-                        end_display: timeInfo.endTimeStr,
-                        color_class: this.getSubjectColorClass(s.subject_id ? s.subject_id[0] : 0),
+                        time_formatted: s.start_time_str && s.end_time_str ? `${s.start_time_str} – ${s.end_time_str}` : timeInfo.timeFormatted,
+                        start_display: s.start_time_str || timeInfo.startTimeStr,
+                        end_display: s.end_time_str || timeInfo.endTimeStr,
+                        color_class: this.getSubjectColorClass(s.subject_id || 0),
                     };
                 });
                 this.state.schedule = this.state.scheduleSlots.slice(0, 10);
@@ -475,6 +499,23 @@ export class TeacherDashboardShell extends Component {
         return `${days[0].dayName}, ${days[0].formattedDate} — ${days[days.length - 1].dayName}, ${days[days.length - 1].formattedDate}`;
     }
 
+    get currentWeekSlots() {
+        const days = this.currentWeekDays;
+        const slots = [];
+        for (const day of days) {
+            for (const slot of day.slots) {
+                slots.push({
+                    ...slot,
+                    dayName: day.dayName,
+                    shortName: day.shortName,
+                    formattedDate: day.formattedDate,
+                    isToday: day.isToday,
+                });
+            }
+        }
+        return slots;
+    }
+
     get currentWeekTotalSlots() {
         const days = this.currentWeekDays;
         return days.reduce((acc, d) => acc + d.slots.length, 0);
@@ -555,7 +596,7 @@ export class TeacherDashboardShell extends Component {
     }
 
     openMyTimetableCalendar() {
-        this.action.doAction("school_management.action_university_timetable_slot", {
+        this.action.doAction("school_management.action_university_schedule_view", {
             additionalContext: {
                 default_mode: "week",
                 calendar_mode: "week",

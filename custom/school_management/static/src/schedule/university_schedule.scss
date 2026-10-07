@@ -1,0 +1,226 @@
+// University Management - Schedule SCSS
+// Theme: Purple University branding (#6f42c1) matching Class Schedule reference
+
+$uni-purple: #6f42c1;
+$uni-purple-dark: #4a2882;
+$uni-purple-subtle: #f3e8ff;
+$uni-teal: #0d9488;
+$uni-teal-subtle: #f0fdfa;
+
+.o_university_schedule_wrapper {
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    .text-purple {
+        color: $uni-purple !important;
+    }
+    .bg-purple {
+        background-color: $uni-purple !important;
+    }
+    .bg-purple-subtle {
+        background-color: $uni-purple-subtle !important;
+    }
+    .text-teal {
+        color: $uni-teal !important;
+    }
+
+    .btn-purple {
+        background-color: $uni-purple !important;
+        color: #ffffff !important;
+        border-color: $uni-purple !important;
+        &:hover {
+            background-color: $uni-purple-dark !important;
+            color: #ffffff !important;
+            border-color: $uni-purple-dark !important;
+        }
+    }
+
+    .btn-outline-purple {
+        background-color: transparent !important;
+        color: $uni-purple !important;
+        border-color: $uni-purple !important;
+        &:hover {
+            background-color: $uni-purple !important;
+            color: #ffffff !important;
+        }
+    }
+
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    // Top Header & Stat Tiles
+    .o_schedule_top_bar {
+        flex-shrink: 0;
+
+        .o_schedule_kpi_card {
+            min-width: 90px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+            }
+        }
+    }
+
+    // Split Container
+    .o_schedule_split_container {
+        flex: 1 1 0;
+        min-height: 520px;
+        height: calc(100vh - 126px);
+    }
+
+    // Left Grid Pane
+    .o_schedule_grid_pane {
+        .o_grid_header_row {
+            height: 52px;
+            flex-shrink: 0;
+            z-index: 5;
+        }
+
+        .o_grid_time_col_header {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+        }
+
+        .o_grid_day_header_col {
+            &.is_today {
+                border-top: 3px solid $uni-purple;
+            }
+        }
+
+        .o_grid_time_axis {
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
+        }
+
+        .o_grid_hour_slot {
+            height: 60px;
+        }
+
+        .o_grid_day_col {
+            &.o_day_is_today {
+                background-color: rgba(111, 66, 193, 0.02);
+            }
+        }
+
+        // Current Time Line
+        .o_current_time_line {
+            height: 2px;
+            background-color: #ef4444;
+            pointer-events: none;
+
+            .o_current_time_dot {
+                left: 0;
+                top: -4px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: #ef4444;
+            }
+        }
+
+        // Schedule Session Block Cards
+        .o_schedule_block {
+            left: 3px;
+            right: 3px;
+            overflow: hidden;
+            border-left-width: 4px !important;
+            transition: all 0.15s ease;
+            z-index: 2;
+
+            &:hover, &.o_block_hovered {
+                transform: scale(1.02);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+                z-index: 10;
+            }
+
+            &.o_block_selected {
+                box-shadow: 0 0 0 2px $uni-purple, 0 4px 12px rgba(111, 66, 193, 0.25) !important;
+                z-index: 15;
+            }
+
+            &.o_slot_palette_purple {
+                background-color: #faf5ff;
+                border-color: #e9d5ff;
+                border-left-color: $uni-purple !important;
+            }
+
+            &.o_slot_palette_indigo {
+                background-color: #eef2ff;
+                border-color: #c7d2fe;
+                border-left-color: #4f46e5 !important;
+            }
+
+            &.o_slot_palette_sapphire {
+                background-color: #eff6ff;
+                border-color: #bfdbfe;
+                border-left-color: #2563eb !important;
+            }
+
+            &.o_slot_palette_teal {
+                background-color: #f0fdfa;
+                border-color: #99f6e4;
+                border-left-color: #0d9488 !important;
+            }
+
+            &.o_slot_palette_amber {
+                background-color: #fffbeb;
+                border-color: #fde68a;
+                border-left-color: #d97706 !important;
+            }
+
+            &.o_slot_palette_emerald {
+                background-color: #ecfdf5;
+                border-color: #a7f3d0;
+                border-left-color: #059669 !important;
+            }
+        }
+    }
+
+    // Right Table Pane
+    .o_schedule_table_pane {
+        flex-shrink: 0;
+
+        .o_classes_table {
+            font-size: 0.8rem;
+
+            th {
+                font-weight: 700;
+                padding: 0.5rem 0.6rem;
+            }
+
+            td {
+                padding: 0.5rem 0.6rem;
+            }
+
+            tbody tr {
+                transition: background-color 0.12s ease;
+            }
+        }
+    }
+
+    // Offcanvas Drawer
+    .o_schedule_offcanvas {
+        animation: slideInRight 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+}

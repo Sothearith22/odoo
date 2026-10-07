@@ -136,8 +136,15 @@ class StaffAttendanceSheet extends Component {
             expectedCheckInTime:  "08:00",
             expectedCheckOutTime: "17:00",
             graceMinutes:         15,
-            viewMode:             "timeline",
+            viewMode:             context.default_view_mode || "dashboard",
             isFullscreen:         false,
+            // Monthly Matrix Dashboard State
+            matrix:               null,
+            matrixLoading:        false,
+            selectedYear:         new Date().getFullYear(),
+            selectedMonth:        new Date().getMonth() + 1,
+            selectedDepartmentId: context.default_department_id || "all",
+            selectedStaffId:      "all",
         });
 
         useEffect(() => {
@@ -209,15 +216,113 @@ class StaffAttendanceSheet extends Component {
             const passedDept = context.default_department_id || context.department_id;
             if (passedDept) {
                 this.state.departmentId = passedDept === "all" ? "all" : Number(passedDept);
+                this.state.selectedDepartmentId = passedDept;
                 await this.loadSheet();
             } else if (this.state.departments.length) {
                 this.state.departmentId = this.state.departments[0].id;
                 await this.loadSheet();
             }
+
+            // Load monthly attendance matrix dashboard data
+            await this.loadMatrixData();
         });
     }
 
-    // ── Derived Properties ────────────────────────────────────
+    // ── Monthly Attendance Matrix Methods (Matching Screenshot) ─────────
+    async loadMatrixData() {
+        this.state.matrixLoading = true;
+        try {
+            const data = await this.orm.call(
+                "university.staff.attendance",
+                "get_monthly_attendance_matrix",
+                [],
+                {
+                    year: this.state.selectedYear,
+                    month: this.state.selectedMonth,
+                    department_id: this.state.selectedDepartmentId,
+                    staff_id: this.state.selectedStaffId,
+                }
+            );
+            this.state.matrix = data;
+        } catch (err) {
+            console.error("Failed to load monthly attendance matrix:", err);
+            this.notification.add(_t("Could not load monthly attendance matrix."), { type: "danger" });
+        } finally {
+            this.state.matrixLoading = false;
+        }
+    }
+
+    async onMatrixDepartmentChange(ev) {
+        this.state.selectedDepartmentId = ev.target.value;
+        await this.loadMatrixData();
+    }
+
+    async onMatrixStaffChange(ev) {
+        this.state.selectedStaffId = ev.target.value;
+        await this.loadMatrixData();
+    }
+
+    async onMatrixMonthChange(ev) {
+        this.state.selectedMonth = parseInt(ev.target.value, 10);
+        await this.loadMatrixData();
+    }
+
+    async onMatrixYearChange(ev) {
+        this.state.selectedYear = parseInt(ev.target.value, 10);
+        await this.loadMatrixData();
+    }
+
+    onPrint() {
+        window.print();
+    }
+
+    async onMatrixCellClick(row, dayInfo) {
+        if (!this.state.isAdmin) return;
+        if (dayInfo.is_weekend) return; // Weekends generally not toggled by quick click
+
+        const dStr = dayInfo.date_str;
+        const cell = row.days[dStr];
+        let nextStatus = "present";
+        let nextHours = 9.0;
+
+        if (cell && cell.cell_type === "worked") {
+            nextStatus = "absent";
+            nextHours = 0.0;
+        } else if (cell && cell.cell_type === "absent") {
+            nextStatus = "leave";
+            nextHours = 0.0;
+        } else if (cell && cell.cell_type === "leave") {
+            nextStatus = "present";
+            nextHours = 9.0;
+        } else {
+            nextStatus = "present";
+            nextHours = 9.0;
+        }
+
+        try {
+            await this.orm.call(
+                "university.staff.attendance",
+                "quick_update_attendance_cell",
+                [],
+                {
+                    staff_id: row.id,
+                    date: dStr,
+                    status: nextStatus,
+                    worked_hours: nextHours,
+                }
+            );
+            await this.loadMatrixData();
+            // Also refresh daily sheet if date matches
+            if (this.state.date === dStr) {
+                await this.loadSheet();
+            }
+        } catch (err) {
+            console.error("Cell update error:", err);
+            this.notification.add(_t("Could not update attendance cell."), { type: "danger" });
+        }
+    }
+
+    // ── Derived Properties ─────────────────────────────────────────────
     get counts() {
         const c = { present: 0, absent: 0, late: 0, leave: 0, official_duty: 0, half_day: 0, total: this.state.lines.length };
         for (const l of this.state.lines) {
@@ -251,6 +356,10 @@ class StaffAttendanceSheet extends Component {
     }
 
     get recordLabel() {
+        if (this.state.viewMode === "dashboard") {
+            const mName = this.state.matrix?.month_name || "Monthly";
+            return `${mName} ${this.state.selectedYear} Matrix`;
+        }
         if (!this.state.departmentId || !this.state.date) {
             return _t("Staff Attendance");
         }
@@ -277,6 +386,9 @@ class StaffAttendanceSheet extends Component {
 
     setViewMode(mode) {
         this.state.viewMode = mode;
+        if (mode === "dashboard" && !this.state.matrix) {
+            this.loadMatrixData();
+        }
     }
 
     openAttendanceReport() {
@@ -474,7 +586,7 @@ class StaffAttendanceSheet extends Component {
     teacherTone(line)    { return nameTone(line.name); }
     fmtHours(h)          { return fmtHours(h); }
 
-    // ── Data Loading ──────────────────────────────────────────
+    // ── Data Loading ───────────────────────────────────────────────────
     async loadSheet() {
         if (!this.state.departmentId || !this.state.date) {
             this.state.lines       = [];
@@ -576,7 +688,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Header Controls ───────────────────────────────────────
+    // ── Header Controls ────────────────────────────────────────────────
     async onDepartmentChange(ev) {
         const val = ev.target.value;
         this.state.departmentId = val === "all" ? "all" : (Number(val) || "");
@@ -593,7 +705,7 @@ class StaffAttendanceSheet extends Component {
     clearFilters() { this.state.query = ""; this.state.filter = "all"; }
     setActive(line) { this.state.activeId = line.teacher_id; }
 
-    // ── Status Controls ───────────────────────────────────────
+    // ── Status Controls ────────────────────────────────────────────────
     setStatus(line, status) {
         if (!this.state.isAdmin) return;
         this.state.activeId = line.teacher_id;
@@ -613,7 +725,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Time & Hours ──────────────────────────────────────────
+    // ── Time & Hours ───────────────────────────────────────────────────
     onCheckInChange(line, ev) {
         if (!this.state.isAdmin) return;
         line.check_in = ev.target.value;
@@ -637,7 +749,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Notes ─────────────────────────────────────────────────
+    // ── Notes ──────────────────────────────────────────────────────────
     toggleNote(line) {
         const isOpen = this.state.openNoteId === line.teacher_id;
         this.state.activeId   = line.teacher_id;
@@ -649,7 +761,7 @@ class StaffAttendanceSheet extends Component {
     updateNote(line, ev) { if (this.state.isAdmin) line.remark = ev.target.value; }
     clearNote(line)  { if (this.state.isAdmin) line.remark = ""; }
 
-    // ── Keyboard Navigation ───────────────────────────────────
+    // ── Keyboard Navigation ────────────────────────────────────────────
     onGlobalKeydown(ev) {
         const tag = (ev.target.tagName || "").toLowerCase();
         if (["input", "textarea", "select"].includes(tag) || ev.target.isContentEditable) return;
@@ -685,7 +797,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Save Attendance ───────────────────────────────────────
+    // ── Save Attendance ────────────────────────────────────────────────
     async saveAttendance() {
         if (!this.state.isAdmin) {
             this.notification.add(_t("Only administrators can record staff attendance."), { type: "danger" });
@@ -743,6 +855,7 @@ class StaffAttendanceSheet extends Component {
             }
 
             await this.loadSheet();
+            await this.loadMatrixData();
             this.state.lastSaved = clockTime(new Date());
             this.state.chatterRevision += 1;
 

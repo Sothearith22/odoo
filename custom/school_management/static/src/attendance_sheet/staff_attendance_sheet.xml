@@ -5,16 +5,239 @@
     <t t-set="tally"       t-value="counts"/>
 
     <div class="o_att_sheet" t-ref="root">
-        <!-- 1. Breadcrumb Matching Student Attendance -->
-        <nav class="o_att_breadcrumb" aria-label="Breadcrumb">
-            <button type="button" class="o_att_breadcrumb_link" t-on-click="onBack" title="Back to Attendance List">
-                <i class="fa fa-arrow-left" aria-hidden="true"/> Staff Attendance
-            </button>
-            <span aria-hidden="true">/</span>
-            <span class="o_att_breadcrumb_record" aria-current="page" t-esc="recordLabel"/>
+        <!-- 1. Breadcrumb & Top Bar -->
+        <nav class="o_att_breadcrumb d-flex align-items-center justify-content-between" aria-label="Breadcrumb">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="o_att_breadcrumb_link" t-on-click="onBack" title="Back to Attendance List">
+                    <i class="fa fa-arrow-left" aria-hidden="true"/> Staff Attendance
+                </button>
+                <span aria-hidden="true">/</span>
+                <span class="o_att_breadcrumb_record" aria-current="page" t-esc="recordLabel"/>
+            </div>
+
+            <!-- Top View Mode Switcher -->
+            <div class="d-flex align-items-center gap-2">
+                <div class="btn-group btn-group-sm" role="group" aria-label="View Mode">
+                    <button type="button"
+                            t-att-class="'btn ' + (state.viewMode === 'dashboard' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => this.setViewMode('dashboard')"
+                            title="Monthly Attendance Matrix (Admin Dashboard)">
+                        <i class="fa fa-th me-1" aria-hidden="true"/> Monthly Matrix
+                    </button>
+                    <button type="button"
+                            t-att-class="'btn ' + (state.viewMode === 'timeline' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => this.setViewMode('timeline')"
+                            title="Day Schedule Timeline View">
+                        <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Timeline
+                    </button>
+                    <button type="button"
+                            t-att-class="'btn ' + (state.viewMode === 'table' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => this.setViewMode('table')"
+                            title="Daily Table / Grid View">
+                        <i class="fa fa-th-list me-1" aria-hidden="true"/> Daily Table
+                    </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        t-on-click="openAttendanceReport"
+                        title="Open Attendance Report (Calendar, List, Pivot, Graph)">
+                    <i class="fa fa-line-chart me-1" aria-hidden="true"/> Report
+                </button>
+            </div>
         </nav>
 
-        <div class="o_att_layout">
+        <!-- =================================================================== -->
+        <!-- VIEW MODE 1: MONTHLY MATRIX DASHBOARD (Matching User Screenshot)   -->
+        <!-- =================================================================== -->
+        <div t-if="state.viewMode === 'dashboard'" class="o_att_matrix_container p-3">
+            <div class="card shadow-sm border-0 mb-4 bg-white rounded-3">
+                <!-- 1. Top Greeting Bar (Screenshot Header) -->
+                <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h4 class="mb-0 fw-bold text-dark o_att_matrix_greeting" t-esc="state.matrix ? state.matrix.greeting : 'Staff Attendance Matrix'"/>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-secondary fw-medium o_att_matrix_time" t-if="state.matrix">
+                            <i class="fa fa-clock-o me-1 text-muted"/>
+                            <t t-esc="state.matrix.current_time_str"/>
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-3 o_att_matrix_print_btn" t-on-click="onPrint">
+                            <i class="fa fa-print" aria-hidden="true"/> Print
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Filter Controls & Legend Bar (Screenshot Toolbar) -->
+                <div class="card-body bg-light-subtle border-bottom py-3 px-4">
+                    <div class="row g-3 align-items-center justify-content-between">
+                        <!-- Left Dropdowns: Departments, Employees, Months, Years -->
+                        <div class="col-12 col-xl-8">
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <!-- Departments Select -->
+                                <div class="o_att_filter_group">
+                                    <label class="form-label small fw-semibold text-muted mb-1 d-block">Departments</label>
+                                    <select class="form-select form-select-sm o_att_matrix_select"
+                                            t-on-change="onMatrixDepartmentChange">
+                                        <option value="all" t-att-selected="state.selectedDepartmentId === 'all'">All Departments</option>
+                                        <t t-if="state.matrix &amp;&amp; state.matrix.departments">
+                                            <option t-foreach="state.matrix.departments" t-as="dept" t-key="dept.id"
+                                                    t-att-value="dept.id"
+                                                    t-att-selected="state.selectedDepartmentId == dept.id"
+                                                    t-esc="dept.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+
+                                <!-- Employees Select -->
+                                <div class="o_att_filter_group">
+                                    <label class="form-label small fw-semibold text-muted mb-1 d-block">Employees</label>
+                                    <select class="form-select form-select-sm o_att_matrix_select"
+                                            t-on-change="onMatrixStaffChange">
+                                        <option value="all" t-att-selected="state.selectedStaffId === 'all'">All Employees</option>
+                                        <t t-if="state.matrix &amp;&amp; state.matrix.staff_list">
+                                            <option t-foreach="state.matrix.staff_list" t-as="st" t-key="st.id"
+                                                    t-att-value="st.id"
+                                                    t-att-selected="state.selectedStaffId == st.id"
+                                                    t-esc="st.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+
+                                <!-- Months Select -->
+                                <div class="o_att_filter_group">
+                                    <label class="form-label small fw-semibold text-muted mb-1 d-block">Months</label>
+                                    <select class="form-select form-select-sm o_att_matrix_select"
+                                            t-on-change="onMatrixMonthChange">
+                                        <t t-if="state.matrix &amp;&amp; state.matrix.available_months">
+                                            <option t-foreach="state.matrix.available_months" t-as="m" t-key="m.num"
+                                                    t-att-value="m.num"
+                                                    t-att-selected="state.selectedMonth == m.num"
+                                                    t-esc="m.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+
+                                <!-- Years Select -->
+                                <div class="o_att_filter_group">
+                                    <label class="form-label small fw-semibold text-muted mb-1 d-block">Years</label>
+                                    <select class="form-select form-select-sm o_att_matrix_select"
+                                            t-on-change="onMatrixYearChange">
+                                        <t t-if="state.matrix &amp;&amp; state.matrix.available_years">
+                                            <option t-foreach="state.matrix.available_years" t-as="yr" t-key="yr"
+                                                    t-att-value="yr"
+                                                    t-att-selected="state.selectedYear == yr"
+                                                    t-esc="yr"/>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Legend Badges (A: Absent, L: Leave, W: Weekend) -->
+                        <div class="col-12 col-xl-4 text-xl-end">
+                            <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge o_att_legend_pill o_att_legend--absent">A: Absent</span>
+                                <span class="badge o_att_legend_pill o_att_legend--leave">L: Leave</span>
+                                <span class="badge o_att_legend_pill o_att_legend--weekend">W: Weekend</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Monthly Matrix Grid Table -->
+                <div class="card-body p-0">
+                    <div t-if="state.matrixLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"/>
+                        <p class="text-muted small mt-2">Loading attendance matrix...</p>
+                    </div>
+
+                    <div t-elif="state.matrix &amp;&amp; state.matrix.rows &amp;&amp; state.matrix.rows.length" class="o_att_matrix_table_wrap table-responsive">
+                        <table class="table table-bordered mb-0 align-middle o_att_matrix_table">
+                            <thead>
+                                <!-- Row 1: Employees + Day Name (SAT, SUN, MON...) -->
+                                <tr class="o_matrix_head_row_days">
+                                    <th rowspan="2" class="o_matrix_col_emp bg-light fw-bold text-dark px-3 align-middle">
+                                        Employees
+                                    </th>
+                                    <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
+                                        <th t-att-class="'text-center py-1 px-1 o_matrix_th_day' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '')">
+                                            <span t-esc="d.day_name"/>
+                                        </th>
+                                    </t>
+                                </tr>
+                                <!-- Row 2: Day Numbers (1, 2, 3... 31) -->
+                                <tr class="o_matrix_head_row_nums">
+                                    <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
+                                        <th t-att-class="'text-center py-1 px-1 o_matrix_th_num' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '')">
+                                            <span t-esc="d.day_num"/>
+                                        </th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="state.matrix.rows" t-as="row" t-key="row.id" class="o_matrix_data_row">
+                                    <!-- Sticky Left Employee Column -->
+                                    <td class="o_matrix_col_emp px-3 py-2 bg-white">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <t t-if="row.has_image">
+                                                <img class="rounded-circle o_matrix_avatar flex-shrink-0"
+                                                     t-att-src="'/web/image/university.teacher/' + row.id + '/image_1920'"
+                                                     alt="" style="width: 32px; height: 32px; object-fit: cover;"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="rounded-circle o_matrix_avatar_placeholder flex-shrink-0 d-inline-flex align-items-center justify-content-center text-white fw-bold"
+                                                      style="width: 32px; height: 32px; font-size: 11px; background-color: #6366f1;"
+                                                      t-esc="row.name ? row.name.slice(0, 2).toUpperCase() : '?'"/>
+                                            </t>
+                                            <div class="d-flex flex-column text-truncate">
+                                                <span class="fw-bold text-dark text-truncate" t-att-title="row.name" t-esc="row.name"/>
+                                                <span class="text-muted small text-truncate" style="font-size: 11px;" t-esc="row.position || row.department_name || 'Academic Staff'"/>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Day Cells (1 to 31) -->
+                                    <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
+                                        <t t-set="cell" t-value="row.days[d.date_str]"/>
+                                        <td t-att-class="'text-center p-1 o_matrix_cell' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '') + (cell ? ' o_matrix_cell--' + cell.cell_type : '')"
+                                            t-att-title="row.name + ' (' + d.date_str + '): ' + (cell ? cell.display : '')"
+                                            t-on-click="() => this.onMatrixCellClick(row, d)">
+                                            <t t-if="cell">
+                                                <span t-if="cell.cell_type === 'absent'" class="o_matrix_badge o_matrix_badge--absent">A</span>
+                                                <span t-elif="cell.cell_type === 'leave'" class="o_matrix_badge o_matrix_badge--leave">L</span>
+                                                <span t-elif="cell.cell_type === 'weekend'" class="o_matrix_text_weekend">W</span>
+                                                <span t-elif="cell.cell_type === 'holiday'" class="o_matrix_badge o_matrix_badge--leave">H</span>
+                                                <span t-elif="cell.display" class="o_matrix_hours_text" t-esc="cell.display"/>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div t-else="" class="text-center py-5">
+                        <i class="fa fa-users fa-3x text-muted mb-3 d-block"/>
+                        <h6 class="fw-bold text-dark">No Academic Staff Found</h6>
+                        <p class="text-muted small">Try selecting another department or employee filter.</p>
+                    </div>
+                </div>
+
+                <!-- Footer Summary info -->
+                <div class="card-footer bg-white border-top py-2 px-4 d-flex justify-content-between align-items-center text-muted small">
+                    <span>
+                        Showing <strong t-esc="state.matrix ? state.matrix.rows.length : 0"/> staff members for <strong t-esc="(state.matrix ? state.matrix.month_name : '') + ' ' + state.selectedYear"/>
+                    </span>
+                    <span t-if="state.isAdmin" class="fst-italic text-secondary">
+                        <i class="fa fa-info-circle me-1"/> Click on weekday cells to quickly cycle between Present (9.0), Absent (A), and Leave (L).
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- VIEW MODES 2 & 3: DAILY TIMELINE & TABLE (Granular Daily Entry)    -->
+        <!-- =================================================================== -->
+        <div t-else="" class="o_att_layout">
             <div class="o_att_shell">
                 <!-- 2. Header Matching Student Attendance -->
                 <header class="o_att_hdr">
@@ -181,33 +404,10 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="o_att_toolbar_right d-flex align-items-center gap-2">
-                            <!-- View Mode Switcher -->
-                            <div class="btn-group btn-group-sm" role="group" aria-label="View Mode">
-                                <button type="button"
-                                        t-att-class="'btn ' + (state.viewMode === 'timeline' ? 'btn-primary' : 'btn-outline-secondary')"
-                                        t-on-click="() => this.setViewMode('timeline')"
-                                        title="Day Schedule Timeline View">
-                                    <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/> Timeline
-                                </button>
-                                <button type="button"
-                                        t-att-class="'btn ' + (state.viewMode === 'table' ? 'btn-primary' : 'btn-outline-secondary')"
-                                        t-on-click="() => this.setViewMode('table')"
-                                        title="Table / Grid View">
-                                    <i class="fa fa-th-list me-1" aria-hidden="true"/> Table
-                                </button>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                    t-on-click="openAttendanceReport"
-                                    title="Open Attendance Report (Calendar, List, Pivot, Graph)">
-                                <i class="fa fa-line-chart me-1" aria-hidden="true"/> Attendance Report
-                            </button>
-                        </div>
                     </div>
 
-                    <!-- ==================== TIMELINE VIEW (Image 1) ==================== -->
+                    <!-- ==================== TIMELINE VIEW ==================== -->
                     <div t-if="state.viewMode === 'timeline' and visibleRows.length" class="o_att_tl_wrapper mb-4">
-                        <!-- Top Bar matching Image 1: Navigation + Day view dropdown + Today + Fullscreen -->
                         <div class="o_att_tl_topbar d-flex align-items-center justify-content-between p-2 bg-light border rounded-top">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="btn-group btn-group-sm">
@@ -244,7 +444,6 @@
                         <div class="o_att_tl_container border border-top-0 rounded-bottom overflow-auto">
                             <table class="o_att_tl_table w-100">
                                 <thead>
-                                    <!-- Row 1: "Days" + Date -->
                                     <tr class="o_att_tl_row_date">
                                         <th class="o_att_tl_col_days py-2 px-3 fw-bold text-center border-bottom border-end bg-light" style="width: 220px; min-width: 200px;">
                                             Days
@@ -257,7 +456,6 @@
                                             </div>
                                         </th>
                                     </tr>
-                                    <!-- Row 2: Hour Headers 7am to 5pm -->
                                     <tr class="o_att_tl_row_hours">
                                         <th class="border-end border-bottom bg-light"/>
                                         <t t-foreach="timelineHours" t-as="h" t-key="h">
@@ -271,7 +469,6 @@
                                     <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
                                         <t t-set="tl" t-value="getLineTimeline(line)"/>
                                         <tr class="o_att_tl_row_staff border-bottom">
-                                            <!-- Left Staff Cell with avatar & name (green highlight if present!) -->
                                             <td t-att-class="'o_att_tl_cell_staff py-2 px-3 border-end' + (isLinePresent(line) ? ' o_att_tl_staff--present' : '')"
                                                 t-on-click="() => this.setActive(line)">
                                                 <div class="d-flex align-items-center gap-2">
@@ -290,16 +487,13 @@
                                                 </div>
                                             </td>
 
-                                            <!-- Right Timeline Track Cell -->
                                             <td t-att-colspan="timelineHours.length" class="o_att_tl_cell_track position-relative p-0" style="height: 48px;">
-                                                <!-- Background vertical hour grid lines -->
                                                 <div class="o_att_tl_grid_bg position-absolute top-0 bottom-0 start-0 end-0 d-flex pointer-events-none">
                                                     <t t-foreach="timelineHours" t-as="h" t-key="h">
                                                         <div t-att-class="'flex-grow-1 border-end' + (isCurrentHour(h) ? ' o_att_tl_col--current' : '')"/>
                                                     </t>
                                                 </div>
 
-                                                <!-- Schedule Pill -->
                                                 <div t-if="tl.hasPill"
                                                      t-att-class="'o_att_pill position-absolute ' + tl.pillClass"
                                                      t-att-style="'left: ' + tl.left + '; width: ' + tl.width + ';'"
@@ -307,7 +501,6 @@
                                                      t-on-click="() => this.setActive(line)">
                                                     <span class="o_att_pill_label text-truncate" t-esc="tl.label"/>
                                                 </div>
-                                                <!-- Badges for Leave, Absent, Official Duty -->
                                                 <div t-elif="tl.statusText" class="position-absolute start-0 ms-2" style="top: 10px; z-index: 2;">
                                                     <span t-att-class="'badge ' + (line.status === 'leave' ? 'bg-primary-subtle text-primary border' : line.status === 'absent' ? 'bg-danger-subtle text-danger border' : 'bg-info-subtle text-info border')" t-esc="tl.statusText"/>
                                                 </div>
@@ -321,7 +514,6 @@
 
                     <!-- ==================== TABLE VIEW ==================== -->
                     <t t-if="state.viewMode === 'table'">
-                        <!-- Column Headings -->
                         <div class="o_att_listhead o_att_listhead--staff" t-if="visibleRows.length" aria-hidden="true">
                             <span class="o_att_listhead_label">Staff Member</span>
                             <span class="o_att_listhead_label o_att_listhead_label--center">Attendance Status</span>
@@ -331,11 +523,9 @@
                             <span class="o_att_listhead_label o_att_listhead_label--center">Note</span>
                         </div>
 
-                        <!-- Staff Rows -->
                         <ul class="o_att_rows" t-if="visibleRows.length">
                             <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
                                 <li t-att-class="'o_att_row o_att_row--staff' + (line.teacher_id === state.activeId ? ' o_att_row--active' : '')">
-                                <!-- Staff Info Column -->
                                 <div class="o_att_student" t-on-click="() => this.setActive(line)">
                                     <t t-if="line.has_image">
                                         <img class="o_att_avatar" t-att-src="'/web/image/university.teacher/' + line.teacher_id + '/image_1920'" alt=""/>
@@ -360,7 +550,6 @@
                                     </span>
                                 </div>
 
-                                <!-- Segmented Status Buttons -->
                                 <div class="o_att_seg o_att_seg--staff" role="radiogroup"
                                      t-att-aria-label="'Status for ' + line.name">
                                     <button t-foreach="statusOptions" t-as="opt" t-key="opt.value"
@@ -378,7 +567,6 @@
                                     </button>
                                 </div>
 
-                                <!-- Check-In Time Input -->
                                 <div class="o_att_timecell">
                                     <div t-att-class="'o_att_time_wrap' + (line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_att_time_wrap--disabled' : '')">
                                         <i class="fa fa-sign-in text-success o_att_time_icon" aria-hidden="true"/>
@@ -391,7 +579,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Check-Out Time Input -->
                                 <div class="o_att_timecell">
                                     <div t-att-class="'o_att_time_wrap' + (line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_att_time_wrap--disabled' : '')">
                                         <i class="fa fa-sign-out text-danger o_att_time_icon" aria-hidden="true"/>
@@ -404,13 +591,11 @@
                                     </div>
                                 </div>
 
-                                <!-- Hours Badge -->
                                 <div class="o_att_hourscell">
                                     <span t-att-class="'o_att_hours_badge' + (line.worked_hours > 0 ? ' o_att_hours_badge--filled' : '')"
                                           t-esc="fmtHours(line.worked_hours)"/>
                                 </div>
 
-                                <!-- Note Button -->
                                 <div class="o_att_notecell">
                                     <button type="button"
                                             t-att-class="'o_att_notebtn' + (line.remark ? ' o_att_notebtn--has-note' : (state.openNoteId === line.teacher_id ? ' o_att_notebtn--open' : ''))"
@@ -423,7 +608,6 @@
                                 </div>
                             </li>
 
-                            <!-- Inline Note Drawer -->
                             <li t-if="state.openNoteId === line.teacher_id" class="o_att_row o_att_noterow">
                                 <div class="o_att_noterow_inner">
                                     <div class="o_att_noterow_field">

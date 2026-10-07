@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <!-- ==================== FORM VIEW ==================== -->
@@ -242,28 +241,36 @@
                         <div class="card-body p-4">
                             <div class="row g-4 text-center">
                                 <div class="col-6 col-md-3 border-end">
-                                    <div class="text-muted small fw-semibold mb-2">
-                                        <span class="badge rounded-pill bg-success-subtle text-success me-1 px-2">●</span>Active
-                                    </div>
-                                    <div class="fs-3 fw-bold text-success"><field name="active_student_count"/></div>
+                                    <button name="action_open_students" type="object" class="btn p-0 text-center w-100 border-0 bg-transparent">
+                                        <div class="text-muted small fw-semibold mb-2">
+                                            <span class="badge rounded-pill bg-success-subtle text-success me-1 px-2">●</span>Active
+                                        </div>
+                                        <div class="fs-3 fw-bold text-success"><field name="active_student_count"/></div>
+                                    </button>
                                 </div>
                                 <div class="col-6 col-md-3 border-end">
-                                    <div class="text-muted small fw-semibold mb-2">
-                                        <span class="badge rounded-pill bg-info-subtle text-info me-1 px-2">●</span>Graduated
-                                    </div>
-                                    <div class="fs-3 fw-bold text-info"><field name="graduated_student_count"/></div>
+                                    <button name="action_open_students" type="object" class="btn p-0 text-center w-100 border-0 bg-transparent">
+                                        <div class="text-muted small fw-semibold mb-2">
+                                            <span class="badge rounded-pill bg-info-subtle text-info me-1 px-2">●</span>Graduated
+                                        </div>
+                                        <div class="fs-3 fw-bold text-info"><field name="graduated_student_count"/></div>
+                                    </button>
                                 </div>
                                 <div class="col-6 col-md-3 border-end">
-                                    <div class="text-muted small fw-semibold mb-2">
-                                        <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-2">●</span>Suspended
-                                    </div>
-                                    <div class="fs-3 fw-bold text-warning"><field name="suspended_student_count"/></div>
+                                    <button name="action_open_students" type="object" class="btn p-0 text-center w-100 border-0 bg-transparent">
+                                        <div class="text-muted small fw-semibold mb-2">
+                                            <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-2">●</span>Suspended
+                                        </div>
+                                        <div class="fs-3 fw-bold text-warning"><field name="suspended_student_count"/></div>
+                                    </button>
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <div class="text-muted small fw-semibold mb-2">
-                                        <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-2">●</span>Dropped
-                                    </div>
-                                    <div class="fs-3 fw-bold text-danger"><field name="dropped_student_count"/></div>
+                                    <button name="action_open_students" type="object" class="btn p-0 text-center w-100 border-0 bg-transparent">
+                                        <div class="text-muted small fw-semibold mb-2">
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-2">●</span>Dropped
+                                        </div>
+                                        <div class="fs-3 fw-bold text-danger"><field name="dropped_student_count"/></div>
+                                    </button>
                                 </div>
                             </div>
                         </div>

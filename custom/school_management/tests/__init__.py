@@ -1,3 +1,4 @@
+from . import common
 from . import test_payment
 from . import test_student_signup
 from . import test_enrollment
@@ -19,3 +20,5 @@ from . import test_staff_attendance
 from . import test_role_dashboard_access
 from . import test_transcript_request
 from . import test_timetable_attendance_flow
+from . import test_timetable_generation
+from . import test_study_plan

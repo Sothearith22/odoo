@@ -1,21 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- LIST VIEW -->
+    <!-- LIST / CLASS LIST VIEW FOR ADMIN -->
     <record id="view_university_class_section_list" model="ir.ui.view">
         <field name="name">university.class.section.list</field>
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
-            <list string="Class Sections" sample="1">
-                <field name="name" decoration-bf="1"/>
-                <field name="section_type"/>
-                <field name="program_id"/>
-                <field name="subject_id"/>
-                <field name="teacher_id"/>
-                <field name="semester_id"/>
-                <field name="classroom_id"/>
-                <field name="capacity"/>
-                <field name="enrolled_student_count"/>
+            <list string="Class List" sample="1" decoration-danger="is_full" decoration-muted="not active">
+                <field name="name" decoration-bf="1" string="Class Section"/>
+                <field name="day_summary" string="Days" optional="show"/>
+                <field name="time_summary" string="Time" optional="show"/>
+                <field name="section_type" widget="badge" optional="show" string="Format"/>
+                <field name="program_id" string="Major / Level"/>
+                <field name="subject_id" optional="show"/>
+                <field name="teacher_id" widget="many2one_avatar" string="Instructor"/>
+                <field name="classroom_id" optional="show" string="Room"/>
+                <field name="semester_id" optional="show"/>
+                <field name="capacity" string="Capacity"/>
+                <field name="enrolled_student_count" string="Enrolled"/>
+                <field name="available_seats"
+                       string="Spaces / Gaps"
+                       decoration-success="available_seats &gt; 0"
+                       decoration-danger="available_seats == 0"
+                       decoration-bf="1"/>
+                <field name="capacity_used_percent" widget="progressbar" string="Fill %"/>
+                <field name="is_full"
+                       widget="badge"
+                       decoration-danger="is_full"
+                       decoration-success="not is_full"
+                       string="Status"/>
+                <button name="action_view_schedule"
+                        type="object"
+                        string="Schedule"
+                        icon="fa-calendar"
+                        title="View Class Timetable / Schedule"/>
+                <button name="action_view_enrolled_students"
+                        type="object"
+                        string="Students"
+                        icon="fa-users"
+                        title="View Enrolled Students"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -28,32 +51,80 @@
         <field name="arch" type="xml">
             <form string="Class Section">
                 <header>
-                    <button name="action_open_bulk_enroll_wizard" string="Enroll Multiple Students" type="object" class="oe_highlight" groups="school_management.group_school_teacher"/>
-                    <button name="action_open_populate_class_wizard" string="Populate Class" type="object" class="btn-secondary" groups="school_management.group_school_teacher"/>
-                    <button name="action_open_timetable_generation_wizard" string="Generate Timetable" type="object" class="btn-secondary" groups="school_management.group_school_teacher"/>
+                    <button name="action_open_timetable_generation_wizard"
+                            string="SCHEDULE TIMETABLE"
+                            type="object"
+                            class="oe_highlight"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                    <button name="action_open_populate_class_wizard"
+                            string="Populate Class"
+                            type="object"
+                            class="btn-secondary"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                    <button name="action_open_bulk_enroll_wizard"
+                            string="Enroll Multiple Students"
+                            type="object"
+                            class="btn-secondary"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                    <button name="action_view_schedule"
+                            string="View Interactive Schedule"
+                            type="object"
+                            class="btn-outline-primary"
+                            icon="fa-calendar"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Full" bg_color="text-bg-warning" invisible="not is_full"/>
                     <field name="active" invisible="1"/>
+                    <field name="is_full" invisible="1"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_enrolled_students"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="enrolled_student_count"/> / <field name="capacity"/>
+                                </span>
+                                <span class="o_stat_text">Enrolled (<field name="available_seats"/> Open)</span>
+                            </div>
+                        </button>
+                        <button name="action_view_schedule"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <div class="o_stat_info">
+                                <field name="slot_count" widget="statinfo" string="Sessions"/>
+                            </div>
+                        </button>
+                    </div>
 
                     <div class="oe_title">
-                        <label for="name" string="Section Name"/>
+                        <label for="name" string="Class / Section Name"/>
                         <h1>
-                            <field name="name" placeholder="e.g. CS-DBMS-Y1-A" required="1"/>
+                            <field name="name" placeholder="e.g. Mathematics" required="1"/>
                         </h1>
                     </div>
 
                     <group>
-                        <group string="Program &amp; Subject">
-                            <field name="section_type"/>
-                            <field name="program_id"/>
-                            <field name="subject_id" domain="[('program_ids', 'in', [program_id])]"/>
-                            <field name="teacher_id" domain="[('subject_ids', 'in', subject_id)]"/>
+                        <group string="Class Information">
+                            <field name="program_id" string="Grade" placeholder="e.g. Grade 11"/>
+                            <field name="subject_id" string="Subject" domain="[('program_ids', 'in', [program_id])]"/>
+                            <field name="teacher_id" string="Teacher" widget="many2one_avatar" domain="[('subject_ids', 'in', subject_id)]"/>
+                            <field name="capacity" string="Total Capacity"/>
+                            <field name="enrolled_student_count" string="Total Enrolled" readonly="1"/>
+                            <field name="section_type" invisible="1"/>
                         </group>
-                        <group string="Schedule &amp; Location">
-                            <field name="semester_id"/>
-                            <field name="classroom_id"/>
-                            <field name="capacity"/>
+                        <group string="Academic Session &amp; Schedule">
+                            <field name="academic_year_id" string="Session"/>
+                            <field name="semester_id" string="Term"/>
+                            <field name="timeline" string="Timeline" readonly="1"/>
+                            <field name="classroom_id" string="Location"/>
+                            <field name="capacity_used_percent" widget="progressbar"/>
+                            <field name="day_summary" readonly="1"/>
+                            <field name="time_summary" readonly="1"/>
                         </group>
                     </group>
 
@@ -81,6 +152,60 @@
                                 </form>
                             </field>
                         </page>
+
+                        <page string="Weekly Schedule" name="weekly_schedule_tab">
+                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                <div class="d-flex gap-2">
+                                    <button name="action_open_timetable_generation_wizard"
+                                            string="SCHEDULE TIMETABLE"
+                                            type="object"
+                                            class="btn btn-primary btn-sm fw-bold"/>
+                                    <button name="action_open_populate_class_wizard"
+                                            string="Populate Class"
+                                            type="object"
+                                            class="btn btn-secondary btn-sm"/>
+                                    <button name="action_view_schedule"
+                                            string="Open Visual Calendar"
+                                            type="object"
+                                            class="btn btn-outline-primary btn-sm"
+                                            icon="fa-calendar"/>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="fa fa-info-circle me-1"/> Weekly recurring session timetable
+                                </div>
+                            </div>
+                            <field name="slot_ids">
+                                <list editable="bottom">
+                                    <field name="day_name" string="Day"/>
+                                    <field name="period" string="Period"/>
+                                    <field name="location" string="Location"/>
+                                    <field name="status" widget="badge" string="Status"
+                                           decoration-success="status == 'completed'"
+                                           decoration-info="status == 'upcoming'"
+                                           decoration-warning="status == 'ongoing'"
+                                           decoration-danger="status == 'cancelled'"/>
+                                    <field name="start_time" string="Start Datetime" optional="hide"/>
+                                    <field name="end_time" string="End Datetime" optional="hide"/>
+                                    <field name="classroom_id" optional="hide"/>
+                                    <field name="teacher_id" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Assignment Type" name="assignments_tab">
+                            <field name="assignment_ids">
+                                <list editable="bottom">
+                                    <field name="name" string="Assignment Title"/>
+                                    <field name="assignment_type" string="Type" widget="badge"/>
+                                    <field name="category_id" string="Category"/>
+                                    <field name="due_date" string="Due Date"/>
+                                    <field name="max_score" string="Max Score"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-info="state == 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -93,25 +218,47 @@
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
             <search string="Search Class Sections">
-                <field name="name"/>
-                <field name="program_id"/>
-                <field name="section_type"/>
-                <field name="subject_id"/>
-                <field name="teacher_id"/>
-                <field name="semester_id"/>
+                <field name="name" string="Class / Section"/>
+                <field name="program_id" string="Major / Level"/>
+                <field name="subject_id" string="Subject"/>
+                <field name="teacher_id" string="Instructor"/>
+                <field name="semester_id" string="Semester / Term"/>
+                <field name="classroom_id" string="Room"/>
+
+                <separator/>
+                <filter string="Classes With Spaces / Gaps"
+                        name="filter_spaces"
+                        domain="[('available_seats', '&gt;', 0)]"/>
+                <filter string="Full Classes"
+                        name="filter_full"
+                        domain="[('is_full', '=', True)]"/>
+                <filter string="Empty Classes"
+                        name="filter_empty"
+                        domain="[('enrolled_student_count', '=', 0)]"/>
+                <separator/>
+                <filter string="Cohort Sections"
+                        name="filter_cohort"
+                        domain="[('section_type', '=', 'cohort')]"/>
+                <filter string="Course Sections"
+                        name="filter_course"
+                        domain="[('section_type', '=', 'course')]"/>
                 <separator/>
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
-                <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
+                <filter string="Show Inactive" name="filter_inactive" domain="[('active', '=', False)]"/>
+
                 <group>
-                    <filter string="Program" name="group_by_program" context="{'group_by': 'program_id'}"/>
-                    <filter string="Section Type" name="group_by_section_type" context="{'group_by': 'section_type'}"/>
+                    <filter string="Semester / Term" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
+                    <filter string="Major / Level" name="group_by_program" context="{'group_by': 'program_id'}"/>
+                    <filter string="Instructor" name="group_by_teacher" context="{'group_by': 'teacher_id'}"/>
+                    <filter string="Format" name="group_by_section_type" context="{'group_by': 'section_type'}"/>
                     <filter string="Subject" name="group_by_subject" context="{'group_by': 'subject_id'}"/>
-                    <filter string="Teacher" name="group_by_teacher" context="{'group_by': 'teacher_id'}"/>
-                    <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
+                    <filter string="Classroom" name="group_by_classroom" context="{'group_by': 'classroom_id'}"/>
                 </group>
+
                 <searchpanel>
-                    <field name="program_id" icon="fa-graduation-cap" enable_counters="1"/>
                     <field name="semester_id" icon="fa-calendar" enable_counters="1"/>
+                    <field name="program_id" icon="fa-graduation-cap" enable_counters="1"/>
+                    <field name="teacher_id" icon="fa-user" enable_counters="1" select="multi"/>
                     <field name="section_type" icon="fa-filter" enable_counters="1" select="multi"/>
                 </searchpanel>
             </search>
@@ -123,7 +270,7 @@
         <field name="name">university.class.section.kanban</field>
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="program_id" quick_create="false">
+            <kanban sample="1" default_group_by="semester_id" quick_create="false">
                 <field name="name"/>
                 <field name="section_type"/>
                 <field name="program_id"/>
@@ -133,23 +280,39 @@
                 <field name="classroom_id"/>
                 <field name="capacity"/>
                 <field name="enrolled_student_count"/>
+                <field name="available_seats"/>
                 <field name="capacity_used_percent"/>
                 <field name="is_full"/>
+                <field name="day_summary"/>
+                <field name="time_summary"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-6 o_kanban_record_title"><field name="name"/></strong>
-                                    <span t-if="record.is_full.raw_value" class="badge text-bg-danger ms-2">Full</span>
+                        <main class="p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="fs-6 text-truncate" t-att-title="record.name.value">
+                                    <field name="name"/>
+                                </strong>
+                                <div>
+                                    <span t-if="record.is_full.raw_value" class="badge text-bg-danger">Full</span>
+                                    <span t-if="!record.is_full.raw_value and record.available_seats.raw_value &gt; 0" class="badge text-bg-success">
+                                        <field name="available_seats"/> Open
+                                    </span>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-tag me-1" title="Section Type"/>
-                                <field name="section_type"/>
+
+                            <div class="d-flex gap-1 mb-2">
+                                <span class="badge text-bg-light border text-truncate">
+                                    <i class="fa fa-tag me-1" title="Format"/>
+                                    <field name="section_type"/>
+                                </span>
+                                <span t-if="record.day_summary.value" class="badge text-bg-info text-truncate">
+                                    <i class="fa fa-clock-o me-1" title="Schedule"/>
+                                    <field name="day_summary"/> <field name="time_summary"/>
+                                </span>
                             </div>
+
                             <div class="text-muted small mt-1" t-if="record.program_id.value">
-                                <i class="fa fa-graduation-cap me-1" title="Program"/>
+                                <i class="fa fa-graduation-cap me-1" title="Program / Level"/>
                                 <field name="program_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.subject_id.value">
@@ -160,24 +323,38 @@
                                 <i class="fa fa-user me-1" title="Instructor"/>
                                 <field name="teacher_id"/>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-calendar me-1" title="Semester"/>
-                                <field name="semester_id"/>
-                            </div>
                             <div class="text-muted small mt-1" t-if="record.classroom_id.value">
                                 <i class="fa fa-building-o me-1" title="Room"/>
                                 <field name="classroom_id"/>
                             </div>
-                            <div class="mt-2 text-muted small">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span><field name="enrolled_student_count"/> / <field name="capacity"/> Enrolled</span>
-                                    <span><field name="capacity_used_percent"/>%</span>
+
+                            <div class="mt-3 pt-2 border-top">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>
+                                        <strong><field name="enrolled_student_count"/></strong> / <field name="capacity"/> Enrolled
+                                    </span>
+                                    <span class="fw-bold"><field name="capacity_used_percent"/>%</span>
                                 </div>
                                 <div class="progress" style="height: 6px;">
                                     <div class="progress-bar"
-                                         t-att-class="record.is_full.raw_value ? 'bg-danger' : 'bg-success'"
+                                         t-att-class="record.is_full.raw_value ? 'bg-danger' : (record.capacity_used_percent.raw_value &gt;= 80 ? 'bg-warning' : 'bg-success')"
                                          t-att-style="'width: ' + record.capacity_used_percent.raw_value + '%'"/>
                                 </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-3 pt-1">
+                                <button name="action_view_schedule"
+                                        type="object"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="View Schedule">
+                                    <i class="fa fa-calendar me-1"/>Schedule
+                                </button>
+                                <button name="action_view_enrolled_students"
+                                        type="object"
+                                        class="btn btn-sm btn-outline-primary"
+                                        title="View Students">
+                                    <i class="fa fa-users me-1"/>Students
+                                </button>
                             </div>
                         </main>
                     </t>
@@ -186,14 +363,24 @@
         </field>
     </record>
 
-    <!-- WINDOW ACTION -->
+    <!-- WINDOW ACTION FOR ADMIN CLASS LIST -->
     <record id="action_university_class_section" model="ir.actions.act_window">
-        <field name="name">Class Sections</field>
+        <field name="name">Class List</field>
         <field name="res_model">university.class.section</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_university_class_section_search"/>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Class Section!
+            </p>
+            <p>
+                Manage class sections, schedule sessions, monitor enrolled students and track available seat capacity.
+            </p>
+        </field>
     </record>
 
+    <!-- STUDENT ACTION: MY CLASSES -->
     <record id="action_university_class_section_student" model="ir.actions.act_window">
         <field name="name">My Classes</field>
         <field name="res_model">university.class.section</field>

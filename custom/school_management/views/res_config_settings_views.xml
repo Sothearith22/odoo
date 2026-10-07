@@ -123,6 +123,24 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Transcript Request Settings">
+                        <setting
+                            id="university_transcript_request_settings"
+                            string="Financial Hold Balance Threshold"
+                            help="Minimum overdue student account balance required to trigger a financial hold on transcript requests."
+                        >
+                            <div class="row mt16">
+                                <label
+                                    for="transcript_hold_min_balance"
+                                    string="Minimum Balance Threshold"
+                                    class="col-lg-5 o_light_label"
+                                />
+                                <div class="col-lg-4">
+                                    <field name="transcript_hold_min_balance"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

@@ -18,7 +18,7 @@ class UniversityClassSection(models.Model):
     )
     program_id = fields.Many2one(
         "university.program",
-        string="Major",
+        string="Major / Level",
         help="Optional: link the section to a major/program (program-level "
              "cohort sections such as 'GM-Y1-A'). Preferred over Subject for "
              "the main major enrollment flow.",
@@ -36,7 +36,21 @@ class UniversityClassSection(models.Model):
         help="Legacy: instructor for subject-based class sections.",
     )
     semester_id = fields.Many2one(
-        "university.semester", string="Semester", required=True
+        "university.semester", string="Semester / Term", required=True
+    )
+    academic_year_id = fields.Many2one(
+        "university.academic.year",
+        string="Academic Year",
+        related="semester_id.academic_year_id",
+        store=True,
+        readonly=True,
+    )
+    department_id = fields.Many2one(
+        "university.department",
+        string="Department",
+        related="program_id.department_id",
+        store=True,
+        readonly=True,
     )
     classroom_id = fields.Many2one(
         "university.classroom", string="Classroom"
@@ -44,6 +58,13 @@ class UniversityClassSection(models.Model):
     capacity = fields.Integer(string="Max Capacity", default=30)
     enrollment_ids = fields.One2many(
         "university.enrollment", "section_id", string="Enrolled Students"
+    )
+    slot_ids = fields.One2many(
+        "university.timetable.slot", "section_id", string="Timetable Slots"
+    )
+    slot_count = fields.Integer(
+        string="Sessions Count",
+        compute="_compute_slot_count",
     )
     active = fields.Boolean(string="Active", default=True)
     auto_quiz_per_session = fields.Boolean(
@@ -54,14 +75,56 @@ class UniversityClassSection(models.Model):
     enrolled_student_count = fields.Integer(
         string="Enrolled Count",
         compute="_compute_enrolled_student_count",
+        store=True,
+    )
+    available_seats = fields.Integer(
+        string="Available Seats",
+        compute="_compute_capacity_status",
+        store=True,
+    )
+    has_available_seats = fields.Boolean(
+        string="Has Available Seats",
+        compute="_compute_capacity_status",
+        store=True,
     )
     capacity_used_percent = fields.Integer(
         string="Capacity Used",
         compute="_compute_capacity_status",
+        store=True,
     )
     is_full = fields.Boolean(
         string="Full",
         compute="_compute_capacity_status",
+        store=True,
+    )
+    day_summary = fields.Char(
+        string="Days",
+        compute="_compute_schedule_summary",
+    )
+    time_summary = fields.Char(
+        string="Time",
+        compute="_compute_schedule_summary",
+    )
+    schedule_summary = fields.Char(
+        string="Schedule Summary",
+        compute="_compute_schedule_summary",
+    )
+    assignment_ids = fields.One2many(
+        "university.assignment",
+        "section_id",
+        string="Assignments",
+    )
+    timeline = fields.Char(
+        string="Timeline",
+        compute="_compute_timeline",
+    )
+    state = fields.Selection(
+        [
+            ("draft", "New"),
+            ("confirmed", "Confirmed"),
+        ],
+        string="Status",
+        default="confirmed",
     )
 
     @api.depends("enrollment_ids", "enrollment_ids.status")
@@ -80,9 +143,50 @@ class UniversityClassSection(models.Model):
                     round(section.enrolled_student_count * 100 / section.capacity),
                 )
                 section.is_full = section.enrolled_student_count >= section.capacity
+                section.available_seats = max(0, section.capacity - section.enrolled_student_count)
+                section.has_available_seats = section.available_seats > 0
             else:
                 section.capacity_used_percent = 0
                 section.is_full = False
+                section.available_seats = 0
+                section.has_available_seats = False
+
+    @api.depends("slot_ids")
+    def _compute_slot_count(self):
+        for section in self:
+            section.slot_count = len(section.slot_ids)
+
+    @api.depends("slot_ids.start_time", "slot_ids.end_time", "slot_ids.classroom_id")
+    def _compute_schedule_summary(self):
+        for section in self:
+            if not section.slot_ids:
+                section.schedule_summary = ""
+                section.day_summary = ""
+                section.time_summary = ""
+                continue
+            days = []
+            times = []
+            details = []
+            slots = section.slot_ids.sorted(key=lambda s: s.start_time or fields.Datetime.now())
+            for s in slots:
+                if s.start_time:
+                    slot_dt = fields.Datetime.context_timestamp(section, s.start_time)
+                    day_name = slot_dt.strftime("%a")
+                    if day_name not in days:
+                        days.append(day_name)
+                    time_range = slot_dt.strftime("%H:%M")
+                    if s.end_time:
+                        end_dt = fields.Datetime.context_timestamp(section, s.end_time)
+                        time_range += f"-{end_dt.strftime('%H:%M')}"
+                    if time_range not in times:
+                        times.append(time_range)
+                    room = f" ({s.classroom_id.name})" if s.classroom_id else ""
+                    desc = f"{day_name} {time_range}{room}"
+                    if desc not in details:
+                        details.append(desc)
+            section.day_summary = ", ".join(days)
+            section.time_summary = ", ".join(times[:2])
+            section.schedule_summary = "; ".join(details[:3]) + ("..." if len(details) > 3 else "")
 
     @api.constrains("capacity")
     def _check_capacity_positive(self):
@@ -158,6 +262,45 @@ class UniversityClassSection(models.Model):
             self.teacher_id = False
         return {"domain": {"subject_id": domain}}
 
+    def action_view_enrolled_students(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Enrolled Students - {self.name}",
+            "res_model": "university.enrollment",
+            "view_mode": "list,form",
+            "domain": [("section_id", "=", self.id)],
+            "context": {"default_section_id": self.id},
+        }
+
+    @api.depends("semester_id.date_start", "semester_id.date_end")
+    def _compute_timeline(self):
+        for section in self:
+            if section.semester_id and section.semester_id.date_start and section.semester_id.date_end:
+                s_str = section.semester_id.date_start.strftime("%m/%d/%Y")
+                e_str = section.semester_id.date_end.strftime("%m/%d/%Y")
+                section.timeline = f"{s_str} - {e_str}"
+            else:
+                section.timeline = ""
+
+    def action_confirm(self):
+        self.write({"state": "confirmed"})
+
+    def action_set_to_draft(self):
+        self.write({"state": "draft"})
+
+    def action_view_schedule(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.client",
+            "tag": "university_schedule_view",
+            "name": f"Weekly Schedule - {self.name}",
+            "context": {
+                "default_section_id": self.id,
+                "filters": {"section_id": str(self.id)},
+            },
+        }
+
     def action_open_bulk_enroll_wizard(self):
         self.ensure_one()
         program = self.program_id
@@ -172,9 +315,9 @@ class UniversityClassSection(models.Model):
             "target": "new",
             "context": {
                 "default_section_id": self.id,
-                "default_program_id": program.id,
-                "default_academic_year_id": self.semester_id.academic_year_id.id,
-                "default_semester_id": self.semester_id.id,
+                "default_program_id": program.id if program else False,
+                "default_academic_year_id": self.semester_id.academic_year_id.id if self.semester_id and self.semester_id.academic_year_id else False,
+                "default_semester_id": self.semester_id.id if self.semester_id else False,
             },
         }
 
@@ -198,8 +341,8 @@ class UniversityClassSection(models.Model):
             "view_mode": "form",
             "target": "new",
             "context": {
-                "default_academic_year_id": self.semester_id.academic_year_id.id,
-                "default_semester_id": self.semester_id.id,
+                "default_academic_year_id": self.semester_id.academic_year_id.id if self.semester_id and self.semester_id.academic_year_id else False,
+                "default_semester_id": self.semester_id.id if self.semester_id else False,
                 "default_section_ids": [(6, 0, [self.id])],
             },
         }

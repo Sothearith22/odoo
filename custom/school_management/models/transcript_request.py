@@ -148,10 +148,51 @@ class UniversityTranscriptRequest(models.Model):
     )
 
     # Computed helper for holds
+    show_holds_alert = fields.Boolean(
+        string="Show Holds Alert",
+        compute="_compute_show_holds_alert",
+        store=False,
+    )
+    can_download_transcript = fields.Boolean(
+        string="Can Download Transcript",
+        compute="_compute_can_download_transcript",
+        store=False,
+    )
     has_holds = fields.Boolean(
         string="Has Academic/Financial Holds",
         compute="_compute_holds",
         store=False,
+    )
+    has_block_holds = fields.Boolean(
+        string="Has Blocking Holds",
+        compute="_compute_holds",
+        store=False,
+    )
+    grades_status = fields.Char(
+        string="Grades Status",
+        compute="_compute_holds",
+        store=False,
+    )
+    finance_status = fields.Char(
+        string="Finance Status",
+        compute="_compute_holds",
+        store=False,
+    )
+    override_user_id = fields.Many2one(
+        "res.users",
+        string="Override Approved By",
+        readonly=True,
+        tracking=True,
+    )
+    override_date = fields.Datetime(
+        string="Override Date",
+        readonly=True,
+        tracking=True,
+    )
+    override_reason = fields.Text(
+        string="Override Reason",
+        readonly=True,
+        tracking=True,
     )
     holds_summary = fields.Text(
         string="Active Holds",
@@ -200,8 +241,8 @@ class UniversityTranscriptRequest(models.Model):
     # -------------------------------------------------------------------------
     # Hold Detection
     # -------------------------------------------------------------------------
-    def _get_holds(self):
-        """Returns a list of hold descriptions that block transcript approval."""
+    def _get_transcript_holds(self):
+        """Returns a list of hold dicts: [{'code': ..., 'severity': 'block'|'warning', 'message': ...}]."""
         self.ensure_one()
         holds = []
         if not self.student_id:
@@ -209,67 +250,113 @@ class UniversityTranscriptRequest(models.Model):
 
         # 1. Student Status Hold: Must be active or graduated
         if self.student_id.status not in ("active", "graduated"):
-            holds.append(
-                f"Student status is '{self.student_id.status or 'Unspecified'}'. "
-                "Only Active or Graduated students may receive transcripts."
-            )
+            holds.append({
+                "code": "student_status",
+                "severity": "block",
+                "message": _(
+                    "Student status is '%(status)s'. Only Active or Graduated students may receive transcripts."
+                ) % {"status": self.student_id.status or "Unspecified"},
+            })
 
-        # 2. Unpublished report cards hold
-        draft_cards = self.env["university.report.card"].search_count([
+        # 2. Report Cards / Grades holds
+        published_cards = self.env["university.report.card"].search_count([
             ("student_id", "=", self.student_id.id),
-            ("state", "=", "draft"),
+            ("state", "in", ("generated", "approved")),
         ])
-        if draft_cards:
-            holds.append(
-                f"There are {draft_cards} unfinalized/draft semester report card(s) pending approval."
-            )
-
-        # For official transcripts, require at least one published/approved report card or transcript
-        if self.request_type == "official":
-            published_cards = self.env["university.report.card"].search_count([
+        existing_transcripts = self.env["university.transcript"].search_count([
+            ("student_id", "=", self.student_id.id),
+            ("state", "in", ("generated", "approved")),
+        ])
+        if not published_cards and not existing_transcripts:
+            draft_cards = self.env["university.report.card"].search_count([
                 ("student_id", "=", self.student_id.id),
-                ("state", "in", ("generated", "approved")),
+                ("state", "=", "draft"),
             ])
-            existing_transcripts = self.env["university.transcript"].search_count([
-                ("student_id", "=", self.student_id.id),
-                ("state", "in", ("generated", "approved")),
-            ])
-            if not published_cards and not existing_transcripts:
-                holds.append(
-                    "No finalized semester grades or report cards found to generate an official transcript."
-                )
+            if draft_cards:
+                holds.append({
+                    "code": "no_grades",
+                    "severity": "block",
+                    "message": _("There are %(count)d unfinalized/draft semester report card(s) pending approval.") % {"count": draft_cards},
+                })
+            else:
+                holds.append({
+                    "code": "no_grades",
+                    "severity": "block",
+                    "message": _("No finalized report cards found for %(name)s.") % {"name": self.student_id.name},
+                })
 
-        # 3. Finance Holds (Unpaid tuition and fee invoices)
-        if hasattr(self.student_id, "fee_balance") and self.student_id.fee_balance > 0.0:
-            holds.append(
-                f"Outstanding tuition/fee balance of {self.student_id.fee_balance:.2f}. "
-                "All outstanding student account balances must be settled before approval."
-            )
+        # 3. Financial holds (Overdue posted fees > threshold)
+        ICP = self.env["ir.config_parameter"].sudo()
+        try:
+            min_balance = float(ICP.get_param("school_management.transcript_hold_min_balance", 0.0))
+        except (ValueError, TypeError):
+            min_balance = 0.0
 
-        unpaid_fees = self.env["university.fee"].search_count([
+        today = fields.Date.today()
+        overdue_fees = self.env["university.fee"].search([
             ("student_id", "=", self.student_id.id),
             ("state", "=", "posted"),
-            ("balance", ">", 0.0),
+            ("due_date", "<=", today),
         ])
-        if unpaid_fees:
-            holds.append(
-                f"Student has {unpaid_fees} posted fee invoice(s) with an overdue balance."
-            )
+        total_overdue = sum(fee.balance for fee in overdue_fees if fee.balance > 0.0)
+
+        if total_overdue > min_balance:
+            sev = "block" if self.request_type == "official" else "warning"
+            holds.append({
+                "code": "financial",
+                "severity": sev,
+                "message": _("Outstanding tuition/fee balance of %(balance).2f.") % {"balance": total_overdue},
+            })
 
         # 4. Request Fee Hold (when fee_amount is charged)
         if self.fee_amount > 0.0 and self.payment_state != "paid":
-            holds.append(
-                f"Processing fee of {self.fee_amount:.2f} {self.currency_id.symbol or ''} has not been paid."
-            )
+            holds.append({
+                "code": "request_fee",
+                "severity": "block",
+                "message": _("Processing fee of %(amount).2f %(curr)s has not been paid.") % {
+                    "amount": self.fee_amount,
+                    "curr": self.currency_id.symbol or "",
+                },
+            })
 
         return holds
+
+    def _get_holds(self):
+        """Backwards compatibility returning hold message strings."""
+        return [h["message"] for h in self._get_transcript_holds()]
+
+    @api.depends("has_holds", "state")
+    def _compute_show_holds_alert(self):
+        for req in self:
+            req.show_holds_alert = bool(req.has_holds and req.state in ("draft", "submitted"))
+
+    @api.depends("state", "transcript_id")
+    def _compute_can_download_transcript(self):
+        for req in self:
+            req.can_download_transcript = bool(req.state in ("issued", "delivered") and req.transcript_id)
 
     @api.depends("student_id", "student_id.status", "student_id.fee_balance", "fee_amount", "payment_state", "request_type")
     def _compute_holds(self):
         for req in self:
-            holds = req._get_holds() if req.student_id else []
-            req.holds_summary = "\n".join(f"• {h}" for h in holds) if holds else ""
+            holds = req._get_transcript_holds() if req.student_id else []
             req.has_holds = bool(holds)
+            req.has_block_holds = any(h["severity"] == "block" for h in holds)
+            req.holds_summary = "\n".join(f"• {h['message']}" for h in holds) if holds else ""
+
+            no_grades = any(h["code"] == "no_grades" for h in holds)
+            req.grades_status = "Grades: Missing" if no_grades else "Grades: OK"
+
+            today = fields.Date.today()
+            overdue = sum(f.balance for f in self.env["university.fee"].search([
+                ("student_id", "=", req.student_id.id),
+                ("state", "=", "posted"),
+                ("due_date", "<=", today),
+            ]) if f.balance > 0.0) if req.student_id else 0.0
+
+            if any(h["code"] == "financial" for h in holds):
+                req.finance_status = f"Finance: Overdue {overdue:.2f}"
+            else:
+                req.finance_status = "Finance: Clear"
 
     def _check_registrar_permission(self):
         """Verifies current user belongs to Registrar or Admin role."""
@@ -326,11 +413,12 @@ class UniversityTranscriptRequest(models.Model):
             if req.state != "submitted":
                 raise UserError(_("Only submitted requests can be approved."))
 
-            holds = req._get_holds()
-            if holds:
-                hold_lines = "\n".join(f"• {h}" for h in holds)
+            holds = req._get_transcript_holds()
+            block_holds = [h for h in holds if h["severity"] == "block"]
+            if block_holds:
+                hold_lines = "\n".join(f"• {h['message']}" for h in block_holds)
                 raise UserError(
-                    _("Cannot approve transcript request due to the following active hold(s):\n\n%s", hold_lines)
+                    _("Cannot approve transcript request due to the following active hold(s):\n\n%s") % hold_lines
                 )
 
             req.write({
@@ -339,8 +427,54 @@ class UniversityTranscriptRequest(models.Model):
                 "approved_date": fields.Datetime.now(),
             })
             req.action_feedback(feedback=_("Transcript request approved by registrar."))
-            req.message_post(body=_("Transcript request approved by %s.", self.env.user.name))
+            req.message_post(body=_("Transcript request approved by %s.") % self.env.user.name)
             req._send_transcript_mail("school_management.mail_template_transcript_request_approved")
+
+    def action_open_override_wizard(self):
+        self.ensure_one()
+        self._check_registrar_permission()
+        return {
+            "name": _("Approve Transcript Request (Override Holds)"),
+            "type": "ir.actions.act_window",
+            "res_model": "university.transcript.request.override.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_request_id": self.id},
+        }
+
+    def action_confirm_override(self, reason):
+        self.ensure_one()
+        if not (
+            self.env.user.has_group("school_management.group_school_registrar")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        ):
+            raise UserError(_("Only University Administrators or Registrars can override holds."))
+
+        if not reason or len(reason.strip()) < 10:
+            raise ValidationError(_("The override reason must be at least 10 characters long."))
+
+        holds = self._get_transcript_holds()
+        hold_codes = [h["code"] for h in holds]
+
+        self.write({
+            "state": "approved",
+            "approved_by": self.env.user.id,
+            "approved_date": fields.Datetime.now(),
+            "override_user_id": self.env.user.id,
+            "override_date": fields.Datetime.now(),
+            "override_reason": reason.strip(),
+        })
+
+        body = (
+            f"Administrative Override executed by {self.env.user.name}.<br/>"
+            f"<b>Overridden hold codes:</b> {', '.join(hold_codes)}<br/>"
+            f"<b>Reason:</b> {reason.strip()}"
+        )
+        self.message_post(body=body)
+        self.action_feedback(feedback=_("Transcript request approved via administrative override."))
+        self._send_transcript_mail("school_management.mail_template_transcript_request_approved")
+        return True
 
     def action_reject(self, reason=None):
         self._check_registrar_permission()
@@ -485,6 +619,9 @@ class UniversityTranscriptRequest(models.Model):
                     "reject_reason",
                     "transcript_id",
                     "verification_code",
+                    "override_user_id",
+                    "override_date",
+                    "override_reason",
                 }
                 if restricted_fields.intersection(vals.keys()):
                     raise AccessError(

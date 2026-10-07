@@ -679,22 +679,66 @@
                   <div class="o_panel_header">
                     <h3 class="o_panel_title">
                       <i class="fa fa-pie-chart" style="color: var(--brand-emerald);" aria-hidden="true"/>
-                      <span>Student Status</span>
+                      <span>Student Academic Status</span>
                     </h3>
                     <button t-if="this.canOpen('student')"
                             t-on-click="() => this.navigate('school_management.action_university_student')"
                             class="btn p-0 border-0 o_panel_link">
-                      Manage <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
+                      View All Students <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
                     </button>
                   </div>
-                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-center">
+                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-between p-3">
                     <t t-if="this.hasChartData('status')">
                       <div class="o_chart_canvas o_chart_canvas_donut">
                         <canvas t-ref="chart_status"/>
                       </div>
+                      <div class="o_student_status_breakdown pt-2 border-top mt-2">
+                        <div class="row g-2 text-center">
+                          <div class="col-3">
+                            <div class="o_status_pill p-2 rounded"
+                                 t-on-click="() => this.navigate('school_management.action_university_student')"
+                                 title="View Active Students">
+                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
+                                <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>Active
+                              </div>
+                              <div class="fs-5 fw-bold text-success" t-esc="this.state.dashboard?.active_student_count || 0"/>
+                            </div>
+                          </div>
+                          <div class="col-3">
+                            <div class="o_status_pill p-2 rounded"
+                                 t-on-click="() => this.navigate('school_management.action_university_student')"
+                                 title="View Graduated Students">
+                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
+                                <span class="badge rounded-pill bg-info-subtle text-info me-1 px-1">●</span>Graduated
+                              </div>
+                              <div class="fs-5 fw-bold text-info" t-esc="this.state.dashboard?.graduated_student_count || 0"/>
+                            </div>
+                          </div>
+                          <div class="col-3">
+                            <div class="o_status_pill p-2 rounded"
+                                 t-on-click="() => this.navigate('school_management.action_university_student')"
+                                 title="View Suspended Students">
+                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
+                                <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-1">●</span>Suspended
+                              </div>
+                              <div class="fs-5 fw-bold text-warning" t-esc="this.state.dashboard?.suspended_student_count || 0"/>
+                            </div>
+                          </div>
+                          <div class="col-3">
+                            <div class="o_status_pill p-2 rounded"
+                                 t-on-click="() => this.navigate('school_management.action_university_student')"
+                                 title="View Dropped Students">
+                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
+                                <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-1">●</span>Dropped
+                              </div>
+                              <div class="fs-5 fw-bold text-danger" t-esc="this.state.dashboard?.dropped_student_count || 0"/>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </t>
                     <t t-else="">
-                      <div class="o_empty_state">
+                      <div class="o_empty_state my-auto">
                         <div class="o_empty_icon">
                           <i class="fa fa-pie-chart" aria-hidden="true"/>
                         </div>

@@ -84,7 +84,9 @@ const doughnutCenterText = {
         if (!first) return;
         const values = chart.data.datasets[0].data || [];
         const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0);
-        const { x, y } = first.tooltipPosition();
+        // TooltipPosition() points to the outer arc; use first.x/first.y or chartArea for doughnut cutout center
+        const x = typeof first.x === "number" ? first.x : ((chart.chartArea.left + chart.chartArea.right) / 2);
+        const y = typeof first.y === "number" ? first.y : ((chart.chartArea.top + chart.chartArea.bottom) / 2);
         const { ctx } = chart;
         ctx.save();
         ctx.textAlign = "center";
@@ -615,12 +617,12 @@ class SchoolDashboardShell extends Component {
                     cutout: '70%',
                     plugins: {
                         centerText: {
-                            label: 'Students',
+                            label: 'Total Students',
                             valueColor: '#0f172a',
                             labelColor: '#64748b',
                         },
                         legend: {
-                            position: 'bottom',
+                            display: false,
                             labels: {
                                 boxWidth: 10,
                                 boxHeight: 10,

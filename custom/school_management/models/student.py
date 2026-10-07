@@ -1,6 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
+DEFAULT_STUDENT_PASSWORD = "student123"
+
 
 class Student(models.Model):
     _name = "university.student"
@@ -351,12 +353,27 @@ class Student(models.Model):
             },
         }
 
+    def _check_user_is_student_only(self, user):
+        """Never touch staff/admin accounts from the student form."""
+        user = user.sudo()
+        if (
+            user.has_group("base.group_system")
+            or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_school_hod")
+            or user.has_group("school_management.group_school_dean")
+        ):
+            raise UserError(
+                _("User %s is a staff or admin account and cannot be managed from the student form.")
+                % user.login
+            )
+
     def action_create_user(self):
         self.ensure_one()
         if not self.env.su and not self.env.user.has_group("school_management.group_school_admin"):
             raise AccessError(_("Only University Administrators can create student login accounts."))
 
-        email = (self.email or "").strip()
+        email = (self.email or "").strip().lower()
         if not email:
             raise UserError(_("Cannot create account: student %s has no email address.") % self.name)
 
@@ -367,36 +384,40 @@ class Student(models.Model):
         student_group = self.env.ref("school_management.group_school_student")
         internal_group = self.env.ref("base.group_user")
 
-        existing_user = Users.search([("login", "=ilike", email)], limit=1)
+        existing_user = Users.search([("login", "=", email)], limit=1)
         if existing_user:
-            other_student = self.sudo().search([("user_id", "=", existing_user.id), ("id", "!=", self.id)], limit=1)
+            other_student = self.sudo().search(
+                [("user_id", "=", existing_user.id), ("id", "!=", self.id)], limit=1
+            )
             if other_student:
                 raise UserError(
                     _("Email %(email)s is already linked to another student: %(student)s.")
                     % {"email": email, "student": other_student.name}
                 )
-            existing_user.write({
-                "group_ids": [(4, internal_group.id), (4, student_group.id)],
-            })
+            self._check_user_is_student_only(existing_user)
+            existing_user.write({"group_ids": [(4, internal_group.id), (4, student_group.id)]})
             self.sudo().write({"user_id": existing_user.id})
-            existing_user.action_reset_password()
+            message = _("Existing account %s linked to %s. Its password was not changed.") % (email, self.name)
         else:
-            user = Users.create({
+            user = Users.with_context(no_reset_password=True).create({
                 "name": self.name,
                 "login": email,
                 "email": email,
+                "password": DEFAULT_STUDENT_PASSWORD,
                 "group_ids": [(6, 0, [internal_group.id, student_group.id])],
             })
             self.sudo().write({"user_id": user.id})
-            user.with_context(create_user=1).action_reset_password()
+            message = _("Login created for %(name)s. Login: %(login)s / Password: %(pwd)s") % {
+                "name": self.name, "login": email, "pwd": DEFAULT_STUDENT_PASSWORD,
+            }
 
+        self.message_post(body=_("Login account set up by %s.") % self.env.user.name)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("Account Created"),
-                "message": _("Login account created for %s with email '%s'. A password setup email was sent.")
-                % (self.name, email),
+                "title": _("Account Ready"),
+                "message": message,
                 "type": "success",
                 "sticky": False,
             },
@@ -410,13 +431,17 @@ class Student(models.Model):
         if not self.user_id:
             raise UserError(_("Student %s does not have a linked login account.") % self.name)
 
-        self.user_id.sudo().action_reset_password()
+        self._check_user_is_student_only(self.user_id)
+        self.user_id.sudo().write({"password": DEFAULT_STUDENT_PASSWORD})
+        self.message_post(body=_("Password reset to the default by %s.") % self.env.user.name)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Password Reset"),
-                "message": _("A password reset email was sent to %s.") % self.user_id.login,
+                "message": _("The password for %(login)s is now %(pwd)s.") % {
+                    "login": self.user_id.login, "pwd": DEFAULT_STUDENT_PASSWORD,
+                },
                 "type": "success",
                 "sticky": False,
             },

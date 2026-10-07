@@ -55,6 +55,12 @@ class UniversityResConfigSettings(models.TransientModel):
         default=75.0,
         help="Students with an attendance rate below this percentage are flagged as attendance risk.",
     )
+    transcript_hold_min_balance = fields.Float(
+        string="Transcript Hold Minimum Balance",
+        config_parameter="school_management.transcript_hold_min_balance",
+        default=0.0,
+        help="Minimum overdue balance required to trigger a financial hold on transcript requests.",
+    )
 
     @api.onchange("current_academic_year_id")
     def _onchange_current_academic_year_id(self):

@@ -86,4 +86,23 @@
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
+    <!-- Aliases for standard university naming convention -->
+    <record id="group_university_student" model="res.groups">
+        <field name="name">University Student (Alias)</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_student'))]"/>
+    </record>
+
+    <record id="group_university_teacher" model="res.groups">
+        <field name="name">University Teacher (Alias)</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
+    </record>
+
+    <record id="group_university_admin" model="res.groups">
+        <field name="name">University Administrator (Alias)</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_admin'))]"/>
+    </record>
+
 </odoo>

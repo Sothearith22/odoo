@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 class UniversityAssignment(models.Model):
     _name = "university.assignment"
@@ -52,6 +52,29 @@ class UniversityAssignment(models.Model):
         help="Specific student if this is a Student Assignment"
     )
 
+    my_submission_id = fields.Many2one(
+        "university.assignment.submission",
+        string="My Submission",
+        compute="_compute_my_submission",
+    )
+    my_submission_state = fields.Selection(
+        [
+            ("draft", "Draft"),
+            ("submitted", "Submitted"),
+            ("reviewing", "Reviewing"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
+            ("evaluated", "Evaluated"),
+            ("returned", "Returned"),
+        ],
+        string="My Submission Status",
+        compute="_compute_my_submission",
+    )
+    my_submission_score = fields.Float(
+        string="My Score",
+        compute="_compute_my_submission",
+    )
+
     def _default_teacher(self):
         teacher = self.env["university.teacher"].search([("user_id", "=", self.env.uid)], limit=1)
         return teacher.id if teacher else False
@@ -60,6 +83,27 @@ class UniversityAssignment(models.Model):
     def _compute_submission_count(self):
         for assignment in self:
             assignment.submission_count = len(assignment.submission_ids)
+
+    def _compute_my_submission(self):
+        user = self.env.user
+        student = self.env["university.student"].search([("user_id", "=", user.id)], limit=1)
+        if not student:
+            for assignment in self:
+                assignment.my_submission_id = False
+                assignment.my_submission_state = False
+                assignment.my_submission_score = 0.0
+            return
+
+        submissions = self.env["university.assignment.submission"].search([
+            ("assignment_id", "in", self.ids),
+            ("student_id", "=", student.id),
+        ])
+        sub_by_assign = {s.assignment_id.id: s for s in submissions}
+        for assignment in self:
+            sub = sub_by_assign.get(assignment.id)
+            assignment.my_submission_id = sub.id if sub else False
+            assignment.my_submission_state = sub.state if sub else False
+            assignment.my_submission_score = sub.score if sub else 0.0
 
     def action_approve(self):
         self.write({"state": "approved"})
@@ -73,7 +117,7 @@ class UniversityAssignment(models.Model):
             "type": "ir.actions.act_window",
             "name": "Assignment Submissions",
             "res_model": "university.assignment.submission",
-            "view_mode": "list,form",
+            "view_mode": "kanban,list,form",
             "domain": [("assignment_id", "=", self.id)],
             "context": {
                 "default_assignment_id": self.id,
@@ -83,6 +127,34 @@ class UniversityAssignment(models.Model):
                 "default_category_id": self.category_id.id,
                 "default_max_score": self.max_score,
             },
+        }
+
+    def action_student_submit_work(self):
+        self.ensure_one()
+        user = self.env.user
+        student = self.env["university.student"].search([("user_id", "=", user.id)], limit=1)
+        if not student:
+            raise ValidationError(_("No student record found for your user account."))
+
+        submission = self.env["university.assignment.submission"].search([
+            ("assignment_id", "=", self.id),
+            ("student_id", "=", student.id),
+        ], limit=1)
+
+        if not submission:
+            submission = self.env["university.assignment.submission"].create({
+                "assignment_id": self.id,
+                "student_id": student.id,
+                "state": "draft",
+            })
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Submit Work: %s", self.name),
+            "res_model": "university.assignment.submission",
+            "view_mode": "form",
+            "res_id": submission.id,
+            "target": "current",
         }
 
     @api.constrains("max_score")
@@ -177,10 +249,21 @@ class UniversityAssignmentSubmission(models.Model):
         readonly=True,
         copy=False,
     )
+    can_edit_status = fields.Boolean(
+        string="Can Edit Status",
+        compute="_compute_can_edit_status",
+    )
+    is_evaluated = fields.Boolean(
+        string="Is Evaluated",
+        compute="_compute_is_evaluated",
+    )
     state = fields.Selection(
         [
             ("draft", "Draft"),
             ("submitted", "Submitted"),
+            ("reviewing", "Reviewing"),
+            ("approved", "Approved"),
+            ("rejected", "Rejected"),
             ("evaluated", "Evaluated"),
             ("returned", "Returned"),
         ],
@@ -192,6 +275,21 @@ class UniversityAssignmentSubmission(models.Model):
     def _default_student(self):
         student = self.env["university.student"].search([("user_id", "=", self.env.uid)], limit=1)
         return student.id if student else False
+
+    @api.depends("state")
+    def _compute_is_evaluated(self):
+        for sub in self:
+            sub.is_evaluated = sub.state in ("approved", "evaluated")
+
+    @api.depends_context("uid")
+    def _compute_can_edit_status(self):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        for submission in self:
+            submission.can_edit_status = is_teacher_or_admin
 
     @api.depends("assignment_id.name", "student_id.name")
     def _compute_name(self):
@@ -218,27 +316,85 @@ class UniversityAssignmentSubmission(models.Model):
 
     @api.constrains("score", "max_score")
     def _check_score(self):
-        for submission in self.filtered(lambda item: item.state == "evaluated"):
+        for submission in self.filtered(lambda item: item.state in ("approved", "evaluated")):
             if submission.score < 0 or submission.score > submission.max_score:
                 raise ValidationError("Submission score must be between 0 and the assignment maximum score.")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        for vals in vals_list:
+            if "state" in vals and vals["state"] != "draft" and not is_teacher_or_admin:
+                raise AccessError(_("Students cannot set submission status directly upon creation."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        if "state" in vals and not is_teacher_or_admin:
+            raise AccessError(_("Only teachers and administrators can update the submission status."))
+        if any(f in vals for f in ("score", "feedback", "assessment_result_id")) and not is_teacher_or_admin:
+            raise AccessError(_("Only teachers and administrators can grade or give feedback on submissions."))
+        if not is_teacher_or_admin:
+            for sub in self:
+                if sub.state in ("submitted", "reviewing", "approved", "evaluated") and any(
+                    f in vals for f in ("answer_text", "attachment_ids", "assignment_id", "student_id")
+                ):
+                    raise ValidationError(_("You cannot modify an assignment that has already been submitted or reviewed."))
+        return super().write(vals)
+
+    def unlink(self):
+        is_admin = self.env.user.has_group("school_management.group_school_admin") or self.env.is_superuser()
+        if not is_admin:
+            raise AccessError(_("Only administrators are allowed to delete assignment submissions."))
+        return super().unlink()
+
     def action_submit(self):
         for submission in self:
+            if submission.state not in ("draft", "rejected", "returned"):
+                raise ValidationError(_("Only draft or returned/rejected submissions can be submitted."))
             if not submission.answer_text and not submission.attachment_ids:
-                raise ValidationError("Add submission text or at least one attachment before submitting.")
-            submission.write(
+                raise ValidationError(_("Add submission text or at least one attachment before submitting."))
+            submission.sudo().write(
                 {
                     "state": "submitted",
                     "submitted_on": fields.Datetime.now(),
                 }
             )
 
-    def action_evaluate(self):
+    def action_start_review(self):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        if not is_teacher_or_admin:
+            raise AccessError(_("Only teachers and administrators can review submissions."))
+        for submission in self:
+            if submission.state != "submitted":
+                raise ValidationError(_("Only submitted assignments can be marked as reviewing."))
+            submission.write({"state": "reviewing"})
+
+    def action_approve(self):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        if not is_teacher_or_admin:
+            raise AccessError(_("Only teachers and administrators can approve submissions."))
         for submission in self:
             if not submission.category_id:
-                raise ValidationError("Set an assessment category on the assignment before evaluation.")
+                raise ValidationError(_("Set an assessment category on the assignment before approval."))
             if submission.score < 0 or submission.score > submission.max_score:
-                raise ValidationError("Submission score must be between 0 and the assignment maximum score.")
+                raise ValidationError(_("Submission score must be between 0 and the assignment maximum score."))
             vals = {
                 "student_id": submission.student_id.id,
                 "section_id": submission.section_id.id,
@@ -257,7 +413,21 @@ class UniversityAssignmentSubmission(models.Model):
                 submission.assessment_result_id.write(vals)
             else:
                 submission.assessment_result_id = self.env["university.assessment.result"].create(vals)
-            submission.state = "evaluated"
+            submission.write({"state": "approved"})
+
+    def action_evaluate(self):
+        return self.action_approve()
+
+    def action_reject(self):
+        is_teacher_or_admin = (
+            self.env.user.has_group("school_management.group_school_teacher")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.is_superuser()
+        )
+        if not is_teacher_or_admin:
+            raise AccessError(_("Only teachers and administrators can reject submissions."))
+        for submission in self:
+            submission.write({"state": "rejected"})
 
     def action_return(self):
-        self.write({"state": "returned"})
+        return self.action_reject()

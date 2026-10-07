@@ -477,7 +477,7 @@ class UniversityExam(models.Model):
         slots = self.env["university.timetable.slot"].search([
             ("start_time", ">=", window_start),
             ("start_time", "<=", window_end),
-            ("state", "in", ["todo", "running"]),
+            ("status", "in", ["upcoming", "ongoing"]),
         ])
 
         for slot in slots:

@@ -22,8 +22,9 @@ class StudentDashboardShell extends Component {
             previewStudents: [],
             selectedPreviewStudentId: null,
             activeTab: "classes", // 'classes' | 'attendance' | 'schedule' | 'transcript' | 'curriculum' | 'financial'
-            scheduleViewMode: "calendar", // 'calendar' | 'list'
+            scheduleViewMode: (localStorage.getItem("student_schedule_view_mode") === "week" || localStorage.getItem("student_schedule_view_mode") === "calendar") ? "week" : "agenda",
             currentWeekOffset: 0,
+            selectedDayDateStr: null,
             enrolledClasses: [],
             scheduleSlots: [],
             attendanceStats: {
@@ -395,53 +396,58 @@ class StudentDashboardShell extends Component {
                     this.state.notices = [];
                 }
 
-                // 4. Load Schedule & Timetable Slots
+                // 4. Load Schedule & Timetable Slots via unified get_schedule API
                 let scheduleSlots = [];
-                if (sectionIds.length) {
-                    try {
-                        const slots = await this.orm.searchRead(
-                            "university.timetable.slot",
-                            [["section_id", "in", sectionIds]],
-                            [
-                                "id",
-                                "name",
-                                "section_id",
-                                "subject_id",
-                                "teacher_id",
-                                "classroom_id",
-                                "timeslot_id",
-                                "start_time",
-                                "end_time",
-                                "location",
-                                "state",
-                            ],
-                            { order: "start_time asc", limit: 60 }
-                        );
-                        scheduleSlots = slots.map((s) => {
-                            const timeInfo = this.parseSlotTimes(s.start_time, s.end_time);
-                            return {
-                                id: s.id,
-                                name: s.name,
-                                section_id: s.section_id?.[0],
-                                section_name: s.section_id?.[1] || "Section",
-                                subject_id: s.subject_id?.[0],
-                                subject_name: s.subject_id?.[1] || "Subject",
-                                teacher_name: s.teacher_id?.[1] || "Instructor",
-                                classroom_name: s.classroom_id?.[1] || s.location || "Room TBA",
-                                start_time: s.start_time,
-                                end_time: s.end_time,
-                                state: s.state || "todo",
-                                date_key: timeInfo.dateStr,
-                                date_formatted: timeInfo.dateFormatted,
-                                time_formatted: timeInfo.timeFormatted,
-                                start_display: timeInfo.startTimeStr,
-                                end_display: timeInfo.endTimeStr,
-                                color_class: this.getSubjectColorClass(s.subject_id?.[0] || 0),
-                            };
-                        });
-                    } catch {
-                        scheduleSlots = [];
-                    }
+                try {
+                    const today = new Date();
+                    const dayOfWeek = today.getDay();
+                    const mondayDist = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                    const monday = new Date(today);
+                    monday.setDate(today.getDate() + mondayDist);
+                    const sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+
+                    const pad = (n) => String(n).padStart(2, "0");
+                    const startStr = `${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`;
+                    const endStr = `${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`;
+
+                    const schedRes = await this.orm.call(
+                        "university.timetable.slot",
+                        "get_schedule",
+                        [startStr, endStr]
+                    );
+
+                    const sessions = schedRes.sessions || [];
+                    scheduleSlots = sessions.map((s) => {
+                        const timeInfo = this.parseSlotTimes(s.start || s.start_time, s.end || s.end_time);
+                        const statusMeta = this.getSlotStatusMeta(s);
+                        return {
+                            id: s.id,
+                            name: s.name,
+                            section_id: s.section_id,
+                            section_name: s.section_code || s.section_name || "Section",
+                            subject_id: s.subject_id,
+                            subject_name: s.subject || s.subject_name || "Subject",
+                            teacher_name: s.teacher || s.teacher_name || "Instructor",
+                            classroom_name: s.room || s.classroom_name || "Room TBA",
+                            start_time: s.start || s.start_time,
+                            end_time: s.end || s.end_time,
+                            state: s.state || "scheduled",
+                            status: s.status || statusMeta.status,
+                            statusLabel: statusMeta.label,
+                            statusClass: statusMeta.cardClass,
+                            statusBadgeClass: statusMeta.badgeClass,
+                            student_attendance: s.student_attendance || "unrecorded",
+                            date_key: s.date_str || timeInfo.dateStr,
+                            date_formatted: timeInfo.dateFormatted,
+                            time_formatted: s.start_time_str && s.end_time_str ? `${s.start_time_str} – ${s.end_time_str}` : (timeInfo.timeCompact || timeInfo.timeFormatted),
+                            start_display: s.start_time_str || timeInfo.startTimeStr,
+                            end_display: s.end_time_str || timeInfo.endTimeStr,
+                            color_class: this.getSubjectColorClass(s.subject_id || 0),
+                        };
+                    });
+                } catch {
+                    scheduleSlots = [];
                 }
                 this.state.scheduleSlots = scheduleSlots;
 
@@ -656,13 +662,13 @@ class StudentDashboardShell extends Component {
         monday.setDate(today.getDate() + distanceToMonday + (this.state.currentWeekOffset * 7));
 
         const days = [];
-        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
         const pad = (n) => n.toString().padStart(2, "0");
         const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) {
             const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
             d.setDate(monday.getDate() + i);
             const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -674,20 +680,190 @@ class StudentDashboardShell extends Component {
             days.push({
                 dayName: dayNames[i],
                 shortName: shortNames[i],
+                dayLetter: shortNames[i].slice(0, 1),
+                dayNum: d.getDate(),
                 dateStr: dateStr,
                 formattedDate: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
                 isToday: dateStr === todayStr,
                 slots: daySlots,
                 hasSlots: daySlots.length > 0,
+                slotCount: daySlots.length,
             });
         }
         return days;
     }
 
+    get calendarHeaderLabel() {
+        const days = this.currentWeekDays;
+        if (!days.length) return "Weekly Schedule";
+        try {
+            const [y, m, d] = days[0].dateStr.split("-").map((v) => parseInt(v, 10));
+            const dateObj = new Date(y, m - 1, d);
+            return dateObj.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        } catch {
+            return "Weekly Schedule";
+        }
+    }
+
+    get displayedDays() {
+        const days = this.currentWeekDays;
+        if (this.state.selectedDayDateStr) {
+            const match = days.filter((d) => d.dateStr === this.state.selectedDayDateStr);
+            if (match.length) {
+                return match;
+            }
+        }
+        return days;
+    }
+
+    selectCalendarDay(dateStr) {
+        if (this.state.selectedDayDateStr === dateStr) {
+            this.state.selectedDayDateStr = null;
+        } else {
+            this.state.selectedDayDateStr = dateStr;
+        }
+    }
+
+    get selectedDayLabel() {
+        if (!this.state.selectedDayDateStr) return "";
+        const match = this.currentWeekDays.find((d) => d.dateStr === this.state.selectedDayDateStr);
+        return match ? `${match.dayName}, ${match.formattedDate}` : "";
+    }
+
     get weekRangeLabel() {
         const days = this.currentWeekDays;
         if (!days.length) return "";
-        return `${days[0].dayName}, ${days[0].formattedDate} — ${days[days.length - 1].dayName}, ${days[days.length - 1].formattedDate}`;
+        return `${days[0].shortName}, ${days[0].formattedDate} – ${days[days.length - 1].shortName}, ${days[days.length - 1].formattedDate}`;
+    }
+
+    get weekClassesSummary() {
+        const count = this.currentWeekTotalSlots;
+        if (count === 0) return "No classes this week";
+        if (count === 1) return "1 class this week";
+        return `${count} classes this week`;
+    }
+
+    get nextClassThisWeek() {
+        const days = this.currentWeekDays;
+        const now = new Date();
+        const allSlots = [];
+        for (const day of days) {
+            for (const slot of day.slots) {
+                allSlots.push(slot);
+            }
+        }
+        if (!allSlots.length) return null;
+
+        const ongoing = allSlots.find((s) => s.status === "ongoing");
+        if (ongoing) {
+            return {
+                ...ongoing,
+                countdown: "In progress",
+            };
+        }
+
+        const upcomingSlots = allSlots.filter((s) => s.status === "upcoming" && s.state !== "cancelled");
+        if (!upcomingSlots.length) return null;
+
+        upcomingSlots.sort((a, b) => (a.start_time > b.start_time ? 1 : -1));
+        const nextSlot = upcomingSlots[0];
+
+        let countdown = "Upcoming";
+        if (nextSlot.start_time) {
+            const startDt = new Date(nextSlot.start_time.replace(" ", "T"));
+            const diffMs = startDt.getTime() - now.getTime();
+            if (diffMs <= 0) {
+                countdown = "In progress";
+            } else {
+                const diffMin = Math.round(diffMs / 60000);
+                const diffHour = Math.floor(diffMin / 60);
+                const diffDay = Math.floor(diffHour / 24);
+                if (diffMin < 60) {
+                    countdown = `Starts in ${Math.max(1, diffMin)} min`;
+                } else if (diffHour < 24) {
+                    countdown = `Starts in ${diffHour} hr${diffHour > 1 ? "s" : ""}`;
+                } else if (diffDay === 1) {
+                    countdown = "Starts in 1 day";
+                } else {
+                    countdown = `Starts in ${diffDay} days`;
+                }
+            }
+        }
+
+        return {
+            ...nextSlot,
+            countdown,
+        };
+    }
+
+    getSlotStatusMeta(slot) {
+        if (slot.state === "cancelled" || slot.status === "cancelled") {
+            return {
+                status: "cancelled",
+                label: "Cancelled",
+                cardClass: "status-cancelled",
+                badgeClass: "badge bg-danger-subtle text-danger very-small",
+            };
+        }
+        const now = new Date();
+        let startTime = null;
+        let endTime = null;
+        if (slot.start_time) {
+            startTime = new Date(slot.start_time.replace(" ", "T"));
+        }
+        if (slot.end_time) {
+            endTime = new Date(slot.end_time.replace(" ", "T"));
+        }
+
+        if (startTime && endTime) {
+            if (now < startTime) {
+                return {
+                    status: "upcoming",
+                    label: "Upcoming",
+                    cardClass: "status-upcoming",
+                    badgeClass: "badge bg-primary-subtle text-primary very-small",
+                };
+            } else if (now >= startTime && now <= endTime) {
+                return {
+                    status: "ongoing",
+                    label: "Ongoing",
+                    cardClass: "status-ongoing",
+                    badgeClass: "badge bg-warning-subtle text-warning very-small",
+                };
+            } else {
+                return {
+                    status: "completed",
+                    label: "Completed",
+                    cardClass: "status-completed",
+                    badgeClass: "badge bg-success-subtle text-success very-small",
+                };
+            }
+        }
+
+        const fallback = slot.status || "upcoming";
+        return {
+            status: fallback,
+            label: fallback.charAt(0).toUpperCase() + fallback.slice(1),
+            cardClass: `status-${fallback}`,
+            badgeClass: "badge bg-secondary-subtle text-secondary very-small",
+        };
+    }
+
+    get currentWeekSlots() {
+        const days = this.displayedDays;
+        const slots = [];
+        for (const day of days) {
+            for (const slot of day.slots) {
+                slots.push({
+                    ...slot,
+                    dayName: day.dayName,
+                    shortName: day.shortName,
+                    formattedDate: day.formattedDate,
+                    isToday: day.isToday,
+                });
+            }
+        }
+        return slots;
     }
 
     get currentWeekTotalSlots() {
@@ -705,13 +881,30 @@ class StudentDashboardShell extends Component {
 
     resetWeekToToday() {
         this.state.currentWeekOffset = 0;
+        this.state.selectedDayDateStr = null;
     }
 
     setScheduleViewMode(mode) {
         this.state.scheduleViewMode = mode;
+        try {
+            localStorage.setItem("student_schedule_view_mode", mode);
+        } catch {}
+    }
+
+    scrollToSchedule() {
+        const el = document.getElementById("student-schedule-sidebar");
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            el.classList.add("o_sidebar_highlight_pulse");
+            setTimeout(() => el.classList.remove("o_sidebar_highlight_pulse"), 1200);
+        }
     }
 
     setActiveTab(tab) {
+        if (tab === "schedule") {
+            this.scrollToSchedule();
+            return;
+        }
         this.state.activeTab = tab;
     }
 
@@ -762,7 +955,7 @@ class StudentDashboardShell extends Component {
                 }
             }
         } catch {}
-        this.action.doAction("school_management.action_university_timetable_slot_student", {
+        this.action.doAction("school_management.action_university_schedule_view", {
             additionalContext: {
                 default_mode: "week",
                 calendar_mode: "week",
@@ -936,10 +1129,18 @@ class StudentDashboardShell extends Component {
             dateFormatted = datePart;
         }
 
+        const startCompact = `${startH}:${startM.toString().padStart(2, "0")}`;
+        let endCompact = "";
+        if (endStr) {
+            const [, endTimePart = "00:00:00"] = endStr.split(" ");
+            const [hE = "0", mE = "0"] = endTimePart.split(":");
+            endCompact = `${parseInt(hE, 10)}:${parseInt(mE, 10).toString().padStart(2, "0")}`;
+        }
         return {
             dateStr: datePart,
             dateFormatted,
-            timeFormatted: endTimeStr ? `${startTimeStr} – ${endTimeStr}` : startTimeStr,
+            timeFormatted: endCompact ? `${startCompact}–${endCompact}` : startCompact,
+            timeCompact: endCompact ? `${startCompact}–${endCompact}` : startCompact,
             startTimeStr,
             endTimeStr,
         };

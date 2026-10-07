@@ -1,4 +1,4 @@
-// Extensions and refinements for Staff Attendance matching Student Attendance page
+// Extensions and refinements for Staff Attendance matching Student Attendance page & Monthly Matrix Dashboard
 
 .o_att_sheet {
     .o_att_listhead--staff, .o_att_row--staff {
@@ -29,7 +29,7 @@
         color: #0d9488;
     }
 
-    // ── Time Input Cells ──────────────────────────────────────────────────
+    // ── Time Input Cells ───────────────────────────────────────────────
     .o_att_timecell {
         display: flex;
         align-items: center;
@@ -41,17 +41,17 @@
         align-items: center;
         gap: 4px;
         padding: 3px 6px;
-        border: 1px solid var(--att-border);
+        border: 1px solid var(--att-border, #cbd5e1);
         border-radius: 4px;
         background: #fff;
         transition: border-color 0.15s ease-in-out;
 
         &:focus-within {
-            border-color: var(--att-primary);
+            border-color: var(--att-primary, #6366f1);
         }
 
         &--disabled {
-            background: var(--att-sunken);
+            background: var(--att-sunken, #f8fafc);
             opacity: 0.6;
         }
     }
@@ -66,12 +66,12 @@
         border: 0;
         background: transparent;
         font-size: 12px;
-        color: var(--att-text);
+        color: var(--att-text, #1e293b);
         outline: none;
         font-variant-numeric: tabular-nums;
     }
 
-    // ── Worked Hours Badge ────────────────────────────────────────────────
+    // ── Worked Hours Badge ─────────────────────────────────────────────
     .o_att_hourscell {
         display: flex;
         align-items: center;
@@ -82,21 +82,21 @@
         display: inline-block;
         padding: 3px 8px;
         border-radius: 999px;
-        background: var(--att-sunken);
-        color: var(--att-muted);
+        background: var(--att-sunken, #f8fafc);
+        color: var(--att-muted, #64748b);
         font-size: 11px;
         font-weight: 500;
         font-variant-numeric: tabular-nums;
         text-align: center;
 
         &--filled {
-            background: var(--att-primary-soft);
-            color: var(--att-primary);
+            background: var(--att-primary-soft, #ede9fe);
+            color: var(--att-primary, #6366f1);
             font-weight: 600;
         }
     }
 
-    // ── Timeline Schedule View (Matching Image 1) ───────────────────────
+    // ── Timeline Schedule View ─────────────────────────────────────────
     .o_att_tl_wrapper {
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -210,5 +210,246 @@
             font-size: 11px;
         }
     }
+
+    // ═════════════════════════════════════════════════════════════════════
+    // MONTHLY MATRIX DASHBOARD (Matching User Screenshot)
+    // ═════════════════════════════════════════════════════════════════════
+    .o_att_matrix_container {
+        max-width: 100%;
+        margin: 0 auto;
+
+        .card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .o_att_matrix_greeting {
+            font-size: 1.25rem;
+            letter-spacing: -0.2px;
+            color: #0f172a;
+        }
+
+        .o_att_matrix_time {
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .o_att_matrix_print_btn {
+            border-color: #cbd5e1;
+            color: #334155;
+            background: #fff;
+            transition: all 0.15s ease;
+
+            &:hover {
+                background: #f1f5f9;
+                border-color: #94a3b8;
+                color: #0f172a;
+            }
+        }
+
+        .o_att_filter_group {
+            min-width: 130px;
+        }
+
+        .o_att_matrix_select {
+            border-color: #cbd5e1;
+            background-color: #ffffff;
+            color: #1e293b;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+
+            &:focus {
+                border-color: #6366f1;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+            }
+        }
+
+        // Legend Badges Matching Screenshot
+        .o_att_legend_pill {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.38rem 0.85rem;
+            border-radius: 4px;
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.2;
+        }
+
+        .o_att_legend--absent {
+            background-color: #ef4444 !important;
+            color: #ffffff !important;
+        }
+
+        .o_att_legend--leave {
+            background-color: #f59e0b !important;
+            color: #ffffff !important;
+        }
+
+        .o_att_legend--weekend {
+            background-color: #64748b !important;
+            color: #ffffff !important;
+        }
+
+        // Table & Sticky Column
+        .o_att_matrix_table_wrap {
+            max-height: 72vh;
+            overflow: auto;
+        }
+
+        .o_att_matrix_table {
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 980px;
+
+            // Sticky Employee Column
+            .o_matrix_col_emp {
+                position: sticky;
+                left: 0;
+                z-index: 4;
+                width: 240px;
+                min-width: 220px;
+                max-width: 260px;
+                border-right: 2px solid #cbd5e1 !important;
+                box-shadow: 2px 0 6px rgba(0, 0, 0, 0.04);
+            }
+
+            thead {
+                position: sticky;
+                top: 0;
+                z-index: 5;
+
+                .o_matrix_col_emp {
+                    z-index: 6;
+                }
+
+                .o_matrix_head_row_days th {
+                    background-color: #f8fafc;
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #475569;
+                    letter-spacing: 0.3px;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .o_matrix_head_row_nums th {
+                    background-color: #f8fafc;
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #0f172a;
+                    border-bottom: 2px solid #cbd5e1;
+                }
+
+                .is_weekend {
+                    background-color: #f1f5f9 !important;
+                    color: #64748b !important;
+                }
+
+                .is_today {
+                    background-color: #e0e7ff !important;
+                    color: #3730a3 !important;
+                    border-left: 1px solid #818cf8 !important;
+                    border-right: 1px solid #818cf8 !important;
+                }
+            }
+
+            tbody {
+                .o_matrix_data_row {
+                    &:hover {
+                        .o_matrix_col_emp {
+                            background-color: #f8fafc !important;
+                        }
+                    }
+                }
+
+                .o_matrix_cell {
+                    height: 44px;
+                    min-width: 36px;
+                    max-width: 44px;
+                    cursor: pointer;
+                    user-select: none;
+                    transition: background-color 0.12s ease;
+                    border-color: #e2e8f0 !important;
+
+                    &:hover:not(.is_weekend) {
+                        background-color: #f8fafc;
+                    }
+
+                    &.is_weekend {
+                        background-color: #f8fafc !important;
+                        cursor: default;
+                    }
+
+                    &.is_today {
+                        background-color: #eef2ff !important;
+                        border-left: 1px solid #c7d2fe !important;
+                        border-right: 1px solid #c7d2fe !important;
+                    }
+                }
+            }
+        }
+
+        // Cell Elements
+        .o_matrix_badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
+            &--absent {
+                background-color: #ef4444;
+            }
+
+            &--leave {
+                background-color: #f59e0b;
+            }
+        }
+
+        .o_matrix_text_weekend {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .o_matrix_hours_text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            font-variant-numeric: tabular-nums;
+        }
+    }
 }
 
+// Print styles
+@media print {
+    .o_att_breadcrumb,
+    .o_att_matrix_print_btn,
+    .o_att_filter_group,
+    .o_att_actionbar,
+    .o_att_chatter,
+    .btn-group {
+        display: none !important;
+    }
+
+    .o_att_matrix_container {
+        padding: 0 !important;
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .o_att_matrix_table_wrap {
+            max-height: none !important;
+            overflow: visible !important;
+        }
+    }
+}

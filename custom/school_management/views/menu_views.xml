@@ -11,76 +11,101 @@
         groups="base.group_system,school_management.group_school_user"
     />
 
-    <!-- ==================== DASHBOARD ==================== -->
+    <!-- ==================== TOP-LEVEL: DASHBOARDS ==================== -->
+    <!--
+        Dashboard is the single role-aware home for the University app.
+        For Students -> opens Student Dashboard.
+        For Teachers -> opens Teacher Dashboard.
+        For Admins   -> opens Academic Overview Dashboard.
+    -->
     <menuitem
         id="menu_school_dashboard"
         name="Dashboard"
         parent="menu_school_root"
         action="action_school_dashboard_shell"
-        sequence="1"
+        sequence="10"
         groups="base.group_system,school_management.group_school_student,school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin"
     />
 
-    <!--
-        Dashboard is the single home for the University app.  Its role-aware
-        client action opens the student experience for student-only users, so
-        a separate "Student Portal" item would only duplicate that destination.
-    -->
+    <!-- Deactivated legacy duplicate: Student Portal -->
     <record id="menu_student_dashboard" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
 
-    <menuitem
-        id="menu_school_teacher_dashboard"
-        name="Teacher Dashboard"
-        parent="menu_school_root"
-        action="action_teacher_dashboard_shell"
-        sequence="2"
-        groups="school_management.group_teacher_dashboard,school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
-    />
+    <!-- Teacher Dashboard for Admins / Academic Managers to inspect faculty view -->
+    <record id="menu_school_teacher_dashboard" model="ir.ui.menu">
+        <field name="name">Teacher Dashboard</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="action" ref="action_teacher_dashboard_shell"/>
+        <field name="sequence">15</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_admin'), ref('base.group_system')])]"/>
+    </record>
 
-    <!-- ==================== STUDENT QUICK ACCESS NAVIGATION ==================== -->
+    <!-- ==================== STUDENT TOP BAR (MATCHING TEACHER) ==================== -->
+    <!-- 1. Schedule (Direct Action for Student) -->
+    <record id="menu_student_nav_schedule" model="ir.ui.menu">
+        <field name="name">Schedule</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="action" ref="action_university_schedule_view"/>
+        <field name="sequence">20</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
+    </record>
+
+    <!-- 2. My Learning Dropdown -->
+    <menuitem
+        id="menu_student_my_learning"
+        name="My Learning"
+        parent="menu_school_root"
+        sequence="30"
+        groups="school_management.group_school_student"
+    />
     <menuitem
         id="menu_student_nav_classes"
         name="My Classes"
-        parent="menu_school_root"
+        parent="menu_student_my_learning"
         action="action_university_class_section_student"
-        sequence="3"
+        sequence="10"
         groups="school_management.group_school_student"
     />
-
+    <menuitem
+        id="menu_student_nav_assignments"
+        name="My Assignments"
+        parent="menu_student_my_learning"
+        action="action_university_assignment_my"
+        sequence="20"
+        groups="school_management.group_school_student"
+    />
+    <menuitem
+        id="menu_student_nav_submissions"
+        name="My Submissions"
+        parent="menu_student_my_learning"
+        action="action_university_assignment_submission_student"
+        sequence="30"
+        groups="school_management.group_school_student"
+    />
     <menuitem
         id="menu_student_nav_attendance"
         name="Attendance"
-        parent="menu_school_root"
+        parent="menu_student_my_learning"
         action="action_university_attendance_student"
-        sequence="4"
+        sequence="40"
         groups="school_management.group_school_student"
     />
-
-    <menuitem
-        id="menu_student_nav_schedule"
-        name="Schedule"
-        parent="menu_school_root"
-        action="action_university_timetable_slot_student"
-        sequence="5"
-        groups="school_management.group_school_student"
-    />
-
     <menuitem
         id="menu_student_nav_classrooms"
         name="Classrooms"
-        parent="menu_school_root"
+        parent="menu_student_my_learning"
         action="action_university_classroom"
-        sequence="6"
+        sequence="50"
         groups="school_management.group_school_student"
     />
 
+    <!-- 3. My Records Dropdown -->
     <menuitem
         id="menu_student_nav_transcripts"
-        name="Transcripts"
+        name="My Records"
         parent="menu_school_root"
-        sequence="7"
+        sequence="40"
         groups="school_management.group_school_student"
     />
     <menuitem
@@ -88,7 +113,7 @@
         name="My Transcript"
         parent="menu_student_nav_transcripts"
         action="action_university_transcript_student"
-        sequence="1"
+        sequence="10"
         groups="school_management.group_school_student"
     />
     <menuitem
@@ -96,7 +121,7 @@
         name="Report Cards"
         parent="menu_student_nav_transcripts"
         action="action_university_report_card_student"
-        sequence="2"
+        sequence="20"
         groups="school_management.group_school_student"
     />
     <menuitem
@@ -104,218 +129,252 @@
         name="Transcript Requests"
         parent="menu_student_nav_transcripts"
         action="action_university_transcript_request_student"
-        sequence="3"
+        sequence="30"
         groups="school_management.group_school_student"
     />
 
+    <!-- 4. My Fees -->
     <menuitem
         id="menu_student_nav_fees"
         name="My Fees"
         parent="menu_school_root"
         action="action_university_fee_student"
-        sequence="8"
+        sequence="50"
         groups="school_management.group_school_student"
     />
 
-    <menuitem
-        id="menu_student_nav_notice_board"
-        name="Notice Board"
-        parent="menu_school_root"
-        action="action_university_notice_board"
-        sequence="9"
-        groups="school_management.group_school_student"
-    />
-
+    <!-- 5. My Profile (Student) -->
     <menuitem
         id="menu_student_nav_profile"
         name="My Profile"
         parent="menu_school_root"
         action="action_university_student_profile"
-        sequence="10"
+        sequence="60"
         groups="school_management.group_school_student"
     />
 
-    <!-- ==================== 1. ACADEMIC STRUCTURE ==================== -->
+    <!-- ==================== TEACHER / STAFF: 1. SCHEDULE DROPDOWN ==================== -->
     <menuitem
-        id="menu_university_structure"
-        name="Academic Structure"
+        id="menu_university_schedule_category"
+        name="Schedule"
         parent="menu_school_root"
         sequence="20"
-        groups="school_management.group_school_hod"
+        groups="school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_faculty"
-        name="Faculties"
-        parent="menu_university_structure"
-        action="action_university_faculty"
+        id="menu_university_timetable_teacher"
+        name="My Timetable"
+        parent="menu_university_schedule_category"
+        action="action_university_schedule_view"
         sequence="10"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_department"
-        name="Departments"
-        parent="menu_university_structure"
-        action="action_university_department"
+        id="menu_university_timetable"
+        name="Timetable"
+        parent="menu_university_schedule_category"
+        action="action_university_timetable_slot"
         sequence="20"
-        groups="school_management.group_school_hod"
-    />
-    <menuitem
-        id="menu_university_program"
-        name="Programs"
-        parent="menu_university_structure"
-        action="action_university_program"
-        sequence="30"
-        groups="school_management.group_school_dean"
-    />
-    <menuitem
-        id="menu_university_academic_year"
-        name="Academic Years"
-        parent="menu_university_structure"
-        action="action_university_academic_year"
-        sequence="40"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_semester"
-        name="Semesters"
-        parent="menu_university_structure"
-        action="action_university_semester"
-        sequence="50"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_department_term"
-        name="Department Terms"
-        parent="menu_university_structure"
-        action="action_university_department_term"
-        sequence="55"
-        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_department_term_ending_soon"
-        name="Ending Soon"
-        parent="menu_university_structure"
-        action="action_university_department_term_ending_soon"
-        sequence="56"
-        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_holiday"
-        name="Holidays"
-        parent="menu_university_structure"
-        action="action_university_holiday"
-        sequence="57"
-        groups="school_management.group_school_dean,school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_semester_subject"
-        name="Semester Subjects"
-        parent="menu_university_structure"
-        action="action_university_semester_subject"
-        sequence="60"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_classroom"
-        name="Classrooms"
-        parent="menu_university_structure"
-        action="action_university_classroom"
-        sequence="70"
-        groups="school_management.group_school_hod,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_timeslot"
-        name="Timeslots"
-        parent="menu_university_structure"
-        action="action_university_timeslot"
-        sequence="80"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_timetable_generate"
         name="Generate Timetable"
-        parent="menu_university_structure"
+        parent="menu_university_schedule_category"
         action="action_university_timetable_generation_wizard"
-        sequence="85"
-        groups="school_management.group_school_admin"
+        sequence="30"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_grade_scale"
-        name="Grade Scales"
-        parent="menu_university_structure"
-        action="action_university_grade_scale"
-        sequence="90"
-        groups="school_management.group_school_admin"
+        id="menu_university_timeslot"
+        name="Timeslots"
+        parent="menu_university_schedule_category"
+        action="action_university_timeslot"
+        sequence="40"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_assessment_category"
-        name="Assessment Categories"
-        parent="menu_university_structure"
-        action="action_university_assessment_category"
-        sequence="95"
-        groups="school_management.group_school_admin"
+        id="menu_university_holiday"
+        name="Holidays"
+        parent="menu_university_schedule_category"
+        action="action_university_holiday"
+        sequence="50"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_report_card"
-        name="Report Cards"
-        parent="menu_university_structure"
-        action="action_university_report_card"
-        sequence="100"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_transcript"
-        name="Transcripts"
-        parent="menu_university_structure"
-        action="action_university_transcript"
-        sequence="105"
-        groups="school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_transcript_request"
-        name="Transcript Requests"
-        parent="menu_university_structure"
-        action="action_university_transcript_request"
-        sequence="106"
-        groups="school_management.group_school_registrar"
+        id="menu_university_classroom"
+        name="Classrooms"
+        parent="menu_university_schedule_category"
+        action="action_university_classroom"
+        sequence="60"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
 
+    <!-- ==================== TEACHER / STAFF: 2. TEACHING & LEARNING ==================== -->
+    <menuitem
+        id="menu_university_academic_category"
+        name="Teaching &amp; Learning"
+        parent="menu_school_root"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Section Header: Classes -->
+    <menuitem
+        id="menu_university_sec_classes"
+        name="Classes"
+        parent="menu_university_academic_category"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_class_section"
+        name="Class List"
+        parent="menu_university_sec_classes"
+        action="action_university_class_section"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_subject"
+        name="Subjects"
+        parent="menu_university_sec_classes"
+        action="action_university_subject"
+        sequence="20"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_lesson_plan"
+        name="Lesson Plans"
+        parent="menu_university_sec_classes"
+        action="action_university_lesson_plan"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_service_hours"
+        name="Service Hours"
+        parent="menu_university_sec_classes"
+        action="action_university_service_hour"
+        sequence="40"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Section Header: Attendance -->
+    <menuitem
+        id="menu_university_sec_attendance"
+        name="Attendance"
+        parent="menu_university_academic_category"
+        sequence="20"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_take_attendance"
+        name="Take Attendance"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_sheet"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Section Header: Coursework -->
+    <menuitem
+        id="menu_university_sec_coursework"
+        name="Coursework"
+        parent="menu_university_academic_category"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_grade_assignment"
+        name="Class Assignments"
+        parent="menu_university_sec_coursework"
+        action="action_university_grade_assignment"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_student_assignment"
+        name="Individual Assignments"
+        parent="menu_university_sec_coursework"
+        action="action_university_student_assignment"
+        sequence="20"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_assignment_submission"
+        name="Submissions"
+        parent="menu_university_sec_coursework"
+        action="action_university_assignment_submission"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Section Header: Exams & Grading -->
+    <menuitem
+        id="menu_university_sec_exams"
+        name="Exams &amp; Grading"
+        parent="menu_university_academic_category"
+        sequence="40"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_exam"
+        name="Exams &amp; Quizzes"
+        parent="menu_university_sec_exams"
+        action="action_university_exam"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_exam_score"
+        name="Exam Scores"
+        parent="menu_university_sec_exams"
+        action="action_university_exam_score"
+        sequence="20"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_assessment_result"
+        name="Assessment Results"
+        parent="menu_university_sec_exams"
+        action="action_university_assessment_result"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- ==================== TEACHER / STAFF: 3. PEOPLE ==================== -->
     <menuitem
         id="menu_university_people"
         name="People"
         parent="menu_school_root"
-        sequence="20"
-        groups="school_management.group_school_teacher"
+        sequence="40"
+        groups="school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
-
-    <!-- ==================== 2. PEOPLE ==================== -->
-    <!-- Direct Students Menu (removes redundant single-item group header) -->
     <menuitem
         id="menu_school_student_category"
         name="Students"
         parent="menu_university_people"
         action="action_university_student"
         sequence="10"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
-
-    <!-- Direct Academic Staff Menu -->
     <menuitem
         id="menu_school_teacher_all"
         name="Academic Staff"
         parent="menu_university_people"
         action="action_university_teacher"
         sequence="20"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Student Advising Submenu -->
+    <!-- Submenu: Student Advising -->
     <menuitem
         id="menu_university_advising_category"
         name="Student Advising"
         parent="menu_university_people"
-        sequence="25"
-        groups="school_management.group_school_teacher"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_advising_notes"
@@ -323,7 +382,7 @@
         parent="menu_university_advising_category"
         action="action_university_student_advising_note"
         sequence="10"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_student_followups"
@@ -331,16 +390,16 @@
         parent="menu_university_advising_category"
         action="action_university_student_followup"
         sequence="20"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Leadership Submenu -->
+    <!-- Submenu: Leadership -->
     <menuitem
         id="menu_university_leadership_category"
         name="Leadership"
         parent="menu_university_people"
-        sequence="30"
-        groups="school_management.group_school_hod"
+        sequence="40"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_hod"
@@ -348,7 +407,7 @@
         parent="menu_university_leadership_category"
         action="action_university_hod"
         sequence="10"
-        groups="school_management.group_school_hod"
+        groups="school_management.group_school_hod,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_dean"
@@ -356,7 +415,7 @@
         parent="menu_university_leadership_category"
         action="action_university_dean"
         sequence="20"
-        groups="school_management.group_school_dean"
+        groups="school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_academic_assignment"
@@ -364,24 +423,24 @@
         parent="menu_university_leadership_category"
         action="action_university_academic_assignment"
         sequence="30"
-        groups="school_management.group_school_hod"
+        groups="school_management.group_school_hod,school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Attendance Submenu -->
+    <!-- Submenu: Staff Attendance (Admin Only) -->
     <menuitem
         id="menu_university_staff_attendance_category"
-        name="Attendance"
+        name="Staff Attendance"
         parent="menu_university_people"
-        sequence="40"
-        groups="school_management.group_school_admin"
+        sequence="50"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_staff_attendance_sheet"
-        name="Staff Attendance"
+        name="Attendance Dashboard"
         parent="menu_university_staff_attendance_category"
         action="action_university_staff_attendance_sheet"
         sequence="10"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_staff_attendance"
@@ -389,139 +448,200 @@
         parent="menu_university_staff_attendance_category"
         action="action_university_staff_attendance"
         sequence="20"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_admin,base.group_system"
     />
 
-    <!-- ==================== 4. TEACHING &amp; LEARNING ==================== -->
-    <menuitem
-        id="menu_university_academic_category"
-        name="Teaching &amp; Learning"
-        parent="menu_school_root"
-        sequence="40"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_take_attendance"
-        name="Student Attendance Management"
-        parent="menu_university_academic_category"
-        action="action_university_attendance_sheet"
-        sequence="5"
-        groups="school_management.group_school_teacher"
-    />
+    <!-- ==================== TEACHER / STAFF: 4. MY PROFILE ==================== -->
+    <record id="menu_teacher_nav_profile" model="ir.ui.menu">
+        <field name="name">My Profile</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="action" ref="action_university_teacher_profile"/>
+        <field name="sequence">60</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher')])]"/>
+    </record>
 
-    <menuitem
-        id="menu_university_service_hours"
-        name="Service Hours"
-        parent="menu_university_academic_category"
-        action="action_university_service_hour"
-        sequence="75"
-        groups="school_management.group_school_teacher"
-    />
+    <!-- ==================== LEADERSHIP / ADMIN: ACADEMIC SETUP ==================== -->
+    <record id="menu_university_structure" model="ir.ui.menu">
+        <field name="name">Academic Setup</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="sequence">60</field>
+        <field name="group_ids" eval="[(6, 0, [
+            ref('school_management.group_school_hod'),
+            ref('school_management.group_school_dean'),
+            ref('school_management.group_school_registrar'),
+            ref('school_management.group_school_admin'),
+            ref('base.group_system')
+        ])]"/>
+    </record>
 
+    <!-- Section Header: Structure -->
     <menuitem
-        id="menu_university_subject"
-        name="Subjects"
-        parent="menu_university_academic_category"
-        action="action_university_subject"
+        id="menu_university_sec_structure"
+        name="Structure"
+        parent="menu_university_structure"
         sequence="10"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_class_section"
-        name="Class Sections"
-        parent="menu_university_academic_category"
-        action="action_university_class_section"
+        id="menu_university_faculty"
+        name="Faculties"
+        parent="menu_university_sec_structure"
+        action="action_university_faculty"
+        sequence="10"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_department"
+        name="Departments"
+        parent="menu_university_sec_structure"
+        action="action_university_department"
         sequence="20"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_teaching_classroom"
-        name="Classrooms"
-        parent="menu_university_academic_category"
-        action="action_university_classroom"
-        sequence="25"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_timetable"
-        name="Timetable"
-        parent="menu_university_academic_category"
-        action="action_university_timetable_slot"
+        id="menu_university_program"
+        name="Programs"
+        parent="menu_university_sec_structure"
+        action="action_university_program"
         sequence="30"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Section Header: Calendar -->
+    <menuitem
+        id="menu_university_sec_calendar"
+        name="Calendar"
+        parent="menu_university_structure"
+        sequence="20"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_lesson_plan"
-        name="Lesson Plans"
-        parent="menu_university_academic_category"
-        action="action_university_lesson_plan"
+        id="menu_university_academic_year"
+        name="Academic Years"
+        parent="menu_university_sec_calendar"
+        action="action_university_academic_year"
+        sequence="10"
+        groups="school_management.group_school_admin,school_management.group_academic_year_manager,base.group_system"
+    />
+    <menuitem
+        id="menu_university_semester"
+        name="Semesters"
+        parent="menu_university_sec_calendar"
+        action="action_university_semester"
+        sequence="20"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_department_term"
+        name="Department Terms"
+        parent="menu_university_sec_calendar"
+        action="action_university_department_term"
+        sequence="30"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_department_term_ending_soon"
+        name="Terms Ending Soon"
+        parent="menu_university_sec_calendar"
+        action="action_university_department_term_ending_soon"
         sequence="40"
-        groups="school_management.group_school_teacher"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
 
+    <!-- Section Header: Curriculum -->
     <menuitem
-        id="menu_university_exam"
-        name="Exams &amp; Quizzes"
-        parent="menu_university_academic_category"
-        action="action_university_exam"
-        sequence="45"
-        groups="school_management.group_school_teacher"
+        id="menu_university_sec_curriculum"
+        name="Curriculum"
+        parent="menu_university_structure"
+        sequence="30"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_exam_score"
-        name="Exam Scores"
-        parent="menu_university_academic_category"
-        action="action_university_exam_score"
-        sequence="46"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_grade_assignment"
-        name="Grade Assignments"
-        parent="menu_university_academic_category"
-        action="action_university_grade_assignment"
-        sequence="50"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_student_assignment"
-        name="Student Assignments"
-        parent="menu_university_academic_category"
-        action="action_university_student_assignment"
-        sequence="55"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_assignment_submission"
-        name="Submissions"
-        parent="menu_university_academic_category"
-        action="action_university_assignment_submission"
-        sequence="60"
-        groups="school_management.group_school_teacher"
-    />
-    <menuitem
-        id="menu_university_assessment_result"
-        name="Assessment Results"
-        parent="menu_university_academic_category"
-        action="action_university_assessment_result"
-        sequence="70"
-        groups="school_management.group_school_teacher"
+        id="menu_university_semester_subject"
+        name="Semester Subjects"
+        parent="menu_university_sec_curriculum"
+        action="action_university_semester_subject"
+        sequence="10"
+        groups="school_management.group_school_admin,base.group_system"
     />
 
-    <!-- ==================== 5. ADMISSIONS &amp; ENROLLMENT ==================== -->
+    <!-- Section Header: Grading Setup -->
+    <menuitem
+        id="menu_university_sec_grading"
+        name="Grading"
+        parent="menu_university_structure"
+        sequence="40"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_grade_scale"
+        name="Grade Scales"
+        parent="menu_university_sec_grading"
+        action="action_university_grade_scale"
+        sequence="10"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_assessment_category"
+        name="Assessment Categories"
+        parent="menu_university_sec_grading"
+        action="action_university_assessment_category"
+        sequence="20"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- ==================== LEADERSHIP / REGISTRAR / ADMIN: RESULTS ==================== -->
+    <record id="menu_university_results" model="ir.ui.menu">
+        <field name="name">Results</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="sequence">70</field>
+        <field name="group_ids" eval="[(6, 0, [
+            ref('school_management.group_school_hod'),
+            ref('school_management.group_school_dean'),
+            ref('school_management.group_school_registrar'),
+            ref('school_management.group_school_admin'),
+            ref('base.group_system')
+        ])]"/>
+    </record>
+    <menuitem
+        id="menu_university_report_card"
+        name="Report Cards"
+        parent="menu_university_results"
+        action="action_university_report_card"
+        sequence="10"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_transcript"
+        name="Transcripts"
+        parent="menu_university_results"
+        action="action_university_transcript"
+        sequence="20"
+        groups="school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_transcript_request"
+        name="Transcript Requests"
+        parent="menu_university_results"
+        action="action_university_transcript_request"
+        sequence="30"
+        groups="school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- ==================== REGISTRAR / ADMIN: ADMISSIONS & ENROLLMENT ==================== -->
     <menuitem
         id="menu_university_enrollment_category"
         name="Admissions &amp; Enrollment"
         parent="menu_school_root"
-        sequence="50"
-        groups="school_management.group_school_hod,school_management.group_school_registrar"
+        sequence="80"
+        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_bulk_major_enrollment"
-        name="Bulk Enrollment"
+        id="menu_admission_lead"
+        name="Admission Pipeline"
         parent="menu_university_enrollment_category"
-        action="action_university_bulk_enrollment_wizard"
-        sequence="5"
+        action="admission_lead_action"
+        sequence="10"
         groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
     />
     <menuitem
@@ -529,96 +649,89 @@
         name="Admission Applications"
         parent="menu_university_enrollment_category"
         action="action_university_admission_application"
-        sequence="7"
+        sequence="20"
         groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
-    />
-    <menuitem
-        id="menu_university_populate_class"
-        name="Populate Class"
-        parent="menu_university_enrollment_category"
-        action="action_university_populate_class_wizard"
-        sequence="8"
-        groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_enrollment"
         name="Enrollment"
         parent="menu_university_enrollment_category"
         action="action_university_enrollment"
-        sequence="10"
-        groups="school_management.group_school_hod,school_management.group_school_registrar"
+        sequence="30"
+        groups="school_management.group_school_hod,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
-
-    <!-- ==================== 6. FINANCE ==================== -->
     <menuitem
-        id="menu_university_administration"
-        name="Administration"
-        parent="menu_school_root"
-        sequence="85"
+        id="menu_university_bulk_major_enrollment"
+        name="Bulk Enrollment"
+        parent="menu_university_enrollment_category"
+        action="action_university_bulk_enrollment_wizard"
+        sequence="40"
         groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar"
     />
+    <menuitem
+        id="menu_university_populate_class"
+        name="Add Students to Class"
+        parent="menu_university_enrollment_category"
+        action="action_university_populate_class_wizard"
+        sequence="50"
+        groups="base.group_system,school_management.group_school_admin"
+    />
+
+    <!-- ==================== ADMIN: FINANCE ==================== -->
     <menuitem
         id="menu_university_finance_category"
         name="Finance"
         parent="menu_school_root"
-        sequence="60"
+        sequence="85"
         groups="base.group_system,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_fee"
-        name="Fee Invoices"
-        parent="menu_university_finance_category"
-        action="action_university_fee"
-        sequence="10"
-        groups="school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_fee_structure"
         name="Fee Structures"
         parent="menu_university_finance_category"
         action="action_university_fee_structure"
-        sequence="5"
-        groups="school_management.group_school_admin"
+        sequence="10"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_fee"
+        name="Fee Invoices"
+        parent="menu_university_finance_category"
+        action="action_university_fee"
+        sequence="20"
+        groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_payment"
         name="Payments"
         parent="menu_university_finance_category"
         action="action_university_payment"
-        sequence="20"
-        groups="school_management.group_school_admin"
+        sequence="30"
+        groups="school_management.group_school_admin,base.group_system"
     />
+
+    <!-- ==================== ADMIN: ADMINISTRATION ==================== -->
     <menuitem
-        id="menu_university_notice_board"
-        name="Notice Board"
-        parent="menu_university_administration"
-        action="action_university_notice_board"
-        sequence="25"
-        groups="base.group_system,school_management.group_school_admin,school_management.group_school_teacher"
+        id="menu_university_administration"
+        name="Administration"
+        parent="menu_school_root"
+        sequence="90"
+        groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_document_signature"
         name="Document Signatures"
         parent="menu_university_administration"
         action="action_university_document_signature"
-        sequence="30"
+        sequence="10"
         groups="base.group_system,school_management.group_school_admin"
     />
-
-    <!-- ==================== 7. ADMINISTRATION ==================== -->
+    <!-- Submenu: System -->
     <menuitem
         id="menu_university_system"
         name="System"
         parent="menu_university_administration"
-        sequence="10"
-        groups="base.group_system,school_management.group_school_admin"
-    />
-    <menuitem
-        id="menu_university_role_management"
-        name="Role Management"
-        parent="menu_university_administration"
-        action="base.action_res_users"
-        sequence="15"
+        sequence="20"
         groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
@@ -629,14 +742,47 @@
         sequence="10"
         groups="base.group_system,school_management.group_school_admin"
     />
-
-    <!-- ==================== SETTINGS ==================== -->
+    <menuitem
+        id="menu_university_role_management"
+        name="Role Management"
+        parent="menu_university_administration"
+        action="base.action_res_users"
+        sequence="30"
+        groups="base.group_system,school_management.group_school_admin"
+    />
     <menuitem
         id="menu_university_settings"
         name="Settings"
         parent="menu_university_administration"
         action="school_management.action_university_settings"
-        sequence="90"
+        sequence="40"
         groups="base.group_system"
     />
+
+    <!-- ==================== TOP-LEVEL: NOTICE BOARD (ALL ROLES) ==================== -->
+    <menuitem
+        id="menu_university_notice_board"
+        name="Notice Board"
+        parent="menu_school_root"
+        action="action_university_notice_board"
+        sequence="100"
+        groups="base.group_system,school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_teacher,school_management.group_school_student"
+    />
+
+    <!-- ==================== DEACTIVATED DUPLICATES (RULE 1) ==================== -->
+    <!-- Deactivated duplicate Notice Board (merged into menu_university_notice_board) -->
+    <record id="menu_student_nav_notice_board" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Deactivated duplicate Class List (merged into menu_university_class_section) -->
+    <record id="menu_university_class_section_admin" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Deactivated duplicate Classrooms (merged into menu_university_classroom) -->
+    <record id="menu_university_teaching_classroom" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
 </odoo>

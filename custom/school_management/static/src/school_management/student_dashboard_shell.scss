@@ -300,5 +300,495 @@
             margin-bottom: 0;
         }
     }
-}
 
+    // ==========================================
+    // Two-Column Grid Dashboard Layout & Sidebar
+    // ==========================================
+    .o_student_dashboard_grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 1.5rem;
+        align-items: start;
+
+        @media (max-width: 1199.98px) {
+            grid-template-columns: minmax(0, 1fr) 290px;
+            gap: 1rem;
+        }
+
+        @media (max-width: 767.98px) {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+
+            .o_student_dashboard_main_content {
+                grid-column: 1;
+                order: 1;
+            }
+
+            .o_student_schedule_sidebar {
+                grid-column: 1;
+                order: 2;
+                position: static;
+                max-height: none;
+            }
+        }
+    }
+
+    .o_student_dashboard_main_content {
+        grid-column: 1;
+        min-width: 0;
+
+        .o_student_dashboard_header {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+    }
+
+    // Right Column Sidebar (340px)
+    .o_student_schedule_sidebar {
+        grid-column: 2;
+        position: sticky;
+        top: 1rem;
+        min-height: 580px;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+        &::-webkit-scrollbar {
+            width: 5px;
+        }
+        &::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        &::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        &::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .o_cal_widget_header {
+            background: #ffffff;
+        }
+
+        .o_cal_icon_wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+
+        // Mini Calendar Week Strip
+        .o_cal_mini_strip {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            background: #f8fafc;
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .o_cal_strip_item {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 4px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+            user-select: none;
+            min-height: 48px;
+
+            .o_cal_strip_day_name {
+                font-size: 0.65rem;
+                font-weight: 600;
+                color: #64748b;
+                text-transform: uppercase;
+                line-height: 1;
+                margin-bottom: 3px;
+            }
+
+            .o_cal_strip_day_num {
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: #1e293b;
+                line-height: 1;
+            }
+
+            .o_cal_strip_dot {
+                position: absolute;
+                bottom: 3px;
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: #2563eb;
+            }
+
+            &.has_events {
+                .o_cal_strip_day_num {
+                    color: #1d4ed8;
+                }
+            }
+
+            &:hover {
+                background: #ffffff;
+                border-color: #cbd5e1;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            &.is_today {
+                background: #eff6ff;
+                border-color: #bfdbfe;
+
+                .o_cal_strip_day_name {
+                    color: #2563eb;
+                }
+
+                .o_cal_strip_day_num {
+                    color: #1d4ed8;
+                }
+            }
+
+            &.is_active {
+                background: #2563eb !important;
+                border-color: #1d4ed8 !important;
+                box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3) !important;
+
+                .o_cal_strip_day_name,
+                .o_cal_strip_day_num {
+                    color: #ffffff !important;
+                }
+
+                .o_cal_strip_dot {
+                    background: #ffffff !important;
+                }
+            }
+
+            &.o_cal_strip_all {
+                .o_cal_strip_day_name {
+                    font-size: 0.6rem;
+                }
+            }
+        }
+
+        // Calendar Daily Timeline / Agenda Sections
+        .o_cal_day_section {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.75rem;
+            transition: all 0.15s ease;
+
+            &.is_today {
+                border-color: #93c5fd;
+                background: #fbfdff;
+                box-shadow: 0 1px 4px rgba(37, 99, 235, 0.06);
+            }
+
+            &.is_empty:not(.is_today) {
+                background: #f8fafc;
+                border-color: #f1f5f9;
+                padding: 0.45rem 0.65rem;
+                opacity: 0.85;
+
+                .o_cal_day_header {
+                    margin-bottom: 0 !important;
+                }
+
+                &:hover {
+                    opacity: 1;
+                    background: #ffffff;
+                    border-color: #cbd5e1;
+                }
+            }
+        }
+
+        .o_cal_day_badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        // Event Card in Calendar View
+        .o_cal_event_card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #2563eb;
+            border-radius: 10px;
+            padding: 0.75rem;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            &.o_slot_palette_sapphire { border-left-color: #2563eb; }
+            &.o_slot_palette_emerald { border-left-color: #059669; }
+            &.o_slot_palette_indigo { border-left-color: #6366f1; }
+            &.o_slot_palette_amber { border-left-color: #d97706; }
+            &.o_slot_palette_teal { border-left-color: #0d9488; }
+            &.o_slot_palette_rose { border-left-color: #e11d48; }
+
+            .o_cal_time_chip {
+                font-size: 0.72rem;
+                font-weight: 700;
+                color: #1d4ed8;
+                background: #eff6ff;
+                padding: 2px 7px;
+                border-radius: 6px;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .o_cal_event_title {
+                font-size: 0.88rem;
+                font-weight: 700;
+                color: #0f172a;
+                line-height: 1.3;
+                margin-top: 4px;
+            }
+
+            .o_cal_event_meta_list {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                margin-top: 5px;
+            }
+
+            .o_cal_event_meta {
+                font-size: 0.73rem;
+                color: #64748b;
+                line-height: 1.2;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .o_cal_empty_day {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            padding: 0.5rem 0;
+            font-style: italic;
+        }
+
+        .o_cal_empty_day_compact {
+            background: #f8fafc;
+            border: 1px dashed #e2e8f0;
+            padding: 0.35rem 0.65rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+
+            &:hover {
+                background: #ffffff;
+                border-color: #cbd5e1;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            }
+
+            .o_cal_day_badge_minimal {
+                font-size: 0.68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+            }
+        }
+
+        // View Switcher in Schedule Sidebar
+        .o_cal_view_switcher {
+            .btn {
+                font-size: 0.75rem;
+                font-weight: 600;
+                border-radius: 6px;
+                transition: all 0.15s ease;
+            }
+        }
+
+        // List View in Schedule Sidebar
+        .o_cal_list_view {
+            .o_cal_list_item {
+                border-left: 3px solid #2563eb;
+                transition: background-color 0.15s ease, transform 0.15s ease;
+
+                &:hover {
+                    background-color: #f8fafc;
+                    transform: translateX(2px);
+                }
+            }
+        }
+
+        // Kanban Card View in Schedule Sidebar
+        .o_cal_kanban_view {
+            .o_cal_kanban_card {
+                border-radius: 10px;
+                border-left-width: 4px;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+                }
+
+                &.o_slot_palette_sapphire { border-left-color: #2563eb; }
+                &.o_slot_palette_emerald { border-left-color: #059669; }
+                &.o_slot_palette_indigo { border-left-color: #6366f1; }
+                &.o_slot_palette_amber { border-left-color: #d97706; }
+                &.o_slot_palette_teal { border-left-color: #0d9488; }
+                &.o_slot_palette_rose { border-left-color: #e11d48; }
+            }
+        }
+
+    }
+
+    @keyframes sidebarPulse {
+        0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    }
+
+    .o_sidebar_highlight_pulse {
+        animation: sidebarPulse 1.2s ease-out;
+        border-color: #2563eb !important;
+    }
+
+    // University Purple Theme Accents
+    .text-purple {
+        color: #6f42c1 !important;
+    }
+    .bg-purple {
+        background-color: #6f42c1 !important;
+    }
+    .bg-purple-subtle {
+        background-color: #f3e8ff !important;
+    }
+
+    // Next class strip
+    .o_next_class_strip {
+        background: #fdf4ff;
+        border: 1px solid #e9d5ff !important;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: #fae8ff;
+            border-color: #d8b4fe !important;
+        }
+    }
+
+    // Agenda View Rows & Status Bars
+    .o_cal_agenda_view {
+        .o_agenda_day_group {
+            &.is_today {
+                .o_agenda_day_title {
+                    color: #6f42c1 !important;
+                }
+            }
+        }
+
+        .o_agenda_day_header {
+            padding: 0.15rem 0.25rem;
+        }
+
+        .o_agenda_session_row {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+                border-color: #cbd5e1;
+            }
+
+            .o_agenda_status_bar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background-color: #94a3b8;
+                border-top-left-radius: 6px;
+                border-bottom-left-radius: 6px;
+            }
+
+            &.status-completed {
+                opacity: 0.82;
+                .o_agenda_status_bar {
+                    background-color: #10b981; // green
+                }
+            }
+
+            &.status-upcoming {
+                .o_agenda_status_bar {
+                    background-color: #3b82f6; // blue
+                }
+            }
+
+            &.status-ongoing {
+                border-color: #fdba74;
+                background-color: #fffbeb !important;
+                .o_agenda_status_bar {
+                    background-color: #f97316; // orange
+                }
+            }
+
+            &.status-cancelled {
+                opacity: 0.7;
+                background-color: #fef2f2 !important;
+                border-color: #fecaca;
+                .o_agenda_status_bar {
+                    background-color: #ef4444; // red
+                }
+            }
+        }
+
+        .o_agenda_empty_today {
+            border-color: #e9d5ff !important;
+            background-color: #faf5ff !important;
+        }
+
+        .o_agenda_empty_day_row {
+            border: 1px dashed #e2e8f0;
+            background-color: #f8fafc;
+            color: #94a3b8;
+        }
+    }
+
+    // Embedded Interactive Schedule in Dashboard Tab
+    .o_dashboard_embedded_schedule {
+        .o_university_schedule_wrapper {
+            height: 720px !important;
+            min-height: 600px;
+        }
+        .o_schedule_split_container {
+            height: calc(720px - 110px) !important;
+        }
+    }
+
+}

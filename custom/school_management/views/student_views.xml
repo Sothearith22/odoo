@@ -348,7 +348,7 @@
                                     <field name="section_id"/>
                                     <field name="submitted_on"/>
                                     <field name="score"/>
-                                    <field name="state" widget="badge" decoration-info="state == 'submitted'" decoration-success="state == 'evaluated'" decoration-warning="state == 'returned'"/>
+                                    <field name="state" widget="badge" decoration-info="state in ('submitted', 'reviewing')" decoration-success="state in ('approved', 'evaluated')" decoration-warning="state in ('rejected', 'returned')"/>
                                 </list>
                             </field>
                         </page>
