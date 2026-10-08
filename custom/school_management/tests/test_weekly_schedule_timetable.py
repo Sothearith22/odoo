@@ -101,13 +101,21 @@ class TestWeeklyScheduleTimetable(StudyPlanCommon):
             cur += timedelta(days=1)
         self.assertTrue(holiday_date, "A Monday should exist in the term.")
 
-        holiday = self.env["public.holiday"].create({
-            "name": f"Test Holiday {secrets.token_hex(2)}",
-            "date_from": holiday_date,
-            "date_to": holiday_date,
-            "affects_classes": True,
-            "active": True,
-        })
+        if "public.holiday" in self.env:
+            holiday = self.env["public.holiday"].create({
+                "name": f"Test Holiday {secrets.token_hex(2)}",
+                "date_from": holiday_date,
+                "date_to": holiday_date,
+                "affects_classes": True,
+                "active": True,
+            })
+        else:
+            holiday = self.env["university.holiday"].create({
+                "name": f"Test Holiday {secrets.token_hex(2)}",
+                "academic_year_id": self.academic_year.id,
+                "date_start": holiday_date,
+                "date_end": holiday_date,
+            })
 
         wizard = self.env["university.timetable.generation.wizard"].create({
             "academic_year_id": self.academic_year.id,

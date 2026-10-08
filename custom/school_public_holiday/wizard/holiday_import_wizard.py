@@ -15,12 +15,42 @@ except ImportError:
     openpyxl = None
 
 
+def _decode_csv_content(content):
+    """Helper to decode CSV bytes supporting UTF-8 with BOM and Latin-1 fallback."""
+    try:
+        return content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        return content.decode("latin-1")
+
+
+def _parse_date_value(val):
+    """Helper to parse a date string or object across standard formats."""
+    if not val:
+        return None
+    if isinstance(val, (datetime, date)):
+        return val.date() if isinstance(val, datetime) else val
+    val_str = str(val).strip()
+    if not val_str:
+        return None
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(val_str, fmt).date()
+        except ValueError:
+            pass
+    return None
+
+
 class WizardImportPublicHoliday(models.TransientModel):
     _name = "wizard.import.public.holiday"
     _description = "Import Public Holidays Wizard"
 
-    file_data = fields.Binary(string="Holiday File (.csv, .xlsx)", required=True)
+    file_data = fields.Binary(string="Holiday File (.csv, .xlsx)", required=False)
     file_name = fields.Char(string="File Name")
+    target_year = fields.Integer(
+        string="Target Year",
+        default=lambda self: fields.Date.today().year,
+        help="Year for generating standard Cambodian fixed holidays.",
+    )
     duplicate_policy = fields.Selection(
         [
             ("skip", "Skip Existing"),
@@ -55,10 +85,11 @@ class WizardImportPublicHoliday(models.TransientModel):
     def action_download_template(self):
         """Generate and return sample CSV template."""
         csv_content = (
-            "Name,Date From,Date To,Holiday Type,Work Pay Multiplier,Note\n"
-            "Khmer New Year,2026-04-14,2026-04-16,public,2.0,National Khmer New Year Celebration\n"
-            "King's Birthday,2026-05-14,2026-05-14,public,2.0,King Norodom Sihamoni Birthday\n"
-            "Mid-Term Break,2026-06-01,2026-06-05,school_break,1.0,Mid-Term School Break\n"
+            "Name,Name KM,Date From,Date To,Holiday Type,Work Pay Multiplier,Note\n"
+            "International New Year,ទិវាចូលឆ្នាំសកល,2026-01-01,2026-01-01,fixed,2.0,International New Year\n"
+            "Khmer New Year,ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ,2026-04-14,2026-04-16,fixed,2.0,National Khmer New Year Celebration\n"
+            "King's Birthday,ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម,2026-05-14,2026-05-14,fixed,2.0,King Norodom Sihamoni Birthday\n"
+            "Pchum Ben,ពិធីបុណ្យភ្ជុំបិណ្ឌ,2026-10-10,2026-10-12,lunar,2.0,Ancestors Day Festival\n"
         )
         attachment = self.env["ir.attachment"].create({
             "name": "public_holidays_sample_template.csv",
@@ -72,23 +103,55 @@ class WizardImportPublicHoliday(models.TransientModel):
             "target": "self",
         }
 
-    def _parse_date(self, val):
-        if not val:
-            return None
-        if isinstance(val, (datetime, date)):
-            if isinstance(val, datetime):
-                return val.date()
-            return val
-        val_str = str(val).strip()
-        if not val_str:
-            return None
-        # Try common date formats
-        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"):
-            try:
-                return datetime.strptime(val_str, fmt).date()
-            except ValueError:
-                pass
-        return None
+    def action_generate_fixed_holidays(self):
+        """Generate standard Cambodian fixed-date public holidays for the specified target year."""
+        self.ensure_one()
+        year = self.target_year or fields.Date.today().year
+        fixed_definitions = [
+            ("International New Year", "ទិវាចូលឆ្នាំសកល", f"{year}-01-01", f"{year}-01-01"),
+            ("Victory over Genocide Day", "ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍", f"{year}-01-07", f"{year}-01-07"),
+            ("International Women's Day", "ទិវាអន្តរជាតិនារី", f"{year}-03-08", f"{year}-03-08"),
+            ("Khmer New Year Day 1", "ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី១", f"{year}-04-14", f"{year}-04-14"),
+            ("Khmer New Year Day 2", "ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី២", f"{year}-04-15", f"{year}-04-15"),
+            ("Khmer New Year Day 3", "ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី៣", f"{year}-04-16", f"{year}-04-16"),
+            ("International Labour Day", "ទិវាពលកម្មអន្តរជាតិ", f"{year}-05-01", f"{year}-05-01"),
+            ("King's Birthday", "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្មព្រះមហាក្សត្រ", f"{year}-05-14", f"{year}-05-14"),
+            ("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", f"{year}-09-24", f"{year}-09-24"),
+            ("King Father's Memorial Day", "ទិវាគោរពព្រះវិញ្ញាណក្ខន្ធព្រះបរមរតនកោដ្ឋ", f"{year}-10-15", f"{year}-10-15"),
+            ("Coronation Day", "ព្រះរាជពិធីគ្រងរាជសម្បត្តិ", f"{year}-10-29", f"{year}-10-29"),
+            ("Independence Day", "ទិវាបុណ្យឯករាជ្យជាតិ", f"{year}-11-09", f"{year}-11-09"),
+        ]
+        PublicHoliday = self.env["public.holiday"]
+        created_count = 0
+        for name, name_km, d_from_s, d_to_s in fixed_definitions:
+            d_from = fields.Date.to_date(d_from_s)
+            d_to = fields.Date.to_date(d_to_s)
+            existing = PublicHoliday.search([
+                ("name", "=ilike", name),
+                ("date_from", "=", d_from),
+                ("active", "=", True),
+            ], limit=1)
+            if not existing:
+                PublicHoliday.create({
+                    "name": name,
+                    "name_km": name_km,
+                    "date_from": d_from,
+                    "date_to": d_to,
+                    "holiday_type": "fixed",
+                    "affects_classes": True,
+                    "active": True,
+                })
+                created_count += 1
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Fixed Holidays Generated"),
+                "message": _("Generated %d fixed public holidays for year %d.") % (created_count, year),
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def _extract_rows_from_file(self):
         self.ensure_one()
@@ -118,11 +181,7 @@ class WizardImportPublicHoliday(models.TransientModel):
                         row_dict[headers[idx]] = cell
                 rows.append(row_dict)
         else:
-            # Assume CSV
-            try:
-                text = content.decode("utf-8-sig")
-            except UnicodeDecodeError:
-                text = content.decode("latin-1")
+            text = _decode_csv_content(content)
             reader = csv.reader(io.StringIO(text))
             try:
                 raw_headers = next(reader)
@@ -152,38 +211,37 @@ class WizardImportPublicHoliday(models.TransientModel):
         if not raw_rows:
             raise UserError(_("The uploaded file contains no data rows."))
 
-        Holiday = self.env["university.holiday"]
+        Holiday = self.env["public.holiday"]
         preview_vals = []
         valid_cnt = 0
         duplicate_cnt = 0
         error_cnt = 0
 
-        # Normalization
         type_mapping = {
-            "public": "public",
-            "public holiday": "public",
-            "holiday": "public",
-            "school break": "school_break",
-            "school_break": "school_break",
-            "break": "school_break",
-            "exam break": "exam_break",
-            "exam_break": "exam_break",
-            "exam": "exam_break",
+            "fixed": "fixed",
+            "public": "fixed",
+            "public holiday": "fixed",
+            "lunar": "lunar",
+            "special": "special",
+            "school_break": "special",
+            "school break": "special",
+            "exam_break": "special",
+            "exam break": "special",
         }
 
         seen_keys = set()
         for idx, row in enumerate(raw_rows, start=2):
             name = self._get_val(row, ["name", "holiday", "holiday name", "title"])
+            name_km = self._get_val(row, ["name_km", "name km", "khmer name", "khmer"])
             d_from_raw = self._get_val(row, ["date from", "date_from", "start date", "date_start", "start", "from"])
             d_to_raw = self._get_val(row, ["date to", "date_to", "end date", "date_end", "end", "to"])
-            h_type_raw = self._get_val(row, ["holiday type", "holiday_type", "type"], "public")
+            h_type_raw = self._get_val(row, ["holiday type", "holiday_type", "type"], "fixed")
             mult_raw = self._get_val(row, ["work pay multiplier", "work_pay_multiplier", "multiplier", "rate"], 2.0)
             note = self._get_val(row, ["note", "notes", "description"], "")
 
             line_status = "ok"
             status_msg = _("Valid row")
 
-            # Check Name
             if not name:
                 line_status = "missing_name"
                 status_msg = _("Missing holiday name")
@@ -191,14 +249,13 @@ class WizardImportPublicHoliday(models.TransientModel):
             else:
                 name = str(name).strip()
 
-            # Parse Dates
-            d_from = self._parse_date(d_from_raw)
+            d_from = _parse_date_value(d_from_raw)
             if not d_from and line_status == "ok":
                 line_status = "invalid_date"
                 status_msg = _("Invalid Start Date: '%s'") % d_from_raw
                 error_cnt += 1
 
-            d_to = self._parse_date(d_to_raw) if d_to_raw else d_from
+            d_to = _parse_date_value(d_to_raw) if d_to_raw else d_from
             if not d_to and d_to_raw and line_status == "ok":
                 line_status = "invalid_date"
                 status_msg = _("Invalid End Date: '%s'") % d_to_raw
@@ -209,16 +266,13 @@ class WizardImportPublicHoliday(models.TransientModel):
                 status_msg = _("End Date (%s) is before Start Date (%s)") % (d_to, d_from)
                 error_cnt += 1
 
-            # Type mapping
-            h_type = type_mapping.get(str(h_type_raw).strip().lower(), "public")
+            h_type = type_mapping.get(str(h_type_raw).strip().lower(), "fixed")
 
-            # Multiplier
             try:
                 mult = float(mult_raw)
             except (ValueError, TypeError):
                 mult = 2.0
 
-            # Duplicate / Overlap check
             if line_status == "ok" and name and d_from:
                 pair_key = (name.lower(), d_from)
                 if pair_key in seen_keys:
@@ -227,7 +281,6 @@ class WizardImportPublicHoliday(models.TransientModel):
                     duplicate_cnt += 1
                 else:
                     seen_keys.add(pair_key)
-                    # Check existing in DB
                     existing = Holiday.search([
                         ("name", "=ilike", name),
                         ("date_from", "=", d_from),
@@ -243,6 +296,7 @@ class WizardImportPublicHoliday(models.TransientModel):
             preview_vals.append((0, 0, {
                 "line_number": idx,
                 "name": name or "",
+                "name_km": name_km or "",
                 "date_from": d_from,
                 "date_to": d_to,
                 "holiday_type": h_type,
@@ -275,7 +329,6 @@ class WizardImportPublicHoliday(models.TransientModel):
         if not self.preview_line_ids:
             raise UserError(_("No preview lines found. Please upload and preview first."))
 
-        # Check if all rows are fatal lines (missing name or invalid date)
         fatal_lines = self.preview_line_ids.filtered(lambda l: l.status in ("missing_name", "invalid_date"))
         if fatal_lines and len(fatal_lines) == len(self.preview_line_ids):
             raise ValidationError(
@@ -283,14 +336,14 @@ class WizardImportPublicHoliday(models.TransientModel):
                 % len(fatal_lines)
             )
 
-        Holiday = self.env["university.holiday"]
-        created_records = Holiday
+        PubHoliday = self.env["public.holiday"]
+        UnivHoliday = self.env["university.holiday"]
+        created_records = PubHoliday
         updated_count = 0
         skipped_count = 0
         failed_count = 0
         error_msgs = []
 
-        # Create import log first
         log = self.env["school.holiday.import.log"].create({
             "name": self.file_name or _("Public Holidays Import"),
             "duplicate_policy": self.duplicate_policy,
@@ -306,40 +359,68 @@ class WizardImportPublicHoliday(models.TransientModel):
             try:
                 with self.env.cr.savepoint():
                     if line.status == "duplicate":
-                        existing = Holiday.search([
+                        existing_pub = PubHoliday.search([
                             ("name", "=ilike", line.name),
                             ("date_from", "=", line.date_from),
                         ], limit=1)
-                        if self.duplicate_policy == "update" and existing:
-                            existing.write({
-                                "date_to": line.date_to or line.date_from,
-                                "holiday_type": line.holiday_type,
-                                "work_pay_multiplier": line.work_pay_multiplier,
-                                "note": line.note,
-                                "import_batch_id": log.id,
-                            })
+                        if self.duplicate_policy == "update":
+                            if existing_pub:
+                                existing_pub.write({
+                                    "date_to": line.date_to or line.date_from,
+                                    "name_km": line.name_km or existing_pub.name_km,
+                                    "holiday_type": line.holiday_type if line.holiday_type in ("fixed", "lunar", "special") else "fixed",
+                                    "note": line.note,
+                                })
+                            existing_univ = UnivHoliday.search([
+                                ("name", "=ilike", line.name),
+                                ("date_from", "=", line.date_from),
+                            ], limit=1)
+                            if existing_univ:
+                                existing_univ.write({
+                                    "date_to": line.date_to or line.date_from,
+                                    "date_end": line.date_to or line.date_from,
+                                    "work_pay_multiplier": line.work_pay_multiplier,
+                                    "note": line.note,
+                                })
                             updated_count += 1
                         else:
                             skipped_count += 1
                         continue
 
-                    # Create row in its own savepoint
-                    created = Holiday.create({
+                    created = PubHoliday.create({
                         "name": line.name,
+                        "name_km": line.name_km or False,
                         "date_from": line.date_from,
                         "date_to": line.date_to or line.date_from,
-                        "holiday_type": line.holiday_type,
-                        "applies_to": "all",
-                        "work_pay_multiplier": line.work_pay_multiplier,
+                        "holiday_type": line.holiday_type if line.holiday_type in ("fixed", "lunar", "special") else "fixed",
+                        "affects_classes": True,
+                        "active": True,
                         "note": line.note,
-                        "import_batch_id": log.id,
                     })
                     created_records |= created
+
+                    # Also create institutional closure record if university.holiday exists
+                    existing_univ = UnivHoliday.search([
+                        ("name", "=ilike", line.name),
+                        ("date_from", "=", line.date_from),
+                    ], limit=1)
+                    if not existing_univ:
+                        UnivHoliday.create({
+                            "name": line.name,
+                            "date_from": line.date_from,
+                            "date_to": line.date_to or line.date_from,
+                            "date_start": line.date_from,
+                            "date_end": line.date_to or line.date_from,
+                            "holiday_type": "public",
+                            "applies_to": "all",
+                            "work_pay_multiplier": line.work_pay_multiplier,
+                            "note": line.note,
+                            "import_batch_id": log.id,
+                        })
             except Exception as exc:
                 failed_count += 1
                 error_msgs.append(f"Row {line.line_number} ({line.name}): {str(exc)}")
 
-        # Update log
         log.write({
             "records_created": len(created_records),
             "records_updated": updated_count,
@@ -372,7 +453,6 @@ class WizardImportPublicHoliday(models.TransientModel):
 
     def action_check_class_conflicts(self):
         self.ensure_one()
-        # Scan conflicts across all imported holidays
         action = self.env.ref("school_management.action_university_schedule_conflicts", raise_if_not_found=False)
         if action:
             return action.read()[0]
@@ -398,15 +478,17 @@ class WizardImportPublicHolidayLine(models.TransientModel):
     wizard_id = fields.Many2one("wizard.import.public.holiday", ondelete="cascade", required=True)
     line_number = fields.Integer(string="Line #")
     name = fields.Char(string="Holiday Name")
+    name_km = fields.Char(string="Khmer Name")
     date_from = fields.Date(string="Start Date")
     date_to = fields.Date(string="End Date")
     holiday_type = fields.Selection(
         [
-            ("public", "Public Holiday"),
-            ("school_break", "School Break"),
-            ("exam_break", "Exam Break"),
+            ("fixed", "Fixed"),
+            ("lunar", "Lunar"),
+            ("special", "Special"),
         ],
         string="Type",
+        default="fixed",
     )
     work_pay_multiplier = fields.Float(string="Multiplier", default=2.0)
     note = fields.Text(string="Note")
@@ -414,9 +496,8 @@ class WizardImportPublicHolidayLine(models.TransientModel):
         [
             ("ok", "Valid"),
             ("duplicate", "Duplicate"),
-            ("overlap", "Overlap"),
-            ("invalid_date", "Invalid Date"),
             ("missing_name", "Missing Name"),
+            ("invalid_date", "Invalid Date"),
         ],
         string="Status",
         default="ok",

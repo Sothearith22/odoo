@@ -28,23 +28,28 @@ class UniversityStaffAttendance(models.Model):
     )
 
     def _is_non_working_day(self, day):
-        """Override school_management hook to check against public holidays."""
+        """Override school_management hook to check against public holidays and school breaks."""
         if not day:
             return False
         day_date = fields.Date.to_date(day)
-        Holiday = self.env["university.holiday"]
-        holidays = Holiday.search([
-            ("active", "=", True),
-            ("date_from", "<=", day_date),
-            ("date_to", ">=", day_date),
-        ])
-        for h in holidays:
-            if h.applies_to == "all":
-                return True
-            if h.applies_to == "faculty" and self.faculty_id and (self.faculty_id in h.faculty_ids or self.faculty_id == h.faculty_id):
-                return True
-            if h.applies_to == "department" and self.department_id and self.department_id in h.department_ids:
-                return True
+        # 1. Canonical check via public.holiday (which checks public holidays and institutional closures)
+        if self.env["public.holiday"].is_holiday(day_date):
+            return True
+        # 2. Check scoped institutional closures (faculty / department / program)
+        if "university.holiday" in self.env:
+            holidays = self.env["university.holiday"].search([
+                ("active", "=", True),
+                "|",
+                "&", ("date_start", "<=", day_date), ("date_end", ">=", day_date),
+                "&", ("date_from", "<=", day_date), ("date_to", ">=", day_date),
+            ])
+            for h in holidays:
+                if h.applies_to == "all":
+                    return True
+                if h.applies_to == "faculty" and self.faculty_id and (self.faculty_id in h.faculty_ids or self.faculty_id == h.faculty_id):
+                    return True
+                if h.applies_to == "department" and self.department_id and self.department_id in h.department_ids:
+                    return True
         return False
 
     def _get_day_label(self, day):
@@ -52,19 +57,23 @@ class UniversityStaffAttendance(models.Model):
         if not day:
             return False
         day_date = fields.Date.to_date(day)
-        Holiday = self.env["university.holiday"]
-        holidays = Holiday.search([
-            ("active", "=", True),
-            ("date_from", "<=", day_date),
-            ("date_to", ">=", day_date),
-        ])
-        for h in holidays:
-            if h.applies_to == "all":
-                return h.name
-            if h.applies_to == "faculty" and self.faculty_id and (self.faculty_id in h.faculty_ids or self.faculty_id == h.faculty_id):
-                return h.name
-            if h.applies_to == "department" and self.department_id and self.department_id in h.department_ids:
-                return h.name
+        pub_h = self.env["public.holiday"].get_holiday_on(day_date)
+        if pub_h:
+            return pub_h.name
+        if "university.holiday" in self.env:
+            holidays = self.env["university.holiday"].search([
+                ("active", "=", True),
+                "|",
+                "&", ("date_start", "<=", day_date), ("date_end", ">=", day_date),
+                "&", ("date_from", "<=", day_date), ("date_to", ">=", day_date),
+            ])
+            for h in holidays:
+                if h.applies_to == "all":
+                    return h.name
+                if h.applies_to == "faculty" and self.faculty_id and (self.faculty_id in h.faculty_ids or self.faculty_id == h.faculty_id):
+                    return h.name
+                if h.applies_to == "department" and self.department_id and self.department_id in h.department_ids:
+                    return h.name
         return False
 
     @api.model_create_multi
@@ -89,15 +98,18 @@ class UniversityStaffAttendance(models.Model):
 
     @api.depends("is_holiday", "worked_hours", "status", "check_in")
     def _compute_holiday_work_payroll(self):
-        Holiday = self.env["university.holiday"]
         for rec in self:
             if rec.is_holiday and (rec.worked_hours > 0 or rec.check_in):
-                holiday = Holiday.search([
-                    ("active", "=", True),
-                    ("date_from", "<=", rec.date),
-                    ("date_to", ">=", rec.date),
-                ], limit=1)
-                mult = holiday.work_pay_multiplier if holiday and holiday.work_pay_multiplier else 2.0
+                mult = 2.0
+                if "university.holiday" in self.env:
+                    holiday = self.env["university.holiday"].search([
+                        ("active", "=", True),
+                        "|",
+                        "&", ("date_start", "<=", rec.date), ("date_end", ">=", rec.date),
+                        "&", ("date_from", "<=", rec.date), ("date_to", ">=", rec.date),
+                    ], limit=1)
+                    if holiday and holiday.work_pay_multiplier:
+                        mult = holiday.work_pay_multiplier
                 rec.is_holiday_work = True
                 rec.holiday_work_pay_multiplier = mult
                 rec.payable_hours = round(rec.worked_hours * mult, 2)

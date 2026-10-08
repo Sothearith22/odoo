@@ -10,11 +10,13 @@
                 <!-- STEP 1: UPLOAD STATE -->
                 <div invisible="state != 'upload'">
                     <p class="text-muted">
-                        Upload a <strong>.CSV</strong> or <strong>.XLSX</strong> file containing public holidays.
-                        Columns accepted: <code>Name</code>, <code>Date From</code>, <code>Date To</code>, <code>Holiday Type</code>, <code>Work Pay Multiplier</code>, <code>Note</code>.
+                        Upload a <strong>.CSV</strong> or <strong>.XLSX</strong> file containing public holidays, or generate fixed Cambodian national holidays for a specific year.
                     </p>
-                    <div class="mb-3">
+                    <div class="mb-3 d-flex align-items-center gap-2">
                         <button name="action_download_template" type="object" string="Download Sample CSV Template" class="btn btn-outline-secondary btn-sm" icon="fa-download"/>
+                        <span class="text-muted ms-3 me-1">Year:</span>
+                        <field name="target_year" class="d-inline-block w-auto" placeholder="Year"/>
+                        <button name="action_generate_fixed_holidays" type="object" string="Generate Fixed Holidays for Year" class="btn btn-outline-primary btn-sm" icon="fa-calendar-plus-o"/>
                     </div>
                     <group>
                         <group string="Select File">
@@ -44,6 +46,7 @@
                         <list decoration-success="status == 'ok'" decoration-warning="status == 'duplicate'" decoration-danger="status in ('invalid_date', 'missing_name')">
                             <field name="line_number" string="#"/>
                             <field name="name"/>
+                            <field name="name_km" optional="show"/>
                             <field name="date_from"/>
                             <field name="date_to"/>
                             <field name="holiday_type"/>
@@ -57,7 +60,7 @@
                 <!-- STEP 3: DONE STATE -->
                 <div invisible="state != 'done'">
                     <div class="alert alert-success d-flex align-items-center" role="alert">
-                        <i class="fa fa-check-circle fa-2x me-3" title="Success"/>
+                        <i class="fa fa-check-circle fa-2x me-3" title="Success" aria-hidden="true"/>
                         <div>
                             <h4>Import Successful!</h4>
                             <field name="summary_msg" readonly="1"/>
@@ -77,4 +80,21 @@
         </field>
     </record>
 
+    <!-- Action for Import Wizard -->
+    <record id="action_wizard_import_public_holiday" model="ir.actions.act_window">
+        <field name="name">Import Public Holidays</field>
+        <field name="res_model">wizard.import.public.holiday</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_wizard_import_public_holiday_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Legacy compatibility alias for previous xml id if referenced in database -->
+    <record id="action_public_holiday_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import Public Holidays</field>
+        <field name="res_model">wizard.import.public.holiday</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_wizard_import_public_holiday_form"/>
+        <field name="target">new</field>
+    </record>
 </odoo>

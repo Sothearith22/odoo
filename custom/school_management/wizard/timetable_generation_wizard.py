@@ -102,21 +102,7 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
 
     def _get_excluded_dates(self, date_start, date_end):
         """Hook for extension modules (e.g. school_public_holiday) to exclude dates from timetable generation."""
-        excluded = set()
-        if "public.holiday" in self.env:
-            holidays = self.env["public.holiday"].search([
-                ("active", "=", True),
-                ("affects_classes", "=", True),
-                ("date_from", "<=", date_end),
-                ("date_to", ">=", date_start),
-            ])
-            for h in holidays:
-                cur = max(h.date_from, date_start)
-                h_end = min(h.date_to, date_end)
-                while cur <= h_end:
-                    excluded.add(cur)
-                    cur += timedelta(days=1)
-        return excluded
+        return set()
 
     def _find_holiday(self, target_date, holidays, section=None):
         if not holidays:

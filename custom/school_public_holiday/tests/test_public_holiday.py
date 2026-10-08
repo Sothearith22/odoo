@@ -606,33 +606,56 @@ class TestPublicHolidayManagement(TransactionCase):
             })
 
     def test_17_public_holiday_import_wizard(self):
-        """Test public.holiday.import.wizard CSV parsing, duplicate skipping and template download."""
-        csv_data = (
-            "name,name_km,date_from,date_to,holiday_type\n"
-            "Preah Vihear Temple Day,ទិវាប្រាសាទព្រះវិហារ,2026-07-07,2026-07-07,special\n"
-            "National Reading Day,ទិវាជាតិអំណាន,2026-03-11,2026-03-11,special\n"
-            "Preah Vihear Temple Day,ទិវាប្រាសាទព្រះវិហារ,2026-07-07,2026-07-07,special\n"
-            ",Missing Name,2026-03-15,2026-03-15,fixed\n"
-        )
-        wizard = self.env["public.holiday.import.wizard"].create({
-            "file": base64.b64encode(csv_data.encode("utf-8")),
-            "filename": "holidays_cambodia.csv",
+        """Test wizard.import.public.holiday CSV parsing, duplicate policy, fixed generation and template download."""
+        wizard = self.env["wizard.import.public.holiday"].create({
+            "target_year": 2026,
         })
-
-        # Test template download
         dl = wizard.action_download_template()
         self.assertEqual(dl.get("type"), "ir.actions.act_url")
 
-        # Test import execution
-        wizard.action_import()
-        self.assertEqual(wizard.state, "done")
-        self.assertEqual(wizard.created_count, 2)
-        self.assertEqual(wizard.skipped_count, 1)
-        self.assertEqual(wizard.error_count, 1)
+        gen_res = wizard.action_generate_fixed_holidays()
+        self.assertEqual(gen_res.get("type"), "ir.actions.client")
+        new_year = self.PublicHoliday.search([("name", "=", "International New Year"), ("date_from", "=", "2026-01-01")])
+        self.assertTrue(new_year)
 
+        csv_data = (
+            "Name,Name KM,Date From,Date To,Holiday Type,Work Pay Multiplier,Note\n"
+            "Preah Vihear Temple Day,ទិវាប្រាសាទព្រះវិហារ,2026-07-07,2026-07-07,special,2.0,Temple Anniversary\n"
+            "National Reading Day,ទិវាជាតិអំណាន,2026-03-11,2026-03-11,special,2.0,Reading Day\n"
+            "Preah Vihear Temple Day,ទិវាប្រាសាទព្រះវិហារ,2026-07-07,2026-07-07,special,2.0,Duplicate Row\n"
+        )
+        wizard_csv = self.env["wizard.import.public.holiday"].create({
+            "file_data": base64.b64encode(csv_data.encode("utf-8")),
+            "file_name": "cambodia_extra.csv",
+            "duplicate_policy": "skip",
+        })
+        wizard_csv.action_parse_and_preview()
+        self.assertEqual(wizard_csv.state, "preview")
+        self.assertEqual(wizard_csv.total_rows, 3)
+        self.assertEqual(wizard_csv.valid_rows, 2)
+        self.assertEqual(wizard_csv.duplicate_rows, 1)
+
+        wizard_csv.action_confirm_import()
+        self.assertEqual(wizard_csv.state, "done")
         created_ph = self.PublicHoliday.search([("name", "=", "Preah Vihear Temple Day")])
         self.assertEqual(len(created_ph), 1)
-        self.assertEqual(created_ph.holiday_type, "special")
+
+    def test_19_holiday_canonical_hooks(self):
+        """Test public.holiday canonical lookup methods and admin check."""
+        h = self.PublicHoliday.create({
+            "name": "Hook Holiday Test",
+            "date_from": "2026-08-15",
+            "date_to": "2026-08-15",
+            "affects_classes": True,
+            "active": True,
+        })
+        found = self.PublicHoliday.get_holiday_on("2026-08-15")
+        self.assertEqual(found.id, h.id)
+        self.assertTrue(self.PublicHoliday.is_holiday("2026-08-15"))
+        self.assertFalse(self.PublicHoliday.is_holiday("2026-08-17"))
+
+        self.assertTrue(self.PublicHoliday.with_user(self.admin_user)._is_holiday_admin())
+        self.assertFalse(self.PublicHoliday.with_user(self.teacher_user)._is_holiday_admin())
 
     def test_18_public_holiday_security(self):
         """Test access rights on public.holiday model."""

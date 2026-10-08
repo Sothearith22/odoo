@@ -561,16 +561,7 @@ class UniversityTimetableSlot(models.Model):
         if getattr(self, "allow_on_holiday", False):
             return False
         slot_date = self.date or fields.Datetime.context_timestamp(self, self.start_time).date()
-        if "public.holiday" in self.env:
-            holiday = self.env["public.holiday"].search([
-                ("active", "=", True),
-                ("affects_classes", "=", True),
-                ("date_from", "<=", slot_date),
-                ("date_to", ">=", slot_date),
-            ], limit=1)
-            if holiday:
-                return holiday
-        if "university.holiday" in self.env and self.semester_id and self.semester_id.academic_year_id:
+        if self.semester_id and self.semester_id.academic_year_id:
             holiday = self.env["university.holiday"].search([
                 ("academic_year_id", "=", self.semester_id.academic_year_id.id),
                 ("date_start", "<=", slot_date),

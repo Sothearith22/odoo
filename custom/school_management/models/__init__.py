@@ -27,7 +27,7 @@ from . import res_config_settings
 from . import document_signature
 from . import capability
 from . import lesson_plan
-from . import assignment
+from . import assignment    
 from . import timetable
 from . import timetable_conflict
 from . import notice_board

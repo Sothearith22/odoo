@@ -7,22 +7,22 @@
     "depends": [
         "base",
         "resource",
-        "school_management"
+        "mail",
+        "school_management",
     ],
     "data": [
         "security/ir.model.access.csv",
-        "wizard/public_holiday_import_wizard_views.xml",
         "wizard/holiday_import_wizard_views.xml",
         "wizard/session_reschedule_wizard_views.xml",
         "views/public_holiday_views.xml",
         "views/holiday_import_log_views.xml",
         "views/timetable_slot_views.xml",
         "views/class_section_views.xml",
+        "views/dashboard_views.xml",
         "views/menu.xml",
         "views/menu_views.xml",
         "data/cambodia_holidays.xml",
         "data/public_holiday_data.xml",
-
     ],
     "assets": {
         "web.assets_backend": [
@@ -31,6 +31,6 @@
         ],
     },
     "installable": True,
-    "application": False,
+    "application": True,
     "license": "LGPL-3",
 }

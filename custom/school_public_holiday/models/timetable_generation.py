@@ -16,6 +16,10 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
         readonly=True,
     )
 
+    def _is_holiday(self, date_check):
+        """Helper to determine if a given date falls on an active holiday."""
+        return self.env["public.holiday"].is_holiday(date_check, section=self.section_ids[:1])
+
     def _get_excluded_dates(self, date_start, date_end):
         excluded = super()._get_excluded_dates(date_start, date_end)
         if not self.skip_public_holidays:
@@ -26,23 +30,12 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
         if not d_start or not d_end:
             return excluded
 
-        Holiday = self.env["university.holiday"]
-        holidays = Holiday.search([
-            ("active", "=", True),
-            "|",
-            "&", ("date_start", "<=", d_end), ("date_end", ">=", d_start),
-            "&", ("date_from", "<=", d_end), ("date_to", ">=", d_start),
-        ])
-        for h in holidays:
-            if self.section_ids:
-                if not any(h._applies_to_section(s) for s in self.section_ids):
-                    continue
-            h_from = max(h.date_from or h.date_start, d_start)
-            h_to = min(h.date_to or h.date_end, d_end)
-            cur = h_from
-            while cur <= h_to:
+        PubHoliday = self.env["public.holiday"]
+        cur = d_start
+        while cur <= d_end:
+            if PubHoliday.is_holiday(cur, section=self.section_ids[:1]):
                 excluded.add(cur)
-                cur += timedelta(days=1)
+            cur += timedelta(days=1)
         return excluded
 
     def action_generate_timetable(self):
@@ -56,7 +49,7 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
             if isinstance(res, dict) and "name" in res and self.skipped_holidays_count > 0:
                 res["name"] = f"{res['name']} ({self.skipped_holidays_count} Holiday Dates Skipped)"
 
-        # Check if any generated slots fall on a public holiday and report conflicts/warnings
+        # Check if any generated slots fall on a holiday and report conflicts/warnings
         created_slot_ids = []
         if isinstance(res, dict) and "domain" in res:
             for clause in res.get("domain", []):

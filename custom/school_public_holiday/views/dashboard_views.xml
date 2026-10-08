@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add Public Holidays shortcut to the University Management Dashboard Quick Operations -->
+    <record id="view_school_dashboard_form_inherit_holiday" model="ir.ui.view">
+        <field name="name">school.dashboard.form.inherit.holiday</field>
+        <field name="model">school.dashboard</field>
+        <field name="inherit_id" ref="school_management.view_school_dashboard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_academic_years']" position="before">
+                <button name="%(school_public_holiday.action_public_holiday)d"
+                        type="action"
+                        class="btn text-start d-flex justify-content-between align-items-center py-2 px-3 quick-op-btn">
+                    <span><i class="fa fa-sun-o me-2" style="color: #b8863f;" aria-hidden="true"/>Cambodia Public Holidays</span>
+                    <i class="fa fa-chevron-right text-muted small" title="Open" aria-hidden="true"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

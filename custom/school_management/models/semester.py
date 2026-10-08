@@ -1,6 +1,7 @@
 import base64
 import io
 import logging
+import math
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -24,6 +25,10 @@ class UniversitySemester(models.Model):
         "CHECK (date_end >= date_start)",
         "The semester end date must be on or after the start date.",
     )
+    _academic_year_name_uniq = models.Constraint(
+        "UNIQUE(academic_year_id, name)",
+        "A term with this name already exists in this academic session.",
+    )
 
     name = fields.Char(string="Semester Name", required=True)
     academic_year_id = fields.Many2one(
@@ -31,6 +36,14 @@ class UniversitySemester(models.Model):
         string="Academic Year",
         required=True,
         ondelete="cascade",
+        index=True,
+    )
+    session_id = fields.Many2one(
+        "university.academic.year",
+        string="Session",
+        related="academic_year_id",
+        store=True,
+        readonly=False,
         index=True,
     )
     semester_type = fields.Selection(
@@ -45,6 +58,11 @@ class UniversitySemester(models.Model):
     )
     date_start = fields.Date(string="Start Date", required=True)
     date_end = fields.Date(string="End Date", required=True)
+    week_count = fields.Integer(
+        string="Weeks",
+        compute="_compute_week_count",
+        store=True,
+    )
     is_active = fields.Boolean(
         string="Active Period",
         compute="_compute_is_active",
@@ -63,6 +81,15 @@ class UniversitySemester(models.Model):
     )
     active = fields.Boolean(string="Active", default=True)
 
+    @api.depends("date_start", "date_end")
+    def _compute_week_count(self):
+        for semester in self:
+            if semester.date_start and semester.date_end:
+                days = (semester.date_end - semester.date_start).days + 1
+                semester.week_count = max(0, math.ceil(days / 7.0))
+            else:
+                semester.week_count = 0
+
     def init(self):
         super().init()
         self.env.cr.execute("""
@@ -73,11 +100,16 @@ class UniversitySemester(models.Model):
             WHERE s.academic_year_id = y.id
               AND (s.date_start IS NULL OR s.date_end IS NULL)
         """)
+        self.env.cr.execute("""
+            UPDATE university_semester
+            SET session_id = academic_year_id
+            WHERE session_id IS NULL AND academic_year_id IS NOT NULL
+        """)
 
     @api.model_create_multi
     def create(self, vals_list):
         if not can_maintain_closed_year_records(self.env):
-            year_ids = [vals.get("academic_year_id") for vals in vals_list if vals.get("academic_year_id")]
+            year_ids = [vals.get("academic_year_id") or vals.get("session_id") for vals in vals_list if vals.get("academic_year_id") or vals.get("session_id")]
             if year_ids:
                 years = self.env["university.academic.year"].browse(year_ids).exists()
                 if any(y.state in ("closed", "archived") for y in years):
@@ -88,9 +120,10 @@ class UniversitySemester(models.Model):
         if not can_maintain_closed_year_records(self.env):
             if any(s.academic_year_id.state in ("closed", "archived") for s in self):
                 raise UserError("Semesters of a closed or archived academic year are read-only and cannot be modified.")
-            if "academic_year_id" in vals:
+            target_year_id = vals.get("academic_year_id") or vals.get("session_id")
+            if target_year_id:
                 destination_year = self.env["university.academic.year"].browse(
-                    vals["academic_year_id"]
+                    target_year_id
                 ).exists()
                 if destination_year.state in ("closed", "archived"):
                     raise UserError(
@@ -247,14 +280,15 @@ class UniversitySemester(models.Model):
 
     def action_export_department_terms(self):
         self.ensure_one()
-        output = io.BytesIO()
         import xlsxwriter
+
+        output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {"in_memory": True})
         sheet = workbook.add_worksheet("Department Terms")
         headers = [
             "Faculty", "Department", "Semester", "Registration Start",
-            "Registration End", "Add/Drop Deadline", "Grade Deadline",
-            "Start Date", "End Date", "Teaching Weeks", "State",
+            "Registration End", "Add/Drop Start", "Add/Drop End",
+            "Grade Deadline", "Start Date", "End Date", "Teaching Weeks", "State",
         ]
         header_format = workbook.add_format({"bold": True, "bg_color": "#D9EAF7"})
         for column, header in enumerate(headers):
@@ -266,7 +300,8 @@ class UniversitySemester(models.Model):
                 term.semester_id.display_name,
                 term.registration_start,
                 term.registration_end,
-                term.add_drop_deadline or term.add_drop_end,
+                term.add_drop_start,
+                term.add_drop_end,
                 term.grade_deadline,
                 term.date_start,
                 term.date_end,

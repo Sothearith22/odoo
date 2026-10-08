@@ -96,9 +96,20 @@ class Student(models.Model):
         ('2', 'Year 2'),
         ('3', 'Year 3'),
         ('4', 'Year 4'),
-        ('5', 'Year 5'),
-        ('6', 'Year 6'),
     ], string="Year Level")
+    curriculum_line_ids = fields.Many2many(
+        "university.curriculum.line",
+        string="Curriculum Lines",
+        compute="_compute_curriculum_line_ids",
+    )
+
+    @api.depends("program_id", "program_id.curriculum_line_ids")
+    def _compute_curriculum_line_ids(self):
+        for student in self:
+            if student.program_id:
+                student.curriculum_line_ids = student.program_id.curriculum_line_ids
+            else:
+                student.curriculum_line_ids = False
     advisor_id = fields.Many2one(
         "university.teacher",
         string="Academic Advisor",

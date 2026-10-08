@@ -1,3 +1,4 @@
+import math
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -32,7 +33,7 @@ class UniversityClassSection(models.Model):
     subject_id = fields.Many2one(
         "university.subject",
         string="Subject",
-        domain="[('program_ids', 'in', [program_id])]" if "program_id" else "[]",
+        domain="[('program_ids', 'in', [program_id])]\" if \"program_id\" else \"[]",
         help="Set for subject-based class sections.",
     )
     teacher_id = fields.Many2one(
@@ -44,7 +45,7 @@ class UniversityClassSection(models.Model):
         "university.semester",
         string="Semester / Term",
         required=True,
-        domain="[('academic_year_id', '=?', academic_year_id)]",
+        domain="[('academic_year_id', '=?', academic_year_id), ('active', '=', True)]",
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -132,6 +133,14 @@ class UniversityClassSection(models.Model):
         "section_id",
         string="Assignments",
     )
+    date_start = fields.Date(
+        string="Start Date",
+        help="Custom class start date (overrides term start date).",
+    )
+    date_end = fields.Date(
+        string="End Date",
+        help="Custom class end date (overrides term end date).",
+    )
     timeline = fields.Char(
         string="Timeline",
         compute="_compute_timeline",
@@ -144,6 +153,25 @@ class UniversityClassSection(models.Model):
         string="Status",
         default="confirmed",
     )
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if not res.get("semester_id") and res.get("subject_id") and res.get("program_id") and res.get("academic_year_id"):
+            cline = self.env["university.curriculum.line"].search([
+                ("program_id", "=", res["program_id"]),
+                ("subject_id", "=", res["subject_id"]),
+            ], limit=1)
+            if cline and cline.semester_number:
+                sem = self.env["university.semester"].search([
+                    ("academic_year_id", "=", res["academic_year_id"]),
+                    ("active", "=", True),
+                    "|", ("semester_type", "=", f"semester_{cline.semester_number}"),
+                    ("name", "=", f"Semester {cline.semester_number}"),
+                ], limit=1)
+                if sem:
+                    res["semester_id"] = sem.id
+        return res
 
     @api.depends("semester_id", "semester_id.academic_year_id")
     def _compute_academic_year_id(self):
@@ -158,12 +186,42 @@ class UniversityClassSection(models.Model):
         if self.curriculum_line_id:
             if self.curriculum_line_id.subject_id:
                 self.subject_id = self.curriculum_line_id.subject_id
-            if (
+            if self.curriculum_line_id.program_id and not self.program_id:
+                self.program_id = self.curriculum_line_id.program_id
+            elif (
                 self.curriculum_line_id.curriculum_id
                 and self.curriculum_line_id.curriculum_id.program_id
                 and not self.program_id
             ):
                 self.program_id = self.curriculum_line_id.curriculum_id.program_id
+            if self.curriculum_line_id.semester_number and self.academic_year_id and not self.semester_id:
+                sem_type = f"semester_{self.curriculum_line_id.semester_number}"
+                sem = self.env["university.semester"].search([
+                    ("academic_year_id", "=", self.academic_year_id.id),
+                    ("active", "=", True),
+                    "|", ("semester_type", "=", sem_type),
+                    ("name", "=", f"Semester {self.curriculum_line_id.semester_number}"),
+                ], limit=1)
+                if sem:
+                    self.semester_id = sem
+
+    @api.onchange("subject_id", "program_id")
+    def _onchange_subject_and_program_default_term(self):
+        if self.subject_id and self.program_id and self.academic_year_id and not self.semester_id:
+            cline = self.env["university.curriculum.line"].search([
+                ("program_id", "=", self.program_id.id),
+                ("subject_id", "=", self.subject_id.id),
+            ], limit=1)
+            if cline and cline.semester_number:
+                sem_type = f"semester_{cline.semester_number}"
+                sem = self.env["university.semester"].search([
+                    ("academic_year_id", "=", self.academic_year_id.id),
+                    ("active", "=", True),
+                    "|", ("semester_type", "=", sem_type),
+                    ("name", "=", f"Semester {cline.semester_number}"),
+                ], limit=1)
+                if sem:
+                    self.semester_id = sem
 
     @api.depends("enrollment_ids", "enrollment_ids.status")
     def _compute_enrolled_student_count(self):
@@ -376,13 +434,20 @@ class UniversityClassSection(models.Model):
             },
         }
 
-    @api.depends("semester_id.date_start", "semester_id.date_end")
+    @api.depends("semester_id", "semester_id.date_start", "semester_id.date_end", "date_start", "date_end")
     def _compute_timeline(self):
         for section in self:
-            if section.semester_id and section.semester_id.date_start and section.semester_id.date_end:
-                s_str = section.semester_id.date_start.strftime("%m/%d/%Y")
-                e_str = section.semester_id.date_end.strftime("%m/%d/%Y")
-                section.timeline = f"{s_str} - {e_str}"
+            if not section.semester_id:
+                section.timeline = ""
+                continue
+            start = section.date_start or section.semester_id.date_start
+            end = section.date_end or section.semester_id.date_end
+            if start and end:
+                days = (end - start).days + 1
+                weeks = max(0, math.ceil(days / 7.0))
+                section.timeline = f"{start} -> {end} ({weeks} weeks)"
+            elif start:
+                section.timeline = f"{start} ->"
             else:
                 section.timeline = ""
 

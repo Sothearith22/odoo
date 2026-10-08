@@ -7,6 +7,16 @@
         parent="school_management.menu_university_sec_calendar"
         action="action_public_holiday"
         sequence="25"
-        groups="school_management.group_school_admin"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- School Breaks menu under University Configuration (Academic Setup > Calendar) -->
+    <menuitem
+        id="menu_university_holiday_config"
+        name="School Breaks &amp; Closures"
+        parent="school_management.menu_university_sec_calendar"
+        action="school_management.action_university_holiday"
+        sequence="26"
+        groups="school_management.group_school_admin,base.group_system"
     />
 </odoo>

@@ -27,6 +27,11 @@
         <field name="arch" type="xml">
             <form string="Academic Year">
                 <header>
+                    <button name="action_create_semesters"
+                            string="Create Semesters"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="semester_count &gt; 0"/>
                     <button name="action_open_registration"
                             string="Open Registration"
                             type="object"
@@ -87,6 +92,7 @@
                                     <field name="semester_type"/>
                                     <field name="date_start"/>
                                     <field name="date_end"/>
+                                    <field name="week_count"/>
                                 </list>
                             </field>
                         </page>
@@ -206,6 +212,7 @@
                 <field name="semester_type" widget="badge"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
+                <field name="week_count"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -241,6 +248,7 @@
                         <group>
                             <field name="date_start"/>
                             <field name="date_end"/>
+                            <field name="week_count"/>
                         </group>
                     </group>
                     <notebook>
@@ -299,7 +307,7 @@
                                     <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
+                            <div class="text-muted small mt-1" t-if="record.academic_year_id.value">
                                 <i class="fa fa-calendar me-1" title="Academic Year"/>
                                 <field name="academic_year_id"/>
                             </div>

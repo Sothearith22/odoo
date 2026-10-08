@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -10,12 +10,13 @@ _logger = logging.getLogger(__name__)
 class PublicHoliday(models.Model):
     _name = "public.holiday"
     _description = "Public Holiday"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "date_from desc, name asc"
 
-    name = fields.Char(string="Holiday Name", required=True, index=True)
-    name_km = fields.Char(string="Khmer Name")
-    date_from = fields.Date(string="From Date", required=True, index=True)
-    date_to = fields.Date(string="To Date", required=True, index=True)
+    name = fields.Char(string="Holiday Name", required=True, tracking=True, index=True)
+    name_km = fields.Char(string="Khmer Name", tracking=True)
+    date_from = fields.Date(string="From Date", required=True, tracking=True, index=True)
+    date_to = fields.Date(string="To Date", required=True, tracking=True, index=True)
     holiday_type = fields.Selection(
         [
             ("fixed", "Fixed"),
@@ -25,6 +26,7 @@ class PublicHoliday(models.Model):
         string="Holiday Type",
         default="fixed",
         required=True,
+        tracking=True,
         index=True,
     )
     academic_year_id = fields.Many2one(
@@ -35,9 +37,10 @@ class PublicHoliday(models.Model):
     affects_classes = fields.Boolean(
         string="Affects Classes",
         default=True,
+        tracking=True,
         help="If set, class sessions should not be scheduled during this holiday.",
     )
-    active = fields.Boolean(string="Active", default=True)
+    active = fields.Boolean(string="Active", default=True, tracking=True)
     note = fields.Text(string="Note")
 
     session_count = fields.Integer(
@@ -54,6 +57,58 @@ class PublicHoliday(models.Model):
         if (operator in (">", "!=") and value == 0) or (operator == ">=" and value == 1):
             return [("id", "in", holidays_with_sessions)]
         return [("id", "not in", holidays_with_sessions)]
+
+    # -------------------------------------------------------------------------
+    # CANONICAL HOOK METHODS
+    # -------------------------------------------------------------------------
+    @api.model
+    def get_holiday_on(self, date):
+        """Find an active public holiday affecting classes on the given date."""
+        d = fields.Date.to_date(date)
+        if not d:
+            return self.browse()
+        return self.search([
+            ("active", "=", True),
+            ("affects_classes", "=", True),
+            ("date_from", "<=", d),
+            ("date_to", ">=", d),
+        ], limit=1)
+
+    @api.model
+    def is_holiday(self, date, section=None):
+        """Single hook to check if a date is a holiday (national public holiday or school-specific closure)."""
+        d = fields.Date.to_date(date)
+        if not d:
+            return False
+        if self.get_holiday_on(d):
+            return True
+        if "university.holiday" in self.env:
+            domain = [
+                ("active", "=", True),
+                "|",
+                "&", ("date_start", "<=", d), ("date_end", ">=", d),
+                "&", ("date_from", "<=", d), ("date_to", ">=", d),
+            ]
+            if section:
+                holidays = self.env["university.holiday"].search(domain)
+                for h in holidays:
+                    if hasattr(h, "_applies_to_section"):
+                        if h._applies_to_section(section):
+                            return True
+                    else:
+                        return True
+            else:
+                if self.env["university.holiday"].search_count(domain):
+                    return True
+        return False
+
+    @api.model
+    def _is_holiday_admin(self):
+        """Check if current user has administrator privileges for holiday overrides."""
+        return (
+            self.env.is_system()
+            or self.env.user.has_group("school_management.group_school_admin")
+        )
 
     # -------------------------------------------------------------------------
     # COMPUTES & ONCHANGE
@@ -190,6 +245,8 @@ class PublicHoliday(models.Model):
 
     def action_cancel_affected_sessions(self):
         self.ensure_one()
+        if not self._is_holiday_admin():
+            raise UserError(_("Only administrators can cancel affected sessions."))
         if not self.date_from or not self.date_to:
             return
         dt_start = datetime.combine(self.date_from, datetime.min.time())
@@ -206,6 +263,10 @@ class PublicHoliday(models.Model):
             })
             if hasattr(slots, "cancel_reason"):
                 slots.write({"cancel_reason": f"Public Holiday: {self.name}"})
+            if hasattr(self, "message_post"):
+                self.message_post(body=_(
+                    "Cancelled %d timetable session(s) due to holiday '%s' (%s to %s)."
+                ) % (count, self.name, self.date_from, self.date_to))
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -219,9 +280,32 @@ class PublicHoliday(models.Model):
 
 
 class UniversityHoliday(models.Model):
+    """Institutional holiday / recess model in school_management.
+
+    Represents school-specific closures (e.g. exam week, semester break, faculty recesses)
+    scoped to an academic year or faculty.
+    Statutory national public holidays are managed by public.holiday.
+    """
     _inherit = "university.holiday"
     _order = "date_from desc, date_start desc, name asc"
 
+    @api.model
+    def is_holiday(self, day, section=None, company=None):
+        return self.env["public.holiday"].is_holiday(day, section=section)
+
+    @api.model
+    def get_holiday_dates(self, date_from, date_to, section=None, company=None):
+        d_start = fields.Date.to_date(date_from)
+        d_end = fields.Date.to_date(date_to)
+        if not d_start or not d_end or d_start > d_end:
+            return set()
+        matching_days = set()
+        cur = d_start
+        while cur <= d_end:
+            if self.is_holiday(cur, section=section):
+                matching_days.add(cur)
+            cur += timedelta(days=1)
+        return matching_days
     date_from = fields.Date(
         string="From Date",
         index=True,
@@ -317,9 +401,6 @@ class UniversityHoliday(models.Model):
             return [("id", "in", holidays_with_conflicts)]
         return [("id", "not in", holidays_with_conflicts)]
 
-    # -------------------------------------------------------------------------
-    # COMPUTES & ONCHANGE
-    # -------------------------------------------------------------------------
     @api.depends("date_from", "date_start")
     def _compute_year(self):
         for rec in self:
@@ -360,9 +441,6 @@ class UniversityHoliday(models.Model):
             conflicting = slots.filtered(lambda s: holiday._applies_to_section(s.section_id))
             holiday.conflict_count = len(conflicting)
 
-    # -------------------------------------------------------------------------
-    # CONSTRAINTS & ORM LIFECYCLE
-    # -------------------------------------------------------------------------
     @api.constrains("date_from", "date_to", "date_start", "date_end")
     def _check_date_order(self):
         for rec in self:
@@ -433,7 +511,6 @@ class UniversityHoliday(models.Model):
                 vals["date_end"] = d_to
                 vals["date_to"] = d_to
 
-            # Auto-assign academic_year_id if missing to prevent validation errors
             if not vals.get("academic_year_id") and d_from:
                 target_d = fields.Date.to_date(d_from)
                 ay = self.env["university.academic.year"].search([
@@ -462,7 +539,6 @@ class UniversityHoliday(models.Model):
 
     def init(self):
         super().init()
-        # Backfill date_from / date_to for existing records
         self.env.cr.execute("""
             UPDATE university_holiday
             SET date_from = date_start
@@ -472,9 +548,6 @@ class UniversityHoliday(models.Model):
             WHERE date_to IS NULL AND date_end IS NOT NULL;
         """)
 
-    # -------------------------------------------------------------------------
-    # SCOPE MATCHING LOGIC
-    # -------------------------------------------------------------------------
     def _scopes_overlap(self, other):
         self.ensure_one()
         if self.applies_to == "all" or other.applies_to == "all":
@@ -556,59 +629,6 @@ class UniversityHoliday(models.Model):
 
         return True
 
-    # -------------------------------------------------------------------------
-    # PUBLIC HELPER METHODS
-    # -------------------------------------------------------------------------
-    @api.model
-    def is_holiday(self, day, section=None, company=None):
-        """Check if a date is a public holiday respecting applies_to scoping."""
-        if not day:
-            return False
-        day_date = fields.Date.to_date(day)
-        company = company or self.env.company
-        holidays = self.search([
-            ("company_id", "in", [False, company.id]),
-            ("active", "=", True),
-            ("date_start", "<=", day_date),
-            ("date_end", ">=", day_date),
-        ])
-        if not holidays:
-            return False
-        if not section:
-            return bool(holidays)
-        for h in holidays:
-            if h._applies_to_section(section):
-                return True
-        return False
-
-    @api.model
-    def get_holiday_dates(self, date_from, date_to, section=None, company=None):
-        """Return a set of dates between date_from and date_to that are holidays."""
-        d_start = fields.Date.to_date(date_from)
-        d_end = fields.Date.to_date(date_to)
-        if not d_start or not d_end or d_start > d_end:
-            return set()
-        company = company or self.env.company
-        holidays = self.search([
-            ("company_id", "in", [False, company.id]),
-            ("active", "=", True),
-            ("date_start", "<=", d_end),
-            ("date_end", ">=", d_start),
-        ])
-        matching_days = set()
-        for h in holidays:
-            if section and not h._applies_to_section(section):
-                continue
-            cur = max(h.date_from or h.date_start, d_start)
-            h_end = min(h.date_to or h.date_end, d_end)
-            while cur <= h_end:
-                matching_days.add(cur)
-                cur += timedelta(days=1)
-        return matching_days
-
-    # -------------------------------------------------------------------------
-    # SMART BUTTON ACTIONS
-    # -------------------------------------------------------------------------
     def action_view_conflicts(self):
         self.ensure_one()
         d_from = self.date_from or self.date_start

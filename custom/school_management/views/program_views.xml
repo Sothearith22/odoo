@@ -202,6 +202,17 @@
                     </div>
 
                     <notebook>
+                        <page string="Curriculum Structure" name="curriculum_structure_tab">
+                            <field name="curriculum_line_ids">
+                                <list editable="bottom" default_order="year_level, semester_number, sequence, id">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="year_level"/>
+                                    <field name="semester_number"/>
+                                    <field name="subject_id"/>
+                                    <field name="credits" sum="Total Credits"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Curriculum &amp; Subjects" name="subjects_tab">
                             <field name="subject_ids"
                                    context="{'default_department_id': department_id}"

@@ -40,7 +40,7 @@ class WizardRescheduleSession(models.TransientModel):
 
         # 1. Holiday Check
         new_date = fields.Datetime.context_timestamp(slot, self.new_start_time).date()
-        Holiday = self.env["university.holiday"]
+        Holiday = self.env["public.holiday"]
         if Holiday.is_holiday(new_date, section=slot.section_id):
             holiday_name = slot.holiday_name or _("University Holiday")
             raise ValidationError(

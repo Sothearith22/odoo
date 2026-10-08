@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -72,13 +73,13 @@ class UniversityAcademicYear(models.Model):
     def _compute_semester_count(self):
         for year in self:
             year.semester_count = len(
-                year.with_context(active_test=False).semester_ids
+                year.with_context(active_test=False).semester_ids.filtered(lambda s: s.active)
             )
 
     @api.depends("semester_ids", "semester_ids.active")
     def _compute_semester_status(self):
         for year in self:
-            count = len(year.with_context(active_test=False).semester_ids)
+            count = len(year.with_context(active_test=False).semester_ids.filtered(lambda s: s.active))
             year.semester_status = "configured" if count > 0 else "empty"
 
     def init(self):
@@ -95,7 +96,7 @@ class UniversityAcademicYear(models.Model):
     @api.constrains("date_start", "date_end")
     def _check_date_range(self):
         for year in self:
-            semesters = year.with_context(active_test=False).semester_ids
+            semesters = year.with_context(active_test=False).semester_ids.filtered(lambda s: s.active)
             invalid_semester = semesters.filtered(
                 lambda semester: (
                     semester.date_start
@@ -179,3 +180,39 @@ class UniversityAcademicYear(models.Model):
             "target": "new",
             "context": {"default_source_year_id": self.id},
         }
+
+    def action_create_semesters(self):
+        self.ensure_one()
+        active_semesters = self.semester_ids.filtered(lambda s: s.active)
+        if active_semesters:
+            raise UserError("This academic session already has semesters configured.")
+        if not self.date_start or not self.date_end:
+            raise UserError("Please set the academic session start and end dates first.")
+
+        sem1_start = self.date_start
+        sem1_end = sem1_start + timedelta(weeks=16) - timedelta(days=1)
+        sem2_start = sem1_end + timedelta(days=1) + timedelta(weeks=5)
+        sem2_end = sem2_start + timedelta(weeks=16) - timedelta(days=1)
+
+        if self.date_end and sem2_end > self.date_end:
+            sem2_end = self.date_end
+
+        self.env["university.semester"].create([
+            {
+                "name": "Semester 1",
+                "academic_year_id": self.id,
+                "session_id": self.id,
+                "semester_type": "semester_1",
+                "date_start": sem1_start,
+                "date_end": sem1_end,
+            },
+            {
+                "name": "Semester 2",
+                "academic_year_id": self.id,
+                "session_id": self.id,
+                "semester_type": "semester_2",
+                "date_start": sem2_start,
+                "date_end": sem2_end,
+            },
+        ])
+        return True

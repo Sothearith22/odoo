@@ -154,5 +154,16 @@
             <field name="affects_classes" eval="False"/>
             <field name="note">Bon Om Touk (Water Festival) determined by the lunar calendar. Exact dates must be entered or imported each year.</field>
         </record>
+
+        <!-- 15. Peace Day -->
+        <record id="holiday_cambodia_peace_day" model="public.holiday">
+            <field name="name">Peace Day</field>
+            <field name="name_km">ទិវាសន្តិភាព</field>
+            <field name="date_from">2026-12-29</field>
+            <field name="date_to">2026-12-29</field>
+            <field name="holiday_type">fixed</field>
+            <field name="affects_classes" eval="True"/>
+            <field name="note">National Peace Day commemorating the end of civil war and peace across Cambodia on December 29.</field>
+        </record>
     </data>
 </odoo>

@@ -68,6 +68,14 @@
         groups="school_management.group_school_student"
     />
     <menuitem
+        id="menu_student_nav_curriculum"
+        name="My Curriculum"
+        parent="menu_student_my_learning"
+        action="action_university_curriculum_student"
+        sequence="15"
+        groups="school_management.group_school_student"
+    />
+    <menuitem
         id="menu_student_nav_assignments"
         name="My Assignments"
         parent="menu_student_my_learning"
@@ -626,7 +634,7 @@
         id="menu_university_curriculum"
         name="Curriculums"
         parent="menu_university_sec_curriculum"
-        action="action_university_curriculum"
+        action="action_university_curriculum_line"
         sequence="5"
         groups="school_management.group_school_admin,base.group_system"
     />

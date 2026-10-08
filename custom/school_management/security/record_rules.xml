@@ -1218,4 +1218,38 @@
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
     </record>
+    <!-- ==================== CURRICULUM LINE RECORD RULES ==================== -->
+    <record id="rule_student_curriculum_line" model="ir.rule">
+        <field name="name">Student: own program curriculum lines</field>
+        <field name="model_id" ref="model_university_curriculum_line"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('program_id.student_ids.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_teacher_curriculum_line" model="ir.rule">
+        <field name="name">Teacher: all curriculum lines</field>
+        <field name="model_id" ref="model_university_curriculum_line"/>
+        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_admin_registrar_curriculum_line" model="ir.rule">
+        <field name="name">Admin/Registrar: all curriculum lines</field>
+        <field name="model_id" ref="model_university_curriculum_line"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
 </odoo>

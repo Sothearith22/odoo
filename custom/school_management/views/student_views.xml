@@ -281,6 +281,24 @@
                             </field>
                         </page>
 
+                        <page string="My Curriculum" name="my_curriculum_tab">
+                            <field name="curriculum_line_ids" readonly="1">
+                                <list default_order="year_level, semester_number, sequence, id"
+                                      decoration-bf="year_level == parent.year_level"
+                                      decoration-info="year_level == parent.year_level">
+                                    <field name="year_level"/>
+                                    <field name="semester_number"/>
+                                    <field name="subject_id"/>
+                                    <field name="credits" sum="Total Credits"/>
+                                    <field name="is_student_enrolled" column_invisible="1"/>
+                                    <field name="enrollment_status" string="Status" widget="badge"
+                                           decoration-success="enrollment_status == 'Enrolled'"
+                                           decoration-info="enrollment_status == 'Completed'"
+                                           decoration-muted="enrollment_status == 'Planned'"/>
+                                </list>
+                            </field>
+                        </page>
+
                         <page string="Fees &amp; Payments" name="fees_tab" groups="school_management.group_school_admin,school_management.group_school_student">
                             <group>
                                 <group string="Fee Summary">

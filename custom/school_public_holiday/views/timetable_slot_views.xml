@@ -39,8 +39,40 @@
         <field name="inherit_id" ref="school_management.view_university_timetable_slot_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='state']" position="before">
-                <field name="on_holiday" widget="boolean" optional="show" string="Holiday?"/>
+                <field name="holiday_name" string="Public Holiday" optional="show"/>
+                <field name="on_holiday" widget="boolean_toggle" optional="hide" string="Holiday?"/>
                 <field name="cancel_reason" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- EXTEND TIMETABLE SLOT CALENDAR VIEW -->
+    <record id="view_university_timetable_slot_calendar_inherit_holiday" model="ir.ui.view">
+        <field name="name">university.timetable.slot.calendar.inherit.holiday</field>
+        <field name="model">university.timetable.slot</field>
+        <field name="inherit_id" ref="school_management.view_university_timetable_slot_calendar"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="holiday_name"/>
+                <field name="on_holiday"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- EXTEND TIMETABLE SLOT KANBAN VIEW -->
+    <record id="view_university_timetable_slot_kanban_inherit_holiday" model="ir.ui.view">
+        <field name="name">university.timetable.slot.kanban.inherit.holiday</field>
+        <field name="model">university.timetable.slot</field>
+        <field name="inherit_id" ref="school_management.view_university_timetable_slot_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_this_week']" position="after">
+                <field name="on_holiday"/>
+                <field name="holiday_name"/>
+            </xpath>
+            <xpath expr="//span[@t-if='record.is_room_changed.raw_value']" position="after">
+                <span t-if="record.on_holiday.raw_value" class="badge text-bg-warning">
+                    <i class="fa fa-sun-o me-1" aria-hidden="true"/>Holiday
+                </span>
             </xpath>
         </field>
     </record>

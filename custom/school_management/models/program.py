@@ -44,6 +44,11 @@ class UniversityProgram(models.Model):
         "subject_id",
         string="Subjects",
     )
+    curriculum_line_ids = fields.One2many(
+        "university.curriculum.line",
+        "program_id",
+        string="Curriculum Lines",
+    )
     section_ids = fields.One2many(
         "university.class.section",
         "program_id",

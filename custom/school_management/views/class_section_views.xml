@@ -16,6 +16,7 @@
                 <field name="teacher_id" widget="many2one_avatar" string="Instructor"/>
                 <field name="classroom_id" optional="show" string="Room"/>
                 <field name="semester_id" optional="show"/>
+                <field name="timeline" optional="show"/>
                 <field name="capacity" string="Capacity"/>
                 <field name="enrolled_student_count" string="Enrolled"/>
                 <field name="available_seats"
@@ -120,8 +121,12 @@
                         </group>
                         <group string="Academic Session &amp; Schedule">
                             <field name="academic_year_id" string="Session"/>
-                            <field name="semester_id" string="Term"/>
+                            <field name="semester_id" string="Term"
+                                   domain="[('academic_year_id', '=?', academic_year_id), ('active', '=', True)]"
+                                   options="{'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"/>
                             <field name="timeline" string="Timeline" readonly="1"/>
+                            <field name="date_start" string="Start Date" invisible="not date_start and not date_end"/>
+                            <field name="date_end" string="End Date" invisible="not date_start and not date_end"/>
                             <field name="classroom_id" string="Location"/>
                             <field name="capacity_used_percent" widget="progressbar"/>
                             <field name="day_summary" readonly="1"/>
