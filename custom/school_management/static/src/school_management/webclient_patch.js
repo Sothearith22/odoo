@@ -19,8 +19,28 @@ const STUDENT_DASHBOARD_TAG = "student_dashboard_shell";
 const STUDENT_GROUP_XMLID = "school_management.group_school_student";
 const STAFF_GROUP_XMLID = "school_management.group_school_teacher";
 
-const SCHOOL_ACTION_XMLIDS = new Set([SCHOOL_DASHBOARD_XMLID, STUDENT_ACTION_XMLID, TEACHER_ACTION_XMLID, SCHEDULE_ACTION_XMLID]);
-const SCHOOL_ACTION_TAGS = new Set([SCHOOL_DASHBOARD_TAG, STUDENT_DASHBOARD_TAG, TEACHER_DASHBOARD_TAG, SCHEDULE_ACTION_TAG, "university_attendance_sheet"]);
+const SCHOOL_ACTION_XMLIDS = new Set([
+    SCHOOL_DASHBOARD_XMLID,
+    STUDENT_ACTION_XMLID,
+    TEACHER_ACTION_XMLID,
+    SCHEDULE_ACTION_XMLID,
+    "school_management.action_university_attendance_sheet",
+    "school_management.action_university_attendance_grid",
+    "school_management.action_university_attendance_at_risk",
+    "school_management.action_university_attendance_comparison",
+    "school_management.action_university_staff_attendance_sheet",
+]);
+const SCHOOL_ACTION_TAGS = new Set([
+    SCHOOL_DASHBOARD_TAG,
+    STUDENT_DASHBOARD_TAG,
+    TEACHER_DASHBOARD_TAG,
+    SCHEDULE_ACTION_TAG,
+    "university_attendance_sheet",
+    "university_attendance_grid",
+    "university_attendance_at_risk",
+    "university_attendance_comparison",
+    "university_staff_attendance_sheet",
+]);
 const SCHOOL_MODELS = new Set([
     "school.dashboard",
     "university.academic.assignment",
@@ -29,6 +49,11 @@ const SCHOOL_MODELS = new Set([
     "university.assignment",
     "university.assignment.submission",
     "university.attendance",
+    "university.attendance.session",
+    "university.attendance.take.wizard",
+    "university.attendance.take.wizard.line",
+    "university.attendance.print.wizard",
+    "university.staff.attendance",
     "university.bulk.enrollment.wizard",
     "university.capability",
     "university.class.section",

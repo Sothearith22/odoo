@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from odoo import fields
 from odoo.tests.common import TransactionCase
 
 
@@ -103,7 +102,7 @@ class TestGradingIntegration(TransactionCase):
 
     def test_attendance_weighted_grading_and_report_card(self):
         """Test full attendance-to-grade equivalence, multi-quiz averaging, and report card rollup."""
-        # Setup Attendance: 3 absents, 5 permissions, 7 lates
+        # Setup Attendance: 3 absents, 5 excused, 7 lates
         # Formula: 3 + (5//2 = 2) + (7//4 = 1) = 6 effective absences
         # Attendance score: 10 - 6 = 4.0 / 10.0
         base_date = date.today()
@@ -123,7 +122,7 @@ class TestGradingIntegration(TransactionCase):
                 "student_id": self.student.id,
                 "section_id": self.section.id,
                 "date": base_date - timedelta(days=day_offset),
-                "status": "permission",
+                "status": "excused",
             })
         for _ in range(7):
             day_offset += 1

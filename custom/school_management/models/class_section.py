@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -16,6 +16,12 @@ class UniversityClassSection(models.Model):
         default="cohort",
         help="Cohort sections are program/year groups. Course sections are subject-based classes.",
     )
+    curriculum_line_id = fields.Many2one(
+        "university.curriculum.line",
+        string="Curriculum Line",
+        ondelete="set null",
+        help="Optional: link this class section to a Curriculum Line.",
+    )
     program_id = fields.Many2one(
         "university.program",
         string="Major / Level",
@@ -26,24 +32,26 @@ class UniversityClassSection(models.Model):
     subject_id = fields.Many2one(
         "university.subject",
         string="Subject",
-        domain="[('program_ids', 'in', [program_id])]",
-        help="Legacy: set for subject-based class sections. Leave empty for "
-             "program-level cohort sections.",
+        domain="[('program_ids', 'in', [program_id])]" if "program_id" else "[]",
+        help="Set for subject-based class sections.",
     )
     teacher_id = fields.Many2one(
         "university.teacher",
         string="Instructor",
-        help="Legacy: instructor for subject-based class sections.",
+        help="Instructor for this class section.",
     )
     semester_id = fields.Many2one(
-        "university.semester", string="Semester / Term", required=True
+        "university.semester",
+        string="Semester / Term",
+        required=True,
+        domain="[('academic_year_id', '=?', academic_year_id)]",
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
         string="Academic Year",
-        related="semester_id.academic_year_id",
+        compute="_compute_academic_year_id",
         store=True,
-        readonly=True,
+        readonly=False,
     )
     department_id = fields.Many2one(
         "university.department",
@@ -53,11 +61,18 @@ class UniversityClassSection(models.Model):
         readonly=True,
     )
     classroom_id = fields.Many2one(
-        "university.classroom", string="Classroom"
+        "university.classroom",
+        string="Classroom",
+        domain="[('active', '=', True), ('status', '!=', 'maintenance')]",
     )
     capacity = fields.Integer(string="Max Capacity", default=30)
     enrollment_ids = fields.One2many(
         "university.enrollment", "section_id", string="Enrolled Students"
+    )
+    schedule_line_ids = fields.One2many(
+        "university.class.schedule.line",
+        "class_id",
+        string="Weekly Schedule",
     )
     slot_ids = fields.One2many(
         "university.timetable.slot", "section_id", string="Timetable Slots"
@@ -100,14 +115,17 @@ class UniversityClassSection(models.Model):
     day_summary = fields.Char(
         string="Days",
         compute="_compute_schedule_summary",
+        store=True,
     )
     time_summary = fields.Char(
         string="Time",
         compute="_compute_schedule_summary",
+        store=True,
     )
     schedule_summary = fields.Char(
         string="Schedule Summary",
         compute="_compute_schedule_summary",
+        store=True,
     )
     assignment_ids = fields.One2many(
         "university.assignment",
@@ -126,6 +144,26 @@ class UniversityClassSection(models.Model):
         string="Status",
         default="confirmed",
     )
+
+    @api.depends("semester_id", "semester_id.academic_year_id")
+    def _compute_academic_year_id(self):
+        for rec in self:
+            if rec.semester_id and rec.semester_id.academic_year_id:
+                rec.academic_year_id = rec.semester_id.academic_year_id
+            elif not rec.academic_year_id:
+                rec.academic_year_id = False
+
+    @api.onchange("curriculum_line_id")
+    def _onchange_curriculum_line_id(self):
+        if self.curriculum_line_id:
+            if self.curriculum_line_id.subject_id:
+                self.subject_id = self.curriculum_line_id.subject_id
+            if (
+                self.curriculum_line_id.curriculum_id
+                and self.curriculum_line_id.curriculum_id.program_id
+                and not self.program_id
+            ):
+                self.program_id = self.curriculum_line_id.curriculum_id.program_id
 
     @api.depends("enrollment_ids", "enrollment_ids.status")
     def _compute_enrolled_student_count(self):
@@ -156,45 +194,94 @@ class UniversityClassSection(models.Model):
         for section in self:
             section.slot_count = len(section.slot_ids)
 
-    @api.depends("slot_ids.start_time", "slot_ids.end_time", "slot_ids.classroom_id")
+    @api.depends(
+        "schedule_line_ids.active",
+        "schedule_line_ids.weekday",
+        "schedule_line_ids.timeslot_id",
+        "schedule_line_ids.room_id",
+        "slot_ids.start_time",
+        "slot_ids.end_time",
+        "slot_ids.classroom_id",
+    )
     def _compute_schedule_summary(self):
+        weekday_short = {
+            "0": "Mon",
+            "1": "Tue",
+            "2": "Wed",
+            "3": "Thu",
+            "4": "Fri",
+            "5": "Sat",
+            "6": "Sun",
+        }
         for section in self:
-            if not section.slot_ids:
-                section.schedule_summary = ""
+            active_lines = section.schedule_line_ids.filtered(lambda l: l.active)
+            if active_lines:
+                days = []
+                times = []
+                details = []
+                sorted_lines = active_lines.sorted(
+                    key=lambda l: (
+                        l.weekday or "0",
+                        l.timeslot_id.start_hour if l.timeslot_id else 0,
+                    )
+                )
+                for l in sorted_lines:
+                    day = weekday_short.get(l.weekday, "Day")
+                    if day not in days:
+                        days.append(day)
+                    t_name = ""
+                    if l.timeslot_id:
+                        t_name = "%s-%s" % (
+                            l.timeslot_id._format_hour(l.timeslot_id.start_hour),
+                            l.timeslot_id._format_hour(l.timeslot_id.end_hour),
+                        )
+                        if t_name not in times:
+                            times.append(t_name)
+                    room = f" ({l.room_id.name})" if l.room_id else ""
+                    desc = f"{day} {t_name}{room}".strip()
+                    if desc and desc not in details:
+                        details.append(desc)
+                section.day_summary = ", ".join(days)
+                section.time_summary = ", ".join(times[:2])
+                section.schedule_summary = "; ".join(details[:3]) + (
+                    "..." if len(details) > 3 else ""
+                )
+            elif section.slot_ids:
+                days = []
+                times = []
+                details = []
+                slots = section.slot_ids.sorted(key=lambda s: s.start_time or fields.Datetime.now())
+                for s in slots:
+                    if s.start_time:
+                        slot_dt = fields.Datetime.context_timestamp(section, s.start_time)
+                        day_name = slot_dt.strftime("%a")
+                        if day_name not in days:
+                            days.append(day_name)
+                        time_range = slot_dt.strftime("%H:%M")
+                        if s.end_time:
+                            end_dt = fields.Datetime.context_timestamp(section, s.end_time)
+                            time_range += f"-{end_dt.strftime('%H:%M')}"
+                        if time_range not in times:
+                            times.append(time_range)
+                        room = f" ({s.classroom_id.name})" if s.classroom_id else ""
+                        desc = f"{day_name} {time_range}{room}"
+                        if desc not in details:
+                            details.append(desc)
+                section.day_summary = ", ".join(days)
+                section.time_summary = ", ".join(times[:2])
+                section.schedule_summary = "; ".join(details[:3]) + (
+                    "..." if len(details) > 3 else ""
+                )
+            else:
                 section.day_summary = ""
                 section.time_summary = ""
-                continue
-            days = []
-            times = []
-            details = []
-            slots = section.slot_ids.sorted(key=lambda s: s.start_time or fields.Datetime.now())
-            for s in slots:
-                if s.start_time:
-                    slot_dt = fields.Datetime.context_timestamp(section, s.start_time)
-                    day_name = slot_dt.strftime("%a")
-                    if day_name not in days:
-                        days.append(day_name)
-                    time_range = slot_dt.strftime("%H:%M")
-                    if s.end_time:
-                        end_dt = fields.Datetime.context_timestamp(section, s.end_time)
-                        time_range += f"-{end_dt.strftime('%H:%M')}"
-                    if time_range not in times:
-                        times.append(time_range)
-                    room = f" ({s.classroom_id.name})" if s.classroom_id else ""
-                    desc = f"{day_name} {time_range}{room}"
-                    if desc not in details:
-                        details.append(desc)
-            section.day_summary = ", ".join(days)
-            section.time_summary = ", ".join(times[:2])
-            section.schedule_summary = "; ".join(details[:3]) + ("..." if len(details) > 3 else "")
+                section.schedule_summary = ""
 
     @api.constrains("capacity")
     def _check_capacity_positive(self):
         for section in self:
             if section.capacity is not None and section.capacity < 1:
-                raise ValidationError(
-                    "The class section capacity must be at least 1."
-                )
+                raise ValidationError("The class section capacity must be at least 1.")
 
     @api.constrains("program_id", "subject_id")
     def _check_has_program_or_subject(self):
@@ -271,6 +358,22 @@ class UniversityClassSection(models.Model):
             "view_mode": "list,form",
             "domain": [("section_id", "=", self.id)],
             "context": {"default_section_id": self.id},
+        }
+
+    def action_view_sessions(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Sessions - %s") % self.name,
+            "res_model": "university.timetable.slot",
+            "view_mode": "list,calendar,form",
+            "domain": [("section_id", "=", self.id)],
+            "context": {
+                "default_section_id": self.id,
+                "default_subject_id": self.subject_id.id if self.subject_id else False,
+                "default_teacher_id": self.teacher_id.id if self.teacher_id else False,
+                "default_classroom_id": self.classroom_id.id if self.classroom_id else False,
+            },
         }
 
     @api.depends("semester_id.date_start", "semester_id.date_end")

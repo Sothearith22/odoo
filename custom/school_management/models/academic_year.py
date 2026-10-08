@@ -1,9 +1,8 @@
 import logging
 
 from odoo import api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 from .academic_lock import can_maintain_closed_year_records
-from .semester import UniversitySemester
 
 _logger = logging.getLogger(__name__)
 

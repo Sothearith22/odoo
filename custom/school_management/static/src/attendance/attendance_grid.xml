@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="school_management.AttendanceGrid">
+        <div class="o_att_grid">
+            <div class="o_att_grid_toolbar">
+                <h1 class="o_att_grid_title">Attendance Grid</h1>
+                <div class="o_att_grid_controls">
+                    <label class="o_att_grid_label">
+                        Month
+                        <select t-on-change="onMonthChange" t-att-disabled="state.loading">
+                            <option t-foreach="[1,2,3,4,5,6,7,8,9,10,11,12]" t-as="m"
+                                    t-att-value="m" t-att-selected="state.month === m"
+                                    t-esc="m"/>
+                        </select>
+                    </label>
+                    <label class="o_att_grid_label">
+                        Year
+                        <input type="number" min="2000" max="2100" t-att-value="state.year"
+                               t-on-change="onYearChange" t-att-disabled="state.loading"/>
+                    </label>
+                    <button class="btn btn-secondary" t-on-click="refresh" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh me-1" t-att-class="state.loading ? 'fa-spin' : ''"/>Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" t-if="state.error" role="alert">
+                <i class="fa fa-exclamation-triangle me-1"/>
+                <span t-esc="state.error"/>
+            </div>
+            <div class="text-center py-5" t-if="state.loading &amp;&amp; !state.grid">
+                <i class="fa fa-spinner fa-spin fa-2x text-muted"/>
+            </div>
+
+            <t t-if="state.grid">
+                <div class="o_att_grid_empty alert alert-info"
+                     t-if="!state.grid.sections.length"
+                     role="alert">
+                    <i class="fa fa-info-circle me-1"/>
+                    No class sections are available for the selected period. Please choose a
+                    different month/year or contact your administrator.
+                </div>
+                <div class="o_att_legend">
+                    <span class="o_att_legend_item"><b class="o_att_key">Legend:</b></span>
+                    <span class="o_att_legend_item"
+                          t-foreach="Object.entries(state.grid.legend)" t-as="legendEntry" t-key="legendEntry[0]">
+                        <span class="o_att_legend_code" t-esc="legendEntry[0]"/> = <span t-esc="legendEntry[1]"/>
+                    </span>
+                    <span class="o_att_legend_item text-muted">Weekends and holidays are shaded and not recorded.</span>
+                </div>
+
+                <div class="o_att_grid_section" t-foreach="state.grid.sections" t-as="section" t-key="section.id">
+                    <div class="o_att_grid_section_head">
+                        <h2 class="o_att_grid_section_title" t-esc="section.display_name"/>
+                        <span class="o_att_grid_badge" t-if="section.department" t-esc="section.department"/>
+                        <span class="o_att_grid_badge o_att_grid_badge--muted" t-esc="'Teacher: ' + (section.teacher || 'Not assigned')"/>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered o_att_grid_table">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Student</th>
+                                    <th t-foreach="state.grid.calendar.days" t-as="day" t-key="day.day"
+                                        t-att-class="'text-center o_att_day' + ((day.weekend || day.holiday) ? ' o_att_day_off' : '')"
+                                        t-att-title="day.holiday ? 'Holiday' : (day.weekend ? 'Weekend' : '')">
+                                        <span t-esc="day.day"/>
+                                        <i t-if="day.holiday" class="fa fa-asterisk text-warning" title="Holiday"/>
+                                    </th>
+                                    <th class="text-center">Abs</th>
+                                    <th class="text-center">Pre</th>
+                                    <th class="text-center">Late</th>
+                                    <th class="text-center">Exc</th>
+                                    <th class="text-center">Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="section.students" t-as="student" t-key="student.student_id">
+                                    <td class="text-center" t-esc="student_index"/>
+                                    <td class="o_att_student">
+                                        <span t-esc="student.name"/>
+                                        <span class="o_att_grid_code text-muted" t-if="student.code" t-esc="student.code"/>
+                                        <span class="o_att_risk_dot ms-1" title="Below threshold"
+                                              t-if="isRisk(student, state.grid.threshold)">&#9888;</span>
+                                    </td>
+                                    <td t-foreach="student.cells" t-as="cell" t-key="cell.day"
+                                        t-att-class="'text-center o_att_day' + ((state.grid.calendar.days[cell.day - 1].weekend || state.grid.calendar.days[cell.day - 1].holiday) ? ' o_att_day_off' : '')">
+                                        <t t-if="state.grid.calendar.days[cell.day - 1].weekend || state.grid.calendar.days[cell.day - 1].holiday">
+                                            <span class="text-muted">&#8212;</span>
+                                        </t>
+                                        <select t-elif="section.can_edit"
+                                                class="o_att_cell_select"
+                                                t-att-disabled="state.savingCell"
+                                                t-on-change="updateCell(section.id, student.student_id, cell.day, $event.target.value)">
+                                            <option value="" t-att-selected="!cell.status">&#183;</option>
+                                            <option t-foreach="state.statuses" t-as="option" t-key="option.value"
+                                                    t-att-value="'' + option.value"
+                                                    t-att-selected="cell.status === option.value"
+                                                    t-esc="option.key"/>
+                                        </select>
+                                        <span t-else="" t-att-class="'o_att_cell_code o_att_cell_' + cell.status"
+                                              t-att-title="cell.remark || ''"
+                                              t-esc="cell.code || ''"/>
+                                    </td>
+                                    <td class="text-center" t-esc="studentCounts(student).absent"/>
+                                    <td class="text-center" t-esc="studentCounts(student).present"/>
+                                    <td class="text-center" t-esc="studentCounts(student).late"/>
+                                    <td class="text-center" t-esc="studentCounts(student).excused"/>
+                                    <td class="text-center"
+                                        t-att-class="'o_att_grid_rate' + (isRisk(student, state.grid.threshold) ? ' o_att_grid_rate--risk' : '')"
+                                        t-esc="rate(student)"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

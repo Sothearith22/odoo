@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Deactivate legacy Holidays menu from school_management -->
+    <record id="school_management.menu_university_holiday" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Holidays parent menu under Schedule category (no action, only children) -->
+    <menuitem
+        id="menu_school_holiday_parent"
+        name="Holidays"
+        parent="school_management.menu_university_schedule_category"
+        sequence="25"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Child: Holidays List & Form -->
+    <menuitem
+        id="menu_school_holiday_list"
+        name="Holidays"
+        parent="menu_school_holiday_parent"
+        action="school_management.action_university_holiday"
+        sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Child: Import Holidays (admins and settings admin only) -->
+    <menuitem
+        id="menu_school_holiday_import"
+        name="Import Holidays"
+        parent="menu_school_holiday_parent"
+        action="action_wizard_import_public_holiday"
+        sequence="20"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+
+    <!-- Child: Import History (admins and settings admin only) -->
+    <menuitem
+        id="menu_school_holiday_import_history"
+        name="Import History"
+        parent="menu_school_holiday_parent"
+        action="action_school_holiday_import_log"
+        sequence="30"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+</odoo>

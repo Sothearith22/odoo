@@ -207,7 +207,7 @@
     .o_att_seg__btn--present.o_att_seg__btn--on { background: var(--att-green-soft); color: var(--att-green); }
     .o_att_seg__btn--absent.o_att_seg__btn--on { background: var(--att-red-soft); color: var(--att-red); }
     .o_att_seg__btn--late.o_att_seg__btn--on { background: var(--att-amber-soft); color: var(--att-amber); }
-    .o_att_seg__btn--permission.o_att_seg__btn--on { background: var(--att-primary-soft); color: var(--att-primary-hover); }
+    .o_att_seg__btn--excused.o_att_seg__btn--on { background: var(--att-primary-soft); color: var(--att-primary-hover); }
     .o_att_seg__btn--on { font-weight: 600; }
     .o_att_notecell { display: flex; justify-content: center; }
     .o_att_notebtn { position: relative; width: 32px; height: 32px; padding: 0; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--att-muted); cursor: pointer; }

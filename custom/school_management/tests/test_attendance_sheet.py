@@ -75,12 +75,12 @@ class TestAttendanceSheet(_AttendanceSheetFixtures, TransactionCase):
         self.assertEqual(session.recorded_by_id, self.env.user)
         self.assertTrue(session.recorded_at)
         self.assertTrue(any("Attendance recorded" in message.body for message in session.message_ids))
-        updated = self._save(status="permission", remark="Excused", notes="Updated session note")
+        updated = self._save(status="excused", remark="Excused", notes="Updated session note")
         self.assertEqual(updated["session_id"], session.id)
-        self.assertEqual(updated["lines"][0]["status"], "permission")
+        self.assertEqual(updated["lines"][0]["status"], "excused")
         self.assertEqual(updated["lines"][0]["remark"], "Excused")
         self.assertEqual(updated["notes"], "Updated session note")
-        self.assertTrue(any("Present -&gt; Permission" in message.body for message in session.message_ids))
+        self.assertTrue(any("Present -&gt; Excused" in message.body for message in session.message_ids))
 
     def test_sessions_are_isolated_by_date(self):
         first = self._save()
@@ -163,10 +163,10 @@ class TestAttendanceSheetBrowser(_AttendanceSheetFixtures, HttpCase):
                 const chatterBar = sheet.querySelector('.o-mail-Chatter-topbar');
                 assert(chatterBar.scrollWidth <= chatterBar.clientWidth + 1, 'Chatter toolbar overflows');
                 const row = sheet.querySelector('.o_att_row');
-                row.querySelector('[data-status="permission"]').click();
-                sheet.querySelector('[data-filter="permission"]').click();
-                await waitFor(() => sheet.querySelector('[data-status="permission"][aria-checked="true"]'));
-                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Permission filter lost the excused student');
+                row.querySelector('[data-status="excused"]').click();
+                sheet.querySelector('[data-filter="excused"]').click();
+                await waitFor(() => sheet.querySelector('[data-status="excused"][aria-checked="true"]'));
+                assert(sheet.querySelectorAll('.o_att_student_name').length === 1, 'Excused filter lost the excused student');
                 sheet.querySelector('[data-tab="details"]').click();
                 await waitFor(() => sheet.querySelector('#att_session_notes'));
                 const notes = sheet.querySelector('#att_session_notes');
@@ -201,7 +201,7 @@ class TestAttendanceSheetBrowser(_AttendanceSheetFixtures, HttpCase):
         self.env.invalidate_all()
         saved = self.Attendance.get_sheet(self.section.id, "2026-09-30")
         self.assertEqual(saved["notes"], "Saved browser note")
-        self.assertEqual(saved["lines"][0]["status"], "permission")
+        self.assertEqual(saved["lines"][0]["status"], "excused")
 
     def test_desktop_attendance_layout_and_controls(self):
         self._check_sheet(1440)

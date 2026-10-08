@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_wizard_import_public_holiday_form" model="ir.ui.view">
+        <field name="name">wizard.import.public.holiday.form</field>
+        <field name="model">wizard.import.public.holiday</field>
+        <field name="arch" type="xml">
+            <form string="Import Public Holidays">
+                <field name="state" invisible="1"/>
+
+                <!-- STEP 1: UPLOAD STATE -->
+                <div invisible="state != 'upload'">
+                    <p class="text-muted">
+                        Upload a <strong>.CSV</strong> or <strong>.XLSX</strong> file containing public holidays.
+                        Columns accepted: <code>Name</code>, <code>Date From</code>, <code>Date To</code>, <code>Holiday Type</code>, <code>Work Pay Multiplier</code>, <code>Note</code>.
+                    </p>
+                    <div class="mb-3">
+                        <button name="action_download_template" type="object" string="Download Sample CSV Template" class="btn btn-outline-secondary btn-sm" icon="fa-download"/>
+                    </div>
+                    <group>
+                        <group string="Select File">
+                            <field name="file_data" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+                        <group string="Options">
+                            <field name="duplicate_policy" widget="radio"/>
+                        </group>
+                    </group>
+                </div>
+
+                <!-- STEP 2: PREVIEW STATE -->
+                <div invisible="state != 'preview'">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="badge bg-primary me-2">Total Rows: <field name="total_rows"/></span>
+                            <span class="badge bg-success me-2">Valid: <field name="valid_rows"/></span>
+                            <span class="badge bg-warning text-dark me-2">Duplicates: <field name="duplicate_rows"/></span>
+                            <span class="badge bg-danger me-2">Errors: <field name="error_rows"/></span>
+                        </div>
+                    </div>
+                    <p class="small text-muted mb-2">
+                        Review the parsed data before confirming. Any rows with fatal errors will block atomic import.
+                    </p>
+                    <field name="preview_line_ids" readonly="1">
+                        <list decoration-success="status == 'ok'" decoration-warning="status == 'duplicate'" decoration-danger="status in ('invalid_date', 'missing_name')">
+                            <field name="line_number" string="#"/>
+                            <field name="name"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="holiday_type"/>
+                            <field name="work_pay_multiplier"/>
+                            <field name="status" widget="badge" decoration-success="status == 'ok'" decoration-warning="status == 'duplicate'" decoration-danger="status in ('invalid_date', 'missing_name')"/>
+                            <field name="status_message"/>
+                        </list>
+                    </field>
+                </div>
+
+                <!-- STEP 3: DONE STATE -->
+                <div invisible="state != 'done'">
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="fa fa-check-circle fa-2x me-3" title="Success"/>
+                        <div>
+                            <h4>Import Successful!</h4>
+                            <field name="summary_msg" readonly="1"/>
+                        </div>
+                    </div>
+                </div>
+
+                <footer>
+                    <button name="action_parse_and_preview" type="object" string="Preview &amp; Validate" class="btn-primary" invisible="state != 'upload'"/>
+                    <button name="action_confirm_import" type="object" string="Confirm Import" class="btn-primary" invisible="state != 'preview'"/>
+                    <button name="action_check_class_conflicts" type="object" string="Check Class Conflicts" class="btn-warning" invisible="state != 'done'"/>
+                    <button name="action_view_imported_holidays" type="object" string="View Imported Holidays" class="btn-secondary" invisible="state != 'done'"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" invisible="state == 'done'"/>
+                    <button string="Close" class="btn-secondary" special="cancel" invisible="state != 'done'"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

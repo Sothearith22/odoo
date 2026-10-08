@@ -3,7 +3,7 @@
     <!-- =================================================================== -->
     <!-- WIZARD: Reject Transcript Request                                   -->
     <!-- =================================================================== -->
-    <record id="view_university_transcript_request_reject_wizard_form" model="ir.ui.view">
+    <record id="view_university_transcript_request_reject_wizard_form" model="ir.ui.view"   >
         <field name="name">university.transcript.request.reject.wizard.form</field>
         <field name="model">university.transcript.request.reject.wizard</field>
         <field name="arch" type="xml">

@@ -1,4 +1,3 @@
-from collections import defaultdict
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -320,10 +319,10 @@ class UniversityReportCard(models.Model):
 
                 att_records = self.env["university.attendance"].search(att_domain)
                 actual_absents = len(att_records.filtered(lambda a: a.status == "absent"))
-                total_permissions = len(att_records.filtered(lambda a: a.status == "permission"))
+                total_excused = len(att_records.filtered(lambda a: a.status == "excused"))
                 total_lates = len(att_records.filtered(lambda a: a.status == "late"))
 
-                effective_absences = actual_absents + (total_permissions // 2) + (total_lates // 4)
+                effective_absences = actual_absents + (total_excused // 2) + (total_lates // 4)
                 attendance_score = max(0.0, 10.0 - (effective_absences * 1.0))
 
                 # B. Component Results from published assessment results

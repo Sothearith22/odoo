@@ -358,7 +358,7 @@ export class TeacherDashboardShell extends Component {
                     this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]),
                     this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]),
                     this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "late"]]),
-                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "permission"]]),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "excused"]]),
                 ]);
 
                 this.state.presentCount = presentCount;

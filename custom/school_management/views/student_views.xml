@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Student Views - Redesigned matching Academic Staff (Odoo 19)
--->
 <odoo>
 
     <!-- ==================== LIST VIEW ==================== -->
@@ -220,6 +217,8 @@
                                 <group string="Academic Placement">
                                     <field name="program_id"/>
                                     <field name="department_id"/>
+                                    <field name="curriculum_id"/>
+                                    <field name="year_level"/>
                                     <field name="faculty_id" readonly="1"/>
                                     <field name="academic_year_id"/>
                                     <field name="current_semester_id"/>

@@ -11,7 +11,7 @@
                 <field name="day_summary" string="Days" optional="show"/>
                 <field name="time_summary" string="Time" optional="show"/>
                 <field name="section_type" widget="badge" optional="show" string="Format"/>
-                <field name="program_id" string="Major / Level"/>
+                <field name="program_id" string="Major"/>
                 <field name="subject_id" optional="show"/>
                 <field name="teacher_id" widget="many2one_avatar" string="Instructor"/>
                 <field name="classroom_id" optional="show" string="Room"/>
@@ -91,7 +91,7 @@
                                 <span class="o_stat_text">Enrolled (<field name="available_seats"/> Open)</span>
                             </div>
                         </button>
-                        <button name="action_view_schedule"
+                        <button name="action_view_sessions"
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-calendar">
@@ -110,6 +110,7 @@
 
                     <group>
                         <group string="Class Information">
+                            <field name="curriculum_line_id" options="{'no_create': True}" optional="show"/>
                             <field name="program_id" string="Grade" placeholder="e.g. Grade 11"/>
                             <field name="subject_id" string="Subject" domain="[('program_ids', 'in', [program_id])]"/>
                             <field name="teacher_id" string="Teacher" widget="many2one_avatar" domain="[('subject_ids', 'in', subject_id)]"/>
@@ -174,26 +175,19 @@
                                     <i class="fa fa-info-circle me-1"/> Weekly recurring session timetable
                                 </div>
                             </div>
-                            <field name="slot_ids">
+                            <field name="schedule_line_ids">
                                 <list editable="bottom">
-                                    <field name="day_name" string="Day"/>
-                                    <field name="period" string="Period"/>
-                                    <field name="location" string="Location"/>
-                                    <field name="status" widget="badge" string="Status"
-                                           decoration-success="status == 'completed'"
-                                           decoration-info="status == 'upcoming'"
-                                           decoration-warning="status == 'ongoing'"
-                                           decoration-danger="status == 'cancelled'"/>
-                                    <field name="start_time" string="Start Datetime" optional="hide"/>
-                                    <field name="end_time" string="End Datetime" optional="hide"/>
-                                    <field name="classroom_id" optional="hide"/>
-                                    <field name="teacher_id" optional="hide"/>
+                                    <field name="weekday"/>
+                                    <field name="timeslot_id"/>
+                                    <field name="room_id"/>
+                                    <field name="teacher_id"/>
+                                    <field name="active" widget="boolean_toggle" optional="show"/>
                                 </list>
                             </field>
                         </page>
 
                         <page string="Assignment Type" name="assignments_tab">
-                            <field name="assignment_ids">
+                            <field name="assignment_ids" context="{'default_teacher_id': teacher_id, 'default_section_id': id, 'default_subject_id': subject_id}">
                                 <list editable="bottom">
                                     <field name="name" string="Assignment Title"/>
                                     <field name="assignment_type" string="Type" widget="badge"/>
@@ -243,6 +237,7 @@
                         name="filter_course"
                         domain="[('section_type', '=', 'course')]"/>
                 <separator/>
+
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Show Inactive" name="filter_inactive" domain="[('active', '=', False)]"/>
 

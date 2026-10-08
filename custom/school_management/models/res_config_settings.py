@@ -55,6 +55,13 @@ class UniversityResConfigSettings(models.TransientModel):
         default=75.0,
         help="Students with an attendance rate below this percentage are flagged as attendance risk.",
     )
+    attendance_edit_window_days = fields.Integer(
+        string="Attendance Editing Window (Days)",
+        config_parameter="school_management.attendance_edit_window_days",
+        default=7,
+        help="Number of days after an attendance date during which teachers may still "
+             "record or correct attendance.",
+    )
     transcript_hold_min_balance = fields.Float(
         string="Transcript Hold Minimum Balance",
         config_parameter="school_management.transcript_hold_min_balance",

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Fixed Cambodia Public Holidays (Annual Fixed Dates for reference year 2025) -->
+        <record id="holiday_cambodia_international_new_year" model="university.holiday">
+            <field name="name">International New Year Day (2025)</field>
+            <field name="date_start">2025-01-01</field>
+            <field name="date_end">2025-01-01</field>
+            <field name="date_from">2025-01-01</field>
+            <field name="date_to">2025-01-01</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - International New Year</field>
+        </record>
+
+        <record id="holiday_cambodia_victory_day" model="university.holiday">
+            <field name="name">Victory Day over Genocide (2025)</field>
+            <field name="date_start">2025-01-07</field>
+            <field name="date_end">2025-01-07</field>
+            <field name="date_from">2025-01-07</field>
+            <field name="date_to">2025-01-07</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - 7 January Victory Day</field>
+        </record>
+
+        <record id="holiday_cambodia_women_day" model="university.holiday">
+            <field name="name">International Women's Day (2025)</field>
+            <field name="date_start">2025-03-08</field>
+            <field name="date_end">2025-03-08</field>
+            <field name="date_from">2025-03-08</field>
+            <field name="date_to">2025-03-08</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - International Women's Day</field>
+        </record>
+
+        <record id="holiday_cambodia_khmer_new_year" model="university.holiday">
+            <field name="name">Khmer New Year Day (2025)</field>
+            <field name="date_start">2025-04-14</field>
+            <field name="date_end">2025-04-16</field>
+            <field name="date_from">2025-04-14</field>
+            <field name="date_to">2025-04-16</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - Traditional Khmer New Year (3 Days)</field>
+        </record>
+
+        <record id="holiday_cambodia_labor_day" model="university.holiday">
+            <field name="name">International Labor Day (2025)</field>
+            <field name="date_start">2025-05-01</field>
+            <field name="date_end">2025-05-01</field>
+            <field name="date_from">2025-05-01</field>
+            <field name="date_to">2025-05-01</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - International Labor Day</field>
+        </record>
+
+        <record id="holiday_cambodia_constitutional_day" model="university.holiday">
+            <field name="name">Constitutional Day (2025)</field>
+            <field name="date_start">2025-09-24</field>
+            <field name="date_end">2025-09-24</field>
+            <field name="date_from">2025-09-24</field>
+            <field name="date_to">2025-09-24</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - Constitution Day</field>
+        </record>
+
+        <record id="holiday_cambodia_coronation_day" model="university.holiday">
+            <field name="name">King's Coronation Day (2025)</field>
+            <field name="date_start">2025-10-29</field>
+            <field name="date_end">2025-10-29</field>
+            <field name="date_from">2025-10-29</field>
+            <field name="date_to">2025-10-29</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - Coronation Day of King Norodom Sihamoni</field>
+        </record>
+
+        <record id="holiday_cambodia_independence_day" model="university.holiday">
+            <field name="name">National Independence Day (2025)</field>
+            <field name="date_start">2025-11-09</field>
+            <field name="date_end">2025-11-09</field>
+            <field name="date_from">2025-11-09</field>
+            <field name="date_to">2025-11-09</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - National Independence Day</field>
+        </record>
+
+        <record id="holiday_cambodia_peace_day" model="university.holiday">
+            <field name="name">Peace Day (2025)</field>
+            <field name="date_start">2025-12-29</field>
+            <field name="date_end">2025-12-29</field>
+            <field name="date_from">2025-12-29</field>
+            <field name="date_to">2025-12-29</field>
+            <field name="holiday_type">public</field>
+            <field name="applies_to">all</field>
+            <field name="work_pay_multiplier">2.0</field>
+            <field name="note">Fixed Cambodia National Holiday - Peace Day</field>
+        </record>
+    </data>
+</odoo>

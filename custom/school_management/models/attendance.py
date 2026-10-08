@@ -1,11 +1,30 @@
-from datetime import datetime, time, timedelta
+import calendar
+import io
+from datetime import date, datetime, time, timedelta
 
 import pytz
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tools.misc import format_date
+
+
+def _section_info(section):
+    sec = section.sudo()
+    return {
+        "id": section.id,
+        "name": section.name,
+        "display_name": section.display_name,
+        "subject": sec.subject_id.name or "",
+        "teacher": sec.teacher_id.name or "",
+        "department": sec.department_id.name or "",
+        "semester": sec.semester_id.name or "",
+    }
+
+
+def _status_row(record):
+    return record.status[:1].upper()
 
 
 class UniversityAttendanceSession(models.Model):
@@ -68,18 +87,62 @@ class UniversityAttendance(models.Model):
             ("present", "Present"),
             ("absent", "Absent"),
             ("late", "Late"),
-            ("permission", "Permission / Excused"),
+            ("excused", "Excused"),
         ],
         string="Status",
         required=True,
         default="present"
     )
-    remark = fields.Char(string="Remark")
+    remark = fields.Char(string="Remarks")
+    department_id = fields.Many2one(
+        "university.department",
+        string="Department",
+        related="section_id.department_id",
+        store=True,
+        readonly=True,
+        help="Department of the class section (used for HOD/dean scoping).",
+    )
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        string="Faculty",
+        related="department_id.faculty_id",
+        store=True,
+        readonly=True,
+        help="Faculty of the class section (used for faculty/dean scoping).",
+    )
+    month = fields.Integer(
+        string="Month",
+        compute="_compute_month_year",
+        store=True,
+        help="Numeric month (1-12) of the attendance date.",
+    )
+    year = fields.Integer(
+        string="Year",
+        compute="_compute_month_year",
+        store=True,
+        help="Calendar year of the attendance date.",
+    )
 
     _student_date_section_unique = models.Constraint(
         "unique (student_id, date, section_id)",
         "Attendance for this student, date, and section already exists.",
     )
+    _check_date_not_future = models.Constraint(
+        "check (date <= CURRENT_DATE)",
+        "Attendance cannot be recorded for a future date.",
+    )
+
+    # Attendance percentage formula constant (Attendance spec, STEP 1).
+    # Students are credited as "present for the day" when they are present,
+    # late or excused; only unexcused absences reduce the rate.
+    PRESENT_STATUSES = ("present", "late", "excused")
+    STATUS_KEYS = {"present": "P", "absent": "A", "late": "L", "excused": "E"}
+
+    @api.depends("date")
+    def _compute_month_year(self):
+        for record in self:
+            record.month = record.date.month if record.date else 0
+            record.year = record.date.year if record.date else 0
 
     @api.depends("student_id", "date")
     def _compute_display_name(self):
@@ -93,7 +156,141 @@ class UniversityAttendance(models.Model):
 
     @api.model
     def _attendance_sheet_statuses(self):
-        return {"present", "absent", "late", "permission"}
+        return {"present", "absent", "late", "excused"}
+
+    @api.model
+    def _attendance_percentage(self, status_counts):
+        """Attendance % = (present + late + excused) / total recorded * 100.
+
+        Documented percentage formula constant (STEP 1): the attendance rate
+        credits present, late and excused records, and only penalises
+        unexcused absences.
+        """
+        denominator = sum(
+            status_counts.get(status, 0)
+            for status in ("present", "absent", "late", "excused")
+        )
+        if not denominator:
+            return 100.0
+        numerator = sum(status_counts.get(status, 0) for status in self.PRESENT_STATUSES)
+        return round(numerator * 100.0 / denominator, 1)
+
+    @api.model
+    def _attendance_threshold(self):
+        return float(
+            self.env["ir.config_parameter"].sudo().get_param(
+                "school_management.risk_attendance_threshold", 75.0
+            )
+        )
+
+    @api.model
+    def _attendance_edit_window_days(self):
+        return int(
+            self.env["ir.config_parameter"].sudo().get_param(
+                "school_management.attendance_edit_window_days", 7
+            )
+        )
+
+    @api.model
+    def _allowed_edit(self, section):
+        """Whether the current user may record/edit attendance on a section."""
+        user = self.env.user
+        if self.env.is_superuser() or user.has_group("school_management.group_school_admin") \
+                or user.has_group("base.group_system"):
+            return True
+        if not user.has_group("school_management.group_school_teacher"):
+            return False
+        return bool(section.teacher_id.user_id == user)
+
+    @api.model
+    def _get_role_sections(self):
+        """Sections the current user is allowed to see in attendance reports,
+        mirroring the HOD/dean/teacher record rules. Admin/system see all."""
+        Section = self.env["university.class.section"]
+        user = self.env.user
+        if self.env.is_superuser() or user.has_group("school_management.group_school_admin") \
+                or user.has_group("base.group_system"):
+            return Section.search([])
+        if user.has_group("school_management.group_school_dean"):
+            return Section.search(
+                [("department_id.faculty_id.dean_id.user_id", "=", user.id)]
+            )
+        if user.has_group("school_management.group_school_hod"):
+            return Section.search(
+                ["|",
+                 ("department_id.head_id.user_id", "=", user.id),
+                 ("teacher_id.user_id", "=", user.id)]
+            )
+        if user.has_group("school_management.group_school_teacher"):
+            return Section.search([("teacher_id.user_id", "=", user.id)])
+        return Section.browse()
+
+    @api.model
+    def _validated_month_year(self, month, year):
+        try:
+            month = int(month)
+            year = int(year)
+        except (TypeError, ValueError):
+            month = fields.Date.from_string(fields.Date.context_today(self)).month
+            year = fields.Date.from_string(fields.Date.context_today(self)).year
+        if month < 1 or month > 12:
+            month = fields.Date.from_string(fields.Date.context_today(self)).month
+        if year < 2000 or year > 2100:
+            year = fields.Date.from_string(fields.Date.context_today(self)).year
+        return month, year
+
+    @api.model
+    def _month_calendar(self, month, year):
+        """Calendar metadata for a month: weekdays, weekends and holidays."""
+        first_weekday, num_days = calendar.monthrange(year, month)
+        month_start = date(year, month, 1)
+        month_end = date(year, month, num_days)
+        holiday_days = set()
+        for holiday in self.env["university.holiday"].search([]):
+            if not holiday.date_start or not holiday.date_end:
+                continue
+            cursor = max(holiday.date_start, month_start)
+            end = min(holiday.date_end, month_end)
+            while cursor <= end:
+                holiday_days.add(cursor)
+                cursor += timedelta(days=1)
+        days = []
+        for day in range(1, num_days + 1):
+            dow = calendar.weekday(year, month, day)
+            days.append({
+                "day": day,
+                "dow": dow,
+                "weekend": dow >= 5,
+                "holiday": date(year, month, day) in holiday_days,
+            })
+        return {
+            "month": month,
+            "year": year,
+            "first_weekday": first_weekday,
+            "num_days": num_days,
+            "days": days,
+        }
+
+    def _status_codes(self, records):
+        return {
+            record.date.day: self.STATUS_KEYS.get(record.status, record.status[:1].upper())
+            for record in records
+        }
+
+    @api.model
+    def get_attendance_options(self, role="teacher"):
+        statuses = [
+            {"value": value, "label": label, "key": self.STATUS_KEYS.get(value, "")}
+            for value, label in self._fields["status"].selection
+        ]
+        return {
+            "statuses": statuses,
+            "presence_statuses": list(self.PRESENT_STATUSES),
+            "threshold": self._attendance_threshold(),
+            "edit_window_days": self._attendance_edit_window_days(),
+            "can_take": role in ("teacher", "admin"),
+            "can_edit": role in ("teacher", "admin"),
+        }
 
     @api.model
     def _attendance_sheet_date(self, date):
@@ -202,6 +399,24 @@ class UniversityAttendance(models.Model):
         self.check_access("create")
         section = self._attendance_sheet_section(section_id)
         attendance_date = self._attendance_sheet_date(date)
+
+        today = fields.Date.context_today(self)
+        if attendance_date > today:
+            raise ValidationError(_("Attendance cannot be recorded for a future date."))
+        edit_window = self._attendance_edit_window_days()
+        if not self._allowed_edit(section):
+            raise AccessError(
+                _("You are not allowed to record attendance for this class section.")
+            )
+        if attendance_date < today - timedelta(days=edit_window) \
+                and not (self.env.is_superuser()
+                         or self.env.user.has_group("school_management.group_school_admin")
+                         or self.env.user.has_group("base.group_system")):
+            raise ValidationError(
+                _("Attendance for %s is outside the %s-day editing window.")
+                % (format_date(self.env, attendance_date), edit_window)
+            )
+
         if not isinstance(lines, list):
             raise ValidationError(_("Attendance lines must be a list."))
         if notes is not None and not isinstance(notes, str):
@@ -294,3 +509,572 @@ class UniversityAttendance(models.Model):
                 session.message_post(body=body, subtype_xmlid="mail.mt_note")
 
         return self.get_sheet(section.id, fields.Date.to_string(attendance_date))
+
+    # =====================================================================
+    # Role-scoped helpers shared by the attendance dashboard / grid / reports
+    # =====================================================================
+
+    @api.model
+    def _get_role(self):
+        user = self.env.user
+        if self.env.is_superuser() or user.has_group("school_management.group_school_admin") \
+                or user.has_group("base.group_system"):
+            return "admin"
+        if user.has_group("school_management.group_school_dean"):
+            return "dean"
+        if user.has_group("school_management.group_school_hod"):
+            return "hod"
+        if user.has_group("school_management.group_school_teacher"):
+            return "teacher"
+        if user.has_group("school_management.group_school_student"):
+            return "student"
+        return "public"
+
+    @api.model
+    def _scope_attendance_domain(self, section_ids=None):
+        """Attendance domain restricted to the current user's role scope."""
+        allowed = self._get_role_sections()
+        if section_ids:
+            allowed = allowed & self.env["university.class.section"].browse(section_ids)
+        if not allowed:
+            return [("id", "=", False)]
+        return [("section_id", "in", allowed.ids)]
+
+    @api.model
+    def _enrolled_students(self, sections):
+        enrollments = self.env["university.enrollment"].search([
+            ("section_id", "in", sections.ids),
+            ("status", "=", "enrolled"),
+        ])
+        return enrollments.mapped("student_id").exists()
+
+    # ---------------------------------------------------------------- Student
+    @api.model
+    def get_student_dashboard(self, month, year, section_id=False):
+        month, year = self._validated_month_year(month, year)
+        user = self.env.user
+        student = self.env["university.student"].search(
+            [("user_id", "=", user.id)], limit=1
+        )
+        if not student:
+            return {"error": _("No student profile is linked to your account.")}
+
+        enrollments = self.env["university.enrollment"].search(
+            [("student_id", "=", student.id)]
+        ).filtered(lambda e: e.section_id and e.status in ("enrolled", "completed"))
+        sections = enrollments.mapped("section_id")
+        if not sections:
+            return {
+                "error": _("You are not enrolled in any active class section yet."),
+                "student": {"name": student.name},
+            }
+
+        try:
+            section_id = int(section_id)
+        except (TypeError, ValueError):
+            section_id = 0
+
+        if section_id:
+            selected = sections.filtered(lambda s: s.id == section_id)
+            if not selected:
+                selected = sections[:1]
+        else:
+            selected = sections[:1]
+
+        counts_domain = [
+            ("student_id", "=", student.id),
+            ("month", "=", month),
+            ("year", "=", year),
+        ]
+        records = self.search(counts_domain)
+        counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+        for record in records:
+            counts[record.status] = counts.get(record.status, 0) + 1
+        rate = self._attendance_percentage(counts)
+
+        per_section = []
+        for section in sections:
+            sec_counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+            for record in records.filtered(lambda r: r.section_id == section):
+                sec_counts[record.status] = sec_counts.get(record.status, 0) + 1
+            per_section.append({
+                **_section_info(section),
+                "counts": sec_counts,
+                "total": sum(sec_counts.values()),
+                "rate": self._attendance_percentage(sec_counts),
+            })
+
+        selected_codes = {
+            record.date.day: _status_row(record)
+            for record in records if record.section_id == selected
+        }
+        calendar_meta = self._month_calendar(month, year)
+        for day in calendar_meta["days"]:
+            day["status"] = selected_codes.get(day["day"], False)
+
+        rows = []
+        for record in records.sorted(key=lambda r: r.date, reverse=True):
+            rows.append({
+                "id": record.id,
+                "date": fields.Date.to_string(record.date),
+                "status": record.status,
+                "status_label": dict(self._fields["status"].selection)[record.status],
+                "remark": record.remark or "",
+                "section_name": record.section_id.name,
+                "teacher": record.section_id.teacher_id.name or "",
+            })
+
+        threshold = self._attendance_threshold()
+        return {
+            "student": {
+                "id": student.id,
+                "name": student.name,
+                "code": student.student_id or "",
+                "program": student.program_id.name or "",
+                "department": student.department_id.name or "",
+            },
+            "sections": per_section,
+            "selected_section_id": selected.id or False,
+            "summary": counts,
+            "total": sum(counts.values()),
+            "rate": rate,
+            "threshold": threshold,
+            "is_low": sum(counts.values()) >= 3 and rate < threshold,
+            "calendar": calendar_meta,
+            "records": rows,
+            "edit_window_days": self._attendance_edit_window_days(),
+        }
+
+    # ------------------------------------------------------------------ Grid
+    @api.model
+    def get_grid_data(self, section_ids, month, year):
+        month, year = self._validated_month_year(month, year)
+        allowed = self._get_role_sections()
+        if section_ids:
+            try:
+                section_ids = [int(s) for s in section_ids if int(s)]
+            except (TypeError, ValueError):
+                section_ids = []
+            requested = self.env["university.class.section"].browse(section_ids)
+            sections = requested & allowed
+        else:
+            sections = allowed
+
+        if not sections:
+            return {
+                "role": self._get_role(),
+                "calendar": self._month_calendar(month, year),
+                "sections": [],
+                "can_edit": False,
+                "threshold": self._attendance_threshold(),
+            }
+
+        records = self.search(
+            self._scope_attendance_domain(sections.ids)
+            + [("month", "=", month), ("year", "=", year)]
+        )
+        by_section = {section.id: records.filtered(lambda r: r.section_id == section)
+                      for section in sections}
+        calendar_meta = self._month_calendar(month, year)
+        calendar_days = calendar_meta["days"]
+        num_days = calendar_meta["num_days"]
+
+        grid_sections = []
+        for section in sections:
+            students = self._enrolled_students(section)
+            student_records = by_section[section.id]
+            grid_rows = []
+            for student in students.sorted(key=lambda s: s.name or ""):
+                student_rows = student_records.filtered(
+                    lambda r: r.student_id == student
+                )
+                by_day = {r.date.day: r for r in student_rows}
+                cells = []
+                for day in range(1, num_days + 1):
+                    record = by_day.get(day)
+                    if calendar_days[day - 1]["weekend"] or calendar_days[day - 1]["holiday"]:
+                        cells.append({"day": day, "code": False, "status": False,
+                                      "remark": False, "attendance_id": False})
+                    elif record:
+                        cells.append({
+                            "day": day,
+                            "code": self.STATUS_KEYS.get(record.status, ""),
+                            "status": record.status,
+                            "remark": record.remark or "",
+                            "attendance_id": record.id,
+                        })
+                    else:
+                        cells.append({"day": day, "code": "", "status": False,
+                                      "remark": False, "attendance_id": False})
+                grid_rows.append({
+                    "student_id": student.id,
+                    "name": student.name,
+                    "code": student.student_id or "",
+                    "department": student.department_id.name or "",
+                    "cells": cells,
+                })
+            grid_sections.append({
+                **_section_info(section),
+                "students": grid_rows,
+                "can_edit": self._allowed_edit(section),
+            })
+
+        return {
+            "role": self._get_role(),
+            "calendar": self._month_calendar(month, year),
+            "sections": grid_sections,
+            "can_edit": any(s["can_edit"] for s in grid_sections),
+            "threshold": self._attendance_threshold(),
+            "edit_window_days": self._attendance_edit_window_days(),
+            "legend": {key: label for key, label in self._fields["status"].selection},
+        }
+
+    @api.model
+    def update_cell(self, section_id, student_id, date, status, remark=""):
+        section = self.env["university.class.section"].browse(int(section_id)).exists()
+        if not section:
+            raise ValidationError(_("Please choose a valid class section."))
+        if not self._allowed_edit(section):
+            raise AccessError(_("You are not allowed to edit this attendance record."))
+
+        attendance_date = self._attendance_sheet_date(date)
+        today = fields.Date.context_today(self)
+        if attendance_date > today:
+            raise ValidationError(_("Attendance cannot be recorded for a future date."))
+        edit_window = self._attendance_edit_window_days()
+        if attendance_date < today - timedelta(days=edit_window):
+            raise ValidationError(
+                _("Attendance for %s is outside the %s-day editing window.")
+                % (format_date(self.env, attendance_date), edit_window)
+            )
+        if status not in self._attendance_sheet_statuses():
+            raise ValidationError(_("Invalid attendance status: %s") % status)
+        if remark is None:
+            remark = ""
+
+        students = self._attendance_sheet_students(section)
+        if int(student_id) not in students.ids:
+            raise ValidationError(_("Student does not belong to the selected class section."))
+
+        record = self.search([
+            ("section_id", "=", section.id),
+            ("date", "=", attendance_date),
+            ("student_id", "=", int(student_id)),
+        ], limit=1)
+        vals = {
+            "student_id": int(student_id),
+            "section_id": section.id,
+            "date": attendance_date,
+            "status": status,
+            "remark": (remark or "").strip(),
+        }
+        if record:
+            record.write(vals)
+        else:
+            record = self.create(vals)
+
+        return {
+            "ok": True,
+            "attendance_id": record.id,
+            "date": fields.Date.to_string(attendance_date),
+            "status": record.status,
+            "remark": record.remark or "",
+            "code": self.STATUS_KEYS.get(record.status, ""),
+        }
+
+    # --------------------------------------------------------------- At risk
+    @api.model
+    def get_at_risk_data(self, month=None, year=None, section_ids=None):
+        sections = self._get_role_sections()
+        if section_ids:
+            sections = sections & self.env["university.class.section"].browse(
+                [int(s) for s in section_ids if str(s).isdigit()]
+            )
+        month = int(month) if month and str(month).isdigit() else None
+        year = int(year) if year and str(year).isdigit() else None
+
+        students = self._enrolled_students(sections)
+        threshold = self._attendance_threshold()
+
+        domain = [("section_id", "in", sections.ids or [0])]
+        if month:
+            domain.append(("month", "=", month))
+        if year:
+            domain.append(("year", "=", year))
+        all_records = self.search(domain)
+        by_student = {student.id: all_records.filtered(lambda r: r.student_id == student)
+                      for student in students}
+
+        rows = []
+        for student in students:
+            records = by_student[student.id]
+            counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+            for record in records:
+                counts[record.status] = counts.get(record.status, 0) + 1
+            if not records:
+                continue
+            rate = self._attendance_percentage(counts)
+            if rate >= threshold:
+                continue
+            rows.append({
+                "id": student.id,
+                "name": student.name,
+                "code": student.student_id or "",
+                "department": student.department_id.name or "",
+                "program": student.program_id.name or "",
+                "sections": ", ".join(
+                    records.mapped("section_id.name") and sorted(set(records.mapped("section_id.name"))) or []
+                ),
+                "counts": counts,
+                "total": len(records),
+                "rate": rate,
+            })
+
+        rows.sort(key=lambda r: (r["rate"], r["name"]))
+        return {
+            "threshold": threshold,
+            "period": {"month": month, "year": year},
+            "students": rows,
+            "sections": [_section_info(s) for s in sections],
+        }
+
+    # -------------------------------------------------------------- Compare
+    @api.model
+    def get_comparison_data(self, year=None):
+        sections = self._get_role_sections()
+        year = int(year) if year and str(year).isdigit() else None
+        departments = sections.mapped("department_id")
+
+        domain = [("section_id", "in", sections.ids or [0])]
+        if year:
+            domain.append(("year", "=", year))
+        records = self.search(domain)
+
+        departments_data = []
+        for department in departments:
+            dept_sections = sections.filtered(lambda s: s.department_id == department)
+            sections_data = []
+            for section in dept_sections:
+                students = self._enrolled_students(section)
+                section_records = records.filtered(lambda r: r.section_id == section)
+                by_student = {
+                    student.id: section_records.filtered(lambda r: r.student_id == student)
+                    for student in students
+                }
+                student_data = []
+                for student in students:
+                    recs = by_student.get(student.id, self.browse())
+                    counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+                    for record in recs:
+                        counts[record.status] = counts.get(record.status, 0) + 1
+                    if recs:
+                        student_data.append({
+                            "id": student.id,
+                            "name": student.name,
+                            "code": student.student_id or "",
+                            "rate": self._attendance_percentage(counts),
+                            "total": len(recs),
+                        })
+                section_counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+                for record in section_records:
+                    section_counts[record.status] = section_counts.get(record.status, 0) + 1
+                sections_data.append({
+                    "id": section.id,
+                    "name": section.name,
+                    "students": student_data,
+                    "total": len(section_records),
+                    "rate": self._attendance_percentage(section_counts),
+                })
+            dept_records = records.filtered(lambda r: r.section_id in dept_sections)
+            dept_counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+            for record in dept_records:
+                dept_counts[record.status] = dept_counts.get(record.status, 0) + 1
+            departments_data.append({
+                "id": department.id,
+                "name": department.name,
+                "sections": sections_data,
+                "total": len(dept_records),
+                "rate": self._attendance_percentage(dept_counts),
+            })
+
+        departments_data.sort(key=lambda d: d["name"])
+        return {"departments": departments_data, "year": year}
+
+    # ----------------------------------------------------------------- Export
+    def _export_grid_data(self, month, year, section_ids):
+        """Rows/columns data used by the XLSX/CSV grid exports."""
+        month, year = self._validated_month_year(month, year)
+        grid = self.get_grid_data(section_ids, month, year)
+        return month, year, grid
+
+    @api.model
+    def build_grid_xlsx(self, month, year, section_ids):
+        import xlsxwriter
+
+        month, year, grid = self._export_grid_data(month, year, section_ids)
+        if not grid.get("sections"):
+            raise ValidationError(_("No class sections are available for export."))
+        buffer = io.BytesIO()
+        workbook = xlsxwriter.Workbook(buffer, {"in_memory": True})
+        header = workbook.add_format({
+            "bold": True, "bg_color": "#4B6654", "color": "white", "border": 1
+        })
+        cell = workbook.add_format({"border": 1, "align": "center"})
+        name_cell = workbook.add_format({"border": 1})
+        rate_cell = workbook.add_format({"border": 1, "align": "center", "bg_color": "#F5F9F6"})
+        code_keys = {value: key for key, value in self.STATUS_KEYS.items()}
+        num_days = grid["calendar"]["num_days"]
+
+        for section in grid["sections"]:
+            ws = workbook.add_worksheet(section["name"][:31] or "Attendance")
+            ws.write(0, 0, "Section", header)
+            ws.write(0, 1, section["display_name"], header)
+            ws.write(0, 2, section.get("department") or "", header)
+            ws.write(1, 1, "Student", header)
+            ws.write(1, 0, "#", header)
+            for day in range(1, num_days + 1):
+                meta = grid["calendar"]["days"][day - 1]
+                header_text = str(day)
+                if meta.get("weekend"):
+                    header_text = "\u2600 " + str(day)
+                if meta.get("holiday"):
+                    header_text = f"{day}*"
+                ws.write(1, day + 1, header_text, header)
+            ws.write(1, num_days + 2, "Absent", header)
+            ws.write(1, num_days + 3, "Present", header)
+            ws.write(1, num_days + 4, "Late", header)
+            ws.write(1, num_days + 5, "Excused", header)
+            ws.write(1, num_days + 6, "Rate %", header)
+
+            for index, student in enumerate(section["students"], start=2):
+                ws.write(index, 0, index - 1, name_cell)
+                ws.write(index, 1, student["name"], name_cell)
+                counts = {"absent": 0, "present": 0, "late": 0, "excused": 0}
+                for column, cell_data in enumerate(student.get("cells") or [], start=2):
+                    code = cell_data.get("code")
+                    if not code:
+                        continue
+                    status = code_keys.get(code)
+                    if status:
+                        counts[status] += 1
+                    ws.write(index, column, code, cell)
+                rate = self._attendance_percentage(counts)
+                ws.write(index, num_days + 2, counts["absent"], cell)
+                ws.write(index, num_days + 3, counts["present"], cell)
+                ws.write(index, num_days + 4, counts["late"], cell)
+                ws.write(index, num_days + 5, counts["excused"], cell)
+                ws.write(index, num_days + 6, rate, rate_cell)
+
+            ws.set_column(0, 1, 22)
+            ws.set_column(2, num_days + 2, 5)
+            ws.set_header(f"&C&9Attendance Grid - {section['name']} - {month}/{year}")
+            ws.set_footer("&C&P")
+
+        workbook.close()
+        return buffer.getvalue()
+
+    @api.model
+    def build_grid_csv(self, month, year, section_ids):
+        import csv as csv_mod
+
+        month, year, grid = self._export_grid_data(month, year, section_ids)
+        if not grid.get("sections"):
+            raise ValidationError(_("No class sections are available for export."))
+        num_days = grid["calendar"]["num_days"]
+        buffer = io.StringIO()
+        writer = csv_mod.writer(buffer)
+        writer.writerow(["Attendance Grid", f"{month}/{year}", "Generated %s" % fields.Datetime.now()])
+        writer.writerow([])
+        code_keys = {value: key for key, value in self.STATUS_KEYS.items()}
+        for section in grid["sections"]:
+            writer.writerow([section["display_name"], section["department"] or ""])
+            header = ["#", "Student", "Code"]
+            header += [str(day) for day in range(1, num_days + 1)]
+            header += ["Absent", "Present", "Late", "Excused", "Rate %"]
+            writer.writerow(header)
+            for index, student in enumerate(section["students"], start=1):
+                counts = {"absent": 0, "present": 0, "late": 0, "excused": 0}
+                row = [index, student["name"], student["code"]]
+                for column in student["cells"]:
+                    code = column.get("code")
+                    if code:
+                        status = code_keys.get(code)
+                        if status:
+                            counts[status] += 1
+                    row.append(code if code else "")
+                rate = self._attendance_percentage(counts)
+                row += [counts["absent"], counts["present"], counts["late"],
+                        counts["excused"], rate]
+                writer.writerow(row)
+            writer.writerow([])
+        return buffer.getvalue().encode("utf-8")
+
+    @api.model
+    def build_at_risk_csv(self, month, year, section_ids):
+        import csv as csv_mod
+
+        data = self.get_at_risk_data(month, year, section_ids)
+        buffer = io.StringIO()
+        writer = csv_mod.writer(buffer)
+        writer.writerow(["At-Risk Attendance Students", f"Period: {month or 'All'}/{year or 'All'}"])
+        writer.writerow(["Threshold", "%s%%" % data["threshold"]])
+        writer.writerow([])
+        writer.writerow(["Student", "Code", "Department", "Present", "Absent", "Late",
+                         "Excused", "Total", "Rate %"])
+        for student in data["students"]:
+            writer.writerow([
+                student["name"], student["code"], student["department"] or "",
+                student["counts"]["present"], student["counts"]["absent"],
+                student["counts"]["late"], student["counts"]["excused"],
+                student["total"], student["rate"],
+            ])
+        return buffer.getvalue().encode("utf-8")
+
+    # ------------------------------------------------------------- Demo seed
+    @api.model
+    def _seed_attendance_demo(self):
+        """Deterministic demo attendance for every role (Attendance spec STEP 9).
+
+        Idempotent: existing records are never overwritten, missing ones are
+        created. Relies on the demo link fields being populated first
+        (res.users._fix_demo_attendance_links).
+        """
+        Section = self.env["university.class.section"].sudo()
+        sections = Section.search([("name", "in", ["DBMS-A101", "R2", "B202", "GM-Y1-A"])])
+        if not sections:
+            return True
+
+        statuses = ["present", "present", "present", "late",
+                    "present", "absent", "present", "excused", "present", "present"]
+
+        def weekday_status(section_index, student_index, day):
+            # Column of the generated pattern that a (student,day) maps onto.
+            pick = (student_index * 3 + section_index * 2 + day) % len(statuses)
+            return statuses[pick]
+
+        created = 0
+        for section_index, section in enumerate(sections):
+            students = self._attendance_sheet_students(section)
+            for student_index, student in enumerate(students):
+                for day in range(1, 31):
+                    if calendar.weekday(2026, 9, day) >= 5:
+                        continue
+                    att_date = date(2026, 9, day)
+                    status = weekday_status(section_index, student_index, day)
+                    existing = self.search([
+                        ("section_id", "=", section.id),
+                        ("date", "=", att_date),
+                        ("student_id", "=", student.id),
+                    ], limit=1)
+                    if existing:
+                        continue
+                    self.create({
+                        "student_id": student.id,
+                        "section_id": section.id,
+                        "date": att_date,
+                        "status": status,
+                    })
+                    created += 1
+        _logger = __import__("logging").getLogger(__name__)
+        _logger.info("Attendance demo seed: created %s records", created)
+        return True

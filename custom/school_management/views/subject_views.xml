@@ -6,8 +6,8 @@
         <field name="name">university.subject.list</field>
         <field name="model">university.subject</field>
         <field name="arch" type="xml">
-            <list string="Subjects" sample="1" default_order="semester_number,code" class="o_university_subject_list">
-                <field name="semester_number" string="Sem."/>
+            <list string="Subjects" sample="1" default_order="code" class="o_university_subject_list">
+                
                 <field name="code" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="program_ids" widget="many2many_tags"/>
@@ -28,7 +28,7 @@
                 <field name="code"/>
                 <field name="program_ids"/>
                 <field name="department_id"/>
-                <field name="semester_number"/>
+                
                 <field name="credits"/>
                 <templates>
                     <t t-name="card">
@@ -48,7 +48,7 @@
                                 <field name="department_id"/>
                             </div>
                             <div class="o_subject_academic_meta">
-                                <span class="o_subject_meta_pill">Semester&#160;<field name="semester_number" nolabel="1"/></span>
+                                <span class="o_subject_meta_pill">Semester&#160;</span>
                                 <span class="o_subject_meta_separator" aria-hidden="true">·</span>
                                 <span class="o_subject_meta_pill"><field name="credits" nolabel="1"/>&#160;Credits</span>
                             </div>
@@ -84,7 +84,7 @@
                             <field name="program_ids" widget="many2many_tags"/>
                             <field name="department_id"/>
                             <field name="credits"/>
-                            <field name="semester_number"/>
+                            
                         </group>
                         <group string="Status">
                             <field name="active" widget="boolean_toggle"/>
@@ -156,3 +156,4 @@
     </record>
 
 </odoo>
+

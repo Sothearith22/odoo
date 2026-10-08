@@ -105,3 +105,8 @@
 #     security/fix_demo_staff_links.sql     standalone SQL equivalent (reference)
 #     migrations/19.0.1.2.0/pre-migrate.py
 #     migrations/19.0.1.2.1/pre-migrate.py  student placement / dean-head / student id
+
+# Maintenance scripts
+#     scripts/fix_empty_assignment_teachers.py       * (re-links assignments with empty teacher_id)
+#     scripts/cleanup_student_data.py                *
+#     scripts/cleanup_teacher_data.py                *

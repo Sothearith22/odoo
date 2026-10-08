@@ -86,6 +86,19 @@ class Student(models.Model):
         "university.semester",
         string="Current Semester",
     )
+    curriculum_id = fields.Many2one(
+        "university.curriculum",
+        string="Curriculum",
+        domain="[('program_id', '=', program_id)]",
+    )
+    year_level = fields.Selection([
+        ('1', 'Year 1'),
+        ('2', 'Year 2'),
+        ('3', 'Year 3'),
+        ('4', 'Year 4'),
+        ('5', 'Year 5'),
+        ('6', 'Year 6'),
+    ], string="Year Level")
     advisor_id = fields.Many2one(
         "university.teacher",
         string="Academic Advisor",
@@ -577,7 +590,7 @@ class Student(models.Model):
             # 3. Attendance Rate
             attendances = self.env["university.attendance"].search([("student_id", "=", student.id)])
             if attendances:
-                present_cnt = sum(1 for a in attendances if a.status in ("present", "late"))
+                present_cnt = sum(1 for a in attendances if a.status in ("present", "late", "excused"))
                 attendance_rate = round(present_cnt * 100.0 / len(attendances), 1)
             else:
                 attendance_rate = 100.0

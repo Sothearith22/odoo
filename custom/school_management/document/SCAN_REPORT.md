@@ -45,7 +45,7 @@ No production business code was changed by this scan. The only change made is th
 | `university.student` | `../models/student.py` | Student profile, enrollment/payment actions, login creation/reset |
 | `university.subject` | `../models/subject.py` | Subjects, linked programs, teachers, sections |
 | `university.classroom` | `../models/classroom.py` | Classrooms |
-| `university.class.section` | `../models/class_section.py` | Program/subject sections, capacity and teacher/subject guards |
+| `university.class.section` | `../models/class_section.py` | Program/subject sections, capacity and teacher/subject guards; assignment context inheritance |
 | `university.enrollment` | `../models/enrollment.py` | Student enrollment, unique indexes, capacity row lock |
 | `university.fee` | `../models/fee.py` | Fee invoice, chatter, posting/cancel/payment balance state |
 | `university.fee.line` | `../models/fee.py` | Invoice fee lines |
@@ -57,7 +57,7 @@ No production business code was changed by this scan. The only change made is th
 | `university.document.signature` | `../models/document_signature.py` | Student/fee document signatures |
 | `university.capability` | `../models/capability.py` | Capability roadmap/configuration |
 | `university.lesson.plan` | `../models/lesson_plan.py` | Teacher lesson plans |
-| `university.assignment` | `../models/assignment.py` | Assignments and approval flow |
+| `university.assignment` | `../models/assignment.py` | Assignments and approval flow; auto-inherits teacher/subject from section in create() |
 | `university.assignment.submission` | `../models/assignment.py` | Submissions and grading result creation |
 | `university.timetable.slot` | `../models/timetable.py` | Timetable slots and resource conflicts |
 | `university.timeslot` | `../models/timetable.py` | Reusable class time slots |

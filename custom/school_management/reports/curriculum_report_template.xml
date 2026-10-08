@@ -3,7 +3,8 @@
 
     <template id="report_curriculum_document">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="program">
+            <t t-foreach="docs" t-as="curriculum">
+                <t t-set="program" t-value="curriculum.program_id"/>
                 <t t-call="web.external_layout">
                     <div class="page" style="position: relative;">
                         
@@ -49,8 +50,8 @@
                                                 <span class="badge" style="background-color: #dbeafe; color: #1e40af;"><t t-esc="program.degree_type.capitalize()"/></span>
                                             </div>
                                             <div>
-                                                <strong style="color: #475569; width: 80px; display: inline-block;">Duration:</strong> 
-                                                <t t-esc="program.duration_years"/> year(s)
+                                                <strong style="color: #475569; width: 80px; display: inline-block;">Session:</strong> 
+                                                <t t-esc="curriculum.session_id.name"/>
                                             </div>
                                         </div>
                                         <div class="col-6">
@@ -67,8 +68,8 @@
                                                 <strong><t t-esc="program.total_credits"/></strong>
                                             </div>
                                             <div>
-                                                <strong style="color: #475569;"><i class="fa fa-users me-1"/> Enrolled Students:</strong> 
-                                                <t t-esc="len(program.student_ids.filtered(lambda s: s.status == 'active'))"/>
+                                                <strong style="color: #475569;"><i class="fa fa-book me-1"/> Curriculum:</strong> 
+                                                <t t-esc="curriculum.name"/>
                                             </div>
                                         </div>
                                     </div>
@@ -76,69 +77,79 @@
                             </div>
                         </div>
 
-                        <!-- ── Subjects by Semester ── -->
-                        <t t-set="subjects" t-value="program.subject_ids.filtered(lambda s: s.active).sorted(key=lambda s: (s.semester_number, s.code))"/>
+                        <!-- ── Subjects by Year and Semester ── -->
+                        <t t-set="lines" t-value="curriculum.line_ids.sorted(key=lambda l: (l.year_level, l.semester, l.subject_id.code))"/>
 
-                        <t t-if="subjects">
-                            <t t-set="semesters" t-value="sorted(set(subjects.mapped('semester_number')))"/>
-                            <t t-foreach="semesters" t-as="sem_num">
-                                <t t-set="sem_subjects" t-value="subjects.filtered(lambda s: s.semester_number == sem_num)"/>
+                        <t t-if="lines">
+                            <t t-set="years" t-value="sorted(set(lines.mapped('year_level')))"/>
+                            <t t-foreach="years" t-as="year_level">
+                                <t t-set="year_lines" t-value="lines.filtered(lambda l: l.year_level == year_level)"/>
+                                
+                                <h3 class="mt-4 mb-3" style="color: #0f172a; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px;">
+                                    Year <t t-esc="year_level"/>
+                                </h3>
 
-                                <!-- Semester heading -->
-                                <div style="background: linear-gradient(to right, #1e3a8a, #3b82f6); color: white; padding: 8px 16px; border-radius: 6px 6px 0 0; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;" class="mt-4">
-                                    <strong style="font-size: 1.1rem; letter-spacing: 0.5px;">SEMESTER <t t-esc="sem_num"/></strong>
-                                    <span style="font-size: 0.9em; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 12px;">
-                                        <t t-esc="len(sem_subjects)"/> subjects | <t t-esc="sum(sem_subjects.mapped('credits'))"/> credits
-                                    </span>
-                                </div>
+                                <t t-set="semesters" t-value="sorted(set(year_lines.mapped('semester')))"/>
+                                <t t-foreach="semesters" t-as="semester">
+                                    <t t-set="sem_lines" t-value="year_lines.filtered(lambda l: l.semester == semester)"/>
 
-                                <!-- Subject rows -->
-                                <table class="table table-sm table-striped align-middle mb-0" style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
-                                    <thead style="background: #f1f5f9; color: #334155; font-size: 0.85rem; text-transform: uppercase;">
-                                        <tr>
-                                            <th style="width: 15%; padding-left: 12px;">Code</th>
-                                            <th style="width: 45%;">Subject Name</th>
-                                            <th style="width: 10%; text-align: center;">Credits</th>
-                                            <th style="width: 30%;">Description</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody style="font-size: 0.95rem;">
-                                        <t t-foreach="sem_subjects" t-as="subj">
+                                    <!-- Semester heading -->
+                                    <div style="background: linear-gradient(to right, #1e3a8a, #3b82f6); color: white; padding: 6px 14px; border-radius: 6px 6px 0 0; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center;" class="mt-3">
+                                        <strong style="font-size: 1.05rem; letter-spacing: 0.5px;">SEMESTER <t t-esc="semester"/></strong>
+                                        <span style="font-size: 0.85em; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 12px;">
+                                            <t t-esc="len(sem_lines)"/> subjects | <t t-esc="sum(sem_lines.mapped('credits'))"/> credits
+                                        </span>
+                                    </div>
+
+                                    <!-- Subject rows -->
+                                    <table class="table table-sm table-striped align-middle mb-0" style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                                        <thead style="background: #f1f5f9; color: #334155; font-size: 0.85rem; text-transform: uppercase;">
                                             <tr>
-                                                <td style="padding-left: 12px; font-family: monospace; font-weight: bold; color: #475569;">
-                                                    <t t-esc="subj.code or '—'"/>
-                                                </td>
-                                                <td style="font-weight: 500; color: #0f172a;"><t t-esc="subj.name"/></td>
-                                                <td style="text-align: center;">
-                                                    <span class="badge rounded-pill" style="background-color: #e2e8f0; color: #0f172a; min-width: 25px;"><t t-esc="subj.credits"/></span>
-                                                </td>
-                                                <td style="font-size: 0.85rem; color: #64748b;">
-                                                    <t t-esc="subj.description or ''"/>
-                                                </td>
+                                                <th style="width: 15%; padding-left: 12px;">Code</th>
+                                                <th style="width: 45%;">Subject Name</th>
+                                                <th style="width: 10%; text-align: center;">Credits</th>
+                                                <th style="width: 30%;">Type</th>
                                             </tr>
-                                        </t>
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody style="font-size: 0.95rem;">
+                                            <t t-foreach="sem_lines" t-as="line">
+                                                <tr>
+                                                    <td style="padding-left: 12px; font-family: monospace; font-weight: bold; color: #475569;">
+                                                        <t t-esc="line.subject_id.code or '—'"/>
+                                                    </td>
+                                                    <td style="font-weight: 500; color: #0f172a;"><t t-esc="line.subject_id.name"/></td>
+                                                    <td style="text-align: center;">
+                                                        <span class="badge rounded-pill" style="background-color: #e2e8f0; color: #0f172a; min-width: 25px;"><t t-esc="line.credits"/></span>
+                                                    </td>
+                                                    <td style="font-size: 0.85rem; color: #64748b;">
+                                                        <t t-if="line.required">Required</t>
+                                                        <t t-else="">Elective</t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </t>
                             </t>
                         </t>
                         <t t-else="">
                             <div class="alert alert-info mt-4" role="alert" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
-                                <i class="fa fa-info-circle me-2"/> No subjects have been assigned to this program yet.
+                                <i class="fa fa-info-circle me-2"/> No subjects have been added to this curriculum yet.
                             </div>
                         </t>
 
                         <!-- ── Credit Summary Footer ── -->
-                        <t t-if="subjects">
+                        <t t-if="lines">
                             <div class="row mt-5 mb-5 page-break-inside-avoid">
                                 <div class="col-12 d-flex justify-content-end">
                                     <div style="background: #f8fafc; border: 2px solid #cbd5e1; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                                         <div style="font-size: 0.9rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; text-align: center;">Curriculum Summary</div>
                                         <div style="font-size: 1.2rem; color: #0f172a;">
                                             <strong><i class="fa fa-book text-primary me-2"/> Total Subjects: </strong>
-                                            <t t-esc="len(subjects)"/>
+                                            <t t-esc="len(lines)"/>
                                             <span style="color: #cbd5e1; margin: 0 12px;">|</span>
                                             <strong><i class="fa fa-star text-warning me-2"/> Total Credits: </strong>
-                                            <t t-esc="sum(subjects.mapped('credits'))"/> / <t t-esc="program.total_credits"/>
+                                            <t t-esc="sum(lines.mapped('credits'))"/> / <t t-esc="program.total_credits"/>
                                         </div>
                                     </div>
                                 </div>

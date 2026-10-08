@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="school_management.AttendanceComparison">
+        <div class="o_att_comparison">
+            <div class="o_att_grid_toolbar">
+                <h1 class="o_att_grid_title">Attendance Comparison</h1>
+                <div class="o_att_grid_controls">
+                    <label class="o_att_grid_label">
+                        Year
+                        <input type="number" min="2000" max="2100" t-att-value="state.year"
+                               t-on-change="onYearChange" t-att-disabled="state.loading"/>
+                    </label>
+                    <button class="btn btn-secondary" t-on-click="load" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh me-1" t-att-class="state.loading ? 'fa-spin' : ''"/>Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" t-if="state.error" role="alert">
+                <i class="fa fa-exclamation-triangle me-1" t-esc="state.error"/>
+            </div>
+            <div class="text-center py-5" t-if="state.loading &amp;&amp; !state.data">
+                <i class="fa fa-spinner fa-spin fa-2x text-muted"/>
+            </div>
+
+            <t t-if="state.data">
+                <div class="o_att_grid_empty alert alert-info"
+                     t-if="!state.data.departments.length" role="alert">
+                    <i class="fa fa-info-circle me-1"/>
+                    No departments are available for comparison.
+                </div>
+
+                <div class="o_att_grid_section o_att_compare_dept"
+                     t-foreach="state.data.departments" t-as="department" t-key="department.id">
+                    <div class="o_att_grid_section_head">
+                        <h2 class="o_att_grid_section_title" t-esc="department.name"/>
+                        <span class="o_att_grid_badge">
+                            <span t-esc="department.sections.length"/> section(s)
+                        </span>
+                        <span class="o_att_grid_badge o_att_grid_badge--muted">
+                            Attendance rate:
+                            <b t-esc="department.rate"/>%
+                        </span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered o_att_grid_table">
+                            <thead>
+                                <tr>
+                                    <th>Section</th>
+                                    <th class="text-center">Students</th>
+                                    <th class="text-center">Total Records</th>
+                                    <th style="width: 220px;">Attendance Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="department.sections" t-as="section" t-key="section.id">
+                                    <tr>
+                                        <td t-esc="section.name"/>
+                                        <td class="text-center" t-esc="section.students.length"/>
+                                        <td class="text-center" t-esc="section.total"/>
+                                        <td>
+                                            <div class="o_att_bar">
+                                                <div class="o_att_bar_fill"
+                                                     t-att-style="barStyle(section.rate)"
+                                                     t-att-class="barClass(section.rate)"/>
+                                            </div>
+                                            <span class="o_att_risk_pct" t-esc="section.rate + '%'"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

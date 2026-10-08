@@ -1,6 +1,6 @@
 from datetime import timedelta
 from odoo import Command, fields
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 

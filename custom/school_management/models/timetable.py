@@ -74,6 +74,15 @@ class UniversityTimeslot(models.Model):
             minute = 0
         return time(hour=hour, minute=minute)
 
+    def _datetime_for_date(self, target_date):
+        self.ensure_one()
+        tz = pytz.timezone(self.env.user.tz or "UTC")
+        local_start = datetime.combine(target_date, self._hour_to_time(self.start_hour))
+        local_end = datetime.combine(target_date, self._hour_to_time(self.end_hour))
+        utc_start = tz.localize(local_start).astimezone(pytz.utc).replace(tzinfo=None)
+        utc_end = tz.localize(local_end).astimezone(pytz.utc).replace(tzinfo=None)
+        return utc_start, utc_end
+
     def _format_hour(self, value):
         return self._hour_to_time(value).strftime("%H:%M")
 
@@ -107,14 +116,47 @@ class UniversityTimetableSlot(models.Model):
     start_time = fields.Datetime(string="Start Time", required=True)
     end_time = fields.Datetime(string="End Time", required=True)
     generation_state = fields.Selection(
-        [("draft", "Draft"), ("published", "Published")],
-        string="Generation Status",
+        [("draft", "Draft"), ("published", "Published"), ("cancelled", "Cancelled")],
+        string="Schedule Status",
         default="draft",
+    )
+    class_id = fields.Many2one(
+        "university.class.section",
+        string="Class Section",
+        compute="_compute_class_id",
+        inverse="_inverse_class_id",
+        store=True,
+        index=True,
+    )
+    room_id = fields.Many2one(
+        "university.classroom",
+        string="Room",
+        compute="_compute_room_id",
+        inverse="_inverse_room_id",
+        store=True,
+    )
+    date = fields.Date(
+        string="Session Date",
+        compute="_compute_date",
+        inverse="_inverse_date",
+        store=True,
+        index=True,
+    )
+    cancel_reason = fields.Char(string="Cancellation Reason")
+    is_holiday_conflict = fields.Boolean(
+        string="Holiday Conflict",
+        compute="_compute_is_holiday_conflict",
+        store=True,
+        index=True,
     )
     state = fields.Selection(
         [
             ("scheduled", "Scheduled"),
+            ("draft", "Draft"),
+            ("published", "Published"),
             ("cancelled", "Cancelled"),
+            ("done", "Done"),
+            ("completed", "Completed"),
             ("rescheduled", "Rescheduled"),
         ],
         string="Schedule State",
@@ -182,6 +224,28 @@ class UniversityTimetableSlot(models.Model):
         compute="_compute_is_this_week",
         search="_search_is_this_week",
     )
+    has_attendance = fields.Boolean(
+        string="Has Attendance",
+        compute="_compute_has_attendance",
+    )
+
+    def _compute_has_attendance(self):
+        AttendanceSession = self.env.get("university.attendance.session")
+        Attendance = self.env.get("university.attendance")
+        for slot in self:
+            slot_date = slot.date or (fields.Datetime.context_timestamp(slot, slot.start_time).date() if slot.start_time else False)
+            if not slot_date or not slot.section_id:
+                slot.has_attendance = False
+                continue
+            has_session = AttendanceSession and AttendanceSession.search_count([
+                ("section_id", "=", slot.section_id.id),
+                ("date", "=", slot_date),
+            ]) > 0
+            has_student_att = Attendance and Attendance.search_count([
+                ("section_id", "=", slot.section_id.id),
+                ("date", "=", slot_date),
+            ]) > 0
+            slot.has_attendance = bool(has_session or has_student_att)
 
     @api.depends("start_time", "end_time", "state")
     def _compute_status(self):
@@ -332,10 +396,128 @@ class UniversityTimetableSlot(models.Model):
             else:
                 slot.name = subj
 
+    @api.onchange("start_time", "section_id")
+    def _onchange_start_time_holiday_warning(self):
+        if self.start_time:
+            slot_date = fields.Datetime.context_timestamp(self, self.start_time).date()
+            faculty = (
+                self.section_id.program_id.department_id.faculty_id
+                if self.section_id and self.section_id.program_id and self.section_id.program_id.department_id
+                else False
+            )
+            holiday = self.env["university.holiday"].sudo().search([
+                ("date_start", "<=", slot_date),
+                ("date_end", ">=", slot_date),
+                "|",
+                ("faculty_id", "=", False),
+                ("faculty_id", "=", faculty.id if faculty else False),
+            ], limit=1)
+            if not holiday and hasattr(Holiday, "date_from"):
+                domain_fallback = [
+                    ("date_from", "<=", slot_date),
+                    ("date_to", ">=", slot_date),
+                    "|",
+                    ("faculty_id", "=", False),
+                    ("faculty_id", "=", faculty.id if faculty else False),
+                ]
+                holiday = Holiday.search(domain_fallback, limit=1)
+            if holiday:
+                return {
+                    "warning": {
+                        "title": _("Public Holiday Warning"),
+                        "message": _("Warning: The date %s falls on public holiday '%s'. Classes should not be scheduled on this date.") % (slot_date, holiday.name),
+                    }
+                }
+
     @api.onchange("classroom_id")
     def _onchange_classroom_id(self):
         if self.classroom_id and not self.location:
             self.location = self.classroom_id.name
+
+    @api.depends("section_id")
+    def _compute_class_id(self):
+        for slot in self:
+            slot.class_id = slot.section_id
+
+    def _inverse_class_id(self):
+        for slot in self:
+            if slot.class_id:
+                slot.section_id = slot.class_id
+
+    @api.depends("classroom_id")
+    def _compute_room_id(self):
+        for slot in self:
+            slot.room_id = slot.classroom_id
+
+    def _inverse_room_id(self):
+        for slot in self:
+            if slot.room_id:
+                slot.classroom_id = slot.room_id
+
+    @api.depends("start_time")
+    def _compute_date(self):
+        for slot in self:
+            if slot.start_time:
+                slot.date = fields.Datetime.context_timestamp(slot, slot.start_time).date()
+            else:
+                slot.date = False
+
+    def _inverse_date(self):
+        for slot in self:
+            if slot.date and slot.start_time:
+                tz_name = self.env.user.tz or "UTC"
+                tz = pytz.timezone(tz_name)
+                curr_dt = fields.Datetime.context_timestamp(slot, slot.start_time)
+                new_start_dt = curr_dt.replace(year=slot.date.year, month=slot.date.month, day=slot.date.day)
+                slot.start_time = tz.localize(new_start_dt.replace(tzinfo=None)).astimezone(pytz.utc).replace(tzinfo=None)
+                if slot.end_time:
+                    curr_end_dt = fields.Datetime.context_timestamp(slot, slot.end_time)
+                    new_end_dt = curr_end_dt.replace(year=slot.date.year, month=slot.date.month, day=slot.date.day)
+                    slot.end_time = tz.localize(new_end_dt.replace(tzinfo=None)).astimezone(pytz.utc).replace(tzinfo=None)
+
+    @api.depends("start_time", "section_id")
+    def _compute_is_holiday_conflict(self):
+        for slot in self:
+            if hasattr(slot, "on_holiday"):
+                slot.is_holiday_conflict = slot.on_holiday
+            else:
+                slot.is_holiday_conflict = bool(slot._get_holiday_conflict())
+
+    @api.onchange("classroom_id", "section_id")
+    def _onchange_classroom_capacity(self):
+        if self.classroom_id and self.section_id and self.section_id.capacity:
+            if self.classroom_id.capacity and self.classroom_id.capacity < self.section_id.capacity:
+                return {
+                    "warning": {
+                        "title": _("Room Capacity Warning"),
+                        "message": _(
+                            "Warning: Classroom '%(room)s' capacity (%(rcap)d) is smaller than the class capacity (%(ccap)d)."
+                        )
+                        % {
+                            "room": self.classroom_id.name,
+                            "rcap": self.classroom_id.capacity,
+                            "ccap": self.section_id.capacity,
+                        },
+                    }
+                }
+
+    @api.constrains("start_time", "section_id")
+    def _check_term_range(self):
+        if self.env.context.get("skip_term_range_check"):
+            return
+        for slot in self:
+            if slot.start_time and slot.semester_id:
+                slot_date = slot.date or fields.Datetime.context_timestamp(slot, slot.start_time).date()
+                if slot.semester_id.date_start and slot.semester_id.date_end and (slot.semester_id.date_end - slot.semester_id.date_start).days >= 7:
+                    if slot_date < slot.semester_id.date_start or slot_date > slot.semester_id.date_end:
+                        raise ValidationError(
+                            _("Session date %(date)s is outside the academic term range (%(start)s to %(end)s).")
+                            % {
+                                "date": slot_date,
+                                "start": slot.semester_id.date_start,
+                                "end": slot.semester_id.date_end,
+                            }
+                        )
 
     @api.constrains("start_time", "end_time")
     def _check_datetime_range(self):
@@ -345,6 +527,8 @@ class UniversityTimetableSlot(models.Model):
 
     @api.constrains("teacher_id", "section_id", "classroom_id", "start_time", "end_time", "state")
     def _check_resource_conflicts(self):
+        if self.env.context.get("skip_conflict_check"):
+            return
         for slot in self:
             if slot.state == "cancelled" or not slot.start_time or not slot.end_time:
                 continue
@@ -360,11 +544,55 @@ class UniversityTimetableSlot(models.Model):
                 conflicts.append(_("Teacher '%s' is already scheduled during this time slot.") % (slot.teacher_id.name or ""))
             if slot.section_id and self.sudo().search_count(overlap_domain + [("section_id", "=", slot.section_id.id)]):
                 conflicts.append(_("Class section '%s' already has an active session during this time slot.") % (slot.section_id.name or ""))
+            if slot.classroom_id and slot.classroom_id.status in ("maintenance", "inactive"):
+                conflicts.append(_("Classroom '%s' is under maintenance or inactive and cannot be assigned.") % (slot.classroom_id.name or ""))
             if slot.classroom_id and self.sudo().search_count(overlap_domain + [("classroom_id", "=", slot.classroom_id.id)]):
                 conflicts.append(_("Classroom '%s' is already occupied during this time slot.") % (slot.classroom_id.name or ""))
             if conflicts:
                 raise ValidationError(
                     _("Timetable conflict detected:\n• %s") % "\n• ".join(conflicts)
+                )
+
+    def _get_holiday_conflict(self):
+        """Hook for holiday modules to detect conflicts with holidays."""
+        self.ensure_one()
+        if self.state == "cancelled" or not self.start_time:
+            return False
+        if getattr(self, "allow_on_holiday", False):
+            return False
+        slot_date = self.date or fields.Datetime.context_timestamp(self, self.start_time).date()
+        if "public.holiday" in self.env:
+            holiday = self.env["public.holiday"].search([
+                ("active", "=", True),
+                ("affects_classes", "=", True),
+                ("date_from", "<=", slot_date),
+                ("date_to", ">=", slot_date),
+            ], limit=1)
+            if holiday:
+                return holiday
+        if "university.holiday" in self.env and self.semester_id and self.semester_id.academic_year_id:
+            holiday = self.env["university.holiday"].search([
+                ("academic_year_id", "=", self.semester_id.academic_year_id.id),
+                ("date_start", "<=", slot_date),
+                ("date_end", ">=", slot_date),
+            ], limit=1)
+            if holiday:
+                return holiday
+        return False
+
+    @api.constrains("start_time", "section_id")
+    def _check_holiday_conflict(self):
+        for slot in self:
+            conflict = slot._get_holiday_conflict()
+            if conflict:
+                raise ValidationError(
+                    _("Cannot schedule session '%(session)s' on %(date)s because it falls on public holiday '%(holiday)s'. "
+                      "University policy blocks classes on holidays.")
+                    % {
+                        "session": slot.name or slot.section_id.name,
+                        "date": fields.Datetime.context_timestamp(slot, slot.start_time).date() if slot.start_time else "",
+                        "holiday": getattr(conflict, "name", str(conflict)),
+                    }
                 )
 
     def action_publish(self):
@@ -399,10 +627,35 @@ class UniversityTimetableSlot(models.Model):
                 return True
         raise AccessError(_("You do not have permission to modify this timetable session."))
 
+    def write(self, vals):
+        user = self.env.user
+        if not (
+            self.env.is_system()
+            or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_hod")
+            or user.has_group("school_management.group_school_dean")
+        ):
+            for slot in self:
+                slot._check_modify_access()
+        if vals.get("state") == "cancelled" and "generation_state" not in vals:
+            vals["generation_state"] = "cancelled"
+        return super().write(vals)
+
+    def unlink(self):
+        user = self.env.user
+        if not (self.env.is_system() or user.has_group("school_management.group_school_admin")):
+            raise AccessError(_("Only administrators can delete timetable sessions."))
+        for slot in self:
+            if slot.has_attendance:
+                raise ValidationError(_("Cannot delete session '%s' because attendance has already been recorded.") % (slot.name or slot.display_name))
+            if slot.state in ("done", "completed") or slot.status == "completed":
+                raise ValidationError(_("Cannot delete completed session '%s'.") % (slot.name or slot.display_name))
+        return super().unlink()
+
     def action_cancel_session(self):
         self.ensure_one()
         self._check_modify_access()
-        self.write({"state": "cancelled"})
+        self.write({"state": "cancelled", "generation_state": "cancelled"})
         return True
 
     def action_reschedule_session(self, new_start_time, new_end_time, new_classroom_id=None):
@@ -685,6 +938,7 @@ class UniversityTimetableSlot(models.Model):
                 }
             domain.append(("section_id", "in", enrolled_section_ids))
         elif role == "teacher":
+            domain.append(("generation_state", "=", "published"))
             domain.append("|")
             domain.append(("teacher_id", "=", teacher_rec.id))
             domain.append(("section_id.teacher_id", "=", teacher_rec.id))
@@ -701,9 +955,7 @@ class UniversityTimetableSlot(models.Model):
             if program_id:
                 domain.append(("section_id.program_id", "=", int(program_id)))
 
-            semester_id = filters.get("semester_id") or filters.get("semester")
-            if semester_id:
-                domain.append(("semester_id", "=", int(semester_id)))
+            # Common semester filter applied below
 
             teacher_id = filters.get("teacher_id") or filters.get("teacher")
             if teacher_id:
@@ -728,6 +980,11 @@ class UniversityTimetableSlot(models.Model):
             state_filter = filters.get("state")
             if state_filter:
                 domain.append(("state", "=", state_filter))
+
+        # Semester / Academic Term filter applied across all roles
+        common_semester_id = filters.get("semester_id") or filters.get("semester")
+        if common_semester_id:
+            domain.append(("semester_id", "=", int(common_semester_id)))
 
         # 5. Query slots with limit & offset (preventing N+1 with batch fetch)
         total_count = self.search_count(domain)
@@ -774,12 +1031,17 @@ class UniversityTimetableSlot(models.Model):
             ("date_end", ">=", start_date),
         ])
         for h in holidays:
+            d_start = h.date_start or getattr(h, "date_from", None)
+            d_end = h.date_end or getattr(h, "date_to", None) or d_start
             holidays_data.append({
                 "id": h.id,
                 "name": h.name,
-                "date_start": fields.Date.to_string(h.date_start),
-                "date_end": fields.Date.to_string(h.date_end),
+                "date_start": fields.Date.to_string(d_start),
+                "date_end": fields.Date.to_string(d_end),
+                "date_from": fields.Date.to_string(d_start),
+                "date_to": fields.Date.to_string(d_end),
                 "faculty_name": h.faculty_id.name if h.faculty_id else _("University-Wide"),
+                "holiday_type": getattr(h, "holiday_type", "public") or "public",
             })
 
         # 9. Format Sessions
@@ -838,6 +1100,9 @@ class UniversityTimetableSlot(models.Model):
                 "teacher_email": slot.teacher_id.email or "",
                 "status": slot.status or "upcoming",
                 "state": slot.state or "scheduled",
+                "generation_state": slot.generation_state or "draft",
+                "semester_id": slot.semester_id.id if slot.semester_id else False,
+                "semester_name": slot.semester_id.name if slot.semester_id else "",
                 "session_type": slot.session_type or "lecture",
                 "student_count": enrolled_count,
                 "enrolled_student_count": enrolled_count,
@@ -931,12 +1196,16 @@ class UniversityTimetableSlot(models.Model):
 
         # UI Filter Data for dropdowns
         subjects = self.env["university.subject"].search_read([], ["id", "name"], order="name asc")
-        classrooms = self.env["university.classroom"].search_read([], ["id", "name", "building"], order="name asc")
+        classrooms = self.env["university.classroom"].search_read(
+            [], ["id", "name", "building", "capacity", "room_type"], order="name asc"
+        )
         sections = self.env["university.class.section"].search_read([], ["id", "name"], order="name asc")
-        teachers = self.env["university.teacher"].search_read([], ["id", "name"], order="name asc")
+        teachers = self.env["university.teacher"].search_read(
+            [], ["id", "name", "title", "position", "department_id", "email", "phone"], order="name asc"
+        )
         faculties = self.env["university.faculty"].search_read([], ["id", "name"], order="name asc")
         programs = self.env["university.program"].search_read([], ["id", "name"], order="name asc")
-        semesters = self.env["university.semester"].search_read([], ["id", "name"], order="name asc")
+        semesters = self.env["university.semester"].search_read([], ["id", "name", "date_start", "date_end", "is_active"], order="date_start desc, name asc")
 
         res["filters_data"] = {
             "subjects": subjects,
@@ -1000,4 +1269,18 @@ class UniversityTimetableSlot(models.Model):
 
         res["assignment_markers"] = assignment_markers
         res["exam_markers"] = exam_markers
+        return res
+
+
+class IrUiMenu(models.Model):
+    _inherit = "ir.ui.menu"
+
+    def _filter_visible_menus(self):
+        res = super()._filter_visible_menus()
+        user = self.env.user
+        # Remove "My Timetable" from Admin Schedule menu
+        if user.has_group("school_management.group_school_admin") or self.env.is_system():
+            my_timetable = self.env.ref("school_management.menu_university_timetable_teacher", raise_if_not_found=False)
+            if my_timetable and my_timetable in res:
+                res = res - my_timetable
         return res

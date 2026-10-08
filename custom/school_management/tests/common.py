@@ -1,6 +1,5 @@
 import secrets
-from datetime import datetime, time, timedelta
-import pytz
+from datetime import timedelta
 
 from odoo import Command, fields
 from odoo.tests.common import TransactionCase

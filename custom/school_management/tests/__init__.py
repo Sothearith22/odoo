@@ -10,6 +10,7 @@ from . import test_capability
 from . import test_user_provisioning
 from . import test_grading_integration
 from . import test_attendance_sheet
+from . import test_attendance_dashboard
 from . import test_department_term
 from . import test_record_rules
 from . import test_student
@@ -22,3 +23,4 @@ from . import test_transcript_request
 from . import test_timetable_attendance_flow
 from . import test_timetable_generation
 from . import test_study_plan
+from . import test_weekly_schedule_timetable

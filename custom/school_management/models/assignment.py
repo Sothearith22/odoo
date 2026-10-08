@@ -163,6 +163,34 @@ class UniversityAssignment(models.Model):
             if assignment.max_score <= 0:
                 raise ValidationError("Assignment maximum score must be greater than zero.")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            section = False
+            if vals.get("section_id"):
+                section = self.env["university.class.section"].browse(vals["section_id"])
+
+            if section and not vals.get("teacher_id"):
+                if not section.teacher_id:
+                    raise ValidationError(_("Please set a Teacher on the class before adding assignments."))
+                teacher = section.teacher_id
+                if teacher._name == "university.teacher":
+                    vals["teacher_id"] = teacher.id
+                elif teacher._name == "res.users":
+                    teacher_rec = self.env["university.teacher"].search([("user_id", "=", teacher.id)], limit=1)
+                    if not teacher_rec:
+                        raise ValidationError(_("Please set a Teacher on the class before adding assignments."))
+                    vals["teacher_id"] = teacher_rec.id
+                elif hasattr(teacher, "teacher_id") and teacher.teacher_id:
+                    vals["teacher_id"] = teacher.teacher_id.id
+                else:
+                    vals["teacher_id"] = teacher.id
+
+            if section and not vals.get("subject_id") and section.subject_id:
+                vals["subject_id"] = section.subject_id.id
+
+        return super().create(vals_list)
+
 
 class UniversityAssignmentSubmission(models.Model):
     _name = "university.assignment.submission"

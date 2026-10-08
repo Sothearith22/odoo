@@ -1238,7 +1238,7 @@
 
                                                         </span>
 
-                                                        <span t-elif="log.status === 'permission'" class="badge bg-info-subtle text-info px-2 py-1">
+                                                        <span t-elif="log.status === 'excused'" class="badge bg-info-subtle text-info px-2 py-1">
 
                                                             <i class="fa fa-file-text-o me-1"/>Excused
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from psycopg2 import IntegrityError
 
 from odoo import fields

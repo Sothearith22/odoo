@@ -98,12 +98,24 @@ class UniversityStaffAttendance(models.Model):
         "Only one staff attendance record is allowed per staff member and date.",
     )
 
+    def _is_non_working_day(self, day):
+        """Hook to determine if a given date is a non-working day (e.g. holiday)."""
+        return False
+
+    def _get_day_label(self, day):
+        """Hook to get display label for a non-working day."""
+        return False
+
     @api.depends("date", "faculty_id")
     def _compute_is_holiday(self):
         for rec in self:
             if not rec.date:
                 rec.is_holiday = False
                 rec.holiday_name = False
+                continue
+            if rec._is_non_working_day(rec.date):
+                rec.is_holiday = True
+                rec.holiday_name = rec._get_day_label(rec.date) or _("Non-Working Day")
                 continue
             holiday = self.env["university.holiday"].search([
                 ("date_start", "<=", rec.date),

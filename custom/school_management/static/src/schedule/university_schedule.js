@@ -21,6 +21,8 @@ export class UniversitySchedule extends Component {
         this.state = useState({
             currentDate: today,
             viewMode: "week", // 'week' | 'day' | 'resource'
+            resourceType: "teacher", // 'teacher' | 'classroom'
+            showSideTable: true,
             colorBy: "subject", // 'subject' | 'teacher' | 'classroom'
             loading: true,
             role: "student", // 'student' | 'teacher' | 'admin'
@@ -182,7 +184,20 @@ export class UniversitySchedule extends Component {
 
     async setViewMode(mode) {
         this.state.viewMode = mode;
+        if (mode === "resource") {
+            this.state.showSideTable = false;
+        } else {
+            this.state.showSideTable = true;
+        }
         await this.loadScheduleData();
+    }
+
+    setResourceType(type) {
+        this.state.resourceType = type;
+    }
+
+    toggleSideTable() {
+        this.state.showSideTable = !this.state.showSideTable;
     }
 
     setColorBy(colorBy) {
@@ -228,6 +243,13 @@ export class UniversitySchedule extends Component {
                 programs: [],
             };
 
+            if (!this.state.filters.semester_id && this.state.filtersData.semesters?.length) {
+                const activeSem = this.state.filtersData.semesters.find((s) => s.is_active) || this.state.filtersData.semesters[0];
+                if (activeSem) {
+                    this.state.filters.semester_id = String(activeSem.id);
+                }
+            }
+
             if (this.state.selectedSlot) {
                 const refreshed = this.state.slots.find((s) => s.id === this.state.selectedSlot.id);
                 if (refreshed) {
@@ -247,6 +269,21 @@ export class UniversitySchedule extends Component {
 
     async onFilterChange(field, ev) {
         this.state.filters[field] = ev.target.value;
+        await this.loadScheduleData();
+    }
+
+    async onTermChange(ev) {
+        const semesterId = ev.target.value;
+        this.state.filters.semester_id = semesterId;
+        const sem = (this.state.filtersData.semesters || []).find((s) => String(s.id) === String(semesterId));
+        if (sem && sem.date_start) {
+            const startDt = new Date(sem.date_start + "T00:00:00");
+            const endDt = sem.date_end ? new Date(sem.date_end + "T23:59:59") : null;
+            const current = new Date(this.state.currentDate);
+            if (current < startDt || (endDt && current > endDt)) {
+                this.state.currentDate = startDt;
+            }
+        }
         await this.loadScheduleData();
     }
 
@@ -340,6 +377,13 @@ export class UniversitySchedule extends Component {
         return [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
     }
 
+    formatHolidayTooltip(holiday, dateObj) {
+        if (!holiday) return "";
+        const options = { year: "numeric", month: "long", day: "numeric" };
+        const formattedDate = dateObj.toLocaleDateString("en-US", options);
+        return `Public Holiday\nHoliday: ${holiday.name}\nDate: ${formattedDate}\nClasses should not be scheduled on this date.`;
+    }
+
     get weekDays() {
         const bounds = this.getBoundsForView();
         const start = new Date(bounds.start + "T00:00:00");
@@ -361,9 +405,16 @@ export class UniversitySchedule extends Component {
                 .filter((s) => s.date_str === dateStr)
                 .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
 
-            const dayHoliday = (this.state.holidays || []).find(
-                (h) => h.date_start <= dateStr && dateStr <= h.date_end
-            );
+            // Compare dates using actual date value (ISO YYYY-MM-DD), not formatted text
+            const dayHoliday = (this.state.holidays || []).find((h) => {
+                const hStart = h.date_start || h.date_from;
+                const hEnd = h.date_end || h.date_to || hStart;
+                if (!hStart || !hEnd) return false;
+                const isPublic = !h.holiday_type || h.holiday_type === "public";
+                return isPublic && hStart <= dateStr && dateStr <= hEnd;
+            });
+
+            const holidayTooltip = dayHoliday ? this.formatHolidayTooltip(dayHoliday, d) : "";
 
             days.push({
                 date: d,
@@ -376,31 +427,123 @@ export class UniversitySchedule extends Component {
                 slots: daySlots,
                 hasSlots: daySlots.length > 0,
                 holiday: dayHoliday || null,
+                holidayTooltip: holidayTooltip,
             });
         }
         return days;
+    }
+
+    get resourceTeachers() {
+        const teachers = this.state.filtersData.teachers || [];
+        const slots = this.filteredSlots;
+        const days = this.weekDays;
+        const selectedTeacherId = this.state.filters.teacher_id ? parseInt(this.state.filters.teacher_id) : null;
+        const myTeacherId = this.state.teacherInfo ? this.state.teacherInfo.id : null;
+
+        let list = teachers;
+        if (selectedTeacherId) {
+            list = list.filter((t) => t.id === selectedTeacherId);
+        }
+
+        const mapped = list.map((teacher) => {
+            const teacherSlots = slots.filter((s) => s.teacher_id === teacher.id);
+            const dayMap = {};
+            days.forEach((day) => {
+                dayMap[day.dateStr] = teacherSlots
+                    .filter((s) => s.date_str === day.dateStr)
+                    .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
+            });
+            const totalHours = teacherSlots.reduce((acc, s) => acc + (s.duration_hours || 0), 0);
+
+            let positionStr = "";
+            if (teacher.position) {
+                positionStr = teacher.position.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+            }
+            let deptStr = "";
+            if (teacher.department_id && Array.isArray(teacher.department_id)) {
+                deptStr = teacher.department_id[1];
+            } else if (teacher.department_name) {
+                deptStr = teacher.department_name;
+            }
+
+            const initials = (teacher.name || "T")
+                .split(" ")
+                .filter(Boolean)
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+
+            const isMe = Boolean(myTeacherId && myTeacherId === teacher.id);
+
+            return {
+                id: teacher.id,
+                name: teacher.name,
+                title: teacher.title || "",
+                position: positionStr,
+                department: deptStr,
+                email: teacher.email || "",
+                initials: initials,
+                isMe: isMe,
+                slots: teacherSlots,
+                dayMap: dayMap,
+                totalSlots: teacherSlots.length,
+                totalHours: Math.round(totalHours * 10) / 10,
+            };
+        });
+
+        return mapped.sort((a, b) => {
+            if (a.isMe) return -1;
+            if (b.isMe) return 1;
+            if (a.totalSlots > 0 && b.totalSlots === 0) return -1;
+            if (b.totalSlots > 0 && a.totalSlots === 0) return 1;
+            return a.name.localeCompare(b.name);
+        });
     }
 
     get resourceClassrooms() {
         const rooms = this.state.filtersData.classrooms || [];
         const slots = this.filteredSlots;
         const days = this.weekDays;
+        const selectedRoomId = this.state.filters.classroom_id ? parseInt(this.state.filters.classroom_id) : null;
 
-        return rooms.map((room) => {
+        let list = rooms;
+        if (selectedRoomId) {
+            list = list.filter((r) => r.id === selectedRoomId);
+        }
+
+        const mapped = list.map((room) => {
             const roomSlots = slots.filter((s) => s.classroom_id === room.id);
             const dayMap = {};
             days.forEach((day) => {
-                dayMap[day.dateStr] = roomSlots.filter((s) => s.date_str === day.dateStr);
+                dayMap[day.dateStr] = roomSlots
+                    .filter((s) => s.date_str === day.dateStr)
+                    .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
             });
+            const totalHours = roomSlots.reduce((acc, s) => acc + (s.duration_hours || 0), 0);
             return {
                 id: room.id,
                 name: room.name,
                 building: room.building || "Campus",
+                capacity: room.capacity || 0,
+                room_type: room.room_type || "classroom",
                 slots: roomSlots,
                 dayMap: dayMap,
                 totalSlots: roomSlots.length,
+                totalHours: Math.round(totalHours * 10) / 10,
             };
         });
+
+        return mapped.sort((a, b) => {
+            if (a.totalSlots > 0 && b.totalSlots === 0) return -1;
+            if (b.totalSlots > 0 && a.totalSlots === 0) return 1;
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    get totalTeacherHoursThisWeek() {
+        const total = this.filteredSlots.reduce((acc, s) => acc + (s.duration_hours || 0), 0);
+        return Math.round(total * 10) / 10;
     }
 
     get currentTimeMarkerPosition() {
@@ -508,12 +651,58 @@ export class UniversitySchedule extends Component {
     // Actions: + Add Class, Attendance, Notes, Materials
     // =========================================================================
 
-    async addClass() {
+    async addClass(options = {}) {
         if (this.state.role !== "admin") return;
+        const ctx = {
+            default_semester_id: this.state.filters.semester_id ? parseInt(this.state.filters.semester_id) : false,
+        };
+        if (options && options.teacher_id) {
+            ctx.default_teacher_id = parseInt(options.teacher_id);
+        } else if (this.state.filters.teacher_id) {
+            ctx.default_teacher_id = parseInt(this.state.filters.teacher_id);
+        }
+        if (options && options.classroom_id) {
+            ctx.default_classroom_id = parseInt(options.classroom_id);
+        } else if (this.state.filters.classroom_id) {
+            ctx.default_classroom_id = parseInt(this.state.filters.classroom_id);
+        }
+        if (options && options.dateStr) {
+            const holiday = (this.state.holidays || []).find((h) => {
+                const s = h.date_start || h.date_from;
+                const e = h.date_end || h.date_to || s;
+                return Boolean(s && e && s <= options.dateStr && options.dateStr <= e && (!h.holiday_type || h.holiday_type === "public"));
+            });
+            if (holiday) {
+                this.notification.add(
+                    `Warning: ${options.dateStr} is a public holiday (${holiday.name}). Classes should not be scheduled on this date.`,
+                    { type: "warning" }
+                );
+            }
+            ctx.default_start_time = `${options.dateStr} 08:00:00`;
+            ctx.default_end_time = `${options.dateStr} 10:00:00`;
+        }
         this.action.doAction({
             type: "ir.actions.act_window",
             name: "Schedule Class Session",
             res_model: "university.timetable.slot",
+            views: [[false, "form"]],
+            view_mode: "form",
+            target: "new",
+            context: ctx,
+        }, {
+            onClose: async () => {
+                await this.loadScheduleData();
+            },
+        });
+    }
+
+    async editSlot(slot) {
+        if (!slot) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Edit Schedule - " + (slot.subject_name || slot.name),
+            res_model: "university.timetable.slot",
+            res_id: slot.id,
             views: [[false, "form"]],
             view_mode: "form",
             target: "new",
@@ -522,6 +711,42 @@ export class UniversitySchedule extends Component {
                 await this.loadScheduleData();
             },
         });
+    }
+
+    async deleteSlot(slot) {
+        if (this.state.role !== "admin" || !slot) return;
+        if (confirm(`Are you sure you want to delete schedule '${slot.name || slot.subject_name}'?`)) {
+            try {
+                await this.orm.unlink("university.timetable.slot", [slot.id]);
+                this.closeSlotSidePanel();
+                this.notification.add("Schedule session deleted successfully.", { type: "success" });
+                await this.loadScheduleData();
+            } catch (err) {
+                this.notification.add(err.message || "Failed to delete schedule.", { type: "danger" });
+            }
+        }
+    }
+
+    async publishSlot(slot) {
+        if (!slot) return;
+        try {
+            await this.orm.call("university.timetable.slot", "action_publish", [[slot.id]]);
+            this.notification.add("Schedule published successfully.", { type: "success" });
+            await this.loadScheduleData();
+        } catch (err) {
+            this.notification.add(err.message || "Failed to publish schedule.", { type: "danger" });
+        }
+    }
+
+    async unpublishSlot(slot) {
+        if (!slot) return;
+        try {
+            await this.orm.call("university.timetable.slot", "action_set_draft", [[slot.id]]);
+            this.notification.add("Schedule set to draft.", { type: "info" });
+            await this.loadScheduleData();
+        } catch (err) {
+            this.notification.add(err.message || "Failed to set schedule to draft.", { type: "danger" });
+        }
     }
 
     async takeAttendance(slot) {

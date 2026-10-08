@@ -303,6 +303,16 @@ Current implemented Dean access:
 - Teachers where `department_id.faculty_id.dean_id.user_id = user.id`
 - Students where `department_id.faculty_id.dean_id.user_id = user.id`
 
+## Class Section & Assignment Integration
+
+Class Section form view (`views/class_section_views.xml`) includes an embedded `assignment_ids` list under the **Assignment Type** tab. To ensure seamless creation of assignments directly from class sections:
+- The view supplies `context="{'default_teacher_id': teacher_id, 'default_section_id': id, 'default_subject_id': subject_id}"`, auto-inheriting the section's teacher, section ID, and subject.
+- A model-level safety net in `models/assignment.py` (`@api.model_create_multi def create`) ensures that if `teacher_id` ("Prepared By") is omitted on creation, it is auto-populated from the section's teacher.
+- If the section has no teacher assigned, an explicit `ValidationError` is raised: *"Please set a Teacher on the class before adding assignments."*
+- Comodel mappings between `section.teacher_id` and `assignment.teacher_id` (such as `university.teacher` vs `res.users`) are resolved safely.
+- This prevents form validation failures when triggering header buttons (*View Interactive Schedule*, *SCHEDULE TIMETABLE*, *Populate Class*).
+- A standalone maintenance script is provided at `scripts/fix_empty_assignment_teachers.py` to audit and backfill any historical assignments missing a teacher.
+
 ## Verification Notes
 
 As of 2026-09-10:
@@ -387,6 +397,11 @@ school_management/
 |       |-- student_dashboard_shell.{js,xml,scss}
 |       |-- teacher_dashboard_shell.{js,xml,scss}
 |       `-- layout/school_layout.{js,xml,scss} + webclient_patch.{js,xml} + topbar_integration.scss
+|-- scripts/
+|   |-- audit_semester_subject_duplicates.py
+|   |-- cleanup_student_data.py
+|   |-- cleanup_teacher_data.py
+|   `-- fix_empty_assignment_teachers.py
 |-- tests/
 |   |-- __init__.py
 |   `-- test_payment.py

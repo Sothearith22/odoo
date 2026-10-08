@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 from .academic_lock import can_maintain_closed_year_records
 
 
@@ -207,6 +207,44 @@ class UniversityEnrollment(models.Model):
     @api.onchange("class_section_id", "student_id")
     def _onchange_class_section_or_student(self):
         self._compute_derived_fields()
+        if self.student_id and self.class_section_id and self.class_section_id.semester_id:
+            semester = self.class_section_id.semester_id
+            other_enrollments = self.env["university.enrollment"].search([
+                ("id", "!=", self.id or 0),
+                ("student_id", "=", self.student_id.id),
+                ("class_section_id", "!=", self.class_section_id.id),
+                ("class_section_id", "!=", False),
+                ("status", "in", ("draft", "enrolled")),
+            ])
+            other_sections = other_enrollments.mapped("class_section_id").filtered(
+                lambda s: s.semester_id == semester
+            )
+            my_lines = self.class_section_id.schedule_line_ids.filtered("active")
+            for other_sec in other_sections:
+                other_lines = other_sec.schedule_line_ids.filtered("active")
+                for l1 in my_lines:
+                    for l2 in other_lines:
+                        if l1.weekday == l2.weekday:
+                            if (
+                                l1.timeslot_id
+                                and l2.timeslot_id
+                                and l1.timeslot_id.start_hour < l2.timeslot_id.end_hour
+                                and l1.timeslot_id.end_hour > l2.timeslot_id.start_hour
+                            ):
+                                return {
+                                    "warning": {
+                                        "title": _("Schedule Overlap Warning"),
+                                        "message": _(
+                                            "Warning: Student '%(student)s' is already enrolled in class section '%(other)s' "
+                                            "which has an overlapping schedule (%(slot1)s vs %(slot2)s)."
+                                        ) % {
+                                            "student": self.student_id.name,
+                                            "other": other_sec.display_name,
+                                            "slot1": l1.timeslot_id.name,
+                                            "slot2": l2.timeslot_id.name,
+                                        },
+                                    }
+                                }
 
     @api.depends("student_id", "subject_id", "semester_id", "class_section_id", "status")
     def _compute_possible_duplicate(self):

@@ -2,13 +2,34 @@
     "name": "School Public Holidays",
     "version": "1.0.0",
     "category": "Education",
-    "summary": "Cambodia public holiday calendar and holiday work pay rules",
-    "depends": ["base"],
+    "summary": "Cambodia public holiday calendar, file import, and schedule conflict validation",
+    "author": "School Management",
+    "depends": [
+        "base",
+        "resource",
+        "school_management"
+    ],
     "data": [
         "security/ir.model.access.csv",
+        "wizard/public_holiday_import_wizard_views.xml",
+        "wizard/holiday_import_wizard_views.xml",
+        "wizard/session_reschedule_wizard_views.xml",
         "views/public_holiday_views.xml",
+        "views/holiday_import_log_views.xml",
+        "views/timetable_slot_views.xml",
+        "views/class_section_views.xml",
+        "views/menu.xml",
+        "views/menu_views.xml",
+        "data/cambodia_holidays.xml",
         "data/public_holiday_data.xml",
+
     ],
+    "assets": {
+        "web.assets_backend": [
+            "school_public_holiday/static/src/scss/schedule_holiday.scss",
+            "school_public_holiday/static/src/schedule_patch/schedule_holiday_patch.js",
+        ],
+    },
     "installable": True,
     "application": False,
     "license": "LGPL-3",

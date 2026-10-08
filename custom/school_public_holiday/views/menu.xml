@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Public Holidays menu under University Configuration (Academic Setup > Calendar) -->
+    <menuitem
+        id="menu_public_holiday"
+        name="Public Holidays"
+        parent="school_management.menu_university_sec_calendar"
+        action="action_public_holiday"
+        sequence="25"
+        groups="school_management.group_school_admin"
+    />
+</odoo>

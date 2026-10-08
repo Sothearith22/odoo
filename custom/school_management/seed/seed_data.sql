@@ -86,13 +86,13 @@ ON CONFLICT (id) DO NOTHING;
 -- ------------------------------------------------------------------------------
 -- 8. SUBJECTS
 -- ------------------------------------------------------------------------------
-INSERT INTO university_subject (id, name, code, department_id, credits, semester_number, description, active, create_uid, create_date, write_uid, write_date)
+INSERT INTO university_subject (id, name, code, department_id, credits, description, active, create_uid, create_date, write_uid, write_date)
 VALUES 
-  (1, 'Introduction to Computer Science', 'CS101', 1, 3, 1, 'Foundations of programming and computer architecture.', true, 1, NOW(), 1, NOW()),
-  (2, 'Data Structures & Algorithms', 'CS201', 1, 4, 2, 'Arrays, Linked Lists, Trees, Graphs, and Complexity Analysis.', true, 1, NOW(), 1, NOW()),
-  (3, 'Database Management Systems', 'CS301', 1, 3, 3, 'Relational model, SQL, Transactions, and Indexing.', true, 1, NOW(), 1, NOW()),
-  (4, 'Circuit Analysis & Electronics', 'EE101', 2, 4, 1, 'Basic electrical components, Ohm law, and AC/DC circuits.', true, 1, NOW(), 1, NOW()),
-  (5, 'Principles of Management', 'BM101', 3, 3, 1, 'Core concepts of organizational leadership and strategy.', true, 1, NOW(), 1, NOW())
+  (1, 'Introduction to Computer Science', 'CS101', 1, 3, 'Foundations of programming and computer architecture.', true, 1, NOW(), 1, NOW()),
+  (2, 'Data Structures & Algorithms', 'CS201', 1, 4, 'Arrays, Linked Lists, Trees, Graphs, and Complexity Analysis.', true, 1, NOW(), 1, NOW()),
+  (3, 'Database Management Systems', 'CS301', 1, 3, 'Relational model, SQL, Transactions, and Indexing.', true, 1, NOW(), 1, NOW()),
+  (4, 'Circuit Analysis & Electronics', 'EE101', 2, 4, 'Basic electrical components, Ohm law, and AC/DC circuits.', true, 1, NOW(), 1, NOW()),
+  (5, 'Principles of Management', 'BM101', 3, 3, 'Core concepts of organizational leadership and strategy.', true, 1, NOW(), 1, NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Subject <-> Program Relationship Junction

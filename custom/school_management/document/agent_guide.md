@@ -438,12 +438,27 @@ school_management/
 │   ├── student_dashboard_shell.{js,xml,scss}
 │   ├── teacher_dashboard_shell.{js,xml,scss}
 │   └── layout/              # school_layout (OWL sidebar), webclient_patch, topbar_integration
+├── scripts/                  # maintenance scripts
+│   ├── audit_semester_subject_duplicates.py
+│   ├── cleanup_student_data.py
+│   ├── cleanup_teacher_data.py
+│   └── fix_empty_assignment_teachers.py # repair missing assignment teacher_id
 ├── tests/
 │   └── test_payment.py      # focused payment tests
 ├── seed/                    # run_seed.py + seed_data.sql (SQL demo data, not part of install)
 └── document/                # project_overview, project_structure, agent_guide,
                              # local_configuration_guide, login_guide, architecture, QNA review
 ```
+
+### Class Section & Assignment Architecture Notes
+
+- `university.class.section`:
+  - Contains embedded `assignment_ids` under `views/class_section_views.xml`.
+  - Context defaults `default_teacher_id`, `default_section_id`, and `default_subject_id` to guarantee one2many lines inherit class instructor metadata.
+- `university.assignment`:
+  - Enforces `teacher_id` ("Prepared By", `required=True`).
+  - Implements `@api.model_create_multi def create(...)` safety net: if `teacher_id` is not passed, falls back to `section_id.teacher_id`. If the section lacks an instructor, raises `ValidationError("Please set a Teacher on the class before adding assignments.")`.
+  - Ensures Class form actions (*View Interactive Schedule*, *SCHEDULE TIMETABLE*, *Populate Class*) never encounter validation blocks during auto-save.
 
 ### Security highlights
 

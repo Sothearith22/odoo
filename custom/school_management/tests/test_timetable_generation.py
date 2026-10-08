@@ -1,9 +1,8 @@
 import secrets
-from datetime import datetime, time, timedelta
+from datetime import timedelta
 import pytz
 
-from odoo import Command, fields
-from odoo.exceptions import UserError, ValidationError
+from odoo import Command
 from odoo.tests import tagged
 from .common import StudyPlanCommon
 

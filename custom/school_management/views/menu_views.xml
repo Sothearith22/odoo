@@ -38,7 +38,7 @@
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_teacher_dashboard_shell"/>
         <field name="sequence">15</field>
-        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_admin'), ref('base.group_system')])]"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher')])]"/>
     </record>
 
     <!-- ==================== STUDENT TOP BAR (MATCHING TEACHER) ==================== -->
@@ -153,7 +153,7 @@
         groups="school_management.group_school_student"
     />
 
-    <!-- ==================== TEACHER / STAFF: 1. SCHEDULE DROPDOWN ==================== -->
+    <!-- ==================== 1. SCHEDULE DROPDOWN ==================== -->
     <menuitem
         id="menu_university_schedule_category"
         name="Schedule"
@@ -161,28 +161,38 @@
         sequence="20"
         groups="school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
+    <!-- Teacher only (hidden from Admin by _filter_visible_menus): My Timetable -->
     <menuitem
         id="menu_university_timetable_teacher"
         name="My Timetable"
         parent="menu_university_schedule_category"
         action="action_university_schedule_view"
-        sequence="10"
-        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+        sequence="5"
+        groups="school_management.group_school_teacher"
     />
+    <!-- Admin: Timetable (Complete University Timetable) -->
     <menuitem
         id="menu_university_timetable"
         name="Timetable"
         parent="menu_university_schedule_category"
+        action="action_university_schedule_view"
+        sequence="10"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_timetable_sessions"
+        name="Scheduled Sessions"
+        parent="menu_university_schedule_category"
         action="action_university_timetable_slot"
-        sequence="20"
-        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+        sequence="15"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_timetable_generate"
         name="Generate Timetable"
         parent="menu_university_schedule_category"
         action="action_university_timetable_generation_wizard"
-        sequence="30"
+        sequence="20"
         groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
@@ -190,8 +200,24 @@
         name="Timeslots"
         parent="menu_university_schedule_category"
         action="action_university_timeslot"
-        sequence="40"
+        sequence="30"
         groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_classroom"
+        name="Classrooms"
+        parent="menu_university_schedule_category"
+        action="action_university_classroom"
+        sequence="40"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_room_occupancy"
+        name="Room Occupancy"
+        parent="menu_university_schedule_category"
+        action="action_university_timetable_slot_room"
+        sequence="45"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_holiday"
@@ -202,12 +228,12 @@
         groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
-        id="menu_university_classroom"
-        name="Classrooms"
+        id="menu_university_schedule_conflicts"
+        name="Schedule Conflicts"
         parent="menu_university_schedule_category"
-        action="action_university_classroom"
+        action="action_university_schedule_conflicts"
         sequence="60"
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+        groups="school_management.group_school_admin,base.group_system"
     />
 
     <!-- ==================== TEACHER / STAFF: 2. TEACHING & LEARNING ==================== -->
@@ -266,15 +292,55 @@
         name="Attendance"
         parent="menu_university_academic_category"
         sequence="20"
-        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_take_attendance"
         name="Take Attendance"
         parent="menu_university_sec_attendance"
-        action="action_university_attendance_sheet"
+        action="action_university_attendance_take_wizard"
         sequence="10"
+        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_attendance_sheet"
+        name="Attendance Sheet"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_sheet"
+        sequence="12"
         groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_attendance_grid"
+        name="Attendance Grid"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_grid"
+        sequence="20"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_attendance_at_risk"
+        name="At-Risk Students"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_at_risk"
+        sequence="30"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_attendance_comparison"
+        name="Comparison"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_comparison"
+        sequence="40"
+        groups="school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_attendance_report"
+        name="Reports &amp; Export"
+        parent="menu_university_sec_attendance"
+        action="action_university_attendance_print_wizard"
+        sequence="50"
+        groups="school_management.group_school_admin,base.group_system"
     />
 
     <!-- Section Header: Coursework -->
@@ -557,6 +623,14 @@
         groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
+        id="menu_university_curriculum"
+        name="Curriculums"
+        parent="menu_university_sec_curriculum"
+        action="action_university_curriculum"
+        sequence="5"
+        groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
         id="menu_university_semester_subject"
         name="Semester Subjects"
         parent="menu_university_sec_curriculum"
@@ -786,3 +860,4 @@
     </record>
 
 </odoo>
+

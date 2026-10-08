@@ -16,6 +16,7 @@ from . import admission_lead
 from . import subject
 from . import semester_subject
 from . import class_section
+from . import class_schedule_line
 from . import student
 from . import enrollment
 from . import fee
@@ -28,10 +29,14 @@ from . import capability
 from . import lesson_plan
 from . import assignment
 from . import timetable
+from . import timetable_conflict
 from . import notice_board
 from . import service_hour
 from . import attendance
+from . import attendance_wizard
+from . import attendance_print_wizard
 from . import staff_attendance
 from . import exam
 from . import advising
 from . import transcript_request
+from . import curriculum

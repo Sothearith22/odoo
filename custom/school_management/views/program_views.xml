@@ -206,8 +206,8 @@
                             <field name="subject_ids"
                                    context="{'default_department_id': department_id}"
                                    domain="[('active', '=', True)]">
-                                <list default_order="semester_number,code">
-                                    <field name="semester_number" string="Sem."/>
+                                <list default_order="code">
+                                    
                                     <field name="code" decoration-bf="1"/>
                                     <field name="name" decoration-bf="1"/>
                                     <field name="credits" sum="Total Credits"/>
@@ -329,3 +329,4 @@
     </record>
 
 </odoo>
+

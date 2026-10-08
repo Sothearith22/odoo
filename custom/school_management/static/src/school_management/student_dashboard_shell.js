@@ -284,7 +284,7 @@ class StudentDashboardShell extends Component {
                         if (st === "present") present++;
                         else if (st === "late") late++;
                         else if (st === "absent") absent++;
-                        else if (st === "permission") excused++;
+                        else if (st === "excused") excused++;
 
                         const secId = att.section_id?.[0];
                         if (secId) {
@@ -308,7 +308,7 @@ class StudentDashboardShell extends Component {
                             if (st === "present") cs.present++;
                             else if (st === "late") cs.late++;
                             else if (st === "absent") cs.absent++;
-                            else if (st === "permission") cs.excused++;
+                            else if (st === "excused") cs.excused++;
                         }
                     });
 

@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import fields, models
 
 class UniversityNoticeBoard(models.Model):
     _name = "university.notice.board"

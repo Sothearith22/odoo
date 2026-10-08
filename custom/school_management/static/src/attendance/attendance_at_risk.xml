@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="school_management.AttendanceAtRisk">
+        <div class="o_att_at_risk">
+            <div class="o_att_grid_toolbar">
+                <h1 class="o_att_grid_title">At-Risk Attendance</h1>
+                <div class="o_att_grid_controls">
+                    <label class="o_att_grid_label">
+                        Month
+                        <select t-on-change="onMonthChange" t-att-disabled="state.loading">
+                            <option t-foreach="[1,2,3,4,5,6,7,8,9,10,11,12]" t-as="m"
+                                    t-att-value="m" t-att-selected="state.month === m"
+                                    t-esc="m"/>
+                        </select>
+                    </label>
+                    <label class="o_att_grid_label">
+                        Year
+                        <input type="number" min="2000" max="2100" t-att-value="state.year"
+                               t-on-change="onYearChange" t-att-disabled="state.loading"/>
+                    </label>
+                    <button class="btn btn-secondary" t-on-click="refresh" t-att-disabled="state.loading">
+                        <i class="fa fa-refresh me-1" t-att-class="state.loading ? 'fa-spin' : ''"/>Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" t-if="state.error" role="alert">
+                <i class="fa fa-exclamation-triangle me-1" t-esc="state.error"/>
+            </div>
+            <div class="text-center py-5" t-if="state.loading &amp;&amp; !state.data">
+                <i class="fa fa-spinner fa-spin fa-2x text-muted"/>
+            </div>
+
+            <t t-if="state.data">
+                <div class="o_att_legend">
+                    <span class="o_att_legend_item">
+                        Students whose attendance rate is below the configured threshold of
+                        <strong t-esc="state.data.threshold"/>% are listed here (<span t-esc="state.data.students.length"/> students).
+                    </span>
+                </div>
+                <div class="o_att_grid_empty alert alert-info"
+                     t-if="!state.data.students.length" role="alert">
+                    <i class="fa fa-check-circle text-success me-1"/>
+                    No students currently fall below the attendance threshold for this period.
+                </div>
+                <div class="table-responsive" t-if="state.data.students.length">
+                    <table class="table table-sm table-bordered o_att_grid_table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student</th>
+                                <th>Code</th>
+                                <th>Department</th>
+                                <th class="text-center">Sections</th>
+                                <th class="text-center">Present</th>
+                                <th class="text-center">Absent</th>
+                                <th class="text-center">Late</th>
+                                <th class="text-center">Excused</th>
+                                <th class="text-center">Total</th>
+                                <th style="width: 200px;">Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="state.data.students" t-as="student" t-key="student.id">
+                                <td class="text-center" t-esc="student_index"/>
+                                <td t-esc="student.name"/>
+                                <td class="text-muted" t-esc="student.code"/>
+                                <td t-esc="student.department || ''"/>
+                                <td class="text-center" t-esc="student.sections"/>
+                                <td class="text-center" t-esc="student.counts.present"/>
+                                <td class="text-center" t-esc="student.counts.absent"/>
+                                <td class="text-center" t-esc="student.counts.late"/>
+                                <td class="text-center" t-esc="student.counts.excused"/>
+                                <td class="text-center" t-esc="student.total"/>
+                                <td>
+                                    <div class="o_att_risk_bar">
+                                        <div class="o_att_risk_bar_fill"
+                                             t-att-style="'width: ' + barWidth(student) + ';'"
+                                             t-att-title="rateLabel(student) + ' attendance'"/>
+                                    </div>
+                                    <span class="o_att_risk_pct" t-esc="rateLabel(student)"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

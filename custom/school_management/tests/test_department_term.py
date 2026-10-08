@@ -3,7 +3,7 @@ from datetime import timedelta
 from psycopg2 import IntegrityError
 
 from odoo import fields
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 

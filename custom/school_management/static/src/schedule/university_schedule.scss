@@ -223,4 +223,83 @@ $uni-teal-subtle: #f0fdfa;
             transform: translateX(0);
         }
     }
+
+    // Resource View (Schedule by Resource: Teachers & Classrooms)
+    .o_resource_table {
+        font-size: 0.82rem;
+
+        th {
+            vertical-align: middle;
+        }
+
+        .o_resource_row {
+            transition: background-color 0.12s ease;
+            &:hover {
+                background-color: rgba(111, 66, 193, 0.015);
+            }
+        }
+
+        .o_resource_cell {
+            vertical-align: top;
+            transition: background-color 0.15s ease;
+
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.02);
+
+                .o_btn_add_slot {
+                    opacity: 1 !important;
+                }
+            }
+
+            .o_btn_add_slot {
+                opacity: 0;
+                transition: opacity 0.15s ease;
+            }
+        }
+
+        .o_resource_card {
+            border-left-width: 3px !important;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+            &:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+            }
+        }
+
+        .bg-purple-subtle-light {
+            background-color: rgba(111, 66, 193, 0.04);
+        }
+    }
+
+    .o_hover_full_opacity {
+        transition: opacity 0.15s ease;
+        &:hover {
+            opacity: 1 !important;
+        }
+    }
+
+    // Public Holiday Highlighting
+    .o_holiday_day_col,
+    .o_grid_day_col.o_holiday_day_col,
+    .o_resource_cell.o_holiday_day_col {
+        background-color: #fef2f2 !important;
+    }
+
+    .o_holiday_col_header,
+    .o_grid_day_header_col.o_holiday_col_header,
+    th.o_resource_header_col.o_holiday_col_header {
+        background-color: #fee2e2 !important;
+        border-top: 3px solid #dc2626 !important;
+    }
+
+    .o_holiday_header_badge {
+        background-color: #dc2626 !important;
+        color: #ffffff !important;
+        cursor: help;
+    }
+
+    .o_holiday_column_banner {
+        pointer-events: none;
+    }
 }

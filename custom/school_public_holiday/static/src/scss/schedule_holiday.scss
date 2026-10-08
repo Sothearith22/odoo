@@ -1,0 +1,156 @@
+/* Public Holiday Schedule Styling - CSS variables with Dark Mode support */
+:root {
+    --holiday-shaded-bg: #fef2f2;
+    --holiday-stripe-color: #fee2e2;
+    --holiday-stripe-pattern: repeating-linear-gradient(
+        -45deg,
+        var(--holiday-shaded-bg),
+        var(--holiday-shaded-bg) 14px,
+        var(--holiday-stripe-color) 14px,
+        var(--holiday-stripe-color) 28px
+    );
+    --holiday-conflict-bg: #fee2e2;
+    --holiday-conflict-border: #dc2626;
+    --holiday-conflict-text: #991b1b;
+    --holiday-cancelled-bg: #f3f4f6;
+    --holiday-cancelled-border: #9ca3af;
+    --holiday-cancelled-text: #6b7280;
+    --holiday-override-bg: #fef3c7;
+    --holiday-override-border: #d97706;
+    --holiday-override-text: #92400e;
+}
+
+[data-color-mode="dark"], .o_web_client.o_dark {
+    --holiday-shaded-bg: rgba(245, 158, 11, 0.14);
+    --holiday-stripe-color: rgba(245, 158, 11, 0.22);
+    --holiday-conflict-bg: rgba(220, 38, 38, 0.28);
+    --holiday-conflict-border: #ef4444;
+    --holiday-conflict-text: #fca5a5;
+    --holiday-cancelled-bg: #374151;
+    --holiday-cancelled-border: #6b7280;
+    --holiday-cancelled-text: #9ca3af;
+    --holiday-override-bg: rgba(217, 119, 6, 0.28);
+    --holiday-override-border: #f59e0b;
+    --holiday-override-text: #fde68a;
+}
+
+/* Day column shading across week, day, and resource views */
+.o_grid_day_col.bg-danger-subtle,
+.o_grid_day_col.o_holiday_day_col,
+.o_grid_day_col.o_holiday_shaded_day,
+.o_grid_day_col.bg-warning-subtle,
+.o_resource_cell.bg-danger-subtle,
+.o_resource_cell.o_holiday_day_col {
+    background-color: var(--holiday-shaded-bg) !important;
+    background: var(--holiday-stripe-pattern) !important;
+}
+
+.o_grid_day_header_col.bg-danger-subtle,
+.o_grid_day_header_col.o_holiday_col_header,
+.o_grid_day_header_col.bg-warning-subtle,
+th.o_resource_header_col.o_holiday_col_header,
+th.o_resource_header_col.bg-danger-subtle {
+    background-color: var(--holiday-stripe-color) !important;
+    border-top: 3px solid #dc2626 !important;
+}
+
+.o_holiday_header_badge {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    font-size: 0.72rem;
+    cursor: help;
+}
+
+/* Conflicting session: red border + light red bg + warning icon + holiday label */
+.o_schedule_block.o_slot_holiday_conflict {
+    background-color: var(--holiday-conflict-bg) !important;
+    border: 2px solid var(--holiday-conflict-border) !important;
+    border-left-width: 5px !important;
+    border-left-color: var(--holiday-conflict-border) !important;
+    color: var(--holiday-conflict-text) !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2) !important;
+}
+
+.o_schedule_block.o_slot_holiday_conflict .badge.bg-warning {
+    background-color: var(--holiday-conflict-border) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* Cancelled session on holiday: grey with strikethrough */
+.o_schedule_block.o_slot_holiday_cancelled {
+    background-color: var(--holiday-cancelled-bg) !important;
+    border: 1px dashed var(--holiday-cancelled-border) !important;
+    border-left-width: 4px !important;
+    border-left-color: var(--holiday-cancelled-border) !important;
+    color: var(--holiday-cancelled-text) !important;
+    opacity: 0.65;
+    filter: grayscale(80%);
+}
+
+.o_schedule_block.o_slot_holiday_cancelled .o_block_title,
+.o_schedule_block.o_slot_holiday_cancelled .o_block_time {
+    text-decoration: line-through !important;
+}
+
+/* Allowed session by admin override: amber with badge */
+.o_schedule_block.o_slot_holiday_override {
+    background-color: var(--holiday-override-bg) !important;
+    border: 2px solid var(--holiday-override-border) !important;
+    border-left-width: 5px !important;
+    border-left-color: var(--holiday-override-border) !important;
+    color: var(--holiday-override-text) !important;
+}
+
+.o_schedule_block.o_slot_holiday_override .badge.bg-warning {
+    background-color: var(--holiday-override-border) !important;
+    color: #ffffff !important;
+}
+
+/* Legend styling */
+.o_holiday_schedule_legend {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 3px 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.o_holiday_legend_item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.o_legend_swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.o_legend_swatch.swatch_holiday {
+    background-color: #fef2f2;
+    background: var(--holiday-stripe-pattern);
+    border: 1px solid #dc2626;
+}
+
+.o_legend_swatch.swatch_conflict {
+    background: var(--holiday-conflict-bg);
+    border: 1px solid var(--holiday-conflict-border);
+}
+
+.o_legend_swatch.swatch_cancelled {
+    background: var(--holiday-cancelled-bg);
+    border: 1px dashed var(--holiday-cancelled-border);
+}
+
+.o_legend_swatch.swatch_override {
+    background: var(--holiday-override-bg);
+    border: 1px solid var(--holiday-override-border);
+}

@@ -11,6 +11,11 @@
                 <field name="building"/>
                 <field name="room_type" widget="badge"/>
                 <field name="capacity"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'available'"
+                       decoration-warning="status == 'maintenance'"
+                       decoration-danger="status == 'occupied'"
+                       decoration-muted="status == 'inactive'"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -37,6 +42,7 @@
                         <group string="Location &amp; Type">
                             <field name="building"/>
                             <field name="room_type"/>
+                            <field name="status"/>
                         </group>
                         <group string="Capacity">
                             <field name="capacity"/>
@@ -57,14 +63,20 @@
                 <field name="name"/>
                 <field name="building"/>
                 <separator/>
+                <filter string="Available" name="filter_available" domain="[('status', '=', 'available')]"/>
+                <filter string="Maintenance" name="filter_maintenance" domain="[('status', '=', 'maintenance')]"/>
+                <filter string="Occupied" name="filter_occupied" domain="[('status', '=', 'occupied')]"/>
+                <separator/>
                 <filter string="Active" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived" name="filter_inactive" domain="[('active', '=', False)]"/>
                 <group>
                     <filter string="Building" name="group_by_building" context="{'group_by': 'building'}"/>
                     <filter string="Room Type" name="group_by_type" context="{'group_by': 'room_type'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                 </group>
                 <searchpanel>
                     <field name="room_type" icon="fa-building" enable_counters="1" select="multi"/>
+                    <field name="status" icon="fa-circle" enable_counters="1"/>
                 </searchpanel>
             </search>
         </field>
@@ -75,11 +87,12 @@
         <field name="name">university.classroom.kanban</field>
         <field name="model">university.classroom</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="room_type" quick_create="false">
+            <kanban sample="1" default_group_by="status" quick_create="false">
                 <field name="name"/>
                 <field name="building"/>
                 <field name="room_type"/>
                 <field name="capacity"/>
+                <field name="status"/>
                 <templates>
                     <t t-name="card">
                         <main class="ms-2 p-3">
@@ -87,6 +100,11 @@
                                 <div class="o_kanban_record_headings">
                                     <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
                                 </div>
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'available'"
+                                       decoration-warning="status == 'maintenance'"
+                                       decoration-danger="status == 'occupied'"
+                                       decoration-muted="status == 'inactive'"/>
                             </div>
                             <div class="text-muted small mt-1">
                                 <i class="fa fa-building me-1" title="Building"/>

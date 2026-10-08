@@ -12,14 +12,14 @@ const STATUS_OPTIONS = [
     { value: "present", label: "Present", key: "P" },
     { value: "absent", label: "Absent", key: "A" },
     { value: "late", label: "Late", key: "L" },
-    { value: "permission", label: "Permission", key: "E" },
+    { value: "excused", label: "Excused", key: "E" },
 ];
 
 const FILTERS = [
     { value: "all", label: "All" },
     { value: "absent", label: "Absent" },
     { value: "late", label: "Late" },
-    { value: "permission", label: "Permission" },
+    { value: "excused", label: "Excused" },
 ];
 
 const AVATAR_TONES = 4;

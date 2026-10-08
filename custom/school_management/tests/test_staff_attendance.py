@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date
 
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged

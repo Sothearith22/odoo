@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class UniversityExam(models.Model):

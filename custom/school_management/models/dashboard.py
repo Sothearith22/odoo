@@ -216,12 +216,13 @@ class UniversityDashboard(models.Model):
             ["status"],
             ["__count"],
         )
-        counts = {"present": 0, "absent": 0}
+        counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
         for status, count in rows:
             if status in counts:
                 counts[status] = count
-        total = counts["present"] + counts["absent"]
-        return round(counts["present"] * 100.0 / total, 1) if total else 0.0
+        credited = counts["present"] + counts["late"] + counts["excused"]
+        total = credited + counts["absent"]
+        return round(credited * 100.0 / total, 1) if total else 0.0
 
     def _group_label(self, value):
         if hasattr(value, "display_name"):
@@ -319,13 +320,14 @@ class UniversityDashboard(models.Model):
             ["status"],
             ["__count"],
         )
-        attendance = {"present": 0, "absent": 0}
+        attendance = {"present": 0, "absent": 0, "late": 0, "excused": 0}
         for status, count in attendance_rows:
             if status in attendance:
                 attendance[status] = count
-        total_attendance = attendance["present"] + attendance["absent"]
+        credited = attendance["present"] + attendance["late"] + attendance["excused"]
+        total_attendance = credited + attendance["absent"]
         attendance["rate"] = round(
-            attendance["present"] * 100.0 / total_attendance, 1
+            credited * 100.0 / total_attendance, 1
         ) if total_attendance else 0.0
 
         total_paid = self._safe_sum(
@@ -474,8 +476,8 @@ class UniversityDashboard(models.Model):
             ["__count"],
         )
         std_att_map = {row[0]: row[1] for row in std_att_rows}
-        student_present = std_att_map.get("present", 0) + std_att_map.get("late", 0)
-        student_absent = std_att_map.get("absent", 0) + std_att_map.get("permission", 0)
+        student_present = std_att_map.get("present", 0) + std_att_map.get("late", 0) + std_att_map.get("excused", 0)
+        student_absent = std_att_map.get("absent", 0)
 
         if student_present == 0 and student_absent == 0:
             last_std_att = self._safe_search_read(
@@ -494,8 +496,8 @@ class UniversityDashboard(models.Model):
                     ["__count"],
                 )
                 last_map = {s: c for s, c in last_rows}
-                student_present = last_map.get("present", 0) + last_map.get("late", 0)
-                student_absent = last_map.get("absent", 0) + last_map.get("permission", 0)
+                student_present = last_map.get("present", 0) + last_map.get("late", 0) + last_map.get("excused", 0)
+                student_absent = last_map.get("absent", 0)
 
         total_student_records = self._safe_count("university.student", student_domain)
         if student_present == 0 and student_absent == 0 and total_student_records > 0:
