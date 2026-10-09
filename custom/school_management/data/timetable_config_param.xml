@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="config_param_timetable_slot_min_time" model="ir.config_parameter">
+        <field name="key">university.timetable.slot_min_time</field>
+        <field name="value">07:00:00</field>
+    </record>
+    <record id="config_param_timetable_slot_max_time" model="ir.config_parameter">
+        <field name="key">university.timetable.slot_max_time</field>
+        <field name="value">20:00:00</field>
+    </record>
+</odoo>

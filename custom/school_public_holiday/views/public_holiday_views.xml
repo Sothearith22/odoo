@@ -13,11 +13,14 @@
                 <field name="name" filter_domain="['|', ('name', 'ilike', self), ('name_km', 'ilike', self)]"/>
                 <field name="name_km"/>
                 <field name="academic_year_id"/>
+                <field name="semester_id" string="Term"/>
                 <separator/>
                 <filter string="Current Year" name="current_year"
                         domain="[('date_from', '&gt;=', context_today().strftime('%Y-01-01')), ('date_from', '&lt;=', context_today().strftime('%Y-12-31'))]"/>
                 <filter string="Upcoming" name="upcoming"
                         domain="[('date_to', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Ongoing" name="filter_ongoing" domain="[('status', '=', 'ongoing')]"/>
+                <filter string="Past" name="filter_past" domain="[('status', '=', 'past')]"/>
                 <separator/>
                 <filter string="Fixed Holidays" name="filter_fixed" domain="[('holiday_type', '=', 'fixed')]"/>
                 <filter string="Lunar Holidays" name="filter_lunar" domain="[('holiday_type', '=', 'lunar')]"/>
@@ -28,8 +31,10 @@
                 <separator/>
                 <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
                 <group>
-                    <filter string="Holiday Type" name="group_holiday_type" context="{'group_by': 'holiday_type'}"/>
                     <filter string="Academic Year" name="group_academic_year" context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Term" name="group_term" context="{'group_by': 'semester_id'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                    <filter string="Holiday Type" name="group_holiday_type" context="{'group_by': 'holiday_type'}"/>
                     <filter string="Year" name="group_year" context="{'group_by': 'date_from:year'}"/>
                     <filter string="Month" name="group_month" context="{'group_by': 'date_from:month'}"/>
                 </group>
@@ -50,19 +55,25 @@
                             class="btn-primary"
                             icon="fa-upload"/>
                 </header>
-                <field name="name" string="Holiday Name"/>
-                <field name="name_km" optional="show" string="Khmer Name"/>
+                <field name="name" string="Name"/>
+                <field name="academic_year_id" string="Academic Year"/>
                 <field name="date_from" string="Start Date"/>
                 <field name="date_to" string="End Date"/>
-                <field name="holiday_type" widget="badge"
+                <field name="semester_id" string="Term"/>
+                <field name="number_of_days" string="Public Holiday Days"/>
+                <field name="status" widget="badge"
+                       decoration-info="status == 'upcoming'"
+                       decoration-success="status == 'ongoing'"
+                       decoration-muted="status == 'past'"/>
+                <field name="name_km" optional="hide" string="Khmer Name"/>
+                <field name="holiday_type" widget="badge" optional="hide"
                        decoration-info="holiday_type == 'fixed'"
                        decoration-warning="holiday_type == 'lunar'"
                        decoration-primary="holiday_type == 'special'"/>
-                <field name="session_count" string="Affected Sessions" widget="badge"
+                <field name="session_count" string="Affected Sessions" widget="badge" optional="hide"
                        decoration-danger="session_count &gt; 0"
                        decoration-muted="session_count == 0"/>
-                <field name="affects_classes" widget="boolean_toggle"/>
-                <field name="academic_year_id" optional="show"/>
+                <field name="affects_classes" widget="boolean_toggle" optional="hide"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -121,12 +132,18 @@
                     <!-- Main Form Fields -->
                     <group>
                         <group string="Date &amp; Schedule">
-                            <field name="date_from"/>
-                            <field name="date_to"/>
+                            <field name="date_from" string="Start Date"/>
+                            <field name="date_to" string="End Date"/>
+                            <field name="number_of_days" readonly="1"/>
+                            <field name="status" widget="badge"
+                                   decoration-info="status == 'upcoming'"
+                                   decoration-success="status == 'ongoing'"
+                                   decoration-muted="status == 'past'"/>
                             <field name="holiday_type" widget="radio" options="{'horizontal': true}"/>
                         </group>
                         <group string="Academic Scope &amp; Settings">
                             <field name="academic_year_id" options="{'no_create_edit': True}"/>
+                            <field name="semester_id" options="{'no_create_edit': True}"/>
                             <field name="affects_classes" widget="boolean_toggle"/>
                             <field name="active" widget="boolean_toggle"/>
                         </group>

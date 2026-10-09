@@ -33,6 +33,7 @@
         "data/demo_attendance_links.xml",
         "data/exam_cron_data.xml",
         "data/ir_cron.xml",
+        "data/timetable_config_param.xml",
 
         # Portal
         "views/portal_templates.xml",
@@ -150,9 +151,10 @@
             "school_management/static/src/schedule/university_schedule.scss",
             "school_management/static/src/schedule/university_schedule.js",
             "school_management/static/src/schedule/university_schedule.xml",
+            "school_management/static/src/views/calendar/timetable_calendar_patch.js",
+            "school_management/static/src/views/calendar/timetable_calendar.scss",
         ],
     },
     "installable": True,
     "application": True,
 }
-

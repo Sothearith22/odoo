@@ -1,0 +1,178 @@
+// Scoped styling for University Class Timetable Calendar View
+.o_timetable_calendar_view {
+    // Visible time slots grid styling
+    .fc-timegrid-slot {
+        height: 2.3rem !important;
+    }
+
+    .fc-col-header-cell {
+        background-color: #f8fafc;
+        padding: 4px 0;
+
+        .o_cw_day_name {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .o_cw_day_number {
+            font-weight: 800;
+            color: #1e293b;
+        }
+    }
+
+    // Event card styling
+    .fc-timegrid-event.fc-v-event {
+        border-radius: 8px !important;
+        border-width: 1px 1px 1px 4px !important;
+        border-style: solid !important;
+        border-color: var(--fc-event-border-color, rgba(0, 0, 0, 0.08)) !important;
+        border-left-color: var(--o-event-bg, #6366f1) !important;
+        background-color: var(--fc-event-bg-color, #f8fafc) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        padding: 2px 4px !important;
+        overflow: hidden;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+            z-index: 20 !important;
+        }
+
+        .fc-event-main {
+            padding: 3px 5px !important;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        // Time styling: smaller, muted, clear
+        .fc-time {
+            font-size: 0.72rem !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 1px;
+            display: inline-block;
+        }
+
+        // Card text: Subject · Room · Teacher
+        .o_event_title {
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+            color: #0f172a !important;
+            word-break: break-word;
+        }
+
+        // Conflicting slot highlight (Problem 6): Red left border
+        &.o_timetable_slot_conflict {
+            border-left: 5px solid #dc2626 !important;
+            border-color: #fca5a5 !important;
+            border-left-color: #dc2626 !important;
+            background-color: #fff1f2 !important;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.22) !important;
+
+            .fc-time {
+                color: #b91c1c !important;
+                font-weight: 700 !important;
+            }
+
+            .o_event_title {
+                color: #991b1b !important;
+            }
+        }
+    }
+
+    // All-day holiday banner (Problem 7)
+    .fc-daygrid-event.o_timetable_holiday_event,
+    .fc-timegrid-event.o_timetable_holiday_event {
+        border-radius: 6px !important;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+        border: 1px solid #f59e0b !important;
+        border-left: 4px solid #d97706 !important;
+        color: #92400e !important;
+        font-weight: 600 !important;
+        padding: 3px 8px !important;
+        box-shadow: 0 1px 3px rgba(217, 119, 6, 0.15) !important;
+
+        .o_event_title {
+            color: #92400e !important;
+            font-weight: 700 !important;
+            font-size: 0.82rem !important;
+        }
+    }
+
+    // Holiday column background shading (Problem 7)
+    .fc-bg-event.o_timetable_holiday_bg {
+        background: repeating-linear-gradient(
+            -45deg,
+            rgba(254, 243, 199, 0.4),
+            rgba(254, 243, 199, 0.4) 12px,
+            rgba(253, 230, 138, 0.3) 12px,
+            rgba(253, 230, 138, 0.3) 24px
+        ) !important;
+        opacity: 0.85 !important;
+    }
+
+    // Sidebar filter styling (Problem 5)
+    .o_calendar_sidebar_container {
+        border-left: 1px solid #e2e8f0;
+        background-color: #ffffff;
+
+        .o_calendar_filter {
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.75rem;
+            margin-top: 0.75rem !important;
+
+            .o_calendar_filter_items_checkall {
+                label {
+                    cursor: pointer;
+                    user-select: none;
+                    padding: 5px 8px;
+                    border-radius: 6px;
+                    transition: background-color 0.15s ease;
+
+                    &:hover {
+                        background-color: #f1f5f9;
+                    }
+
+                    .o_cw_filter_label {
+                        font-size: 0.86rem !important;
+                        font-weight: 700 !important;
+                        color: #1e293b;
+                        letter-spacing: 0.01em;
+                    }
+
+                    .o_cw_filter_collapse_icon {
+                        font-size: 0.85rem !important;
+                        color: #64748b;
+                        transition: transform 0.2s ease;
+                    }
+                }
+            }
+
+            .o_calendar_filter_items {
+                margin-top: 0.35rem;
+
+                .o_calendar_filter_item {
+                    font-size: 0.83rem !important;
+                    padding: 3px 8px;
+                    border-radius: 5px;
+                    transition: background-color 0.12s ease;
+
+                    &:hover {
+                        background-color: #f8fafc;
+                    }
+
+                    label {
+                        color: #334155;
+                        font-weight: 500;
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+    }
+}

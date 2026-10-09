@@ -6,7 +6,7 @@
         name="Public Holidays"
         parent="school_management.menu_university_sec_calendar"
         action="action_public_holiday"
-        sequence="25"
+        sequence="50"
         groups="school_management.group_school_admin,base.group_system"
     />
 
@@ -16,7 +16,7 @@
         name="School Breaks &amp; Closures"
         parent="school_management.menu_university_sec_calendar"
         action="school_management.action_university_holiday"
-        sequence="26"
+        sequence="60"
         groups="school_management.group_school_admin,base.group_system"
     />
 </odoo>

@@ -94,7 +94,14 @@ class UniversityTimetableSlot(models.Model):
 
     name = fields.Char(string="Reference", compute="_compute_name", store=True)
     teacher_id = fields.Many2one("university.teacher", string="Teacher", required=True)
-    section_id = fields.Many2one("university.class.section", string="Grade/Section", required=True)
+    section_id = fields.Many2one("university.class.section", string="Class", required=True)
+    has_conflict = fields.Boolean(
+        string="Has Conflict",
+        compute="_compute_has_conflict",
+        store=True,
+        index=True,
+        help="Indicates whether this slot conflicts with another session (same teacher or classroom at overlapping time).",
+    )
     subject_id = fields.Many2one("university.subject", string="Subject", required=True)
     classroom_id = fields.Many2one("university.classroom", string="Classroom")
     timeslot_id = fields.Many2one("university.timeslot", string="Timeslot")
@@ -322,7 +329,11 @@ class UniversityTimetableSlot(models.Model):
             if vals.get("classroom_id") and not vals.get("location"):
                 room = self.env["university.classroom"].browse(vals["classroom_id"])
                 vals["location"] = room.name
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        related_slots = records._get_overlapping_partner_slots()
+        if related_slots:
+            self.env.add_to_compute(self._fields["has_conflict"], related_slots)
+        return records
 
     @api.depends("start_time", "end_time")
     def _compute_duration_hours(self):
@@ -380,6 +391,157 @@ class UniversityTimetableSlot(models.Model):
             return [("start_time", ">=", start_dt), ("start_time", "<=", end_dt)]
         else:
             return ["|", ("start_time", "<", start_dt), ("start_time", ">", end_dt)]
+
+    @api.depends("subject_id.name", "classroom_id.name", "location", "teacher_id.name")
+    def _compute_display_name(self):
+        for slot in self:
+            subject = slot.subject_id.name or _("Unknown Subject")
+            room = slot.classroom_id.name or slot.location or _("No Room")
+            teacher = slot.teacher_id.name or _("No Teacher")
+            slot.display_name = f"{subject} · {room} · {teacher}"
+
+    @api.depends("start_time", "end_time", "teacher_id", "classroom_id", "state")
+    def _compute_has_conflict(self):
+        active_slots = self.filtered(lambda s: s.start_time and s.end_time and s.state != "cancelled")
+        (self - active_slots).has_conflict = False
+        if not active_slots:
+            return
+
+        slot_ids = [s.id for s in active_slots if isinstance(s.id, int)]
+        if slot_ids:
+            query = """
+                SELECT DISTINCT s1.id
+                FROM university_timetable_slot s1
+                JOIN university_timetable_slot s2 ON s1.id != s2.id
+                WHERE s1.id IN %s
+                  AND s1.state != 'cancelled'
+                  AND s2.state != 'cancelled'
+                  AND s1.start_time < s2.end_time
+                  AND s1.end_time > s2.start_time
+                  AND (
+                    (s1.teacher_id IS NOT NULL AND s1.teacher_id = s2.teacher_id)
+                    OR
+                    (s1.classroom_id IS NOT NULL AND s1.classroom_id = s2.classroom_id)
+                  )
+            """
+            self.env.cr.execute(query, [tuple(slot_ids)])
+            conflicting_ids = {row[0] for row in self.env.cr.fetchall()}
+            for slot in active_slots:
+                if isinstance(slot.id, int):
+                    slot.has_conflict = slot.id in conflicting_ids
+                else:
+                    slot.has_conflict = False
+        else:
+            active_slots.has_conflict = False
+
+    def _get_overlapping_partner_slots(self, old_vals_list=None):
+        domain_list = []
+        for slot in self:
+            if slot.start_time and slot.end_time and slot.state != "cancelled":
+                cond = [
+                    ("id", "!=", slot.id if isinstance(slot.id, int) else 0),
+                    ("state", "!=", "cancelled"),
+                    ("start_time", "<", slot.end_time),
+                    ("end_time", ">", slot.start_time),
+                ]
+                t_c = []
+                if slot.teacher_id:
+                    t_c.append(("teacher_id", "=", slot.teacher_id.id))
+                if slot.classroom_id:
+                    t_c.append(("classroom_id", "=", slot.classroom_id.id))
+                if t_c:
+                    if len(t_c) == 2:
+                        cond.extend(["|", t_c[0], t_c[1]])
+                    else:
+                        cond.extend(t_c)
+                    domain_list.append(cond)
+
+        if old_vals_list:
+            for old in old_vals_list:
+                st = old.get("start_time")
+                et = old.get("end_time")
+                tid = old.get("teacher_id")
+                cid = old.get("classroom_id")
+                if st and et:
+                    cond = [
+                        ("id", "not in", self.ids),
+                        ("state", "!=", "cancelled"),
+                        ("start_time", "<", et),
+                        ("end_time", ">", st),
+                    ]
+                    t_c = []
+                    if tid:
+                        t_c.append(("teacher_id", "=", tid))
+                    if cid:
+                        t_c.append(("classroom_id", "=", cid))
+                    if t_c:
+                        if len(t_c) == 2:
+                            cond.extend(["|", t_c[0], t_c[1]])
+                        else:
+                            cond.extend(t_c)
+                        domain_list.append(cond)
+
+        other_slots = self.browse()
+        for dom in domain_list:
+            found = self.search(dom)
+            if found:
+                other_slots |= found
+        return other_slots
+
+    @api.model
+    def get_calendar_config(self):
+        IrConfig = self.env["ir.config_parameter"].sudo()
+        min_time = IrConfig.get_param("university.timetable.slot_min_time", "07:00:00")
+        max_time = IrConfig.get_param("university.timetable.slot_max_time", "20:00:00")
+        return {
+            "slot_min_time": min_time,
+            "slot_max_time": max_time,
+        }
+
+    @api.model
+    def get_calendar_holidays(self, start_date=None, end_date=None):
+        holidays_data = []
+        seen = set()
+
+        if "university.holiday" in self.env:
+            u_domain = []
+            if start_date:
+                u_domain.append(("date_end", ">=", start_date))
+            if end_date:
+                u_domain.append(("date_start", "<=", end_date))
+            univ_holidays = self.env["university.holiday"].search(u_domain)
+            for uh in univ_holidays:
+                key = (uh.name, str(uh.date_start), str(uh.date_end))
+                if key not in seen:
+                    seen.add(key)
+                    holidays_data.append({
+                        "id": f"univ_{uh.id}",
+                        "name": uh.name,
+                        "date_start": fields.Date.to_string(uh.date_start),
+                        "date_end": fields.Date.to_string(uh.date_end),
+                        "type": "university",
+                    })
+
+        if "public.holiday" in self.env:
+            p_domain = [("active", "=", True)]
+            if start_date:
+                p_domain.append(("date_to", ">=", start_date))
+            if end_date:
+                p_domain.append(("date_from", "<=", end_date))
+            pub_holidays = self.env["public.holiday"].search(p_domain)
+            for ph in pub_holidays:
+                key = (ph.name, str(ph.date_from), str(ph.date_to))
+                if key not in seen:
+                    seen.add(key)
+                    holidays_data.append({
+                        "id": f"pub_{ph.id}",
+                        "name": ph.name,
+                        "date_start": fields.Date.to_string(ph.date_from),
+                        "date_end": fields.Date.to_string(ph.date_to),
+                        "type": "public",
+                    })
+
+        return holidays_data
 
     @api.depends("section_id.name", "subject_id.name", "classroom_id.name", "location")
     def _compute_name(self):
@@ -630,7 +792,26 @@ class UniversityTimetableSlot(models.Model):
                 slot._check_modify_access()
         if vals.get("state") == "cancelled" and "generation_state" not in vals:
             vals["generation_state"] = "cancelled"
-        return super().write(vals)
+
+        check_fields = {"start_time", "end_time", "teacher_id", "classroom_id", "state"}
+        needs_overlap_update = bool(check_fields.intersection(vals.keys()))
+        old_vals_list = []
+        if needs_overlap_update:
+            for slot in self:
+                old_vals_list.append({
+                    "start_time": slot.start_time,
+                    "end_time": slot.end_time,
+                    "teacher_id": slot.teacher_id.id if slot.teacher_id else False,
+                    "classroom_id": slot.classroom_id.id if slot.classroom_id else False,
+                })
+
+        res = super().write(vals)
+
+        if needs_overlap_update:
+            related_slots = self._get_overlapping_partner_slots(old_vals_list)
+            if related_slots:
+                self.env.add_to_compute(self._fields["has_conflict"], related_slots)
+        return res
 
     def unlink(self):
         user = self.env.user
@@ -641,7 +822,11 @@ class UniversityTimetableSlot(models.Model):
                 raise ValidationError(_("Cannot delete session '%s' because attendance has already been recorded.") % (slot.name or slot.display_name))
             if slot.state in ("done", "completed") or slot.status == "completed":
                 raise ValidationError(_("Cannot delete completed session '%s'.") % (slot.name or slot.display_name))
-        return super().unlink()
+        related_slots = self._get_overlapping_partner_slots()
+        res = super().unlink()
+        if related_slots.exists():
+            self.env.add_to_compute(self._fields["has_conflict"], related_slots.exists())
+        return res
 
     def action_cancel_session(self):
         self.ensure_one()

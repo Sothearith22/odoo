@@ -5,52 +5,23 @@
         <field name="active" eval="False"/>
     </record>
 
-    <!-- Holidays parent menu under Schedule category -->
-    <menuitem
-        id="menu_school_holiday_parent"
-        name="Holidays &amp; Breaks"
-        parent="school_management.menu_university_schedule_category"
-        sequence="25"
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
-    />
-
-    <!-- Child: Public Holidays (Cambodia National Calendar) -->
-    <menuitem
-        id="menu_school_holiday_list"
-        name="Public Holidays"
-        parent="menu_school_holiday_parent"
-        action="action_public_holiday"
-        sequence="10"
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
-    />
-
-    <!-- Child: School-specific breaks & exam recesses -->
-    <menuitem
-        id="menu_school_holiday_recess"
-        name="School Breaks &amp; Closures"
-        parent="menu_school_holiday_parent"
-        action="school_management.action_university_holiday"
-        sequence="15"
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
-    />
-
-    <!-- Child: Import Public Holidays (admins only) -->
+    <!-- Child: Import Public Holidays (admins only) moved to Administration > System -->
     <menuitem
         id="menu_school_holiday_import"
         name="Import Public Holidays"
-        parent="menu_school_holiday_parent"
+        parent="school_management.menu_university_system"
         action="action_wizard_import_public_holiday"
-        sequence="20"
+        sequence="30"
         groups="school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Child: Import History & Audit Log (admins only) -->
+    <!-- Child: Import History & Audit Log (admins only) moved to Administration > System -->
     <menuitem
         id="menu_school_holiday_import_history"
         name="Import History Log"
-        parent="menu_school_holiday_parent"
+        parent="school_management.menu_university_system"
         action="action_school_holiday_import_log"
-        sequence="30"
+        sequence="40"
         groups="school_management.group_school_admin,base.group_system"
     />
 </odoo>

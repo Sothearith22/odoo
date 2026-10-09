@@ -288,10 +288,11 @@ export class UniversitySchedule extends Component {
     }
 
     async clearAllFilters() {
+        const currentSem = this.state.filters.semester_id;
         this.state.filters = {
             faculty_id: "",
             program_id: "",
-            semester_id: "",
+            semester_id: currentSem || "",
             teacher_id: "",
             section_id: "",
             classroom_id: "",
@@ -300,6 +301,20 @@ export class UniversitySchedule extends Component {
         };
         this.state.searchTerm = "";
         await this.loadScheduleData();
+    }
+
+    get hasActiveFilters() {
+        const f = this.state.filters;
+        return Boolean(
+            this.state.searchTerm ||
+            f.section_id ||
+            f.session_type ||
+            f.teacher_id ||
+            f.classroom_id ||
+            f.faculty_id ||
+            f.program_id ||
+            f.subject_id
+        );
     }
 
     onSearchInput(ev) {
@@ -350,6 +365,16 @@ export class UniversitySchedule extends Component {
 
     get kpiCapacityCount() {
         return this.filteredSlots.reduce((acc, s) => acc + (s.room_capacity || 0), 0);
+    }
+
+    get kpiConflictCount() {
+        return this.filteredSlots.filter((s) => Boolean(s.conflict || s.has_conflict)).length;
+    }
+
+    get kpiEnrolledPercentage() {
+        const cap = this.kpiCapacityCount;
+        if (!cap) return 0;
+        return Math.min(100, Math.round((this.kpiEnrolledCount / cap) * 100));
     }
 
     // =========================================================================

@@ -79,6 +79,10 @@ class WizardImportPublicHoliday(models.TransientModel):
     valid_rows = fields.Integer(string="Valid Rows", default=0)
     duplicate_rows = fields.Integer(string="Duplicate Rows", default=0)
     error_rows = fields.Integer(string="Error Rows", default=0)
+    created_count = fields.Integer(string="Created Records", default=0)
+    updated_count = fields.Integer(string="Updated Records", default=0)
+    skipped_count = fields.Integer(string="Skipped Records", default=0)
+    failed_count = fields.Integer(string="Failed Records", default=0)
     summary_msg = fields.Text(string="Summary")
     import_log_id = fields.Many2one("school.holiday.import.log", string="Import Log")
 
@@ -109,7 +113,7 @@ class WizardImportPublicHoliday(models.TransientModel):
         year = self.target_year or fields.Date.today().year
         fixed_definitions = [
             ("International New Year", "ទិវាចូលឆ្នាំសកល", f"{year}-01-01", f"{year}-01-01"),
-            ("Victory over Genocide Day", "ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍", f"{year}-01-07", f"{year}-01-07"),
+            ("Victory over Genocide Day", "ទិវាជ័យជំនះលើរបបប្រល័យពូជសាសន៍", f"{year}-01-07", f"{year}-01-07"),
             ("International Women's Day", "ទិវាអន្តរជាតិនារី", f"{year}-03-08", f"{year}-03-08"),
             ("Khmer New Year Day 1", "ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី១", f"{year}-04-14", f"{year}-04-14"),
             ("Khmer New Year Day 2", "ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី២", f"{year}-04-15", f"{year}-04-15"),
@@ -322,6 +326,20 @@ class WizardImportPublicHoliday(models.TransientModel):
             "res_id": self.id,
             "view_mode": "form",
             "target": "new",
+            "context": {"dialog_size": "large"},
+        }
+
+    def action_back_to_upload(self):
+        """Allow returning to upload & options state without canceling the wizard."""
+        self.ensure_one()
+        self.write({"state": "upload"})
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "target": "new",
+            "context": {"dialog_size": "large"},
         }
 
     def action_confirm_import(self):
@@ -432,6 +450,10 @@ class WizardImportPublicHoliday(models.TransientModel):
         self.write({
             "state": "done",
             "import_log_id": log.id,
+            "created_count": len(created_records),
+            "updated_count": updated_count,
+            "skipped_count": skipped_count,
+            "failed_count": failed_count,
             "summary_msg": _(
                 "Import Completed Successfully!\n"
                 "• Created: %d\n"
@@ -449,6 +471,7 @@ class WizardImportPublicHoliday(models.TransientModel):
             "res_id": self.id,
             "view_mode": "form",
             "target": "new",
+            "context": {"dialog_size": "large"},
         }
 
     def action_check_class_conflicts(self):

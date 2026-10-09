@@ -34,6 +34,30 @@ class PublicHoliday(models.Model):
         string="Academic Year",
         index=True,
     )
+    semester_id = fields.Many2one(
+        "university.semester",
+        string="Term",
+        compute="_compute_term_and_year",
+        store=True,
+        readonly=False,
+        index=True,
+    )
+    number_of_days = fields.Integer(
+        string="Public Holiday Days",
+        compute="_compute_number_of_days",
+        store=True,
+    )
+    status = fields.Selection(
+        [
+            ("upcoming", "Upcoming"),
+            ("ongoing", "Ongoing"),
+            ("past", "Past"),
+        ],
+        string="Status",
+        compute="_compute_status",
+        store=True,
+        index=True,
+    )
     affects_classes = fields.Boolean(
         string="Affects Classes",
         default=True,
@@ -152,6 +176,58 @@ class PublicHoliday(models.Model):
                 ("start_time", "<=", dt_end),
                 ("end_time", ">=", dt_start),
             ])
+
+    @api.depends("date_from", "date_to")
+    def _compute_number_of_days(self):
+        for rec in self:
+            if rec.date_from and rec.date_to:
+                rec.number_of_days = max(1, (rec.date_to - rec.date_from).days + 1)
+            elif rec.date_from:
+                rec.number_of_days = 1
+            else:
+                rec.number_of_days = 0
+
+    @api.depends("date_from", "date_to")
+    def _compute_status(self):
+        today = fields.Date.context_today(self)
+        for rec in self:
+            if not rec.date_from:
+                rec.status = "upcoming"
+            elif rec.date_to and rec.date_to < today:
+                rec.status = "past"
+            elif rec.date_from <= today <= (rec.date_to or rec.date_from):
+                rec.status = "ongoing"
+            else:
+                rec.status = "upcoming"
+
+    @api.depends("date_from", "date_to")
+    def _compute_term_and_year(self):
+        Semester = self.env["university.semester"]
+        AcademicYear = self.env["university.academic.year"]
+        for rec in self:
+            if not rec.date_from:
+                rec.semester_id = False
+                continue
+            sem = Semester.search([
+                ("date_start", "<=", rec.date_from),
+                ("date_end", ">=", rec.date_from),
+            ], limit=1)
+            if not sem and rec.date_to:
+                sem = Semester.search([
+                    ("date_start", "<=", rec.date_to),
+                    ("date_end", ">=", rec.date_to),
+                ], limit=1)
+            rec.semester_id = sem.id if sem else False
+
+            if sem and sem.academic_year_id:
+                rec.academic_year_id = sem.academic_year_id.id
+            elif not rec.academic_year_id and rec.date_from:
+                ay = AcademicYear.search([
+                    ("date_start", "<=", rec.date_from),
+                    ("date_end", ">=", rec.date_from),
+                ], limit=1)
+                if ay:
+                    rec.academic_year_id = ay.id
 
     # -------------------------------------------------------------------------
     # CONSTRAINTS

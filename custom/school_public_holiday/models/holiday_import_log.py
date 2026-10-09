@@ -3,7 +3,7 @@ from odoo import _, api, fields, models
 
 class SchoolHolidayImportLog(models.Model):
     _name = "school.holiday.import.log"
-    _description = "Holiday Import History Log"
+    _description = "Holiday History Log"
     _order = "import_date desc, id desc"
 
     name = fields.Char(string="File Name", required=True)

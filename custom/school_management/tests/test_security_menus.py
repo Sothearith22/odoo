@@ -227,8 +227,10 @@ class TestSecurityMenus(TransactionCase):
     def test_document_signature_menu_opens_administration_action(self):
         action = self.env.ref("school_management.action_university_document_signature")
         system = self.env.ref("base.group_system")
+        documents_menu = self.env.ref("school_management.menu_university_documents")
 
-        self.assertEqual(self.signature_menu.parent_id, self.administration_menu)
+        self.assertEqual(self.signature_menu.parent_id, documents_menu)
+        self.assertEqual(documents_menu.parent_id, self.administration_menu)
         self.assertEqual(self.signature_menu.action, action)
         self.assertEqual(action.res_model, "university.document.signature")
         self.assertIn(self.g_admin, self.signature_menu.group_ids)

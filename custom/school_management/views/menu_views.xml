@@ -175,7 +175,7 @@
         name="My Timetable"
         parent="menu_university_schedule_category"
         action="action_university_schedule_view"
-        sequence="5"
+        sequence="10"
         groups="school_management.group_school_teacher"
     />
     <!-- Admin: Timetable (Complete University Timetable) -->
@@ -192,7 +192,7 @@
         name="Scheduled Sessions"
         parent="menu_university_schedule_category"
         action="action_university_timetable_slot"
-        sequence="15"
+        sequence="20"
         groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
     />
     <menuitem
@@ -200,7 +200,7 @@
         name="Generate Timetable"
         parent="menu_university_schedule_category"
         action="action_university_timetable_generation_wizard"
-        sequence="20"
+        sequence="30"
         groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
@@ -208,7 +208,7 @@
         name="Timeslots"
         parent="menu_university_schedule_category"
         action="action_university_timeslot"
-        sequence="30"
+        sequence="40"
         groups="school_management.group_school_admin,base.group_system"
     />
     <menuitem
@@ -216,7 +216,7 @@
         name="Classrooms"
         parent="menu_university_schedule_category"
         action="action_university_classroom"
-        sequence="40"
+        sequence="50"
         groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
@@ -224,23 +224,15 @@
         name="Room Occupancy"
         parent="menu_university_schedule_category"
         action="action_university_timetable_slot_room"
-        sequence="45"
+        sequence="60"
         groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
-    />
-    <menuitem
-        id="menu_university_holiday"
-        name="Holidays"
-        parent="menu_university_schedule_category"
-        action="action_university_holiday"
-        sequence="50"
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_schedule_conflicts"
         name="Schedule Conflicts"
         parent="menu_university_schedule_category"
         action="action_university_schedule_conflicts"
-        sequence="60"
+        sequence="70"
         groups="school_management.group_school_admin,base.group_system"
     />
 
@@ -808,14 +800,24 @@
         sequence="90"
         groups="base.group_system,school_management.group_school_admin"
     />
+
+    <!-- Submenu: Documents -->
+    <menuitem
+        id="menu_university_documents"
+        name="Documents"
+        parent="menu_university_administration"
+        sequence="10"
+        groups="base.group_system,school_management.group_school_admin"
+    />
     <menuitem
         id="menu_university_document_signature"
         name="Document Signatures"
-        parent="menu_university_administration"
+        parent="menu_university_documents"
         action="action_university_document_signature"
         sequence="10"
         groups="base.group_system,school_management.group_school_admin"
     />
+
     <!-- Submenu: System -->
     <menuitem
         id="menu_university_system"
@@ -825,28 +827,28 @@
         groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
-        id="menu_university_capability"
-        name="Capabilities &amp; Roadmap"
-        parent="menu_university_system"
-        action="action_university_capability"
-        sequence="10"
-        groups="base.group_system,school_management.group_school_admin"
-    />
-    <menuitem
         id="menu_university_role_management"
         name="Role Management"
-        parent="menu_university_administration"
+        parent="menu_university_system"
         action="base.action_res_users"
-        sequence="30"
+        sequence="10"
         groups="base.group_system,school_management.group_school_admin"
     />
     <menuitem
         id="menu_university_settings"
         name="Settings"
-        parent="menu_university_administration"
+        parent="menu_university_system"
         action="school_management.action_university_settings"
-        sequence="40"
+        sequence="20"
         groups="base.group_system"
+    />
+    <menuitem
+        id="menu_university_capability"
+        name="Capabilities &amp; Roadmap"
+        parent="menu_university_system"
+        action="action_university_capability"
+        sequence="50"
+        groups="base.group_system,school_management.group_school_admin"
     />
 
     <!-- ==================== TOP-LEVEL: NOTICE BOARD (ALL ROLES) ==================== -->
@@ -872,6 +874,11 @@
 
     <!-- Deactivated duplicate Classrooms (merged into menu_university_classroom) -->
     <record id="menu_university_teaching_classroom" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- Deactivated legacy Holidays menu (managed under Academic Setup > Calendar) -->
+    <record id="menu_university_holiday" model="ir.ui.menu">
         <field name="active" eval="False"/>
     </record>
 

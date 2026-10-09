@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -217,17 +217,21 @@ class UniversityTimetableSlot(models.Model):
         return res
 
     @api.model
-    def get_holiday_schedule_indicators(self, start_date_str, end_date_str):
+    def get_holiday_schedule_indicators(self, start_date_str, end_date_str, filters=None, **kwargs):
         """Return dictionary of holiday indicators indexed by exact ISO date string."""
-        start_d = fields.Date.to_date(start_date_str)
-        end_d = fields.Date.to_date(end_date_str)
+        filters = filters or {}
+        start_d = fields.Date.to_date(str(start_date_str).split("T")[0].split(" ")[0]) if start_date_str else False
+        end_d = fields.Date.to_date(str(end_date_str).split("T")[0].split(" ")[0]) if end_date_str else False
         holiday_days = {}
+        applicable_holidays = []
         if start_d and end_d:
             cur = start_d
             while cur <= end_d:
                 name = False
+                holiday_id = False
                 d_start_str = fields.Date.to_string(cur)
                 d_end_str = d_start_str
+                holiday_type = "public"
                 if "university.holiday" in self.env:
                     univ_h = self.env["university.holiday"].search([
                         ("active", "=", True),
@@ -237,20 +241,84 @@ class UniversityTimetableSlot(models.Model):
                     ], limit=1)
                     if univ_h:
                         name = univ_h.name
+                        holiday_id = univ_h.id
                         d_start_str = fields.Date.to_string(univ_h.date_from or univ_h.date_start)
                         d_end_str = fields.Date.to_string(univ_h.date_to or univ_h.date_end)
+                        holiday_type = getattr(univ_h, "holiday_type", "university")
                 if not name:
                     pub_h = self.env["public.holiday"].get_holiday_on(cur)
                     if pub_h:
                         name = pub_h.name
+                        holiday_id = pub_h.id
                         d_start_str = fields.Date.to_string(pub_h.date_from)
                         d_end_str = fields.Date.to_string(pub_h.date_to)
+                        holiday_type = "public"
                 if name:
                     d_str = fields.Date.to_string(cur)
                     holiday_days[d_str] = {
+                        "id": holiday_id,
                         "name": name,
                         "date_start": d_start_str,
                         "date_end": d_end_str,
+                        "holiday_type": holiday_type,
                     }
                 cur += timedelta(days=1)
-        return {"holiday_days": holiday_days}
+
+        # Unique holidays list
+        seen_holidays = set()
+        for h in holiday_days.values():
+            key = (h.get("id"), h.get("name"))
+            if key not in seen_holidays:
+                seen_holidays.add(key)
+                applicable_holidays.append(h)
+
+        # Detect slot conflicts in this date range
+        slot_conflicts = {}
+        if start_d and end_d:
+            domain = [
+                ("start_time", ">=", datetime.combine(start_d, datetime.min.time())),
+                ("start_time", "<=", datetime.combine(end_d, datetime.max.time())),
+            ]
+            section_id = filters.get("section_id") or filters.get("section")
+            if section_id:
+                domain.append(("section_id", "=", int(section_id)))
+            teacher_id = filters.get("teacher_id") or filters.get("teacher")
+            if teacher_id:
+                domain.append(("teacher_id", "=", int(teacher_id)))
+            classroom_id = filters.get("classroom_id") or filters.get("classroom")
+            if classroom_id:
+                domain.append(("classroom_id", "=", int(classroom_id)))
+
+            slots = self.search(domain)
+            for slot in slots:
+                if not slot.start_time:
+                    continue
+                slot_date = fields.Datetime.context_timestamp(slot, slot.start_time).date()
+                slot_date_str = fields.Date.to_string(slot_date)
+                h_info = holiday_days.get(slot_date_str)
+                if h_info:
+                    h_name = h_info.get("name")
+                    h_start = h_info.get("date_start", slot_date_str)
+                    h_end = h_info.get("date_end", slot_date_str)
+                    h_dates = h_start if h_start == h_end else f"{h_start} to {h_end}"
+                    is_cancelled = (slot.state == "cancelled")
+                    is_override = bool(getattr(slot, "allow_on_holiday", False) and getattr(slot, "holiday_override_reason", False))
+                    is_conflict = not is_override and not is_cancelled
+                    slot_conflicts[slot.id] = {
+                        "holiday_id": h_info.get("id"),
+                        "holiday_name": h_name,
+                        "holiday_dates": h_dates,
+                        "date_from": h_start,
+                        "date_to": h_end,
+                        "is_conflict": is_conflict,
+                        "is_cancelled": is_cancelled,
+                        "is_override": is_override,
+                        "allow_on_holiday": getattr(slot, "allow_on_holiday", False),
+                        "override_reason": getattr(slot, "holiday_override_reason", "") or "",
+                    }
+
+        return {
+            "holiday_days": holiday_days,
+            "slot_conflicts": slot_conflicts,
+            "holidays": applicable_holidays,
+        }
