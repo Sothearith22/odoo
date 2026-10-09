@@ -6,15 +6,15 @@
         <field name="name">university.classroom.list</field>
         <field name="model">university.classroom</field>
         <field name="arch" type="xml">
-            <list string="Classrooms" sample="1">
+            <list string="Classrooms" sample="1" decoration-muted="status != 'available'">
                 <field name="name" decoration-bf="1"/>
                 <field name="building"/>
                 <field name="room_type" widget="badge"/>
-                <field name="capacity"/>
+                <field name="capacity" string="Capacity"/>
                 <field name="status" widget="badge"
                        decoration-success="status == 'available'"
-                       decoration-warning="status == 'maintenance'"
-                       decoration-danger="status == 'occupied'"
+                       decoration-warning="status == 'occupied'"
+                       decoration-danger="status == 'maintenance'"
                        decoration-muted="status == 'inactive'"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
@@ -32,7 +32,7 @@
                     <field name="active" invisible="1"/>
 
                     <div class="oe_title">
-                        <label for="name" string="Room Name "/>
+                        <label for="name" string="Room Name"/>
                         <h1>
                             <field name="name" placeholder="e.g. Lab A101" required="1"/>
                         </h1>
@@ -87,7 +87,7 @@
         <field name="name">university.classroom.kanban</field>
         <field name="model">university.classroom</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="status" quick_create="false">
+            <kanban sample="1" quick_create="false">
                 <field name="name"/>
                 <field name="building"/>
                 <field name="room_type"/>
@@ -95,27 +95,32 @@
                 <field name="status"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
-                                </div>
+                        <main class="p-3 d-flex flex-column justify-content-between h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong class="fs-5 o_kanban_record_title text-truncate me-2">
+                                    <field name="name"/>
+                                </strong>
                                 <field name="status" widget="badge"
                                        decoration-success="status == 'available'"
-                                       decoration-warning="status == 'maintenance'"
-                                       decoration-danger="status == 'occupied'"
+                                       decoration-warning="status == 'occupied'"
+                                       decoration-danger="status == 'maintenance'"
                                        decoration-muted="status == 'inactive'"/>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-building me-1" title="Building"/>
-                                <field name="building"/>
+                            <div class="d-flex flex-column gap-1 text-muted small my-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-building text-secondary me-2" title="Building"/>
+                                    <span>Building <field name="building"/></span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-tag text-secondary me-2" title="Room Type"/>
+                                    <field name="room_type"/>
+                                </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-tag me-1" title="Room Type"/>
-                                <field name="room_type"/>
-                            </div>
-                            <div class="mt-2">
-                                <span class="badge text-bg-secondary"><field name="capacity"/> Capacity</span>
+                            <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                                <span class="badge text-bg-light border text-secondary">
+                                    <i class="fa fa-users me-1" title="Capacity"/>
+                                    <field name="capacity"/> seats
+                                </span>
                             </div>
                         </main>
                     </t>

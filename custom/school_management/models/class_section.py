@@ -23,6 +23,16 @@ class UniversityClassSection(models.Model):
         ondelete="set null",
         help="Optional: link this class section to a Curriculum Line.",
     )
+    year_level = fields.Selection(
+        [
+            ("1", "Year 1"),
+            ("2", "Year 2"),
+            ("3", "Year 3"),
+            ("4", "Year 4"),
+        ],
+        string="Year Level",
+        help="Academic year level (Year 1 to Year 4).",
+    )
     program_id = fields.Many2one(
         "university.program",
         string="Major / Level",
@@ -46,6 +56,12 @@ class UniversityClassSection(models.Model):
         string="Semester / Term",
         required=True,
         domain="[('academic_year_id', '=?', academic_year_id), ('active', '=', True)]",
+    )
+    term_id = fields.Many2one(
+        "university.department.term",
+        string="Department Term",
+        domain="[('semester_id', '=?', semester_id), ('department_id', '=?', department_id)]",
+        help="Department term schedule for this class section.",
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -128,6 +144,10 @@ class UniversityClassSection(models.Model):
         compute="_compute_schedule_summary",
         store=True,
     )
+    schedule_warning = fields.Char(
+        string="Schedule Warning",
+        compute="_compute_schedule_warning",
+    )
     assignment_ids = fields.One2many(
         "university.assignment",
         "section_id",
@@ -181,11 +201,21 @@ class UniversityClassSection(models.Model):
             elif not rec.academic_year_id:
                 rec.academic_year_id = False
 
+    @api.onchange("term_id")
+    def _onchange_term_id(self):
+        if self.term_id:
+            if self.term_id.semester_id:
+                self.semester_id = self.term_id.semester_id
+            if self.term_id.academic_year_id:
+                self.academic_year_id = self.term_id.academic_year_id
+
     @api.onchange("curriculum_line_id")
     def _onchange_curriculum_line_id(self):
         if self.curriculum_line_id:
             if self.curriculum_line_id.subject_id:
                 self.subject_id = self.curriculum_line_id.subject_id
+            if self.curriculum_line_id.year_level:
+                self.year_level = self.curriculum_line_id.year_level
             if self.curriculum_line_id.program_id and not self.program_id:
                 self.program_id = self.curriculum_line_id.program_id
             elif (
@@ -335,6 +365,26 @@ class UniversityClassSection(models.Model):
                 section.time_summary = ""
                 section.schedule_summary = ""
 
+    @api.depends("schedule_line_ids.active", "schedule_line_ids.timeslot_id", "subject_id.credits")
+    def _compute_schedule_warning(self):
+        for section in self:
+            if not section.subject_id or not section.subject_id.credits or not section.schedule_line_ids:
+                section.schedule_warning = False
+                continue
+            weekly_hours = sum(
+                (l.timeslot_id.end_hour - l.timeslot_id.start_hour)
+                for l in section.schedule_line_ids
+                if l.active and l.timeslot_id and l.timeslot_id.end_hour and l.timeslot_id.start_hour
+            )
+            expected_hours = section.subject_id.credits
+            if weekly_hours > 0 and abs(weekly_hours - expected_hours) > 0.01:
+                section.schedule_warning = (
+                    f"Weekly schedule is {weekly_hours:g} hours, but subject '{section.subject_id.name}' "
+                    f"requires {expected_hours} hours (1 credit = 1 weekly hour)."
+                )
+            else:
+                section.schedule_warning = False
+
     @api.constrains("capacity")
     def _check_capacity_positive(self):
         for section in self:
@@ -434,14 +484,19 @@ class UniversityClassSection(models.Model):
             },
         }
 
-    @api.depends("semester_id", "semester_id.date_start", "semester_id.date_end", "date_start", "date_end")
+    @api.depends(
+        "term_id", "term_id.date_start", "term_id.date_end",
+        "semester_id", "semester_id.date_start", "semester_id.date_end",
+        "date_start", "date_end"
+    )
     def _compute_timeline(self):
         for section in self:
-            if not section.semester_id:
+            # Term dates take precedence, fallback to semester dates
+            start = section.date_start or (section.term_id.date_start if section.term_id else (section.semester_id.date_start if section.semester_id else False))
+            end = section.date_end or (section.term_id.date_end if section.term_id else (section.semester_id.date_end if section.semester_id else False))
+            if not (section.term_id or section.semester_id):
                 section.timeline = ""
                 continue
-            start = section.date_start or section.semester_id.date_start
-            end = section.date_end or section.semester_id.date_end
             if start and end:
                 days = (end - start).days + 1
                 weeks = max(0, math.ceil(days / 7.0))

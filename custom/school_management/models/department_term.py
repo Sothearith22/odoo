@@ -9,7 +9,6 @@ class UniversityDepartmentTerm(models.Model):
     _name = "university.department.term"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Department Term"
-    _rec_name = "department_id"
     _order = "academic_year_id desc, semester_id, faculty_id, department_id"
 
     _semester_department_unique = models.Constraint(
@@ -87,6 +86,25 @@ class UniversityDepartmentTerm(models.Model):
         readonly=True,
         index=True,
     )
+    active = fields.Boolean(string="Active", default=True)
+
+    @api.depends("department_id", "semester_id")
+    def _compute_display_name(self):
+        for term in self:
+            if term.department_id and term.semester_id:
+                term.display_name = f"{term.department_id.name} - {term.semester_id.name}"
+            elif term.department_id:
+                term.display_name = term.department_id.name
+            else:
+                term.display_name = f"Term #{term.id}"
+
+    @api.onchange("semester_id")
+    def _onchange_semester_id(self):
+        if self.semester_id:
+            if not self.date_start or self.date_start != self.semester_id.date_start:
+                self.date_start = self.semester_id.date_start
+            if not self.date_end or self.date_end != self.semester_id.date_end:
+                self.date_end = self.semester_id.date_end
 
     def _get_min_teaching_weeks(self):
         param = self.env["ir.config_parameter"].sudo().get_param(
@@ -130,7 +148,8 @@ class UniversityDepartmentTerm(models.Model):
             if not term.date_start or not term.date_end:
                 term.teaching_weeks = 0.0
                 continue
-            term.teaching_weeks = round((term.date_end - term.date_start).days / 7.0, 1)
+            days = (term.date_end - term.date_start).days + 1
+            term.teaching_weeks = round(days / 7.0, 1)
 
     @api.depends("date_start", "date_end")
     def _compute_state(self):
@@ -168,7 +187,6 @@ class UniversityDepartmentTerm(models.Model):
     )
     def _check_milestones(self):
         for term in self:
-            # registration_end >= registration_start; date_start >= registration_start
             if term.registration_start and term.registration_end \
                     and term.registration_end < term.registration_start:
                 raise ValidationError(
@@ -180,7 +198,6 @@ class UniversityDepartmentTerm(models.Model):
                     "Class start date cannot be before registration start."
                 )
 
-            # add_drop_deadline and withdraw_deadline inside class dates
             if term.add_drop_deadline and term.date_start and term.date_end:
                 if term.add_drop_deadline < term.date_start or term.add_drop_deadline > term.date_end:
                     raise ValidationError(
@@ -192,7 +209,6 @@ class UniversityDepartmentTerm(models.Model):
                         "Withdraw deadline must fall within term class dates."
                     )
 
-            # exam_end >= exam_start; grade_deadline >= exam_end
             if term.exam_start and term.exam_end \
                     and term.exam_end < term.exam_start:
                 raise ValidationError(
@@ -209,7 +225,6 @@ class UniversityDepartmentTerm(models.Model):
                     "Grade deadline cannot be before the term end date."
                 )
 
-            # Legacy add_drop milestone validations if populated
             if term.add_drop_start and term.add_drop_end \
                     and term.add_drop_end < term.add_drop_start:
                 raise ValidationError(

@@ -6,17 +6,49 @@ class UniversityCurriculum(models.Model):
     _description = "University Curriculum"
     _order = "name"
 
-    name = fields.Char(string="Curriculum Name", compute="_compute_name", store=True, readonly=False, required=True)
+    name = fields.Char(string="Curriculum Name", compute="_compute_name", store=True, readonly=False, precompute=True)
     program_id = fields.Many2one("university.program", string="Program", required=True)
     session_id = fields.Many2one("university.academic.year", string="Session", required=True)
     active = fields.Boolean(string="Active", default=True)
     line_ids = fields.One2many("university.curriculum.line", "curriculum_id", string="Curriculum Lines")
+    credit_load_warning = fields.Text(
+        string="Credit Load Review",
+        compute="_compute_credit_load_warning",
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("name") and vals.get("program_id") and vals.get("session_id"):
+                prog = self.env["university.program"].browse(vals["program_id"])
+                sess = self.env["university.academic.year"].browse(vals["session_id"])
+                vals["name"] = f"{prog.name} - {sess.name}"
+            elif not vals.get("name"):
+                vals["name"] = "Curriculum"
+        return super().create(vals_list)
 
     @api.depends("program_id", "session_id")
     def _compute_name(self):
         for rec in self:
             if rec.program_id and rec.session_id and not rec.name:
                 rec.name = f"{rec.program_id.name} - {rec.session_id.name}"
+            elif not rec.name:
+                rec.name = rec.program_id.name if rec.program_id else "Curriculum"
+
+    @api.depends("line_ids.credits", "line_ids.year_level", "line_ids.semester_number")
+    def _compute_credit_load_warning(self):
+        for rec in self:
+            warnings = []
+            loads = {}
+            for line in rec.line_ids:
+                key = (line.year_level, line.semester_number)
+                loads[key] = loads.get(key, 0) + (line.credits or 0)
+            for (yl, sn), total in sorted(loads.items()):
+                if total != 15:
+                    warnings.append(
+                        f"Year {yl} Semester {sn}: total load is {total} credits (standard target is 15 credits / weekly hours per semester)."
+                    )
+            rec.credit_load_warning = "\n".join(warnings) if warnings else False
 
 
 class UniversityCurriculumLine(models.Model):
@@ -24,9 +56,18 @@ class UniversityCurriculumLine(models.Model):
     _description = "Curriculum Line"
     _order = "program_id, year_level, semester_number, sequence, id"
 
+    curriculum_id = fields.Many2one(
+        "university.curriculum",
+        string="Curriculum",
+        ondelete="cascade",
+        index=True,
+    )
     program_id = fields.Many2one(
         "university.program",
         string="Program",
+        compute="_compute_program_id",
+        store=True,
+        readonly=False,
         required=True,
         ondelete="cascade",
         index=True,
@@ -53,11 +94,6 @@ class UniversityCurriculumLine(models.Model):
     credits = fields.Integer(string="Credits", related="subject_id.credits", store=True, readonly=False)
 
     # Legacy compatibility fields
-    curriculum_id = fields.Many2one(
-        "university.curriculum",
-        string="Curriculum",
-        ondelete="cascade",
-    )
     semester = fields.Selection([
         ("1", "Semester 1"),
         ("2", "Semester 2"),
@@ -78,10 +114,20 @@ class UniversityCurriculumLine(models.Model):
         compute="_compute_student_view_flags",
     )
 
-    _unique_program_subject = models.Constraint(
-        "UNIQUE(program_id, subject_id)",
-        "This subject already exists in the curriculum for this program.",
+    _curriculum_line_uniq = models.Constraint(
+        "UNIQUE(curriculum_id, subject_id, year_level, semester_number)",
+        "This subject already exists in the curriculum for this year level and semester.",
     )
+    _program_subject_line_uniq = models.Constraint(
+        "UNIQUE(program_id, subject_id, year_level, semester_number)",
+        "This subject already exists for this program in this year level and semester.",
+    )
+
+    @api.depends("curriculum_id", "curriculum_id.program_id")
+    def _compute_program_id(self):
+        for rec in self:
+            if rec.curriculum_id and rec.curriculum_id.program_id:
+                rec.program_id = rec.curriculum_id.program_id
 
     @api.depends("semester_number")
     def _compute_legacy_semester(self):
@@ -104,10 +150,23 @@ class UniversityCurriculumLine(models.Model):
             if not student:
                 line.is_current_student_year = False
                 line.is_student_enrolled = False
-                line.enrollment_status = "Planned"
+                line.enrollment_status = "Not enrolled"
                 continue
 
             line.is_current_student_year = (line.year_level == student.year_level)
+
+            # Check if student completed results for this subject
+            completed_result = self.env["university.assessment.result"].search([
+                ("student_id", "=", student.id),
+                ("subject_id", "=", line.subject_id.id),
+                ("is_pass", "=", True),
+            ], limit=1)
+            if completed_result:
+                line.is_student_enrolled = True
+                line.enrollment_status = "Completed"
+                continue
+
+            # Check active enrollment
             enrollment = self.env["university.enrollment"].search([
                 ("student_id", "=", student.id),
                 ("subject_id", "=", line.subject_id.id),
@@ -115,7 +174,7 @@ class UniversityCurriculumLine(models.Model):
             ], limit=1)
             if enrollment:
                 line.is_student_enrolled = True
-                line.enrollment_status = "Enrolled" if enrollment.status == "enrolled" else "Completed"
+                line.enrollment_status = "Completed" if enrollment.status == "completed" else "Enrolled"
             else:
                 line.is_student_enrolled = False
-                line.enrollment_status = "Planned"
+                line.enrollment_status = "Not enrolled"

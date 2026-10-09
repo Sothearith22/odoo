@@ -24,7 +24,9 @@
                                     string="Academic Year"
                                     class="col-lg-4 o_light_label"
                                 />
-                                <field name="current_academic_year_id" class="col-lg-8"/>
+                                <field name="current_academic_year_id" class="col-lg-8"
+                                       options="{'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"
+                                       required="1"/>
                             </div>
                             <div class="row mt16">
                                 <label
@@ -32,7 +34,10 @@
                                     string="Semester"
                                     class="col-lg-4 o_light_label"
                                 />
-                                <field name="current_semester_id" class="col-lg-8"/>
+                                <field name="current_semester_id" class="col-lg-8"
+                                       domain="[('active', '=', True), ('academic_year_id', '=', current_academic_year_id)]"
+                                       options="{'no_create': True, 'no_create_edit': True, 'no_quick_create': True}"
+                                       required="1"/>
                             </div>
                             <div class="text-muted mt16">
                                 Changing this period updates the current-year marker only; existing records keep their original academic period.

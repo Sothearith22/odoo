@@ -96,6 +96,23 @@ class UniversityAcademicYear(models.Model):
     @api.constrains("date_start", "date_end")
     def _check_date_range(self):
         for year in self:
+            if not year.date_start or not year.date_end:
+                continue
+
+            # Overlapping active academic years check
+            if year.active:
+                overlapping = self.search([
+                    ("id", "!=", year.id),
+                    ("active", "=", True),
+                    ("date_start", "<=", year.date_end),
+                    ("date_end", ">=", year.date_start),
+                ], limit=1)
+                if overlapping:
+                    raise ValidationError(
+                        f"Academic year '{year.name}' overlaps with existing academic year '{overlapping.name}' "
+                        f"({overlapping.date_start} to {overlapping.date_end})."
+                    )
+
             semesters = year.with_context(active_test=False).semester_ids.filtered(lambda s: s.active)
             invalid_semester = semesters.filtered(
                 lambda semester: (
@@ -199,18 +216,16 @@ class UniversityAcademicYear(models.Model):
 
         self.env["university.semester"].create([
             {
-                "name": "Semester 1",
+                "semester_type": "semester_1",
                 "academic_year_id": self.id,
                 "session_id": self.id,
-                "semester_type": "semester_1",
                 "date_start": sem1_start,
                 "date_end": sem1_end,
             },
             {
-                "name": "Semester 2",
+                "semester_type": "semester_2",
                 "academic_year_id": self.id,
                 "session_id": self.id,
-                "semester_type": "semester_2",
                 "date_start": sem2_start,
                 "date_end": sem2_end,
             },

@@ -35,7 +35,7 @@ class UniversityResConfigSettings(models.TransientModel):
         string="Expected Check-Out",
         config_parameter="school_management.staff_expected_check_out",
         default=17.0,
-        help="Standard university check-out time (e.g., 17.0 = 05:00 PM).",
+        help="Standard university check-in time (e.g., 17.0 = 05:00 PM).",
     )
     staff_late_grace_minutes = fields.Integer(
         string="Late Grace Period (Minutes)",
@@ -80,9 +80,12 @@ class UniversityResConfigSettings(models.TransientModel):
     @api.constrains("current_academic_year_id", "current_semester_id")
     def _check_current_period(self):
         for settings in self:
+            if not settings.current_academic_year_id:
+                raise ValidationError("Current Academic Year is required.")
+            if not settings.current_semester_id:
+                raise ValidationError("Current Semester is required.")
             if (
-                settings.current_semester_id
-                and settings.current_semester_id.academic_year_id
+                settings.current_semester_id.academic_year_id
                 != settings.current_academic_year_id
             ):
                 raise ValidationError(

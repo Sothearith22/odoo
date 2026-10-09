@@ -634,9 +634,17 @@
         id="menu_university_curriculum"
         name="Curriculums"
         parent="menu_university_sec_curriculum"
-        action="action_university_curriculum_line"
+        action="action_university_curriculum"
         sequence="5"
         groups="school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_curriculum_line"
+        name="Curriculum Subjects"
+        parent="menu_university_sec_curriculum"
+        action="action_university_curriculum_line"
+        sequence="8"
+        groups="school_management.group_school_admin,school_management.group_school_teacher,base.group_system"
     />
     <menuitem
         id="menu_university_semester_subject"

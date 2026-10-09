@@ -25,12 +25,17 @@ class UniversitySemester(models.Model):
         "CHECK (date_end >= date_start)",
         "The semester end date must be on or after the start date.",
     )
-    _academic_year_name_uniq = models.Constraint(
-        "UNIQUE(academic_year_id, name)",
-        "A term with this name already exists in this academic session.",
+    _semester_type_uniq = models.Constraint(
+        "UNIQUE(academic_year_id, semester_type)",
+        "Only one semester of each type is allowed per academic year.",
     )
 
-    name = fields.Char(string="Semester Name", required=True)
+    name = fields.Char(
+        string="Semester Name",
+        compute="_compute_name",
+        store=True,
+        readonly=True,
+    )
     academic_year_id = fields.Many2one(
         "university.academic.year",
         string="Academic Year",
@@ -50,7 +55,7 @@ class UniversitySemester(models.Model):
         [
             ("semester_1", "Semester 1"),
             ("semester_2", "Semester 2"),
-            ("summer", "Summer Semester"),
+            ("summer", "Summer"),
         ],
         string="Semester Type",
         default="semester_1",
@@ -80,6 +85,16 @@ class UniversitySemester(models.Model):
         string="Subject Count", compute="_compute_subject_count"
     )
     active = fields.Boolean(string="Active", default=True)
+
+    @api.depends("semester_type")
+    def _compute_name(self):
+        mapping = {
+            "semester_1": "Semester 1",
+            "semester_2": "Semester 2",
+            "summer": "Summer",
+        }
+        for semester in self:
+            semester.name = mapping.get(semester.semester_type, "Semester")
 
     @api.depends("date_start", "date_end")
     def _compute_week_count(self):
@@ -219,6 +234,21 @@ class UniversitySemester(models.Model):
                     "The semester end date cannot be after the selected academic year."
                 )
 
+            # Overlap check with other active semesters in the same academic year
+            if semester.active:
+                overlapping = self.search([
+                    ("id", "!=", semester.id),
+                    ("academic_year_id", "=", semester.academic_year_id.id),
+                    ("active", "=", True),
+                    ("date_start", "<=", semester.date_end),
+                    ("date_end", ">=", semester.date_start),
+                ], limit=1)
+                if overlapping:
+                    raise ValidationError(
+                        f"Semester '{semester.name}' overlaps with existing semester '{overlapping.name}' "
+                        f"({overlapping.date_start} to {overlapping.date_end}) in {academic_year.name}."
+                    )
+
             invalid_term = semester.department_term_ids.filtered(
                 lambda term: (
                     term.date_start
@@ -232,26 +262,6 @@ class UniversitySemester(models.Model):
             if invalid_term:
                 raise ValidationError(
                     "Semester dates must include all department schedule dates."
-                )
-
-    @api.constrains("name", "academic_year_id")
-    def _check_unique_name_per_academic_year(self):
-        for semester in self:
-            if not semester.name or not semester.academic_year_id:
-                continue
-            duplicate = self.search(
-                [
-                    ("id", "!=", semester.id),
-                    ("name", "=", semester.name),
-                    ("academic_year_id", "=", semester.academic_year_id.id),
-                ],
-                limit=1,
-            )
-            if duplicate:
-                raise ValidationError(
-                    "The semester name '%s' is already used in academic year '%s'. "
-                    "Choose a unique name for this academic year."
-                    % (semester.name, semester.academic_year_id.name)
                 )
 
     def action_generate_department_terms(self):
@@ -274,9 +284,22 @@ class UniversitySemester(models.Model):
             for department in departments
             if department.id not in existing_department_ids
         ]
+        created_count = 0
         if vals_list:
             self.env["university.department.term"].create(vals_list)
-        return True
+            created_count = len(vals_list)
+        skipped_count = len(departments) - created_count
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Department Terms Generated",
+                "message": f"Successfully created {created_count} term(s). Skipped {skipped_count} existing.",
+                "type": "success",
+                "sticky": False,
+            },
+        }
 
     def action_export_department_terms(self):
         self.ensure_one()

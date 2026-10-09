@@ -21,12 +21,6 @@ class UniversitySubject(models.Model):
         string="Majors / Programs",
     )
     credits = fields.Integer(string="Credits", default=3)
-    semester_number = fields.Integer(
-        string="Recommended Semester",
-        default=1,
-        help="The recommended academic semester this subject is taught in "
-             "(e.g. 1, 2, 3 …). Used to order subjects in the curriculum report.",
-    )
     description = fields.Text(string="Description")
     teacher_ids = fields.Many2many(
         "university.teacher",
