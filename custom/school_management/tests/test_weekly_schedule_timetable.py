@@ -106,7 +106,6 @@ class TestWeeklyScheduleTimetable(StudyPlanCommon):
                 "name": f"Test Holiday {secrets.token_hex(2)}",
                 "date_from": holiday_date,
                 "date_to": holiday_date,
-                "affects_classes": True,
                 "active": True,
             })
         else:

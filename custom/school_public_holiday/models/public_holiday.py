@@ -17,18 +17,23 @@ class PublicHoliday(models.Model):
     name_km = fields.Char(string="Khmer Name", tracking=True)
     date_from = fields.Date(string="From Date", required=True, tracking=True, index=True)
     date_to = fields.Date(string="To Date", required=True, tracking=True, index=True)
-    holiday_type = fields.Selection(
-        [
-            ("fixed", "Fixed"),
-            ("lunar", "Lunar"),
-            ("special", "Special"),
-        ],
-        string="Holiday Type",
-        default="fixed",
-        required=True,
-        tracking=True,
-        index=True,
+
+    # Aliases to integrate seamlessly with Excel imports (e.g. date_start / date_end)
+    date_start = fields.Date(
+        string="Start Date",
+        compute="_compute_date_aliases",
+        inverse="_inverse_date_start",
+        search="_search_date_start",
+        help="Alias for From Date for Excel import integration.",
     )
+    date_end = fields.Date(
+        string="End Date",
+        compute="_compute_date_aliases",
+        inverse="_inverse_date_end",
+        search="_search_date_end",
+        help="Alias for To Date for Excel import integration.",
+    )
+
     academic_year_id = fields.Many2one(
         "university.academic.year",
         string="Academic Year",
@@ -58,17 +63,15 @@ class PublicHoliday(models.Model):
         store=True,
         index=True,
     )
-    affects_classes = fields.Boolean(
-        string="Affects Classes",
-        default=True,
-        tracking=True,
-        help="If set, class sessions should not be scheduled during this holiday.",
+    affected_sessions = fields.Char(
+        string="Affected Sessions Note",
+        help="Imported description of affected sessions (e.g. All Sessions).",
     )
     active = fields.Boolean(string="Active", default=True, tracking=True)
     note = fields.Text(string="Note")
 
     session_count = fields.Integer(
-        string="Affected Sessions",
+        string="Session Count",
         compute="_compute_session_count",
         search="_search_session_count",
     )
@@ -93,7 +96,6 @@ class PublicHoliday(models.Model):
             return self.browse()
         return self.search([
             ("active", "=", True),
-            ("affects_classes", "=", True),
             ("date_from", "<=", d),
             ("date_to", ">=", d),
         ], limit=1)
@@ -137,10 +139,39 @@ class PublicHoliday(models.Model):
     # -------------------------------------------------------------------------
     # COMPUTES & ONCHANGE
     # -------------------------------------------------------------------------
+    @api.depends("date_from", "date_to")
+    def _compute_date_aliases(self):
+        for record in self:
+            record.date_start = record.date_from
+            record.date_end = record.date_to
+
+    def _inverse_date_start(self):
+        for record in self:
+            if record.date_start:
+                record.date_from = record.date_start
+
+    def _inverse_date_end(self):
+        for record in self:
+            if record.date_end:
+                record.date_to = record.date_end
+
+    def _search_date_start(self, operator, value):
+        return [("date_from", operator, value)]
+
+    def _search_date_end(self, operator, value):
+        return [("date_to", operator, value)]
+
     @api.onchange("date_from")
     def _onchange_date_from(self):
         if self.date_from and (not self.date_to or self.date_to < self.date_from):
             self.date_to = self.date_from
+        if not self.academic_year_id and self.date_from:
+            ay = self.env["university.academic.year"].search([
+                ("date_start", "<=", self.date_from),
+                ("date_end", ">=", self.date_from),
+            ], limit=1)
+            if ay:
+                self.academic_year_id = ay
 
     @api.onchange("date_from", "date_to")
     def _onchange_dates_warning(self):
@@ -203,7 +234,6 @@ class PublicHoliday(models.Model):
     @api.depends("date_from", "date_to")
     def _compute_term_and_year(self):
         Semester = self.env["university.semester"]
-        AcademicYear = self.env["university.academic.year"]
         for rec in self:
             if not rec.date_from:
                 rec.semester_id = False
@@ -218,16 +248,6 @@ class PublicHoliday(models.Model):
                     ("date_end", ">=", rec.date_to),
                 ], limit=1)
             rec.semester_id = sem.id if sem else False
-
-            if sem and sem.academic_year_id:
-                rec.academic_year_id = sem.academic_year_id.id
-            elif not rec.academic_year_id and rec.date_from:
-                ay = AcademicYear.search([
-                    ("date_start", "<=", rec.date_from),
-                    ("date_end", ">=", rec.date_from),
-                ], limit=1)
-                if ay:
-                    rec.academic_year_id = ay.id
 
     # -------------------------------------------------------------------------
     # CONSTRAINTS
@@ -272,31 +292,97 @@ class PublicHoliday(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("date_from") and not vals.get("date_to"):
+            if not vals.get("date_from") and vals.get("date_start"):
+                vals["date_from"] = vals["date_start"]
+            if not vals.get("date_to") and vals.get("date_end"):
+                vals["date_to"] = vals["date_end"]
+            vals.pop("date_start", None)
+            vals.pop("date_end", None)
+
+            if not vals.get("date_from"):
+                holiday_name = vals.get("name") or _("Unnamed")
+                raise ValidationError(_("Holiday '%s' is missing a From Date.") % holiday_name)
+
+            if not vals.get("date_to"):
                 vals["date_to"] = vals["date_from"]
+
             if not vals.get("academic_year_id") and vals.get("date_from"):
                 target_d = fields.Date.to_date(vals["date_from"])
                 ay = self.env["university.academic.year"].search([
                     ("date_start", "<=", target_d),
                     ("date_end", ">=", target_d),
                 ], limit=1)
+                if not ay:
+                    if target_d.month >= 9:
+                        ay_name = f"{target_d.year}-{target_d.year + 1}"
+                        s_date = f"{target_d.year}-09-01"
+                        e_date = f"{target_d.year + 1}-06-30"
+                    else:
+                        ay_name = f"{target_d.year - 1}-{target_d.year}"
+                        s_date = f"{target_d.year - 1}-09-01"
+                        e_date = f"{target_d.year}-06-30"
+                    ay = self.env["university.academic.year"].search([("name", "=", ay_name)], limit=1)
+                    if not ay:
+                        ay = self.env["university.academic.year"].sudo().create({
+                            "name": ay_name,
+                            "date_start": s_date,
+                            "date_end": e_date,
+                        })
                 if ay:
                     vals["academic_year_id"] = ay.id
-        holidays = super().create(vals_list)
-        for h in holidays:
-            if h.session_count > 0:
-                _logger.warning("Created holiday '%s' affects %d sessions.", h.name, h.session_count)
+
+        if self.env.context.get("import_file"):
+            created_or_updated = []
+            to_create_vals = []
+            to_create_indices = []
+            for idx, vals in enumerate(vals_list):
+                name = (vals.get("name") or "").strip().lower()
+                d_from = vals.get("date_from")
+                d_to = vals.get("date_to")
+                existing = self.search([
+                    ("active", "=", True),
+                    ("date_from", "<=", d_to),
+                    ("date_to", ">=", d_from),
+                ]).filtered(lambda h: h.name.strip().lower() == name)
+                if existing:
+                    existing[:1].write(vals)
+                    created_or_updated.append((idx, existing[:1]))
+                else:
+                    to_create_indices.append(idx)
+                    to_create_vals.append(vals)
+
+            new_recs = super().create(to_create_vals) if to_create_vals else self.browse()
+            for idx, rec in zip(to_create_indices, new_recs):
+                created_or_updated.append((idx, rec))
+
+            created_or_updated.sort(key=lambda x: x[0])
+            result_ids = [rec.id for _, rec in created_or_updated]
+            holidays = self.browse(result_ids)
+        else:
+            holidays = super().create(vals_list)
+        if len(holidays) <= 20:
+            for h in holidays:
+                if h.session_count > 0:
+                    _logger.warning("Created holiday '%s' affects %d sessions.", h.name, h.session_count)
         return holidays
 
     def write(self, vals):
+        if not vals.get("date_from") and vals.get("date_start"):
+            vals["date_from"] = vals["date_start"]
+        if not vals.get("date_to") and vals.get("date_end"):
+            vals["date_to"] = vals["date_end"]
+        vals.pop("date_start", None)
+        vals.pop("date_end", None)
+
         if "date_from" in vals and "date_to" not in vals:
             for rec in self:
                 if not rec.date_to or rec.date_to < fields.Date.to_date(vals["date_from"]):
                     vals["date_to"] = vals["date_from"]
         res = super().write(vals)
-        for h in self:
-            if h.session_count > 0:
-                _logger.warning("Holiday '%s' affects %d sessions.", h.name, h.session_count)
+        if len(self) <= 20:
+            for h in self:
+                if h.session_count > 0:
+                    _logger.warning("Holiday '%s' affects %d sessions.", h.name, h.session_count)
         return res
 
     # -------------------------------------------------------------------------
@@ -355,6 +441,37 @@ class PublicHoliday(models.Model):
         }
 
 
+class UniversityAcademicYear(models.Model):
+    _inherit = "university.academic.year"
+
+    @api.model
+    def name_create(self, name):
+        """Allow auto-creating academic year by name during import."""
+        name_clean = name.strip()
+        existing = self.search([("name", "=ilike", name_clean)], limit=1)
+        if existing:
+            return existing.id, existing.display_name
+        parts = [p.strip() for p in name_clean.replace("/", "-").split("-") if p.strip().isdigit()]
+        if len(parts) >= 2:
+            s_year = int(parts[0])
+            e_year = int(parts[1])
+            rec = self.create({
+                "name": name_clean,
+                "date_start": f"{s_year}-09-01",
+                "date_end": f"{e_year}-06-30",
+            })
+            return rec.id, rec.display_name
+        elif len(parts) == 1:
+            s_year = int(parts[0])
+            rec = self.create({
+                "name": name_clean,
+                "date_start": f"{s_year}-01-01",
+                "date_end": f"{s_year}-12-31",
+            })
+            return rec.id, rec.display_name
+        return super().name_create(name)
+
+
 class UniversityHoliday(models.Model):
     """Institutional holiday / recess model in school_management.
 
@@ -365,23 +482,6 @@ class UniversityHoliday(models.Model):
     _inherit = "university.holiday"
     _order = "date_from desc, date_start desc, name asc"
 
-    @api.model
-    def is_holiday(self, day, section=None, company=None):
-        return self.env["public.holiday"].is_holiday(day, section=section)
-
-    @api.model
-    def get_holiday_dates(self, date_from, date_to, section=None, company=None):
-        d_start = fields.Date.to_date(date_from)
-        d_end = fields.Date.to_date(date_to)
-        if not d_start or not d_end or d_start > d_end:
-            return set()
-        matching_days = set()
-        cur = d_start
-        while cur <= d_end:
-            if self.is_holiday(cur, section=section):
-                matching_days.add(cur)
-            cur += timedelta(days=1)
-        return matching_days
     date_from = fields.Date(
         string="From Date",
         index=True,
@@ -467,6 +567,24 @@ class UniversityHoliday(models.Model):
         compute="_compute_conflict_count",
         search="_search_conflict_count",
     )
+
+    @api.model
+    def is_holiday(self, day, section=None, company=None):
+        return self.env["public.holiday"].is_holiday(day, section=section)
+
+    @api.model
+    def get_holiday_dates(self, date_from, date_to, section=None, company=None):
+        d_start = fields.Date.to_date(date_from)
+        d_end = fields.Date.to_date(date_to)
+        if not d_start or not d_end or d_start > d_end:
+            return set()
+        matching_days = set()
+        cur = d_start
+        while cur <= d_end:
+            if self.is_holiday(cur, section=section):
+                matching_days.add(cur)
+            cur += timedelta(days=1)
+        return matching_days
 
     def _search_conflict_count(self, operator, value):
         holidays_with_conflicts = []
@@ -722,7 +840,7 @@ class UniversityHoliday(models.Model):
             "type": "ir.actions.act_window",
             "res_model": "university.timetable.slot",
             "view_mode": "list,form,calendar",
-            "domain": [("id", "in", conflicting_slots.ids)],
+            "domain": [("id", "in", slots.ids)],
             "context": {
                 "search_default_group_by_section": 1,
                 "default_holiday_id": self.id,

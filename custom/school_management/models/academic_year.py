@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from .academic_lock import can_maintain_closed_year_records
 
@@ -32,6 +32,18 @@ class UniversityAcademicYear(models.Model):
     )
     semester_count = fields.Integer(
         string="Semester Count", compute="_compute_semester_count"
+    )
+    timetable_slot_count = fields.Integer(
+        string="Scheduled Sessions", compute="_compute_timetable_metrics"
+    )
+    conflict_count = fields.Integer(
+        string="Schedule Conflicts", compute="_compute_timetable_metrics"
+    )
+    classroom_count = fields.Integer(
+        string="Occupied Rooms", compute="_compute_timetable_metrics"
+    )
+    timeslot_count = fields.Integer(
+        string="Timeslots", compute="_compute_timeslot_count"
     )
     current = fields.Boolean(string="Current Academic Year", default=False)
     active = fields.Boolean(string="Active", default=True)
@@ -81,6 +93,41 @@ class UniversityAcademicYear(models.Model):
         for year in self:
             count = len(year.with_context(active_test=False).semester_ids.filtered(lambda s: s.active))
             year.semester_status = "configured" if count > 0 else "empty"
+
+    def _compute_timeslot_count(self):
+        count = self.env["university.timeslot"].search_count([("active", "=", True)])
+        for year in self:
+            year.timeslot_count = count
+
+    def _compute_timetable_metrics(self):
+        Slot = self.env["university.timetable.slot"]
+        Conflict = self.env["university.timetable.conflict"]
+
+        slot_data = dict(
+            Slot._read_group(
+                [("academic_year_id", "in", self.ids), ("state", "!=", "cancelled")],
+                groupby=["academic_year_id"],
+                aggregates=["__count"],
+            )
+        )
+        conflict_data = dict(
+            Conflict._read_group(
+                [("academic_year_id", "in", self.ids), ("status", "=", "unresolved")],
+                groupby=["academic_year_id"],
+                aggregates=["__count"],
+            )
+        )
+        room_data = dict(
+            Slot._read_group(
+                [("academic_year_id", "in", self.ids), ("classroom_id", "!=", False), ("state", "!=", "cancelled")],
+                groupby=["academic_year_id"],
+                aggregates=["classroom_id:count_distinct"],
+            )
+        )
+        for year in self:
+            year.timetable_slot_count = slot_data.get(year, 0)
+            year.conflict_count = conflict_data.get(year, 0)
+            year.classroom_count = room_data.get(year, 0)
 
     def init(self):
         super().init()
@@ -231,3 +278,84 @@ class UniversityAcademicYear(models.Model):
             },
         ])
         return True
+
+    def action_view_timetable_slots(self):
+        self.ensure_one()
+        return {
+            "name": _("Scheduled Sessions - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "res_model": "university.timetable.slot",
+            "view_mode": "kanban,calendar,list,form",
+            "domain": [("academic_year_id", "=", self.id)],
+            "context": {
+                "default_academic_year_id": self.id,
+                "search_default_group_by_status": 1,
+            },
+        }
+
+    def action_view_schedule(self):
+        self.ensure_one()
+        return {
+            "name": _("Interactive Timetable - %s") % self.name,
+            "type": "ir.actions.client",
+            "tag": "university_schedule_view",
+            "context": {
+                "default_academic_year_id": self.id,
+                "filters": {"academic_year_id": str(self.id)},
+            },
+        }
+
+    def action_view_conflicts(self):
+        self.ensure_one()
+        self.env["university.timetable.conflict"]._detect_all_conflicts(academic_year_id=self.id)
+        return {
+            "name": _("Schedule Conflicts - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "res_model": "university.timetable.conflict",
+            "view_mode": "kanban,list,form",
+            "domain": [("academic_year_id", "=", self.id)],
+            "context": {
+                "default_academic_year_id": self.id,
+                "search_default_filter_unresolved": 1,
+                "search_default_group_by_type": 1,
+            },
+        }
+
+    def action_view_room_occupancy(self):
+        self.ensure_one()
+        return {
+            "name": _("Room Occupancy - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "view_mode": "kanban,calendar,list,form",
+            "res_model": "university.timetable.slot",
+            "domain": [("academic_year_id", "=", self.id), ("classroom_id", "!=", False)],
+            "context": {
+                "default_academic_year_id": self.id,
+                "search_default_group_by_room": 1,
+                "default_mode": "week",
+            },
+        }
+
+    def action_view_semesters(self):
+        self.ensure_one()
+        return {
+            "name": _("Semesters - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "res_model": "university.semester",
+            "view_mode": "kanban,list,form",
+            "domain": [("academic_year_id", "=", self.id)],
+            "context": {
+                "default_academic_year_id": self.id,
+            },
+        }
+
+    def action_view_timeslots(self):
+        return {
+            "name": _("Teaching Timeslots"),
+            "type": "ir.actions.act_window",
+            "res_model": "university.timeslot",
+            "view_mode": "kanban,list,form",
+            "context": {
+                "search_default_group_by_day": 1,
+            },
+        }

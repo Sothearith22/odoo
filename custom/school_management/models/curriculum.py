@@ -6,34 +6,52 @@ class UniversityCurriculum(models.Model):
     _description = "University Curriculum"
     _order = "name"
 
-    name = fields.Char(string="Curriculum Name", compute="_compute_name", store=True, readonly=False, precompute=True)
-    program_id = fields.Many2one("university.program", string="Program", required=True)
-    session_id = fields.Many2one("university.academic.year", string="Session", required=True)
+    name = fields.Char(
+        string="Curriculum Name",
+        compute="_compute_name",
+        store=True,
+        readonly=False,
+        precompute=True,
+    )
+    program_id = fields.Many2one(
+        "university.program",
+        string="Program",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    session_id = fields.Many2one(
+        "university.academic.year",
+        string="Session",
+        required=True,
+        ondelete="restrict",
+        index=True,
+    )
     active = fields.Boolean(string="Active", default=True)
-    line_ids = fields.One2many("university.curriculum.line", "curriculum_id", string="Curriculum Lines")
+    line_ids = fields.One2many(
+        "university.curriculum.line",
+        "curriculum_id",
+        string="Curriculum Lines",
+    )
     credit_load_warning = fields.Text(
         string="Credit Load Review",
         compute="_compute_credit_load_warning",
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if not vals.get("name") and vals.get("program_id") and vals.get("session_id"):
-                prog = self.env["university.program"].browse(vals["program_id"])
-                sess = self.env["university.academic.year"].browse(vals["session_id"])
-                vals["name"] = f"{prog.name} - {sess.name}"
-            elif not vals.get("name"):
-                vals["name"] = "Curriculum"
-        return super().create(vals_list)
+    _curriculum_program_session_uniq = models.Constraint(
+        "UNIQUE(program_id, session_id)",
+        "A curriculum already exists for this program and session.",
+    )
 
-    @api.depends("program_id", "session_id")
+    @api.depends("program_id.name", "session_id.name")
     def _compute_name(self):
         for rec in self:
-            if rec.program_id and rec.session_id and not rec.name:
+            if rec.program_id and rec.session_id:
                 rec.name = f"{rec.program_id.name} - {rec.session_id.name}"
+            elif rec.program_id:
+                rec.name = rec.program_id.name
             elif not rec.name:
-                rec.name = rec.program_id.name if rec.program_id else "Curriculum"
+                rec.name = "Curriculum"
 
     @api.depends("line_ids.credits", "line_ids.year_level", "line_ids.semester_number")
     def _compute_credit_load_warning(self):
@@ -46,7 +64,8 @@ class UniversityCurriculum(models.Model):
             for (yl, sn), total in sorted(loads.items()):
                 if total != 15:
                     warnings.append(
-                        f"Year {yl} Semester {sn}: total load is {total} credits (standard target is 15 credits / weekly hours per semester)."
+                        f"Year {yl} Semester {sn}: total load is {total} credits "
+                        f"(standard target is 15 credits / weekly hours per semester)."
                     )
             rec.credit_load_warning = "\n".join(warnings) if warnings else False
 
@@ -116,14 +135,10 @@ class UniversityCurriculumLine(models.Model):
 
     _curriculum_line_uniq = models.Constraint(
         "UNIQUE(curriculum_id, subject_id, year_level, semester_number)",
-        "This subject already exists in the curriculum for this year level and semester.",
-    )
-    _program_subject_line_uniq = models.Constraint(
-        "UNIQUE(program_id, subject_id, year_level, semester_number)",
-        "This subject already exists for this program in this year level and semester.",
+        "This subject already exists in this curriculum for this year level and semester.",
     )
 
-    @api.depends("curriculum_id", "curriculum_id.program_id")
+    @api.depends("curriculum_id.program_id")
     def _compute_program_id(self):
         for rec in self:
             if rec.curriculum_id and rec.curriculum_id.program_id:

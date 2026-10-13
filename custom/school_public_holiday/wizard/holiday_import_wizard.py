@@ -141,8 +141,6 @@ class WizardImportPublicHoliday(models.TransientModel):
                     "name_km": name_km,
                     "date_from": d_from,
                     "date_to": d_to,
-                    "holiday_type": "fixed",
-                    "affects_classes": True,
                     "active": True,
                 })
                 created_count += 1
@@ -223,7 +221,8 @@ class WizardImportPublicHoliday(models.TransientModel):
 
         type_mapping = {
             "fixed": "fixed",
-            "public": "fixed",
+            "national": "national",
+            "public": "public",
             "public holiday": "fixed",
             "lunar": "lunar",
             "special": "special",
@@ -386,7 +385,6 @@ class WizardImportPublicHoliday(models.TransientModel):
                                 existing_pub.write({
                                     "date_to": line.date_to or line.date_from,
                                     "name_km": line.name_km or existing_pub.name_km,
-                                    "holiday_type": line.holiday_type if line.holiday_type in ("fixed", "lunar", "special") else "fixed",
                                     "note": line.note,
                                 })
                             existing_univ = UnivHoliday.search([
@@ -410,8 +408,6 @@ class WizardImportPublicHoliday(models.TransientModel):
                         "name_km": line.name_km or False,
                         "date_from": line.date_from,
                         "date_to": line.date_to or line.date_from,
-                        "holiday_type": line.holiday_type if line.holiday_type in ("fixed", "lunar", "special") else "fixed",
-                        "affects_classes": True,
                         "active": True,
                         "note": line.note,
                     })
@@ -509,6 +505,8 @@ class WizardImportPublicHolidayLine(models.TransientModel):
             ("fixed", "Fixed"),
             ("lunar", "Lunar"),
             ("special", "Special"),
+            ("national", "National"),
+            ("public", "Public Holiday"),
         ],
         string="Type",
         default="fixed",

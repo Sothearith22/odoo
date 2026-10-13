@@ -15,6 +15,9 @@
                        decoration-success="state == 'running'"
                        decoration-muted="state in ('closed', 'archived')"/>
                 <field name="semester_count"/>
+                <field name="timetable_slot_count" string="Sessions"/>
+                <field name="classroom_count" string="Rooms"/>
+                <field name="conflict_count" string="Conflicts" decoration-danger="conflict_count &gt; 0"/>
                 <field name="current" widget="boolean_toggle"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
@@ -62,6 +65,59 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,open,running,closed,archived"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_semesters"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-bookmark-o">
+                            <field name="semester_count" widget="statinfo" string="Semesters"/>
+                        </button>
+                        <button name="action_view_timetable_slots"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="timetable_slot_count" widget="statinfo" string="Sessions"/>
+                        </button>
+                        <button name="action_view_schedule"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-tasks">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Timetable</span>
+                                <span class="o_stat_text">Schedule UI</span>
+                            </div>
+                        </button>
+                        <button name="action_view_room_occupancy"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-building">
+                            <field name="classroom_count" widget="statinfo" string="Rooms Used"/>
+                        </button>
+                        <button name="action_view_conflicts"
+                                type="object"
+                                class="oe_stat_button text-danger"
+                                icon="fa-exclamation-triangle"
+                                invisible="conflict_count == 0">
+                            <field name="conflict_count" widget="statinfo" string="Conflicts"/>
+                        </button>
+                        <button name="action_view_conflicts"
+                                type="object"
+                                class="oe_stat_button text-success"
+                                icon="fa-check-circle"
+                                invisible="conflict_count &gt; 0">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value text-success">0</span>
+                                <span class="o_stat_text text-success">No Conflicts</span>
+                            </div>
+                        </button>
+                        <button name="action_view_timeslots"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-clock-o">
+                            <field name="timeslot_count" widget="statinfo" string="Timeslots"/>
+                        </button>
+                    </div>
+
                     <widget name="web_ribbon" title="Current" bg_color="text-bg-success" invisible="not current"/>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
@@ -158,6 +214,9 @@
                 <field name="current"/>
                 <field name="state"/>
                 <field name="semester_count"/>
+                <field name="timetable_slot_count"/>
+                <field name="classroom_count"/>
+                <field name="conflict_count"/>
                 <templates>
                     <t t-name="card" class="o_academic_year_kanban_card">
                         <main class="o_academic_year_card_body p-3">
@@ -184,11 +243,45 @@
                                 <i class="fa fa-calendar me-2" title="Period"/>
                                 <field name="date_start"/> <i class="fa fa-arrow-right mx-1 small text-muted" title="To"/> <field name="date_end"/>
                             </div>
+
+                            <!-- Interactive Quick-Access Metric Chips -->
+                            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top">
+                                <button type="object" name="action_view_semesters" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
+                                    <i class="fa fa-bookmark-o text-secondary"/>
+                                    <span><field name="semester_count"/> Semesters</span>
+                                </button>
+                                <button type="object" name="action_view_timetable_slots" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
+                                    <i class="fa fa-calendar text-primary"/>
+                                    <span><field name="timetable_slot_count"/> Sessions</span>
+                                </button>
+                                <button type="object" name="action_view_room_occupancy" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
+                                    <i class="fa fa-building text-info"/>
+                                    <span><field name="classroom_count"/> Rooms</span>
+                                </button>
+                                <button t-if="record.conflict_count.raw_value &gt; 0" type="object" name="action_view_conflicts" class="btn btn-sm btn-danger py-1 px-2 d-flex align-items-center gap-1 text-white">
+                                    <i class="fa fa-exclamation-triangle"/>
+                                    <span><field name="conflict_count"/> Conflicts</span>
+                                </button>
+                                <button t-else="" type="object" name="action_view_conflicts" class="btn btn-sm btn-outline-success py-1 px-2 d-flex align-items-center gap-1">
+                                    <i class="fa fa-check-circle"/>
+                                    <span>0 Conflicts</span>
+                                </button>
+                            </div>
+
                             <div class="o_academic_year_footer d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
-                                <span class="o_academic_year_pill">
-                                    <i class="fa fa-bookmark-o me-1" title="Semesters"/>
-                                    <field name="semester_count"/> Semesters
-                                </span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="object" name="action_view_timetable_slots" class="btn btn-link btn-sm p-0 text-primary text-decoration-none small">
+                                        <i class="fa fa-th-large me-1"/>Sessions Kanban
+                                    </button>
+                                    <span class="text-muted small">&#183;</span>
+                                    <button type="object" name="action_view_schedule" class="btn btn-link btn-sm p-0 text-purple text-decoration-none small">
+                                        <i class="fa fa-calendar-check-o me-1"/>Timetable UI
+                                    </button>
+                                    <span class="text-muted small">·</span>
+                                    <button type="object" name="action_view_room_occupancy" class="btn btn-link btn-sm p-0 text-info text-decoration-none small">
+                                        <i class="fa fa-building-o me-1"/>Rooms Kanban
+                                    </button>
+                                </div>
                                 <a type="open" class="o_academic_year_open">
                                     Details <i class="fa fa-arrow-right ms-1" title="Details"/>
                                 </a>
@@ -203,7 +296,7 @@
     <record id="action_university_academic_year" model="ir.actions.act_window">
         <field name="name">Academic Years</field>
         <field name="res_model">university.academic.year</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_academic_year_search"/>
     </record>
 

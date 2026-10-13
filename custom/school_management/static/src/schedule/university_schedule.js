@@ -16,6 +16,8 @@ export class UniversitySchedule extends Component {
 
         const actionContext = this.props.action?.context || this.props.context || {};
         const initialSectionId = actionContext.default_section_id || actionContext.filters?.section_id || "";
+        const initialAcademicYearId = actionContext.default_academic_year_id || actionContext.filters?.academic_year_id || "";
+        const initialSemesterId = actionContext.default_semester_id || actionContext.filters?.semester_id || "";
 
         const today = new Date();
         this.state = useState({
@@ -35,7 +37,9 @@ export class UniversitySchedule extends Component {
             studentInfo: null,
             teacherInfo: null,
             weeklyTeachingHours: 0,
+            hasExplicitlyClearedYear: false,
             filtersData: {
+                academic_years: [],
                 subjects: [],
                 classrooms: [],
                 sections: [],
@@ -45,9 +49,10 @@ export class UniversitySchedule extends Component {
                 programs: [],
             },
             filters: {
+                academic_year_id: initialAcademicYearId ? String(initialAcademicYearId) : "",
                 faculty_id: "",
                 program_id: "",
-                semester_id: "",
+                semester_id: initialSemesterId ? String(initialSemesterId) : "",
                 teacher_id: "",
                 section_id: initialSectionId ? String(initialSectionId) : "",
                 classroom_id: "",
@@ -81,6 +86,7 @@ export class UniversitySchedule extends Component {
             this.timeInterval = setInterval(() => {
                 this.state.currentTime = new Date();
             }, 60000);
+            this.scrollToInitialTime();
         });
 
         onWillUnmount(() => {
@@ -88,6 +94,16 @@ export class UniversitySchedule extends Component {
                 clearInterval(this.timeInterval);
             }
         });
+    }
+
+    scrollToInitialTime() {
+        setTimeout(() => {
+            const scrollBody = document.querySelector(".o_grid_scroll_body");
+            if (scrollBody) {
+                // Scroll slightly so 08:00 is comfortably in view
+                scrollBody.scrollTop = 50;
+            }
+        }, 100);
     }
 
     // =========================================================================
@@ -142,7 +158,28 @@ export class UniversitySchedule extends Component {
         }
     }
 
+    get visibleSemesters() {
+        const allSemesters = this.state.filtersData.semesters || [];
+        if (!this.state.filters.academic_year_id) {
+            return allSemesters;
+        }
+        const yearId = parseInt(this.state.filters.academic_year_id, 10);
+        return allSemesters.filter((s) => {
+            const semYearId = Array.isArray(s.academic_year_id) ? s.academic_year_id[0] : s.academic_year_id;
+            return semYearId === yearId;
+        });
+    }
+
     get currentTermLabel() {
+        const yearRec = (this.state.filtersData.academic_years || []).find((y) => String(y.id) === String(this.state.filters.academic_year_id));
+        const semRec = (this.state.filtersData.semesters || []).find((s) => String(s.id) === String(this.state.filters.semester_id));
+        if (yearRec && semRec) {
+            return `${yearRec.name} • ${semRec.name}`;
+        } else if (yearRec) {
+            return `${yearRec.name} (Academic Session)`;
+        } else if (semRec) {
+            return semRec.name;
+        }
         const d = this.state.currentDate;
         const year = d.getFullYear();
         const month = d.getMonth() + 1;
@@ -234,6 +271,7 @@ export class UniversitySchedule extends Component {
             this.state.teacherInfo = res.teacher_info || null;
             this.state.weeklyTeachingHours = res.weekly_teaching_hours || 0;
             this.state.filtersData = res.filters_data || {
+                academic_years: [],
                 subjects: [],
                 classrooms: [],
                 sections: [],
@@ -243,8 +281,15 @@ export class UniversitySchedule extends Component {
                 programs: [],
             };
 
-            if (!this.state.filters.semester_id && this.state.filtersData.semesters?.length) {
-                const activeSem = this.state.filtersData.semesters.find((s) => s.is_active) || this.state.filtersData.semesters[0];
+            if (!this.state.filters.academic_year_id && this.state.filtersData.academic_years?.length && !this.state.hasExplicitlyClearedYear) {
+                const currentYear = this.state.filtersData.academic_years.find((y) => y.current) || this.state.filtersData.academic_years[0];
+                if (currentYear) {
+                    this.state.filters.academic_year_id = String(currentYear.id);
+                }
+            }
+
+            if (!this.state.filters.semester_id && this.visibleSemesters?.length) {
+                const activeSem = this.visibleSemesters.find((s) => s.is_active) || this.visibleSemesters[0];
                 if (activeSem) {
                     this.state.filters.semester_id = String(activeSem.id);
                 }
@@ -272,24 +317,64 @@ export class UniversitySchedule extends Component {
         await this.loadScheduleData();
     }
 
+    async onAcademicYearChange(ev) {
+        const yearId = ev.target.value;
+        this.state.filters.academic_year_id = yearId;
+        if (!yearId) {
+            this.state.hasExplicitlyClearedYear = true;
+        } else {
+            this.state.hasExplicitlyClearedYear = false;
+        }
+
+        // Reset semester if it doesn't belong to the newly selected academic year
+        if (yearId && this.state.filters.semester_id) {
+            const matches = this.visibleSemesters.some((s) => String(s.id) === String(this.state.filters.semester_id));
+            if (!matches) {
+                const firstSem = this.visibleSemesters[0];
+                this.state.filters.semester_id = firstSem ? String(firstSem.id) : "";
+            }
+        }
+
+        // If academic year defines date range, navigate to its start date if view date is out of bounds
+        const yearRec = (this.state.filtersData.academic_years || []).find((y) => String(y.id) === String(yearId));
+        if (yearRec && yearRec.date_start) {
+            const startDt = new Date(yearRec.date_start + "T00:00:00");
+            const endDt = yearRec.date_end ? new Date(yearRec.date_end + "T23:59:59") : null;
+            const current = new Date(this.state.currentDate);
+            if (current < startDt || (endDt && current > endDt)) {
+                this.state.currentDate = startDt;
+            }
+        }
+
+        await this.loadScheduleData();
+    }
+
     async onTermChange(ev) {
         const semesterId = ev.target.value;
         this.state.filters.semester_id = semesterId;
         const sem = (this.state.filtersData.semesters || []).find((s) => String(s.id) === String(semesterId));
-        if (sem && sem.date_start) {
-            const startDt = new Date(sem.date_start + "T00:00:00");
-            const endDt = sem.date_end ? new Date(sem.date_end + "T23:59:59") : null;
-            const current = new Date(this.state.currentDate);
-            if (current < startDt || (endDt && current > endDt)) {
-                this.state.currentDate = startDt;
+        if (sem) {
+            if (sem.academic_year_id && !this.state.filters.academic_year_id) {
+                const semYearId = Array.isArray(sem.academic_year_id) ? sem.academic_year_id[0] : sem.academic_year_id;
+                this.state.filters.academic_year_id = String(semYearId);
+            }
+            if (sem.date_start) {
+                const startDt = new Date(sem.date_start + "T00:00:00");
+                const endDt = sem.date_end ? new Date(sem.date_end + "T23:59:59") : null;
+                const current = new Date(this.state.currentDate);
+                if (current < startDt || (endDt && current > endDt)) {
+                    this.state.currentDate = startDt;
+                }
             }
         }
         await this.loadScheduleData();
     }
 
     async clearAllFilters() {
+        const currentYear = this.state.filters.academic_year_id;
         const currentSem = this.state.filters.semester_id;
         this.state.filters = {
+            academic_year_id: currentYear || "",
             faculty_id: "",
             program_id: "",
             semester_id: currentSem || "",
@@ -397,9 +482,90 @@ export class UniversitySchedule extends Component {
     // Week Grid Layout & Time Calculation
     // =========================================================================
 
+    get gridStartHour() {
+        return 7.0;
+    }
+
+    get gridEndHour() {
+        return 22.0;
+    }
+
     get timeHours() {
-        // Dynamic time bounds (8:00 to 20:00)
-        return [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+        // Time bounds 07:00 to 22:00 (15 hour rows: 7..21)
+        const hours = [];
+        for (let h = 7; h <= 21; h++) {
+            hours.push(h);
+        }
+        return hours;
+    }
+
+    formatHourLabel(hour) {
+        return `${String(hour).padStart(2, "0")}:00`;
+    }
+
+    _assignOverlapLayout(daySlots) {
+        if (!daySlots || !daySlots.length) return;
+
+        // Sort by start time ascending, then duration descending
+        const sorted = [...daySlots].sort((a, b) => {
+            const startA = a.start_hour_decimal != null ? a.start_hour_decimal : 8.0;
+            const startB = b.start_hour_decimal != null ? b.start_hour_decimal : 8.0;
+            if (startA !== startB) {
+                return startA - startB;
+            }
+            const durA = (a.end_hour_decimal || (startA + 1.0)) - startA;
+            const durB = (b.end_hour_decimal || (startB + 1.0)) - startB;
+            return durB - durA;
+        });
+
+        // Group into connected overlap clusters
+        const clusters = [];
+        let currentCluster = [];
+        let clusterEnd = -1;
+
+        for (const slot of sorted) {
+            const start = slot.start_hour_decimal != null ? slot.start_hour_decimal : 8.0;
+            const end = slot.end_hour_decimal != null ? slot.end_hour_decimal : (start + 1.0);
+
+            if (currentCluster.length === 0 || start < clusterEnd) {
+                currentCluster.push(slot);
+                clusterEnd = Math.max(clusterEnd, end);
+            } else {
+                clusters.push(currentCluster);
+                currentCluster = [slot];
+                clusterEnd = end;
+            }
+        }
+        if (currentCluster.length > 0) {
+            clusters.push(currentCluster);
+        }
+
+        // For each cluster, greedily assign column tracks
+        for (const cluster of clusters) {
+            const trackEndTimes = [];
+            for (const slot of cluster) {
+                const start = slot.start_hour_decimal != null ? slot.start_hour_decimal : 8.0;
+                const end = slot.end_hour_decimal != null ? slot.end_hour_decimal : (start + 1.0);
+
+                let placedCol = -1;
+                for (let i = 0; i < trackEndTimes.length; i++) {
+                    if (start >= trackEndTimes[i]) {
+                        placedCol = i;
+                        trackEndTimes[i] = end;
+                        break;
+                    }
+                }
+                if (placedCol === -1) {
+                    placedCol = trackEndTimes.length;
+                    trackEndTimes.push(end);
+                }
+                slot._colIndex = placedCol;
+            }
+            const totalCols = Math.max(1, trackEndTimes.length);
+            for (const slot of cluster) {
+                slot._totalCols = totalCols;
+            }
+        }
     }
 
     formatHolidayTooltip(holiday, dateObj) {
@@ -429,6 +595,8 @@ export class UniversitySchedule extends Component {
             const daySlots = this.filteredSlots
                 .filter((s) => s.date_str === dateStr)
                 .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
+
+            this._assignOverlapLayout(daySlots);
 
             // Compare dates using actual date value (ISO YYYY-MM-DD), not formatted text
             const dayHoliday = (this.state.holidays || []).find((h) => {
@@ -576,10 +744,12 @@ export class UniversitySchedule extends Component {
         const hour = now.getHours();
         const minute = now.getMinutes();
         const decimal = hour + minute / 60.0;
-        if (decimal < 8.0 || decimal > 20.0) {
+        const startHour = this.gridStartHour;
+        const endHour = this.gridEndHour;
+        if (decimal < startHour || decimal > endHour) {
             return null;
         }
-        return ((decimal - 8.0) / 12.0) * 100;
+        return Math.round((decimal - startHour) * 60);
     }
 
     get currentTimeFormatted() {
@@ -587,15 +757,25 @@ export class UniversitySchedule extends Component {
     }
 
     getSlotStyle(slot) {
-        // Calculate top & height in 8:00 - 20:00 range (12 hours total)
-        const startH = Math.max(8.0, Math.min(20.0, slot.start_hour_decimal || 8.0));
-        const endH = Math.max(8.0, Math.min(20.0, slot.end_hour_decimal || (startH + 1.0)));
+        const startHour = this.gridStartHour;
+        const endHour = this.gridEndHour;
+        const startH = Math.max(startHour, Math.min(endHour, slot.start_hour_decimal != null ? slot.start_hour_decimal : 8.0));
+        const endH = Math.max(startH + 0.25, Math.min(endHour, slot.end_hour_decimal != null ? slot.end_hour_decimal : (startH + 1.0)));
         const durationHours = Math.max(0.4, endH - startH);
 
-        const topPercent = ((startH - 8.0) / 12.0) * 100;
-        const heightPercent = Math.max(4.0, (durationHours / 12.0) * 100);
+        const topPx = Math.round((startH - startHour) * 60);
+        const heightPx = Math.max(28, Math.round(durationHours * 60 - 3));
 
-        return `top: ${topPercent}%; height: calc(${heightPercent}% - 3px);`;
+        const totalCols = slot._totalCols || 1;
+        const colIndex = slot._colIndex || 0;
+
+        if (totalCols > 1) {
+            const colWidth = 100 / totalCols;
+            const leftPercent = colIndex * colWidth;
+            return `top: ${topPx}px; height: ${heightPx}px; width: calc(${colWidth}% - 4px); left: calc(${leftPercent}% + 2px);`;
+        }
+
+        return `top: ${topPx}px; height: ${heightPx}px; left: 3px; width: calc(100% - 6px);`;
     }
 
     getSlotDayShort(slot) {
@@ -679,6 +859,7 @@ export class UniversitySchedule extends Component {
     async addClass(options = {}) {
         if (this.state.role !== "admin") return;
         const ctx = {
+            default_academic_year_id: this.state.filters.academic_year_id ? parseInt(this.state.filters.academic_year_id) : false,
             default_semester_id: this.state.filters.semester_id ? parseInt(this.state.filters.semester_id) : false,
         };
         if (options && options.teacher_id) {

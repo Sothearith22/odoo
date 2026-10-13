@@ -14,8 +14,6 @@
             <field name="name_km">ទិវាចូលឆ្នាំសកល</field>
             <field name="date_from">2025-01-01</field>
             <field name="date_to">2025-01-01</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Fixed annual public holiday on January 1.</field>
         </record>
 
@@ -25,8 +23,6 @@
             <field name="name_km">ទិវាជ័យជម្នះលើរបបប្រល័យពូជសាសន៍</field>
             <field name="date_from">2025-01-07</field>
             <field name="date_to">2025-01-07</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Fixed annual public holiday commemorating January 7, 1979.</field>
         </record>
 
@@ -36,8 +32,6 @@
             <field name="name_km">ទិវាអន្តរជាតិនារី</field>
             <field name="date_from">2025-03-08</field>
             <field name="date_to">2025-03-08</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Fixed annual holiday on March 8.</field>
         </record>
 
@@ -47,8 +41,6 @@
             <field name="name_km">ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ</field>
             <field name="date_from">2025-04-14</field>
             <field name="date_to">2025-04-16</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Three days celebration in mid-April (Moha Sangkranta, Virak Vanabat, Vearak Loeng Sak).</field>
         </record>
 
@@ -58,8 +50,6 @@
             <field name="name_km">ទិវាពលកម្មអន្តរជាតិ</field>
             <field name="date_from">2025-05-01</field>
             <field name="date_to">2025-05-01</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Fixed public holiday on May 1.</field>
         </record>
 
@@ -69,8 +59,6 @@
             <field name="name_km">ពិធីបុណ្យវិសាខបូជា</field>
             <field name="date_from">2025-05-12</field>
             <field name="date_to">2025-05-12</field>
-            <field name="holiday_type">lunar</field>
-            <field name="affects_classes" eval="False"/>
             <field name="note">Khmer Buddhist holy day determined by lunar calendar (Full moon of Visakha).</field>
         </record>
 
@@ -80,8 +68,6 @@
             <field name="name_km">ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្មព្រះមហាក្សត្រ</field>
             <field name="date_from">2025-05-14</field>
             <field name="date_to">2025-05-14</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Fixed public holiday on May 14 celebrating His Majesty King Norodom Sihamoni's Birthday.</field>
         </record>
 
@@ -91,8 +77,6 @@
             <field name="name_km">ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល</field>
             <field name="date_from">2025-05-16</field>
             <field name="date_to">2025-05-16</field>
-            <field name="holiday_type">special</field>
-            <field name="affects_classes" eval="False"/>
             <field name="note">Royal agricultural ceremony determined by the lunar calendar.</field>
         </record>
 
@@ -102,8 +86,6 @@
             <field name="name_km">ពិធីបុណ្យភ្ជុំបិណ្ឌ</field>
             <field name="date_from">2025-09-21</field>
             <field name="date_to">2025-09-23</field>
-            <field name="holiday_type">lunar</field>
-            <field name="affects_classes" eval="False"/>
             <field name="note">Cambodian Ancestors' Day festival determined by the lunar calendar.</field>
         </record>
 
@@ -113,8 +95,6 @@
             <field name="name_km">ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ</field>
             <field name="date_from">2025-09-24</field>
             <field name="date_to">2025-09-24</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Commemoration of the formal promulgation of the Kingdom's Constitution on September 24, 1993.</field>
         </record>
 
@@ -124,8 +104,6 @@
             <field name="name_km">ទិវារំលឹកវិញ្ញាណក្ខន្ធព្រះបរមរតនកោដ្ឋ</field>
             <field name="date_from">2025-10-15</field>
             <field name="date_to">2025-10-15</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Commemoration of His Majesty King Father Norodom Sihanouk on October 15.</field>
         </record>
 
@@ -135,8 +113,6 @@
             <field name="name_km">ព្រះរាជពិធីគ្រងរាជសម្បត្តិ</field>
             <field name="date_from">2025-10-29</field>
             <field name="date_to">2025-10-29</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">Anniversary of King Norodom Sihamoni's Coronation on October 29.</field>
         </record>
 
@@ -146,8 +122,6 @@
             <field name="name_km">ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ</field>
             <field name="date_from">2025-11-04</field>
             <field name="date_to">2025-11-06</field>
-            <field name="holiday_type">lunar</field>
-            <field name="affects_classes" eval="False"/>
             <field name="note">Bon Om Touk (Water Festival) determined by the lunar calendar.</field>
         </record>
 
@@ -157,8 +131,6 @@
             <field name="name_km">ទិវាបុណ្យឯករាជ្យជាតិ</field>
             <field name="date_from">2025-11-09</field>
             <field name="date_to">2025-11-09</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">National Independence Day (November 9, 1953).</field>
         </record>
 
@@ -168,8 +140,6 @@
             <field name="name_km">ទិវាសន្តិភាព</field>
             <field name="date_from">2025-12-29</field>
             <field name="date_to">2025-12-29</field>
-            <field name="holiday_type">fixed</field>
-            <field name="affects_classes" eval="True"/>
             <field name="note">National Peace Day commemorating the end of civil war and peace across Cambodia on December 29.</field>
         </record>
     </data>

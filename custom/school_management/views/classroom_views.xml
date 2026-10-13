@@ -11,6 +11,7 @@
                 <field name="building"/>
                 <field name="room_type" widget="badge"/>
                 <field name="capacity" string="Capacity"/>
+                <field name="slot_count" string="Sessions"/>
                 <field name="status" widget="badge"
                        decoration-success="status == 'available'"
                        decoration-warning="status == 'occupied'"
@@ -28,6 +29,15 @@
         <field name="arch" type="xml">
             <form string="Classroom">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sessions"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="slot_count" widget="statinfo" string="Sessions"/>
+                        </button>
+                    </div>
+
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
 
@@ -93,6 +103,7 @@
                 <field name="room_type"/>
                 <field name="capacity"/>
                 <field name="status"/>
+                <field name="slot_count"/>
                 <templates>
                     <t t-name="card">
                         <main class="p-3 d-flex flex-column justify-content-between h-100">
@@ -121,6 +132,9 @@
                                     <i class="fa fa-users me-1" title="Capacity"/>
                                     <field name="capacity"/> seats
                                 </span>
+                                <button name="action_view_sessions" type="object" class="btn btn-sm btn-outline-primary" string="Sessions">
+                                    <i class="fa fa-calendar me-1"/><field name="slot_count"/> Sessions
+                                </button>
                             </div>
                         </main>
                     </t>

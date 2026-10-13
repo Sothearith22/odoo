@@ -19,6 +19,29 @@ class UniversityClassScheduleLine(models.Model):
         ondelete="cascade",
         index=True,
     )
+    academic_year_id = fields.Many2one(
+        "university.academic.year",
+        string="Academic Year",
+        related="class_id.academic_year_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    semester_id = fields.Many2one(
+        "university.semester",
+        string="Semester",
+        related="class_id.semester_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    subject_id = fields.Many2one(
+        "university.subject",
+        string="Subject",
+        related="class_id.subject_id",
+        store=True,
+        readonly=True,
+    )
     weekday = fields.Selection(
         [
             ("0", "Monday"),

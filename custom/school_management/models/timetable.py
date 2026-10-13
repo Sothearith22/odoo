@@ -27,21 +27,55 @@ class UniversityTimeslot(models.Model):
     )
     start_hour = fields.Float(string="Start Hour", required=True, default=8.0)
     end_hour = fields.Float(string="End Hour", required=True, default=9.0)
+    duration = fields.Float(string="Duration (Hours)", compute="_compute_duration", store=True)
+    time_range = fields.Char(string="Time Range", compute="_compute_name", store=True)
     active = fields.Boolean(string="Active", default=True)
+    slot_ids = fields.One2many("university.timetable.slot", "timeslot_id", string="Scheduled Sessions")
+    slot_count = fields.Integer(string="Session Count", compute="_compute_slot_count")
 
     _unique_timeslot = models.Constraint(
         "UNIQUE (day_of_week, start_hour, end_hour)",
         "A timeslot for this day and time range already exists.",
     )
 
+    @api.depends("start_hour", "end_hour")
+    def _compute_duration(self):
+        for slot in self:
+            slot.duration = max(0.0, slot.end_hour - slot.start_hour)
+
+    def _compute_slot_count(self):
+        slot_data = self.env["university.timetable.slot"].read_group(
+            [("timeslot_id", "in", self.ids)],
+            ["timeslot_id"],
+            ["timeslot_id"],
+        )
+        count_map = {item["timeslot_id"][0]: item["timeslot_id_count"] for item in slot_data if item.get("timeslot_id")}
+        for slot in self:
+            slot.slot_count = count_map.get(slot.id, 0)
+
+    def action_view_sessions(self):
+        self.ensure_one()
+        return {
+            "name": _("Sessions: %s", self.name),
+            "type": "ir.actions.act_window",
+            "res_model": "university.timetable.slot",
+            "view_mode": "calendar,list,form",
+            "domain": [("timeslot_id", "=", self.id)],
+            "context": {"default_timeslot_id": self.id},
+        }
+
     @api.depends("day_of_week", "start_hour", "end_hour")
     def _compute_name(self):
         labels = dict(self._fields["day_of_week"].selection)
         for slot in self:
-            slot.name = "%s %s-%s" % (
-                labels.get(slot.day_of_week, "Day"),
+            time_str = "%s - %s" % (
                 slot._format_hour(slot.start_hour),
                 slot._format_hour(slot.end_hour),
+            )
+            slot.time_range = time_str
+            slot.name = "%s %s" % (
+                labels.get(slot.day_of_week, "Day"),
+                time_str,
             )
 
     @api.constrains("start_hour", "end_hour")
@@ -684,8 +718,14 @@ class UniversityTimetableSlot(models.Model):
     @api.constrains("start_time", "end_time")
     def _check_datetime_range(self):
         for slot in self:
-            if slot.start_time and slot.end_time and slot.start_time >= slot.end_time:
-                raise ValidationError("Timetable start time must be before end time.")
+            if slot.start_time and slot.end_time:
+                if slot.start_time >= slot.end_time:
+                    raise ValidationError(_("Timetable start time must be before end time."))
+                delta = slot.end_time - slot.start_time
+                if delta.total_seconds() > 14 * 3600:
+                    raise ValidationError(
+                        _("Timetable session duration cannot exceed 14 hours. Please check start and end time.")
+                    )
 
     @api.constrains("teacher_id", "section_id", "classroom_id", "start_time", "end_time", "state")
     def _check_resource_conflicts(self):
@@ -1157,6 +1197,11 @@ class UniversityTimetableSlot(models.Model):
             if state_filter:
                 domain.append(("state", "=", state_filter))
 
+        # Academic Year filter applied across all roles
+        common_academic_year_id = filters.get("academic_year_id") or filters.get("academic_year")
+        if common_academic_year_id:
+            domain.append(("academic_year_id", "=", int(common_academic_year_id)))
+
         # Semester / Academic Term filter applied across all roles
         common_semester_id = filters.get("semester_id") or filters.get("semester")
         if common_semester_id:
@@ -1277,6 +1322,8 @@ class UniversityTimetableSlot(models.Model):
                 "status": slot.status or "upcoming",
                 "state": slot.state or "scheduled",
                 "generation_state": slot.generation_state or "draft",
+                "academic_year_id": slot.academic_year_id.id if slot.academic_year_id else False,
+                "academic_year_name": slot.academic_year_id.name if slot.academic_year_id else "",
                 "semester_id": slot.semester_id.id if slot.semester_id else False,
                 "semester_name": slot.semester_id.name if slot.semester_id else "",
                 "session_type": slot.session_type or "lecture",
@@ -1371,6 +1418,9 @@ class UniversityTimetableSlot(models.Model):
             return res
 
         # UI Filter Data for dropdowns
+        academic_years = self.env["university.academic.year"].search_read(
+            [], ["id", "name", "date_start", "date_end", "current", "state"], order="date_start desc, name desc"
+        )
         subjects = self.env["university.subject"].search_read([], ["id", "name"], order="name asc")
         classrooms = self.env["university.classroom"].search_read(
             [], ["id", "name", "building", "capacity", "room_type"], order="name asc"
@@ -1381,9 +1431,12 @@ class UniversityTimetableSlot(models.Model):
         )
         faculties = self.env["university.faculty"].search_read([], ["id", "name"], order="name asc")
         programs = self.env["university.program"].search_read([], ["id", "name"], order="name asc")
-        semesters = self.env["university.semester"].search_read([], ["id", "name", "date_start", "date_end", "is_active"], order="date_start desc, name asc")
+        semesters = self.env["university.semester"].search_read(
+            [], ["id", "name", "date_start", "date_end", "academic_year_id", "semester_type", "is_active"], order="date_start desc, name asc"
+        )
 
         res["filters_data"] = {
+            "academic_years": academic_years,
             "subjects": subjects,
             "classrooms": classrooms,
             "sections": sections,

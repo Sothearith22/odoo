@@ -50,8 +50,25 @@
                             </div>
                         </div>
 
-                        <!-- Academic Term Dropdown -->
-                        <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1" t-if="state.filtersData.semesters and state.filtersData.semesters.length">
+                        <!-- Academic Session (Year) Dropdown -->
+                        <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1" t-if="state.filtersData.academic_years and state.filtersData.academic_years.length">
+                            <label class="very-small text-muted fw-bold text-nowrap mb-0">
+                                <i class="fa fa-graduation-cap text-purple me-1"/>Session:
+                            </label>
+                            <select class="form-select form-select-sm w-auto py-1 px-2 fw-semibold text-purple border-purple-subtle shadow-none o_select_year"
+                                    t-on-change="(ev) => this.onAcademicYearChange(ev)"
+                                    aria-label="Academic Session">
+                                <option value="">All Sessions</option>
+                                <t t-foreach="state.filtersData.academic_years" t-as="ay" t-key="ay.id">
+                                    <option t-att-value="ay.id" t-att-selected="state.filters.academic_year_id == ay.id">
+                                        <t t-esc="ay.name"/><t t-if="ay.current"> (Current)</t>
+                                    </option>
+                                </t>
+                            </select>
+                        </div>
+
+                        <!-- Academic Term (Semester) Dropdown -->
+                        <div class="d-flex align-items-center gap-2 ps-2" t-if="this.visibleSemesters and this.visibleSemesters.length">
                             <label class="very-small text-muted fw-bold text-nowrap mb-0">
                                 <i class="fa fa-calendar-o text-purple me-1"/>Term:
                             </label>
@@ -59,7 +76,7 @@
                                     t-on-change="(ev) => this.onTermChange(ev)"
                                     aria-label="Academic Term">
                                 <option value="">All Terms</option>
-                                <t t-foreach="state.filtersData.semesters" t-as="sem" t-key="sem.id">
+                                <t t-foreach="this.visibleSemesters" t-as="sem" t-key="sem.id">
                                     <option t-att-value="sem.id" t-att-selected="state.filters.semester_id == sem.id">
                                         <t t-esc="sem.name"/>
                                     </option>
@@ -305,8 +322,9 @@
                     <!-- Day Columns Header -->
                     <div class="o_grid_header_row d-flex border-bottom bg-light">
                         <!-- Left Time Axis Column Header -->
-                        <div class="o_grid_time_col_header d-flex align-items-center justify-content-center text-muted fw-bold very-small border-end">
-                            <span>15m</span>
+                        <div class="o_grid_time_col_header d-flex align-items-center justify-content-center text-muted fw-semibold very-small border-end">
+                            <i class="fa fa-clock-o text-purple me-1" aria-hidden="true"/>
+                            <span>Time</span>
                         </div>
                         <!-- Day Columns Headers -->
                         <div class="o_grid_days_header_wrap d-flex flex-grow-1">
@@ -331,12 +349,12 @@
 
                     <!-- Scrollable Grid Body -->
                     <div class="o_grid_scroll_body flex-grow-1 overflow-auto position-relative">
-                        <div class="o_grid_canvas d-flex position-relative" style="min-height: 840px;">
+                        <div class="o_grid_canvas d-flex position-relative" style="min-height: 900px; height: 900px;">
                             <!-- Time Axis Column (Left) -->
                             <div class="o_grid_time_axis border-end bg-light">
                                 <t t-foreach="this.timeHours" t-as="hour" t-key="hour">
                                     <div class="o_grid_hour_slot border-bottom d-flex align-items-start justify-content-center pt-1">
-                                        <span class="very-small text-muted fw-bold"><t t-esc="hour + ':00'"/></span>
+                                        <span class="very-small text-muted fw-bold"><t t-esc="this.formatHourLabel(hour)"/></span>
                                     </div>
                                 </t>
                             </div>
@@ -346,7 +364,7 @@
                                 <!-- Red Current Time Line across grid -->
                                 <t t-if="this.currentTimeMarkerPosition !== null">
                                     <div class="o_current_time_line position-absolute w-100"
-                                         t-att-style="'top: ' + this.currentTimeMarkerPosition + '%; z-index: 10;'">
+                                         t-att-style="'top: ' + this.currentTimeMarkerPosition + 'px; z-index: 10;'">
                                         <div class="o_current_time_dot position-absolute"/>
                                     </div>
                                 </t>
@@ -747,7 +765,7 @@
                 </section>
 
                 <!-- ==================== RIGHT SECTION: CLASSES TABLE ==================== -->
-                <aside t-if="state.viewMode !== 'resource' or state.showSideTable" class="o_schedule_table_pane d-flex flex-column bg-white border-start" style="width: 36%; min-width: 330px;">
+                <aside t-if="state.viewMode !== 'resource' or state.showSideTable" class="o_schedule_table_pane d-flex flex-column bg-white border-start" style="width: 28%; min-width: 280px; max-width: 360px;">
                     <!-- Table Header -->
                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light">
                         <div class="d-flex align-items-center gap-2">
@@ -776,10 +794,10 @@
                             <thead class="table-light sticky-top border-bottom">
                                 <tr class="very-small text-muted text-uppercase tracking-wider">
                                     <th style="width: 14%;">DAY</th>
-                                    <th style="width: 16%;">TIME</th>
-                                    <th style="width: 26%;">FORMAT</th>
-                                    <th style="width: 16%;">CAPACITY</th>
-                                    <th style="width: 28%;">FACULTY</th>
+                                    <th style="width: 18%;">TIME</th>
+                                    <th style="width: 32%;">COURSE / FORMAT</th>
+                                    <th style="width: 16%;">SEATS</th>
+                                    <th style="width: 20%;">FACULTY</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -872,6 +890,14 @@
 
                             <!-- Course Title & Section -->
                             <div class="mb-3">
+                                <div class="d-flex flex-wrap gap-1 mb-2" t-if="state.selectedSlot.academic_year_name or state.selectedSlot.semester_name">
+                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle very-small" t-if="state.selectedSlot.academic_year_name">
+                                        <i class="fa fa-graduation-cap me-1"/><t t-esc="state.selectedSlot.academic_year_name"/>
+                                    </span>
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle very-small" t-if="state.selectedSlot.semester_name">
+                                        <i class="fa fa-bookmark-o me-1"/><t t-esc="state.selectedSlot.semester_name"/>
+                                    </span>
+                                </div>
                                 <h3 class="h5 fw-bold text-dark mb-1" t-esc="state.selectedSlot.subject_name"/>
                                 <div class="text-muted small">
                                     <span class="badge bg-light text-dark border me-2" t-if="state.selectedSlot.subject_code" t-esc="state.selectedSlot.subject_code"/>

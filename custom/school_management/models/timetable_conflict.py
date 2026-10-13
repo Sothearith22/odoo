@@ -56,20 +56,30 @@ class UniversityTimetableConflict(models.Model):
     )
 
     @api.model
-    def action_open_conflicts_view(self):
+    def action_open_conflicts_view(self, academic_year_id=None):
         """Scan active slots and open the Schedule Conflicts page."""
-        self._detect_all_conflicts()
+        self._detect_all_conflicts(academic_year_id=academic_year_id)
+        ctx = {"search_default_filter_unresolved": 1}
+        domain = []
+        if academic_year_id:
+            domain.append(("academic_year_id", "=", academic_year_id))
+            ctx["default_academic_year_id"] = academic_year_id
         return {
             "name": _("Schedule Conflicts"),
             "type": "ir.actions.act_window",
             "res_model": "university.timetable.conflict",
             "view_mode": "kanban,list,form",
+            "domain": domain,
             "search_view_id": self.env.ref("school_management.view_university_timetable_conflict_search").id,
-            "context": {"search_default_filter_unresolved": 1},
+            "context": ctx,
         }
 
     def action_rescan(self):
-        self._detect_all_conflicts()
+        ay_id = self.mapped("academic_year_id.id")
+        ay_id = ay_id[0] if len(ay_id) == 1 else None
+        sem_id = self.mapped("semester_id.id")
+        sem_id = sem_id[0] if len(sem_id) == 1 else None
+        self._detect_all_conflicts(semester_id=sem_id, academic_year_id=ay_id)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -98,11 +108,13 @@ class UniversityTimetableConflict(models.Model):
         return True
 
     @api.model
-    def _detect_all_conflicts(self, semester_id=None):
+    def _detect_all_conflicts(self, semester_id=None, academic_year_id=None):
         """Scan active timetable slots and detect scheduling clashes."""
         domain = [("state", "!=", "cancelled")]
         if semester_id:
             domain.append(("semester_id", "=", semester_id))
+        if academic_year_id:
+            domain.append(("academic_year_id", "=", academic_year_id))
 
         slots = self.env["university.timetable.slot"].search(domain, order="start_time asc")
 
@@ -110,6 +122,8 @@ class UniversityTimetableConflict(models.Model):
         clear_domain = [("status", "=", "unresolved")]
         if semester_id:
             clear_domain.append(("semester_id", "=", semester_id))
+        if academic_year_id:
+            clear_domain.append(("academic_year_id", "=", academic_year_id))
         self.search(clear_domain).unlink()
 
         conflicts_to_create = []
