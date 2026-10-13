@@ -77,6 +77,22 @@ th.o_resource_header_col.bg-danger-subtle {
     font-weight: 700;
 }
 
+/* Timetable Kanban Public Holiday Highlight */
+.o_kanban_record:has(.o_slot_holiday_card),
+.o_kanban_record.o_slot_holiday_card,
+.o_kanban_record .o_slot_holiday_card {
+    background-color: var(--holiday-conflict-bg) !important;
+    border: 1px solid var(--holiday-conflict-border) !important;
+    border-left: 5px solid var(--holiday-conflict-border) !important;
+    border-radius: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25) !important;
+    }
+}
+
 /* Cancelled session on holiday: grey with strikethrough */
 .o_schedule_block.o_slot_holiday_cancelled {
     background-color: var(--holiday-cancelled-bg) !important;

@@ -868,6 +868,82 @@ class UniversityTimetableSlot(models.Model):
             self.env.add_to_compute(self._fields["has_conflict"], related_slots.exists())
         return res
 
+    @api.model
+    def action_copy_previous_week(self, current_week_start):
+        """Copies all active timetable slots from previous week to the current week as draft."""
+        user = self.env.user
+        if not (self.env.is_system() or user.has_group("school_management.group_school_admin")):
+            raise AccessError(_("Only administrators can copy schedule slots."))
+
+        if isinstance(current_week_start, str):
+            curr_start = fields.Date.from_string(current_week_start)
+        else:
+            curr_start = current_week_start
+
+        tz = pytz.timezone(user.tz or "UTC")
+        curr_week_start_dt = tz.localize(datetime.combine(curr_start, time.min)).astimezone(pytz.utc).replace(tzinfo=None)
+        prev_week_start_dt = curr_week_start_dt - timedelta(days=7)
+        prev_week_end_dt = curr_week_start_dt - timedelta(seconds=1)
+
+        prev_slots = self.search([
+            ("start_time", ">=", prev_week_start_dt),
+            ("start_time", "<=", prev_week_end_dt),
+            ("state", "!=", "cancelled"),
+        ])
+
+        if not prev_slots:
+            return {"copied_count": 0, "message": _("No scheduled sessions found in the previous week.")}
+
+        copied_count = 0
+        for slot in prev_slots:
+            new_start = slot.start_time + timedelta(days=7)
+            new_end = slot.end_time + timedelta(days=7)
+
+            existing = self.search([
+                ("section_id", "=", slot.section_id.id),
+                ("teacher_id", "=", slot.teacher_id.id if slot.teacher_id else False),
+                ("start_time", "=", new_start),
+                ("state", "!=", "cancelled"),
+            ], limit=1)
+            if existing:
+                continue
+
+            slot.copy({
+                "start_time": new_start,
+                "end_time": new_end,
+                "state": "scheduled",
+                "generation_state": "draft",
+            })
+            copied_count += 1
+
+        return {"copied_count": copied_count}
+
+    @api.model
+    def action_publish_week_slots(self, current_week_start, current_week_end):
+        """Publishes all draft sessions in the given date range."""
+        user = self.env.user
+        if not (self.env.is_system() or user.has_group("school_management.group_school_admin") or user.has_group("school_management.group_school_hod")):
+            raise AccessError(_("Only administrators and HODs can publish schedule sessions."))
+
+        tz = pytz.timezone(user.tz or "UTC")
+        s_date = fields.Date.from_string(current_week_start) if isinstance(current_week_start, str) else current_week_start
+        e_date = fields.Date.from_string(current_week_end) if isinstance(current_week_end, str) else current_week_end
+
+        start_dt = tz.localize(datetime.combine(s_date, time.min)).astimezone(pytz.utc).replace(tzinfo=None)
+        end_dt = tz.localize(datetime.combine(e_date, time.max)).astimezone(pytz.utc).replace(tzinfo=None)
+
+        draft_slots = self.search([
+            ("start_time", ">=", start_dt),
+            ("start_time", "<=", end_dt),
+            ("generation_state", "!=", "published"),
+            ("state", "!=", "cancelled"),
+        ])
+        count = len(draft_slots)
+        if draft_slots:
+            draft_slots.write({"generation_state": "published"})
+
+        return {"published_count": count}
+
     def action_cancel_session(self):
         self.ensure_one()
         self._check_modify_access()

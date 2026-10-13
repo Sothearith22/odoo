@@ -46,6 +46,17 @@ $uni-teal-subtle: #f0fdfa;
     .tracking-wider {
         letter-spacing: 0.05em;
     }
+    .very-small {
+        font-size: 0.72rem !important;
+        line-height: 1.25;
+    }
+    .py-0-5 {
+        padding-top: 0.15rem !important;
+        padding-bottom: 0.15rem !important;
+    }
+    .gap-0-5 {
+        gap: 0.2rem !important;
+    }
 
     // Button Styles
     .btn-purple {
@@ -187,11 +198,20 @@ $uni-teal-subtle: #f0fdfa;
             border-left-width: 4px !important;
             transition: transform 0.15s ease, box-shadow 0.15s ease, z-index 0.15s ease;
             z-index: 2;
+            display: flex;
+            flex-direction: column;
 
             &:hover, &.o_block_hovered {
                 transform: translateY(-2px);
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
-                z-index: 10;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16) !important;
+                z-index: 30;
+                min-height: max-content;
+                height: auto !important;
+            }
+
+            .o_card_actions button {
+                font-size: 0.68rem !important;
+                padding: 1px 4px !important;
             }
 
             &.o_block_selected {
@@ -241,6 +261,22 @@ $uni-teal-subtle: #f0fdfa;
                 border-left-color: #059669 !important;
             }
         }
+        .o_kanban_slot_card {
+            border-radius: 8px !important;
+            border-left-width: 4px !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            background-color: #ffffff;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1) !important;
+            }
+        }
+    }
+
+    // Kanban Pane
+    .o_schedule_kanban_pane {
+        background-color: #f8fafc;
     }
 
     // Right Table Pane (Available Spaces)
@@ -326,13 +362,60 @@ $uni-teal-subtle: #f0fdfa;
             }
         }
 
-        .o_resource_card {
-            border-left-width: 3px !important;
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        .o_resource_card,
+        .o_planning_pill {
+            border-radius: 6px !important;
+            border-left-width: 4px !important;
+            padding: 6px 8px !important;
+            font-size: 0.78rem !important;
+            position: relative;
+            transition: transform 0.14s ease, box-shadow 0.14s ease;
 
             &:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.09) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09) !important;
+
+                .o_pill_hover_actions {
+                    opacity: 1 !important;
+                }
+            }
+
+            .o_pill_time {
+                font-size: 0.76rem;
+                letter-spacing: -0.01em;
+            }
+
+            .o_pill_subject {
+                font-size: 0.82rem;
+                font-weight: 700;
+                color: #0f172a;
+            }
+
+            .o_pill_hover_actions {
+                opacity: 0;
+                transition: opacity 0.14s ease;
+            }
+
+            &.o_pill_conflict {
+                background-color: #fef2f2 !important;
+                border-color: #fecaca !important;
+                border-left-color: #dc2626 !important;
+            }
+        }
+
+        .o_resource_header_cell {
+            background-color: #f8fafc !important;
+            border-right: 2px solid #e2e8f0;
+        }
+
+        .o_btn_add_teacher {
+            opacity: 0;
+            transition: opacity 0.14s ease;
+        }
+
+        .o_resource_row:hover {
+            .o_btn_add_teacher {
+                opacity: 1 !important;
             }
         }
 

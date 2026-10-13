@@ -23,141 +23,137 @@
                 <div class="small fw-semibold" t-esc="state.unlinkedProfileMessage"/>
             </div>
 
-            <!-- ==================== TOP BAR: ADMIN CONSOLE, KPI METRICS & ACTIONS ==================== -->
+            <!-- ==================== TOP BAR: ODOO PLANNING "SCHEDULE BY RESOURCE" CONTROL PANEL ==================== -->
             <header class="o_schedule_top_bar p-3 bg-white border-bottom shadow-sm">
+                <!-- Row 1: Title, Planning Action Buttons (NEW, TODAY, COPY, PUBLISH), Center Date Navigator, Scale Switcher & View Switcher -->
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
-                    <!-- Left: Brand / Title / Role Badge / Term Selector -->
-                    <div class="d-flex flex-wrap align-items-center gap-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="o_schedule_brand_icon rounded-3 bg-purple text-white d-flex align-items-center justify-content-center shadow-sm">
-                                <i class="fa fa-calendar-check-o fa-lg" aria-hidden="true"/>
-                            </div>
-                            <div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <h1 class="h5 mb-0 fw-bold text-dark lh-1">Class Timetable</h1>
-                                    <!-- Role Badge -->
-                                    <span t-if="state.role === 'admin'" class="badge bg-purple-subtle text-purple border border-purple-subtle px-2 py-1 very-small fw-semibold">
-                                        <i class="fa fa-shield me-1"/>Admin Console
-                                    </span>
-                                    <span t-elif="state.role === 'teacher'" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 very-small fw-semibold">
-                                        <i class="fa fa-graduation-cap me-1"/>Faculty Portal
-                                    </span>
-                                    <span t-else="" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 very-small fw-semibold">
-                                        <i class="fa fa-user me-1"/>Student View
-                                    </span>
-                                </div>
-                                <span class="very-small text-muted" t-esc="this.currentTermLabel"/>
-                            </div>
+                    <!-- Left: Planning Title & Action Buttons -->
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <!-- Main Title (Odoo Planning style) -->
+                        <div class="d-flex align-items-center gap-2 me-2">
+                            <h1 class="fs-5 mb-0 fw-bold text-dark lh-1" t-if="state.viewMode === 'resource'">Schedule by Resource</h1>
+                            <h1 class="fs-5 mb-0 fw-bold text-dark lh-1" t-else="">Class Timetable</h1>
+                            <span t-if="state.role === 'admin'" class="badge bg-purple-subtle text-purple border border-purple-subtle px-2 py-0 very-small fw-semibold">
+                                Admin
+                            </span>
                         </div>
 
-                        <!-- Academic Session (Year) Dropdown -->
-                        <div class="d-flex align-items-center gap-2 border-start ps-3 ms-1" t-if="state.filtersData.academic_years and state.filtersData.academic_years.length">
-                            <label class="very-small text-muted fw-bold text-nowrap mb-0">
-                                <i class="fa fa-graduation-cap text-purple me-1"/>Session:
-                            </label>
-                            <select class="form-select form-select-sm w-auto py-1 px-2 fw-semibold text-purple border-purple-subtle shadow-none o_select_year"
-                                    t-on-change="(ev) => this.onAcademicYearChange(ev)"
-                                    aria-label="Academic Session">
-                                <option value="">All Sessions</option>
-                                <t t-foreach="state.filtersData.academic_years" t-as="ay" t-key="ay.id">
-                                    <option t-att-value="ay.id" t-att-selected="state.filters.academic_year_id == ay.id">
-                                        <t t-esc="ay.name"/><t t-if="ay.current"> (Current)</t>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-
-                        <!-- Academic Term (Semester) Dropdown -->
-                        <div class="d-flex align-items-center gap-2 ps-2" t-if="this.visibleSemesters and this.visibleSemesters.length">
-                            <label class="very-small text-muted fw-bold text-nowrap mb-0">
-                                <i class="fa fa-calendar-o text-purple me-1"/>Term:
-                            </label>
-                            <select class="form-select form-select-sm w-auto py-1 px-2 fw-semibold text-purple border-purple-subtle shadow-none o_select_term"
-                                    t-on-change="(ev) => this.onTermChange(ev)"
-                                    aria-label="Academic Term">
-                                <option value="">All Terms</option>
-                                <t t-foreach="this.visibleSemesters" t-as="sem" t-key="sem.id">
-                                    <option t-att-value="sem.id" t-att-selected="state.filters.semester_id == sem.id">
-                                        <t t-esc="sem.name"/>
-                                    </option>
-                                </t>
-                            </select>
-                        </div>
-
-                        <!-- Add Session: Admin Only -->
-                        <button t-if="state.role === 'admin'" type="button" class="btn btn-purple btn-sm fw-semibold shadow-sm px-3 d-inline-flex align-items-center gap-1"
-                                t-on-click="() => this.addClass()"
-                                aria-label="Add Session">
-                            <i class="fa fa-plus-circle" aria-hidden="true"/>
-                            <span>+ Add Session</span>
-                        </button>
-
-                        <!-- Color-By Switch (Admin & Teacher) -->
-                        <div t-if="state.role !== 'student'" class="d-flex align-items-center gap-1 ms-1">
-                            <span class="very-small text-muted fw-bold text-uppercase me-1">Color:</span>
-                            <div class="btn-group btn-group-sm shadow-none" role="group">
-                                <button type="button"
-                                        t-att-class="'btn btn-sm py-0 px-2 very-small ' + (state.colorBy === 'subject' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                        t-on-click="() => this.setColorBy('subject')">Subject</button>
-                                <button type="button"
-                                        t-att-class="'btn btn-sm py-0 px-2 very-small ' + (state.colorBy === 'teacher' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                        t-on-click="() => this.setColorBy('teacher')">Faculty</button>
-                                <button type="button"
-                                        t-att-class="'btn btn-sm py-0 px-2 very-small ' + (state.colorBy === 'classroom' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                        t-on-click="() => this.setColorBy('classroom')">Room</button>
-                            </div>
-                        </div>
-
-                        <!-- Export Actions Group -->
-                        <div class="btn-group btn-group-sm shadow-none" role="group">
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 very-small" t-on-click="() => this.exportExcel()" title="Export to Excel / CSV">
-                                <i class="fa fa-file-excel-o text-success me-1"/> Excel
+                        <!-- Planning Action Buttons: NEW, TODAY, COPY PREVIOUS WEEK, PUBLISH -->
+                        <div class="d-flex align-items-center gap-1">
+                            <!-- NEW Button -->
+                            <button t-if="state.role === 'admin'" type="button"
+                                    class="btn btn-dark btn-sm fw-bold px-3 text-uppercase shadow-sm o_planning_btn_new"
+                                    t-on-click="() => this.addClass()"
+                                    aria-label="New Session">
+                                <i class="fa fa-plus me-1" aria-hidden="true"/>NEW
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 very-small" t-on-click="() => this.exportICal()" title="Export to iCal (.ics)">
-                                <i class="fa fa-calendar-o text-primary me-1"/> iCal
+
+                            <!-- TODAY Button -->
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm fw-bold px-3 text-uppercase shadow-none"
+                                    t-on-click="() => this.today()"
+                                    aria-label="Jump to Today">
+                                TODAY
                             </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 very-small" t-on-click="() => this.exportPDF()" title="Print / PDF">
-                                <i class="fa fa-print text-danger me-1"/> Print
+
+                            <!-- COPY PREVIOUS WEEK Button (Admin only) -->
+                            <button t-if="state.role === 'admin'" type="button"
+                                    class="btn btn-outline-secondary btn-sm fw-bold px-2 text-uppercase shadow-none"
+                                    t-on-click="() => this.copyPreviousWeek()"
+                                    title="Copy scheduled sessions from previous week to this week">
+                                <i class="fa fa-clone me-1 text-muted"/>COPY PREVIOUS WEEK
+                            </button>
+
+                            <!-- PUBLISH ALL DRAFTS Button (Admin only) -->
+                            <button t-if="state.role === 'admin' and this.draftSlotsCount &gt; 0" type="button"
+                                    class="btn btn-outline-success btn-sm fw-bold px-2 text-uppercase shadow-none"
+                                    t-on-click="() => this.publishWeek()"
+                                    title="Publish all draft sessions for this week">
+                                <i class="fa fa-check me-1 text-success"/>PUBLISH (<t t-esc="this.draftSlotsCount"/>)
                             </button>
                         </div>
                     </div>
 
-                    <!-- Right: Executive KPI Metric Cards -->
-                    <div class="d-flex align-items-center gap-2 o_kpi_cards_group">
-                        <!-- KPI 1: Classes Count -->
-                        <div class="o_schedule_kpi_card px-3 py-1 rounded-3 border bg-white shadow-xs text-center">
-                            <div class="very-small fw-bold text-muted text-uppercase tracking-wider">CLASSES</div>
-                            <div class="fs-4 fw-bold text-dark lh-1 mt-1" t-esc="this.kpiClassesCount"/>
+                    <!-- Center: Date Navigator with Chevrons and Date Range Label -->
+                    <div class="d-flex align-items-center gap-2 o_planning_date_navigator">
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2 border-0"
+                                title="Previous Week/Day" t-on-click="() => this.prev()" aria-label="Previous">
+                            <i class="fa fa-chevron-left fs-6 text-dark" aria-hidden="true"/>
+                        </button>
+                        <div class="fw-bold fs-6 text-dark px-1 text-nowrap user-select-none">
+                            <t t-esc="this.headerTitle"/>
                         </div>
-                        <!-- KPI 2: Enrolled / Teaching Hours -->
-                        <div class="o_schedule_kpi_card px-3 py-1 rounded-3 border bg-white shadow-xs text-center">
-                            <div class="very-small fw-bold text-muted text-uppercase tracking-wider" t-esc="state.role === 'teacher' ? 'HOURS' : 'ENROLLED'"/>
-                            <div class="fs-4 fw-bold text-purple lh-1 mt-1" t-esc="state.role === 'teacher' ? state.weeklyTeachingHours : this.kpiEnrolledCount"/>
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2 border-0"
+                                title="Next Week/Day" t-on-click="() => this.next()" aria-label="Next">
+                            <i class="fa fa-chevron-right fs-6 text-dark" aria-hidden="true"/>
+                        </button>
+                    </div>
+
+                    <!-- Right: Scale Switcher (DAY | WEEK | MONTH | YEAR) + View Switcher -->
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Scale Switcher (Segmented Control matching Screenshot) -->
+                        <div class="btn-group btn-group-sm shadow-none o_scale_switcher" role="group" aria-label="Scale Switcher">
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 fw-bold text-uppercase ' + (state.scale === 'day' ? 'btn-dark text-white shadow-sm' : 'btn-outline-secondary text-muted')"
+                                    t-on-click="() => this.setScale('day')">
+                                DAY
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 fw-bold text-uppercase ' + (state.scale === 'week' ? 'btn-dark text-white shadow-sm' : 'btn-outline-secondary text-muted')"
+                                    t-on-click="() => this.setScale('week')">
+                                WEEK
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 fw-bold text-uppercase ' + (state.scale === 'month' ? 'btn-dark text-white shadow-sm' : 'btn-outline-secondary text-muted')"
+                                    t-on-click="() => this.setScale('month')">
+                                MONTH
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 fw-bold text-uppercase ' + (state.scale === 'year' ? 'btn-dark text-white shadow-sm' : 'btn-outline-secondary text-muted')"
+                                    t-on-click="() => this.setScale('year')">
+                                YEAR
+                            </button>
                         </div>
-                        <!-- KPI 3: Room Capacity -->
-                        <div class="o_schedule_kpi_card px-3 py-1 rounded-3 border bg-white shadow-xs text-center">
-                            <div class="very-small fw-bold text-muted text-uppercase tracking-wider">CAPACITY</div>
-                            <div class="fs-4 fw-bold text-teal lh-1 mt-1" t-esc="this.kpiCapacityCount"/>
+
+                        <!-- View Switcher -->
+                        <div class="btn-group btn-group-sm shadow-none" role="group" aria-label="View Switcher">
+                            <button t-if="state.role !== 'student'" type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'resource' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
+                                    t-on-click="() => this.setViewMode('resource')"
+                                    title="Schedule by Resource (Faculty Matrix)">
+                                <i class="fa fa-th-list me-1"/>Resource
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'week' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
+                                    t-on-click="() => this.setViewMode('week')"
+                                    title="Standard Timetable Grid">
+                                <i class="fa fa-calendar me-1"/>Grid
+                            </button>
+                            <button type="button"
+                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'kanban' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
+                                    t-on-click="() => this.setViewMode('kanban')"
+                                    title="Kanban View">
+                                <i class="fa fa-th-large me-1"/>Kanban
+                            </button>
                         </div>
-                        <!-- KPI 4: Overlaps & Clashes (Critical for Admin) -->
-                        <div t-if="state.role === 'admin'" class="o_schedule_kpi_card px-3 py-1 rounded-3 border bg-white shadow-xs text-center">
-                            <div class="very-small fw-bold text-muted text-uppercase tracking-wider">OVERLAPS</div>
-                            <div t-if="this.kpiConflictCount === 0" class="fs-4 fw-bold text-success lh-1 mt-1">
-                                <i class="fa fa-check-circle fs-5 me-1"/>0
-                            </div>
-                            <div t-else="" class="fs-4 fw-bold text-danger lh-1 mt-1">
-                                <i class="fa fa-exclamation-triangle fs-5 me-1"/><t t-esc="this.kpiConflictCount"/>
-                            </div>
-                        </div>
+
+                        <!-- Side Table Toggle -->
+                        <button type="button"
+                                t-att-class="'btn btn-sm py-1 px-2 ' + (state.showSideTable ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
+                                t-on-click="() => this.toggleSideTable()"
+                                title="Toggle Available Spaces Panel">
+                            <i class="fa fa-columns me-1"/>
+                            <span class="d-none d-md-inline">Side Panel</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Sub-bar: Search, Filters, Toggles, Reset, and Navigation Controls -->
+                <!-- Row 2: Search, Filters, Academic Session/Term, KPI Metrics, and Export -->
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
                     <!-- Left Filters Toolbar -->
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <!-- Search Box -->
-                        <div class="input-group input-group-sm o_schedule_search_wrap" style="width: 180px;">
+                        <div class="input-group input-group-sm o_schedule_search_wrap" style="width: 170px;">
                             <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa fa-search"/></span>
                             <input type="text" class="form-control border-start-0 ps-1" placeholder="Search sessions..."
                                    t-att-value="state.searchTerm"
@@ -211,30 +207,6 @@
                             </t>
                         </select>
 
-                        <!-- Department / Faculty Filter (Admin Only) -->
-                        <select t-if="state.role === 'admin' and state.filtersData.faculties and state.filtersData.faculties.length" class="form-select form-select-sm w-auto d-none d-xl-inline-block"
-                                t-on-change="(ev) => this.onFilterChange('faculty_id', ev)"
-                                aria-label="Filter by faculty">
-                            <option value="">All Faculties</option>
-                            <t t-foreach="state.filtersData.faculties" t-as="fac" t-key="fac.id">
-                                <option t-att-value="fac.id" t-att-selected="state.filters.faculty_id == fac.id">
-                                    <t t-esc="fac.name"/>
-                                </option>
-                            </t>
-                        </select>
-
-                        <!-- Program Filter (Admin Only) -->
-                        <select t-if="state.role === 'admin' and state.filtersData.programs and state.filtersData.programs.length" class="form-select form-select-sm w-auto d-none d-xl-inline-block"
-                                t-on-change="(ev) => this.onFilterChange('program_id', ev)"
-                                aria-label="Filter by program">
-                            <option value="">All Programs</option>
-                            <t t-foreach="state.filtersData.programs" t-as="prog" t-key="prog.id">
-                                <option t-att-value="prog.id" t-att-selected="state.filters.program_id == prog.id">
-                                    <t t-esc="prog.name"/>
-                                </option>
-                            </t>
-                        </select>
-
                         <!-- Gaps Toggle Switch -->
                         <div class="form-check form-switch ms-1 me-1 mb-0 small">
                             <input class="form-check-input cursor-pointer" type="checkbox" id="checkShowGaps"
@@ -259,58 +231,45 @@
                         </button>
                     </div>
 
-                    <!-- Right Controls: Date Label + Date Navigator + View Mode + Side Panel Toggle -->
+                    <!-- Right Controls: Term Selectors + KPIs + Export -->
                     <div class="d-flex align-items-center gap-2">
-                        <!-- Date Range Display -->
-                        <div class="badge bg-white text-dark border px-2 py-1 small fw-semibold shadow-xs d-none d-sm-inline-flex align-items-center gap-1">
-                            <i class="fa fa-calendar text-purple"/>
-                            <span t-esc="this.headerTitle"/>
+                        <!-- Academic Session (Year) Dropdown -->
+                        <div class="d-none d-lg-flex align-items-center gap-1" t-if="state.filtersData.academic_years and state.filtersData.academic_years.length">
+                            <select class="form-select form-select-sm w-auto py-0 px-2 very-small fw-semibold text-purple border-purple-subtle shadow-none"
+                                    t-on-change="(ev) => this.onAcademicYearChange(ev)"
+                                    aria-label="Academic Session">
+                                <option value="">All Sessions</option>
+                                <t t-foreach="state.filtersData.academic_years" t-as="ay" t-key="ay.id">
+                                    <option t-att-value="ay.id" t-att-selected="state.filters.academic_year_id == ay.id">
+                                        <t t-esc="ay.name"/><t t-if="ay.current"> (Current)</t>
+                                    </option>
+                                </t>
+                            </select>
                         </div>
 
-                        <!-- Navigation Buttons -->
-                        <div class="btn-group btn-group-sm shadow-none" role="group" aria-label="Date navigation">
-                            <button type="button" class="btn btn-outline-secondary py-1 px-2" title="Previous Week/Day"
-                                    t-on-click="() => this.prev()" aria-label="Previous">
-                                <i class="fa fa-chevron-left" aria-hidden="true"/>
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary py-1 px-2 very-small fw-semibold" title="Jump to Today"
-                                    t-on-click="() => this.today()" aria-label="Today">
-                                Today
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary py-1 px-2" title="Next Week/Day"
-                                    t-on-click="() => this.next()" aria-label="Next">
-                                <i class="fa fa-chevron-right" aria-hidden="true"/>
-                            </button>
+                        <!-- Academic Term (Semester) Dropdown -->
+                        <div class="d-none d-lg-flex align-items-center gap-1" t-if="this.visibleSemesters and this.visibleSemesters.length">
+                            <select class="form-select form-select-sm w-auto py-0 px-2 very-small fw-semibold text-purple border-purple-subtle shadow-none"
+                                    t-on-change="(ev) => this.onTermChange(ev)"
+                                    aria-label="Academic Term">
+                                <option value="">All Terms</option>
+                                <t t-foreach="this.visibleSemesters" t-as="sem" t-key="sem.id">
+                                    <option t-att-value="sem.id" t-att-selected="state.filters.semester_id == sem.id">
+                                        <t t-esc="sem.name"/>
+                                    </option>
+                                </t>
+                            </select>
                         </div>
 
-                        <!-- View Mode Switcher -->
-                        <div class="btn-group btn-group-sm shadow-none" role="group" aria-label="View Switcher">
-                            <button type="button"
-                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'week' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                    t-on-click="() => this.setViewMode('week')">
-                                Week
+                        <!-- Export Actions Group -->
+                        <div class="btn-group btn-group-sm shadow-none" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 very-small" t-on-click="() => this.exportExcel()" title="Export to Excel / CSV">
+                                <i class="fa fa-file-excel-o text-success me-1"/> Excel
                             </button>
-                            <button type="button"
-                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'day' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                    t-on-click="() => this.setViewMode('day')">
-                                Day
-                            </button>
-                            <button t-if="state.role !== 'student'" type="button"
-                                    t-att-class="'btn btn-sm py-1 px-2 ' + (state.viewMode === 'resource' ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                    t-on-click="() => this.setViewMode('resource')"
-                                    title="Matrix view by Faculty and Classrooms">
-                                Resource
+                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 very-small" t-on-click="() => this.exportPDF()" title="Print / PDF">
+                                <i class="fa fa-print text-danger me-1"/> Print
                             </button>
                         </div>
-
-                        <!-- Side Table Toggle -->
-                        <button type="button"
-                                t-att-class="'btn btn-sm py-1 px-2 ' + (state.showSideTable ? 'btn-purple text-white shadow-sm' : 'btn-outline-secondary')"
-                                t-on-click="() => this.toggleSideTable()"
-                                title="Toggle Available Spaces Panel">
-                            <i class="fa fa-columns me-1"/>
-                            <span class="d-none d-md-inline">Side Panel</span>
-                        </button>
                     </div>
                 </div>
             </header>
@@ -318,7 +277,7 @@
             <!-- ==================== SPLIT MAIN BODY: GRID (LEFT) + TABLE (RIGHT) ==================== -->
             <main class="o_schedule_split_container flex-grow-1 overflow-hidden d-flex position-relative">
                 <!-- ==================== VIEW 1 & 2: CALENDAR GRID (WEEK / DAY) ==================== -->
-                <section t-if="state.viewMode !== 'resource'" class="o_schedule_grid_pane flex-grow-1 d-flex flex-column bg-white border-end overflow-hidden position-relative">
+                <section t-if="state.viewMode === 'week' or state.viewMode === 'day'" class="o_schedule_grid_pane flex-grow-1 d-flex flex-column bg-white border-end overflow-hidden position-relative">
                     <!-- Day Columns Header -->
                     <div class="o_grid_header_row d-flex border-bottom bg-light">
                         <!-- Left Time Axis Column Header -->
@@ -388,7 +347,7 @@
                                             </span>
                                         </div>
 
-                                        <!-- Class Session Cards inside Day Column -->
+                                        <!-- Class Session Cards inside Day Column (Matching Scheduled Sessions Kanban) -->
                                         <t t-foreach="day.slots" t-as="slot" t-key="slot.id">
                                             <div t-att-class="'o_schedule_block p-2 rounded-3 border position-absolute shadow-sm cursor-pointer ' + this.getSlotColorClass(slot) + (slot.conflict ? ' o_block_conflict border-danger border-2' : '') + (state.selectedSlot and state.selectedSlot.id === slot.id ? ' o_block_selected' : '') + (state.hoveredSlotId === slot.id ? ' o_block_hovered' : '')"
                                                  t-att-style="this.getSlotStyle(slot)"
@@ -396,60 +355,69 @@
                                                  t-on-mouseenter="() => this.onHoverSlot(slot.id)"
                                                  t-on-mouseleave="() => this.onLeaveSlot()"
                                                  t-att-title="slot.subject_name + ' (' + slot.start_time_str + ' – ' + slot.end_time_str + ')'">
-                                                
-                                                <!-- Conflict Warning Banner -->
-                                                <div t-if="slot.conflict" class="badge bg-danger text-white very-small w-100 mb-1 text-truncate d-flex align-items-center justify-content-center gap-1 shadow-xs" t-att-title="slot.conflict_details ? slot.conflict_details.join('; ') : 'Conflict detected'">
-                                                    <i class="fa fa-exclamation-triangle"/> Overlap Detected
-                                                </div>
-                                                <div t-if="slot.on_holiday" class="badge bg-danger text-white very-small w-100 mb-1 text-truncate" t-att-title="slot.holiday_name ? 'Public Holiday: ' + slot.holiday_name : 'Public Holiday session'">
-                                                    <i class="fa fa-calendar-times-o me-1"/> Public Holiday: <t t-esc="slot.holiday_name || 'Holiday'"/>
-                                                </div>
 
-                                                <!-- Top Row: Time + Status/Capacity Pill -->
-                                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <span class="fw-bold very-small o_block_time text-dark">
-                                                            <t t-esc="slot.start_time_str"/>
+                                                <!-- Top Row: Subject Badge + Status / Conflict / Holiday Badges -->
+                                                <div class="d-flex justify-content-between align-items-start gap-1 mb-1">
+                                                    <div class="d-flex align-items-center gap-1 flex-wrap overflow-hidden">
+                                                        <span class="badge text-bg-primary very-small px-2 py-0-5 text-truncate fw-semibold" t-att-title="slot.subject_name">
+                                                            <t t-esc="slot.subject_name"/>
                                                         </span>
-                                                        <span t-if="slot.generation_state === 'draft'" class="badge bg-warning text-dark very-small px-1 py-0 fw-semibold">Draft</span>
+                                                        <span t-if="slot.conflict" class="badge text-bg-danger very-small" t-att-title="slot.conflict_details ? slot.conflict_details.join('; ') : 'Schedule Conflict'">
+                                                            <i class="fa fa-exclamation-triangle me-1" title="Schedule Conflict" aria-label="Schedule Conflict"/>Conflict
+                                                        </span>
+                                                        <span t-if="slot.on_holiday" class="badge text-bg-warning very-small" t-att-title="slot.holiday_name ? 'Public Holiday: ' + slot.holiday_name : 'Holiday Conflict'">
+                                                            <i class="fa fa-calendar-times-o me-1" title="Holiday Conflict" aria-label="Holiday Conflict"/>Holiday
+                                                        </span>
                                                     </div>
-                                                    <!-- Student Attendance | Teacher/Admin Capacity -->
-                                                    <t t-if="state.role === 'student'">
-                                                        <span t-if="slot.student_attendance and slot.student_attendance !== 'unrecorded'"
-                                                              t-att-class="'badge px-1 py-0 very-small text-capitalize ' + (slot.student_attendance === 'present' ? 'bg-success text-white' : (slot.student_attendance === 'absent' ? 'bg-danger text-white' : 'bg-warning text-dark'))"
-                                                              t-att-title="'Attendance: ' + slot.student_attendance">
-                                                            <t t-esc="slot.student_attendance"/>
-                                                        </span>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <span t-att-class="'badge px-1 py-0 very-small ' + (slot.is_overcapacity ? 'bg-danger text-white' : 'bg-white text-dark border')"
-                                                              t-att-title="'Enrolled: ' + slot.enrolled_student_count + ' / Room Capacity: ' + slot.room_capacity">
-                                                            <t t-esc="slot.enrolled_student_count || 0"/>/<t t-esc="slot.room_capacity || 'N/A'"/>
-                                                        </span>
-                                                    </t>
+                                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                                        <span t-if="slot.is_room_changed" class="badge text-bg-warning very-small">Room Changed</span>
+                                                        <span t-if="slot.generation_state === 'draft'" class="badge bg-warning text-dark very-small px-1 py-0 fw-semibold">Draft</span>
+                                                        <span t-att-class="this.getStatusBadgeClass(slot.status)" t-esc="slot.status"/>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Middle: Subject / Format Title -->
-                                                <div class="o_block_title fw-bold small text-dark text-truncate lh-sm">
-                                                    <t t-esc="slot.subject_name"/>
-                                                </div>
-                                                <div class="very-small text-muted text-truncate" t-if="slot.section_name">
+                                                <!-- Section Title -->
+                                                <div class="fw-bold text-dark mb-1 text-truncate" t-if="slot.section_name" style="font-size: 0.85rem;" t-att-title="slot.section_name">
                                                     <t t-esc="slot.section_name"/>
                                                 </div>
 
-                                                <!-- Bottom: Teacher & Room -->
-                                                <div class="o_block_meta very-small text-muted text-truncate mt-1" t-if="state.role !== 'teacher'">
-                                                    <i class="fa fa-user-circle-o me-1 text-secondary"/>
-                                                    <t t-esc="slot.teacher_name"/>
-                                                </div>
-                                                <div class="o_block_meta very-small text-muted text-truncate">
-                                                    <i class="fa fa-map-marker me-1 text-danger"/>
-                                                    <t t-esc="slot.classroom_name"/>
+                                                <!-- Academic Year & Semester Badges (Matching Scheduled Sessions Kanban) -->
+                                                <div class="d-flex align-items-center gap-1 mb-1 text-muted very-small flex-wrap" t-if="slot.academic_year_name or slot.semester_name">
+                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle very-small py-0 px-1" t-if="slot.academic_year_name" t-att-title="'Academic Year: ' + slot.academic_year_name">
+                                                        <i class="fa fa-graduation-cap me-1" title="Academic Year" aria-label="Academic Year"/><t t-esc="slot.academic_year_name"/>
+                                                    </span>
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle very-small py-0 px-1" t-if="slot.semester_name" t-att-title="'Semester: ' + slot.semester_name">
+                                                        <i class="fa fa-bookmark-o me-1" title="Semester" aria-label="Semester"/><t t-esc="slot.semester_name"/>
+                                                    </span>
                                                 </div>
 
-                                                <!-- Teacher View: Student Count -->
-                                                <div t-if="state.role === 'teacher'" class="very-small text-purple fw-semibold mt-1">
-                                                    <i class="fa fa-users me-1"/> <t t-esc="slot.enrolled_student_count || 0"/> students
+                                                <!-- Class Time with Clock Icon -->
+                                                <div class="text-primary very-small fw-semibold mb-1 text-truncate">
+                                                    <i class="fa fa-clock-o me-1" title="Class Time" aria-label="Class Time"/><t t-esc="slot.start_time_str"/> – <t t-esc="slot.end_time_str"/>
+                                                </div>
+
+                                                <!-- Metadata Section: Classroom, Instructor, Capacity -->
+                                                <div class="d-flex flex-column gap-0-5 text-muted very-small border-top pt-1 mt-1 o_block_details">
+                                                    <div t-if="slot.classroom_name" class="text-truncate" t-att-title="slot.classroom_name">
+                                                        <i class="fa fa-map-marker text-danger me-1" title="Room Location" aria-label="Room Location"/><t t-esc="slot.classroom_name"/>
+                                                    </div>
+                                                    <div t-if="slot.teacher_name" class="text-truncate" t-att-title="slot.teacher_name">
+                                                        <i class="fa fa-user-circle text-secondary me-1" title="Instructor" aria-label="Instructor"/><t t-esc="slot.teacher_name"/>
+                                                    </div>
+                                                    <div t-att-class="'text-truncate ' + (slot.is_overcapacity ? 'text-danger fw-bold' : '')" t-att-title="'Capacity: ' + (slot.enrolled_student_count || 0) + ' / ' + (slot.room_capacity || 0)">
+                                                        <i class="fa fa-users text-muted me-1" title="Capacity" aria-label="Capacity"/><t t-esc="slot.enrolled_student_count || 0"/> / <t t-esc="slot.room_capacity || 0"/> Students
+                                                        <span t-if="slot.is_overcapacity" class="badge text-bg-danger ms-1 py-0 px-1">Over Capacity</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Action Buttons: Attendance & Assignments -->
+                                                <div t-if="state.role !== 'student'" class="mt-1 pt-1 border-top d-flex justify-content-end gap-1 o_card_actions">
+                                                    <button type="button" class="btn btn-sm btn-outline-success py-0 px-1 very-small" title="Track Attendance" t-on-click.stop="() => this.takeAttendance(slot)">
+                                                        <i class="fa fa-check-circle me-1"/>Attendance
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 very-small" title="View Assignments" t-on-click.stop="() => this.openAssignments(slot)">
+                                                        <i class="fa fa-tasks me-1"/>Assignments
+                                                    </button>
                                                 </div>
                                             </div>
                                         </t>
@@ -460,7 +428,102 @@
                     </div>
                 </section>
 
-                <!-- ==================== VIEW 3: RESOURCE VIEW (TEACHERS & CLASSROOMS vs DAYS) ==================== -->
+                <!-- ==================== VIEW 3: KANBAN VIEW (MATCHING SCHEDULED SESSIONS) ==================== -->
+                <section t-if="state.viewMode === 'kanban'" class="o_schedule_kanban_pane flex-grow-1 overflow-auto bg-light p-3">
+                    <div class="row g-3">
+                        <t t-foreach="this.kanbanGroups" t-as="group" t-key="group.key">
+                            <div class="col-12 col-md-6 col-xl-3">
+                                <div class="card h-100 border-0 shadow-sm bg-white rounded-3">
+                                    <div class="card-header bg-white border-bottom py-2 px-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span t-att-class="group.badgeClass + ' fw-bold px-2 py-1'"><t t-esc="group.label"/></span>
+                                            <span class="badge bg-light text-muted border"><t t-esc="group.slots.length"/></span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-2 d-flex flex-column gap-2 overflow-auto" style="max-height: calc(100vh - 250px); min-height: 200px;">
+                                        <t t-if="!group.slots.length">
+                                            <div class="text-center py-4 text-muted small">
+                                                <i class="fa fa-calendar-o fa-2x mb-2 text-muted opacity-50 d-block"/>
+                                                No <t t-esc="group.label.toLowerCase()"/> sessions
+                                            </div>
+                                        </t>
+                                        <t t-foreach="group.slots" t-as="slot" t-key="slot.id">
+                                            <div t-att-class="'card border shadow-xs p-3 o_kanban_slot_card cursor-pointer ' + this.getSlotColorClass(slot) + (slot.conflict ? ' border-danger border-2' : '') + (state.selectedSlot and state.selectedSlot.id === slot.id ? ' o_block_selected' : '')"
+                                                 t-on-click="() => this.openSlotSidePanel(slot)">
+                                                <!-- Top Row: Subject Badge + Status / Conflict / Holiday Badges -->
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                        <span class="badge text-bg-primary fs-6 px-2 py-1">
+                                                            <t t-esc="slot.subject_name"/>
+                                                        </span>
+                                                        <span t-if="slot.conflict" class="badge text-bg-danger">
+                                                            <i class="fa fa-exclamation-triangle me-1" title="Schedule Conflict" aria-label="Schedule Conflict"/>Conflict
+                                                        </span>
+                                                        <span t-if="slot.on_holiday" class="badge text-bg-warning">
+                                                            <i class="fa fa-calendar-times-o me-1" title="Holiday Conflict" aria-label="Holiday Conflict"/>Holiday
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        <span t-if="slot.is_room_changed" class="badge text-bg-warning">Room Changed</span>
+                                                        <span t-att-class="this.getStatusBadgeClass(slot.status)" t-esc="slot.status"/>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Section Title -->
+                                                <div class="fw-bold fs-5 text-dark mb-1" t-if="slot.section_name">
+                                                    <t t-esc="slot.section_name"/>
+                                                </div>
+
+                                                <!-- Academic Year & Semester Badges -->
+                                                <div class="d-flex align-items-center gap-1 mb-2 text-muted small" t-if="slot.academic_year_name or slot.semester_name">
+                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle very-small" t-if="slot.academic_year_name">
+                                                        <i class="fa fa-graduation-cap me-1" title="Academic Year" aria-label="Academic Year"/><t t-esc="slot.academic_year_name"/>
+                                                    </span>
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle very-small" t-if="slot.semester_name">
+                                                        <i class="fa fa-bookmark-o me-1" title="Semester" aria-label="Semester"/><t t-esc="slot.semester_name"/>
+                                                    </span>
+                                                </div>
+
+                                                <!-- Class Time with Clock Icon -->
+                                                <div class="text-primary small fw-semibold mb-2">
+                                                    <i class="fa fa-clock-o me-1" title="Class Time" aria-label="Class Time"/>
+                                                    <t t-esc="slot.date_str"/> &#183; <t t-esc="slot.start_time_str"/> – <t t-esc="slot.end_time_str"/>
+                                                </div>
+
+                                                <!-- Metadata Section: Classroom, Instructor, Capacity -->
+                                                <div class="d-flex flex-column gap-1 text-muted small border-top pt-2">
+                                                    <div t-if="slot.classroom_name">
+                                                        <i class="fa fa-map-marker text-danger me-1" title="Room Location" aria-label="Room Location"/><t t-esc="slot.classroom_name"/>
+                                                    </div>
+                                                    <div t-if="slot.teacher_name">
+                                                        <i class="fa fa-user-circle text-secondary me-1" title="Instructor" aria-label="Instructor"/><t t-esc="slot.teacher_name"/>
+                                                    </div>
+                                                    <div t-att-class="slot.is_overcapacity ? 'text-danger fw-bold' : ''">
+                                                        <i class="fa fa-users text-muted me-1" title="Capacity" aria-label="Capacity"/>
+                                                        <t t-esc="slot.enrolled_student_count || 0"/> / <t t-esc="slot.room_capacity || 0"/> Students
+                                                        <span t-if="slot.is_overcapacity" class="badge text-bg-danger ms-1">Over Capacity</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Bottom Action Buttons: Attendance & Assignments -->
+                                                <div t-if="state.role !== 'student'" class="mt-2 pt-2 border-top d-flex justify-content-end gap-1">
+                                                    <button type="button" class="btn btn-sm btn-outline-success" title="Attendance" t-on-click.stop="() => this.takeAttendance(slot)">
+                                                        <i class="fa fa-check-circle me-1"/>Attendance
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" title="Assignments" t-on-click.stop="() => this.openAssignments(slot)">
+                                                        <i class="fa fa-tasks me-1"/>Assignments
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </section>
+
+                <!-- ==================== VIEW 4: RESOURCE VIEW (TEACHERS & CLASSROOMS vs DAYS) ==================== -->
                 <section t-if="state.viewMode === 'resource'" class="o_schedule_grid_pane flex-grow-1 d-flex flex-column bg-white border-end overflow-hidden position-relative">
                     <!-- Subheader: Resource Type Switcher (Teachers vs Classrooms) + Controls -->
                     <div class="p-2 px-3 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -499,22 +562,21 @@
                         </div>
                     </div>
 
-                    <!-- TEACHER RESOURCE TABLE -->
+                    <!-- TEACHER RESOURCE TABLE (Odoo Planning Schedule by Resource Matrix) -->
                     <div t-if="state.resourceType === 'teacher'" class="flex-grow-1 overflow-auto p-3">
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm align-middle mb-0 bg-white shadow-sm o_resource_table">
                                 <thead class="table-light sticky-top" style="z-index: 5;">
                                     <tr class="very-small text-center text-uppercase">
-                                        <th style="width: 230px; min-width: 230px; z-index: 6;" class="text-start ps-3 bg-light">
-                                            Faculty Instructor
+                                        <th style="width: 250px; min-width: 250px; z-index: 6;" class="text-start ps-3 bg-light text-muted fw-bold">
+                                            RESOURCE
                                         </th>
                                         <t t-foreach="this.weekDays" t-as="day" t-key="day.dateStr">
                                             <th t-att-class="'text-center p-2 o_resource_header_col ' + (day.isToday ? 'table-primary border-primary' : '') + (day.holiday ? ' o_holiday_col_header o_holiday_day_col bg-danger-subtle text-danger border-danger-subtle' : '')"
-                                                style="min-width: 140px;"
+                                                style="min-width: 155px;"
                                                 t-att-title="day.holiday ? day.holidayTooltip : undefined"
                                                 t-att-data-bs-toggle="day.holiday ? 'tooltip' : undefined">
-                                                <div class="fw-bold"><t t-esc="day.dayName"/>, <t t-esc="day.dayNumber"/></div>
-                                                <div class="very-small text-muted fw-normal" t-esc="day.formattedDate"/>
+                                                <div class="fw-bold fs-6 text-dark"><t t-esc="day.dayOrdinalLabel || (day.fullDayName + ', ' + day.dayNumber)"/></div>
                                                 <div t-if="day.holiday" class="o_holiday_resource_badge d-flex flex-column align-items-center gap-1 mt-1"
                                                      t-att-title="day.holidayTooltip">
                                                     <span class="badge bg-danger text-white very-small px-1 py-0 d-inline-flex align-items-center gap-1">
@@ -531,29 +593,25 @@
                                         <tr>
                                             <td t-att-colspan="this.weekDays.length + 1" class="text-center text-muted py-5">
                                                 <i class="fa fa-user-times fa-2x mb-2 d-block text-secondary opacity-50"/>
-                                                No instructors match the current search or filters.
+                                                No faculty resources match the current search or filters.
                                             </td>
                                         </tr>
                                     </t>
                                     <t t-foreach="this.resourceTeachers" t-as="teacher" t-key="teacher.id">
                                         <tr t-att-class="'o_resource_row ' + (teacher.isMe ? 'table-primary-subtle' : '')">
-                                            <!-- Teacher Info Column (Sticky Left) -->
-                                            <td class="bg-light p-2 ps-3 align-top position-relative" style="width: 230px; min-width: 230px;">
-                                                <div class="d-flex align-items-start gap-2">
+                                            <!-- Teacher Info Column (Sticky Left matching "Abigail Peterson (Consultant)") -->
+                                            <td class="bg-light p-2 ps-3 align-middle position-relative o_resource_header_cell" style="width: 250px; min-width: 250px;">
+                                                <div class="d-flex align-items-center gap-2">
                                                     <!-- Avatar / Initials -->
-                                                    <div t-att-class="'rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0 ' + (teacher.isMe ? 'bg-primary' : 'bg-purple')"
-                                                         style="width: 34px; height: 34px; font-size: 12px;">
+                                                    <div t-att-class="'rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-xs flex-shrink-0 ' + (teacher.isMe ? 'bg-primary' : 'bg-purple')"
+                                                         style="width: 32px; height: 32px; font-size: 11px;">
                                                         <t t-esc="teacher.initials"/>
                                                     </div>
                                                     <div class="flex-grow-1 overflow-hidden">
                                                         <div class="fw-bold text-dark text-truncate small" t-att-title="teacher.name">
                                                             <t t-esc="teacher.name"/>
+                                                            <span class="text-muted fw-normal ms-1 very-small" t-if="teacher.displayTitle">(<t t-esc="teacher.displayTitle"/>)</span>
                                                             <span t-if="teacher.isMe" class="badge bg-primary text-white very-small ms-1">You</span>
-                                                        </div>
-                                                        <div class="very-small text-muted text-truncate" t-if="teacher.position or teacher.department">
-                                                            <t t-if="teacher.position"><t t-esc="teacher.position"/></t>
-                                                            <t t-if="teacher.position and teacher.department"> &#183; </t>
-                                                            <t t-if="teacher.department"><t t-esc="teacher.department"/></t>
                                                         </div>
                                                         <!-- Badges: Hours + Sessions -->
                                                         <div class="d-flex align-items-center gap-1 mt-1">
@@ -561,66 +619,97 @@
                                                                 <i class="fa fa-clock-o me-1"/><t t-esc="teacher.totalHours"/>h
                                                             </span>
                                                             <span t-if="teacher.totalSlots &gt; 0" class="badge bg-secondary-subtle text-secondary very-small border">
-                                                                <t t-esc="teacher.totalSlots"/> <t t-esc="teacher.totalSlots === 1 ? 'class' : 'classes'"/>
+                                                                <t t-esc="teacher.totalSlots"/> <t t-esc="teacher.totalSlots === 1 ? 'shift' : 'shifts'"/>
                                                             </span>
                                                         </div>
                                                     </div>
+                                                    <!-- Quick Add Button for Admin on row hover -->
+                                                    <button t-if="state.role === 'admin'" type="button"
+                                                            class="btn btn-outline-purple btn-sm py-0 px-2 very-small o_btn_add_teacher flex-shrink-0"
+                                                            t-on-click="() => this.addClass({ teacher_id: teacher.id })"
+                                                            title="Schedule class for this faculty member">
+                                                        <i class="fa fa-plus"/>
+                                                    </button>
                                                 </div>
-                                                <!-- Quick Add Button for Admin -->
-                                                <button t-if="state.role === 'admin'" type="button"
-                                                        class="btn btn-outline-purple btn-sm py-0 px-1 very-small mt-2 w-100 opacity-75 o_hover_full_opacity fw-semibold"
-                                                        t-on-click="() => this.addClass({ teacher_id: teacher.id })"
-                                                        title="Schedule class for this faculty member">
-                                                    <i class="fa fa-plus me-1"/>Add Session
-                                                </button>
                                             </td>
 
                                             <!-- Day Columns -->
                                             <t t-foreach="this.weekDays" t-as="day" t-key="day.dateStr">
                                                 <td t-att-class="'p-1 align-top o_resource_cell ' + (day.holiday ? 'o_holiday_day_col bg-danger-subtle' : '') + (day.isToday ? 'bg-purple-subtle-light' : '')"
-                                                    style="min-width: 140px; height: 95px;"
+                                                    style="min-width: 155px; height: 105px;"
                                                     t-att-title="day.holiday ? day.holidayTooltip : undefined">
                                                     <t t-set="tSlots" t-value="teacher.dayMap[day.dateStr] || []"/>
                                                     <t t-if="tSlots.length">
                                                         <t t-foreach="tSlots" t-as="tSlot" t-key="tSlot.id">
-                                                            <div t-att-class="'p-2 mb-1 rounded-2 border shadow-sm very-small cursor-pointer o_resource_card ' + this.getSlotColorClass(tSlot) + (tSlot.conflict ? ' border-danger bg-danger-subtle' : '')"
+                                                            <!-- Planning Shift Pill Card matching Odoo Planning UI -->
+                                                            <div t-att-class="'p-2 mb-1 rounded-2 border shadow-xs very-small cursor-pointer o_planning_pill ' + this.getSlotColorClass(tSlot) + (tSlot.conflict ? ' o_pill_conflict border-danger' : '')"
                                                                  t-on-click="() => this.openSlotSidePanel(tSlot)">
-                                                                <!-- Time Header -->
+                                                                <!-- Top Row: Time Range + Duration + Status -->
                                                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold text-dark text-nowrap">
-                                                                        <i class="fa fa-clock-o me-1 text-muted"/><t t-esc="tSlot.start_time_str"/>&#8211;<t t-esc="tSlot.end_time_str"/>
+                                                                    <span class="fw-bold text-dark text-nowrap o_pill_time">
+                                                                        <i class="fa fa-clock-o me-1 text-muted"/><t t-esc="tSlot.start_time_str"/> – <t t-esc="tSlot.end_time_str"/>
+                                                                        <span class="text-muted fw-normal ms-1" t-if="tSlot.duration_hours">(<t t-esc="tSlot.duration_hours"/>h)</span>
                                                                     </span>
-                                                                    <span class="very-small text-muted fw-semibold" t-if="tSlot.duration_hours">
-                                                                        (<t t-esc="tSlot.duration_hours"/>h)
+                                                                    <span t-if="tSlot.generation_state === 'draft'" class="badge bg-warning-subtle text-warning border border-warning-subtle very-small py-0 px-1" title="Draft session">
+                                                                        DRAFT
+                                                                    </span>
+                                                                    <span t-elif="tSlot.generation_state === 'published'" class="badge bg-success-subtle text-success border border-success-subtle very-small py-0 px-1" title="Published">
+                                                                        <i class="fa fa-check"/>
                                                                     </span>
                                                                 </div>
-                                                                <!-- Subject & Section -->
-                                                                <div class="fw-bold text-purple text-truncate" t-esc="tSlot.subject_name"/>
-                                                                <div class="text-secondary text-truncate very-small" t-if="tSlot.section_name">
-                                                                    Sec: <t t-esc="tSlot.section_name"/>
+                                                                <!-- Subject Title (Planning Role/Task line) -->
+                                                                <div class="fw-bold text-dark text-truncate o_pill_subject" t-att-title="tSlot.subject_name">
+                                                                    <t t-esc="tSlot.subject_name"/>
                                                                 </div>
-                                                                <!-- Room -->
-                                                                <div class="text-muted text-truncate very-small mt-1">
-                                                                    <i class="fa fa-map-marker text-danger me-1"/><t t-esc="tSlot.classroom_name"/>
+                                                                <!-- Section & Classroom -->
+                                                                <div class="d-flex align-items-center justify-content-between very-small text-muted mt-1">
+                                                                    <span class="text-truncate" t-if="tSlot.section_name" t-att-title="tSlot.section_name">
+                                                                        <i class="fa fa-users text-secondary me-1"/><t t-esc="tSlot.section_name"/>
+                                                                    </span>
+                                                                    <span class="text-truncate ms-auto" t-if="tSlot.classroom_name" t-att-title="tSlot.classroom_name">
+                                                                        <i class="fa fa-map-marker text-danger me-1"/><t t-esc="tSlot.classroom_name"/>
+                                                                    </span>
                                                                 </div>
                                                                 <!-- Conflict Alert -->
                                                                 <div t-if="tSlot.conflict" class="badge bg-danger text-white very-small mt-1 d-block text-truncate">
                                                                     <i class="fa fa-exclamation-triangle me-1"/>Clashing
                                                                 </div>
+                                                                <!-- Hover Quick Actions -->
+                                                                <div class="o_pill_hover_actions mt-1 pt-1 border-top d-flex justify-content-end gap-1">
+                                                                    <button t-if="state.role === 'admin' and tSlot.generation_state === 'draft'" type="button"
+                                                                            class="btn btn-xs btn-outline-success py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.publishSlot(tSlot)"
+                                                                            title="Publish Session">
+                                                                        <i class="fa fa-check me-1"/>PUBLISH
+                                                                    </button>
+                                                                    <button t-if="state.role !== 'student'" type="button"
+                                                                            class="btn btn-xs btn-outline-primary py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.takeAttendance(tSlot)"
+                                                                            title="Take Attendance">
+                                                                        <i class="fa fa-check-circle"/>
+                                                                    </button>
+                                                                    <button t-if="state.role === 'admin'" type="button"
+                                                                            class="btn btn-xs btn-outline-secondary py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.editSlot(tSlot)"
+                                                                            title="Edit Session">
+                                                                        <i class="fa fa-pencil"/>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </t>
                                                     </t>
                                                     <t t-else="">
-                                                        <div class="h-100 d-flex flex-column align-items-center justify-content-center p-2 o_empty_cell">
+                                                        <div class="h-100 d-flex flex-column align-items-center justify-content-center p-2 o_empty_cell cursor-pointer"
+                                                             t-on-click="() => this.addClass({ teacher_id: teacher.id, dateStr: day.dateStr })">
                                                             <span t-if="day.holiday" class="text-danger very-small fw-semibold opacity-75 mb-1" t-att-title="day.holidayTooltip">
                                                                 <i class="fa fa-calendar-times-o me-1"/>Holiday
                                                             </span>
                                                             <span t-else="" class="text-muted very-small opacity-50 mb-1">Available</span>
                                                             <button t-if="state.role === 'admin'" type="button"
-                                                                    t-att-class="'btn btn-sm py-0 px-1 very-small o_btn_add_slot ' + (day.holiday ? 'btn-outline-danger' : 'btn-outline-secondary')"
+                                                                    t-att-class="'btn btn-sm py-0 px-2 very-small o_btn_add_slot ' + (day.holiday ? 'btn-outline-danger' : 'btn-outline-secondary')"
                                                                     t-att-title="day.holiday ? 'Warning: ' + day.holiday.name + ' is a public holiday' : 'Schedule session on this date'"
-                                                                    t-on-click="() => this.addClass({ teacher_id: teacher.id, dateStr: day.dateStr })">
-                                                                <i class="fa fa-plus"/>
+                                                                    t-on-click.stop="() => this.addClass({ teacher_id: teacher.id, dateStr: day.dateStr })">
+                                                                <i class="fa fa-plus me-1"/>Add
                                                             </button>
                                                         </div>
                                                     </t>
@@ -633,22 +722,21 @@
                         </div>
                     </div>
 
-                    <!-- CLASSROOM RESOURCE TABLE -->
+                    <!-- CLASSROOM RESOURCE TABLE (Odoo Planning Schedule by Resource Matrix) -->
                     <div t-if="state.resourceType === 'classroom'" class="flex-grow-1 overflow-auto p-3">
                         <div class="table-responsive">
                             <table class="table table-bordered table-sm align-middle mb-0 bg-white shadow-sm o_resource_table">
                                 <thead class="table-light sticky-top" style="z-index: 5;">
                                     <tr class="very-small text-center text-uppercase">
-                                        <th style="width: 230px; min-width: 230px; z-index: 6;" class="text-start ps-3 bg-light">
-                                            Classroom / Facility
+                                        <th style="width: 250px; min-width: 250px; z-index: 6;" class="text-start ps-3 bg-light text-muted fw-bold">
+                                            CLASSROOM / FACILITY
                                         </th>
                                         <t t-foreach="this.weekDays" t-as="day" t-key="day.dateStr">
                                             <th t-att-class="'text-center p-2 o_resource_header_col ' + (day.isToday ? 'table-primary border-primary' : '') + (day.holiday ? ' o_holiday_col_header o_holiday_day_col bg-danger-subtle text-danger border-danger-subtle' : '')"
-                                                style="min-width: 140px;"
+                                                style="min-width: 155px;"
                                                 t-att-title="day.holiday ? day.holidayTooltip : undefined"
                                                 t-att-data-bs-toggle="day.holiday ? 'tooltip' : undefined">
-                                                <div class="fw-bold"><t t-esc="day.dayName"/>, <t t-esc="day.dayNumber"/></div>
-                                                <div class="very-small text-muted fw-normal" t-esc="day.formattedDate"/>
+                                                <div class="fw-bold fs-6 text-dark"><t t-esc="day.dayOrdinalLabel || (day.fullDayName + ', ' + day.dayNumber)"/></div>
                                                 <div t-if="day.holiday" class="o_holiday_resource_badge d-flex flex-column align-items-center gap-1 mt-1"
                                                      t-att-title="day.holidayTooltip">
                                                     <span class="badge bg-danger text-white very-small px-1 py-0 d-inline-flex align-items-center gap-1">
@@ -672,10 +760,10 @@
                                     <t t-foreach="this.resourceClassrooms" t-as="room" t-key="room.id">
                                         <tr class="o_resource_row">
                                             <!-- Room Info Column (Sticky Left) -->
-                                            <td class="bg-light p-2 ps-3 align-top position-relative" style="width: 230px; min-width: 230px;">
-                                                <div class="d-flex align-items-start gap-2">
-                                                    <div class="rounded-3 bg-teal text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
-                                                         style="width: 34px; height: 34px; font-size: 13px;">
+                                            <td class="bg-light p-2 ps-3 align-middle position-relative o_resource_header_cell" style="width: 250px; min-width: 250px;">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-3 bg-teal text-white d-flex align-items-center justify-content-center fw-bold shadow-xs flex-shrink-0"
+                                                         style="width: 32px; height: 32px; font-size: 12px;">
                                                         <i class="fa fa-building-o"/>
                                                     </div>
                                                     <div class="flex-grow-1 overflow-hidden">
@@ -695,62 +783,93 @@
                                                             </span>
                                                         </div>
                                                     </div>
+                                                    <!-- Quick Add Button for Admin on row hover -->
+                                                    <button t-if="state.role === 'admin'" type="button"
+                                                            class="btn btn-outline-purple btn-sm py-0 px-2 very-small o_btn_add_teacher flex-shrink-0"
+                                                            t-on-click="() => this.addClass({ classroom_id: room.id })"
+                                                            title="Schedule class in this room">
+                                                        <i class="fa fa-plus"/>
+                                                    </button>
                                                 </div>
-                                                <!-- Quick Add Button for Admin -->
-                                                <button t-if="state.role === 'admin'" type="button"
-                                                        class="btn btn-outline-purple btn-sm py-0 px-1 very-small mt-2 w-100 opacity-75 o_hover_full_opacity fw-semibold"
-                                                        t-on-click="() => this.addClass({ classroom_id: room.id })"
-                                                        title="Schedule class in this room">
-                                                    <i class="fa fa-plus me-1"/>Add Session
-                                                </button>
                                             </td>
 
                                             <!-- Day Columns -->
                                             <t t-foreach="this.weekDays" t-as="day" t-key="day.dateStr">
                                                 <td t-att-class="'p-1 align-top o_resource_cell ' + (day.holiday ? 'o_holiday_day_col bg-danger-subtle' : '') + (day.isToday ? 'bg-purple-subtle-light' : '')"
-                                                    style="min-width: 140px; height: 95px;"
+                                                    style="min-width: 155px; height: 105px;"
                                                     t-att-title="day.holiday ? day.holidayTooltip : undefined">
                                                     <t t-set="rSlots" t-value="room.dayMap[day.dateStr] || []"/>
                                                     <t t-if="rSlots.length">
                                                         <t t-foreach="rSlots" t-as="rSlot" t-key="rSlot.id">
-                                                            <div t-att-class="'p-2 mb-1 rounded-2 border shadow-sm very-small cursor-pointer o_resource_card ' + this.getSlotColorClass(rSlot) + (rSlot.conflict ? ' border-danger bg-danger-subtle' : '')"
+                                                            <!-- Planning Shift Pill Card matching Odoo Planning UI -->
+                                                            <div t-att-class="'p-2 mb-1 rounded-2 border shadow-xs very-small cursor-pointer o_planning_pill ' + this.getSlotColorClass(rSlot) + (rSlot.conflict ? ' o_pill_conflict border-danger' : '')"
                                                                  t-on-click="() => this.openSlotSidePanel(rSlot)">
-                                                                <!-- Time Header -->
+                                                                <!-- Top Row: Time Range + Duration -->
                                                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold text-dark text-nowrap">
-                                                                        <i class="fa fa-clock-o me-1 text-muted"/><t t-esc="rSlot.start_time_str"/>&#8211;<t t-esc="rSlot.end_time_str"/>
+                                                                    <span class="fw-bold text-dark text-nowrap o_pill_time">
+                                                                        <i class="fa fa-clock-o me-1 text-muted"/><t t-esc="rSlot.start_time_str"/> – <t t-esc="rSlot.end_time_str"/>
+                                                                        <span class="text-muted fw-normal ms-1" t-if="rSlot.duration_hours">(<t t-esc="rSlot.duration_hours"/>h)</span>
                                                                     </span>
-                                                                    <span class="very-small text-muted fw-semibold" t-if="rSlot.duration_hours">
-                                                                        (<t t-esc="rSlot.duration_hours"/>h)
+                                                                    <span t-if="rSlot.generation_state === 'draft'" class="badge bg-warning-subtle text-warning border border-warning-subtle very-small py-0 px-1" title="Draft session">
+                                                                        DRAFT
+                                                                    </span>
+                                                                    <span t-elif="rSlot.generation_state === 'published'" class="badge bg-success-subtle text-success border border-success-subtle very-small py-0 px-1" title="Published">
+                                                                        <i class="fa fa-check"/>
                                                                     </span>
                                                                 </div>
                                                                 <!-- Subject & Section -->
-                                                                <div class="fw-bold text-purple text-truncate" t-esc="rSlot.subject_name"/>
-                                                                <div class="text-secondary text-truncate very-small" t-if="rSlot.section_name">
-                                                                    Sec: <t t-esc="rSlot.section_name"/>
+                                                                <div class="fw-bold text-dark text-truncate o_pill_subject" t-att-title="rSlot.subject_name">
+                                                                    <t t-esc="rSlot.subject_name"/>
                                                                 </div>
-                                                                <!-- Teacher -->
-                                                                <div class="text-muted text-truncate very-small mt-1">
-                                                                    <i class="fa fa-user-circle-o me-1 text-secondary"/><t t-esc="rSlot.teacher_name"/>
+                                                                <!-- Teacher & Section -->
+                                                                <div class="d-flex align-items-center justify-content-between very-small text-muted mt-1">
+                                                                    <span class="text-truncate" t-if="rSlot.teacher_name" t-att-title="rSlot.teacher_name">
+                                                                        <i class="fa fa-user-circle-o me-1 text-secondary"/><t t-esc="rSlot.teacher_name"/>
+                                                                    </span>
+                                                                    <span class="text-truncate ms-auto" t-if="rSlot.section_name" t-att-title="rSlot.section_name">
+                                                                        <i class="fa fa-users me-1 text-secondary"/><t t-esc="rSlot.section_name"/>
+                                                                    </span>
                                                                 </div>
                                                                 <!-- Conflict Alert -->
                                                                 <div t-if="rSlot.conflict" class="badge bg-danger text-white very-small mt-1 d-block text-truncate">
                                                                     <i class="fa fa-exclamation-triangle me-1"/>Clashing
                                                                 </div>
+                                                                <!-- Hover Quick Actions -->
+                                                                <div class="o_pill_hover_actions mt-1 pt-1 border-top d-flex justify-content-end gap-1">
+                                                                    <button t-if="state.role === 'admin' and rSlot.generation_state === 'draft'" type="button"
+                                                                            class="btn btn-xs btn-outline-success py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.publishSlot(rSlot)"
+                                                                            title="Publish Session">
+                                                                        <i class="fa fa-check me-1"/>PUBLISH
+                                                                    </button>
+                                                                    <button t-if="state.role !== 'student'" type="button"
+                                                                            class="btn btn-xs btn-outline-primary py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.takeAttendance(rSlot)"
+                                                                            title="Take Attendance">
+                                                                        <i class="fa fa-check-circle"/>
+                                                                    </button>
+                                                                    <button t-if="state.role === 'admin'" type="button"
+                                                                            class="btn btn-xs btn-outline-secondary py-0 px-1 very-small"
+                                                                            t-on-click.stop="() => this.editSlot(rSlot)"
+                                                                            title="Edit Session">
+                                                                        <i class="fa fa-pencil"/>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </t>
                                                     </t>
                                                     <t t-else="">
-                                                        <div class="h-100 d-flex flex-column align-items-center justify-content-center p-2 o_empty_cell">
+                                                        <div class="h-100 d-flex flex-column align-items-center justify-content-center p-2 o_empty_cell cursor-pointer"
+                                                             t-on-click="() => this.addClass({ classroom_id: room.id, dateStr: day.dateStr })">
                                                             <span t-if="day.holiday" class="text-danger very-small fw-semibold opacity-75 mb-1" t-att-title="day.holidayTooltip">
                                                                 <i class="fa fa-calendar-times-o me-1"/>Holiday
                                                             </span>
                                                             <span t-else="" class="text-muted very-small opacity-50 mb-1">Vacant</span>
                                                             <button t-if="state.role === 'admin'" type="button"
-                                                                    t-att-class="'btn btn-sm py-0 px-1 very-small o_btn_add_slot ' + (day.holiday ? 'btn-outline-danger' : 'btn-outline-secondary')"
+                                                                    t-att-class="'btn btn-sm py-0 px-2 very-small o_btn_add_slot ' + (day.holiday ? 'btn-outline-danger' : 'btn-outline-secondary')"
                                                                     t-att-title="day.holiday ? 'Warning: ' + day.holiday.name + ' is a public holiday' : 'Schedule session in this room on this date'"
-                                                                    t-on-click="() => this.addClass({ classroom_id: room.id, dateStr: day.dateStr })">
-                                                                <i class="fa fa-plus"/>
+                                                                    t-on-click.stop="() => this.addClass({ classroom_id: room.id, dateStr: day.dateStr })">
+                                                                <i class="fa fa-plus me-1"/>Add
                                                             </button>
                                                         </div>
                                                     </t>
@@ -765,7 +884,7 @@
                 </section>
 
                 <!-- ==================== RIGHT SECTION: CLASSES TABLE ==================== -->
-                <aside t-if="state.viewMode !== 'resource' or state.showSideTable" class="o_schedule_table_pane d-flex flex-column bg-white border-start" style="width: 28%; min-width: 280px; max-width: 360px;">
+                <aside t-if="(state.viewMode === 'week' or state.viewMode === 'day') and state.showSideTable" class="o_schedule_table_pane d-flex flex-column bg-white border-start" style="width: 28%; min-width: 280px; max-width: 360px;">
                     <!-- Table Header -->
                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light">
                         <div class="d-flex align-items-center gap-2">

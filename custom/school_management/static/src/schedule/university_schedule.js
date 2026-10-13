@@ -22,9 +22,11 @@ export class UniversitySchedule extends Component {
         const today = new Date();
         this.state = useState({
             currentDate: today,
-            viewMode: "week", // 'week' | 'day' | 'resource'
+            viewMode: "resource", // 'resource' | 'week' | 'day' | 'kanban'
+            scale: "week", // 'day' | 'week' | 'month' | 'year'
+            hasUserChangedViewMode: false,
             resourceType: "teacher", // 'teacher' | 'classroom'
-            showSideTable: true,
+            showSideTable: false,
             colorBy: "subject", // 'subject' | 'teacher' | 'classroom'
             loading: true,
             role: "student", // 'student' | 'teacher' | 'admin'
@@ -119,33 +121,41 @@ export class UniversitySchedule extends Component {
 
     getBoundsForView() {
         const base = new Date(this.state.currentDate);
-        if (this.state.viewMode === "day") {
+        if (this.state.scale === "day" || this.state.viewMode === "day") {
             const dateStr = this.formatDateISO(base);
             return { start: dateStr, end: dateStr };
+        } else if (this.state.scale === "month") {
+            const start = new Date(base.getFullYear(), base.getMonth(), 1);
+            const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+            return { start: this.formatDateISO(start), end: this.formatDateISO(end) };
         } else {
-            // Week / Resource (Mon - Sun)
-            const dayOfWeek = base.getDay(); // 0 is Sun, 1 is Mon
-            const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-            const monday = new Date(base);
-            monday.setDate(base.getDate() + distanceToMonday);
+            // Week / Resource: Sunday to Saturday (matching Odoo Planning screenshot: Sunday, 11th - Saturday, 17th)
+            const dayOfWeek = base.getDay(); // 0 is Sun, 1 is Mon ... 6 is Sat
+            const sunday = new Date(base);
+            sunday.setDate(base.getDate() - dayOfWeek);
 
-            const sunday = new Date(monday);
-            sunday.setDate(monday.getDate() + 6);
+            const saturday = new Date(sunday);
+            saturday.setDate(sunday.getDate() + 6);
 
             return {
-                start: this.formatDateISO(monday),
-                end: this.formatDateISO(sunday),
+                start: this.formatDateISO(sunday),
+                end: this.formatDateISO(saturday),
             };
         }
     }
 
     get headerTitle() {
         const base = this.state.currentDate;
-        if (this.state.viewMode === "day") {
-            return base.toLocaleDateString(undefined, {
+        if (this.state.scale === "day" || this.state.viewMode === "day") {
+            return base.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "short",
                 day: "numeric",
+                year: "numeric",
+            });
+        } else if (this.state.scale === "month") {
+            return base.toLocaleDateString("en-US", {
+                month: "long",
                 year: "numeric",
             });
         } else {
@@ -154,8 +164,16 @@ export class UniversitySchedule extends Component {
             const eParts = bounds.end.split("-");
             const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
             const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
-            return `${sDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} – ${eDate.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}`;
+            const sStr = sDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+            const eStr = eDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+            return `${sStr} – ${eStr}`;
         }
+    }
+
+    getOrdinal(n) {
+        const s = ["th", "st", "nd", "rd"];
+        const v = n % 100;
+        return n + (s[(v - 20) % 10] || s[v] || s[0]);
     }
 
     get visibleSemesters() {
@@ -194,8 +212,12 @@ export class UniversitySchedule extends Component {
 
     async prev() {
         const d = new Date(this.state.currentDate);
-        if (this.state.viewMode === "day") {
+        if (this.state.scale === "day" || this.state.viewMode === "day") {
             d.setDate(d.getDate() - 1);
+        } else if (this.state.scale === "month") {
+            d.setMonth(d.getMonth() - 1);
+        } else if (this.state.scale === "year") {
+            d.setFullYear(d.getFullYear() - 1);
         } else {
             d.setDate(d.getDate() - 7);
         }
@@ -205,8 +227,12 @@ export class UniversitySchedule extends Component {
 
     async next() {
         const d = new Date(this.state.currentDate);
-        if (this.state.viewMode === "day") {
+        if (this.state.scale === "day" || this.state.viewMode === "day") {
             d.setDate(d.getDate() + 1);
+        } else if (this.state.scale === "month") {
+            d.setMonth(d.getMonth() + 1);
+        } else if (this.state.scale === "year") {
+            d.setFullYear(d.getFullYear() + 1);
         } else {
             d.setDate(d.getDate() + 7);
         }
@@ -219,9 +245,25 @@ export class UniversitySchedule extends Component {
         await this.loadScheduleData();
     }
 
+    async setScale(scale) {
+        this.state.scale = scale;
+        if (scale === "day") {
+            this.state.viewMode = "day";
+        } else if (this.state.viewMode === "day") {
+            this.state.viewMode = "resource";
+        }
+        await this.loadScheduleData();
+    }
+
     async setViewMode(mode) {
+        this.state.hasUserChangedViewMode = true;
         this.state.viewMode = mode;
-        if (mode === "resource") {
+        if (mode === "day") {
+            this.state.scale = "day";
+        } else if (this.state.scale === "day") {
+            this.state.scale = "week";
+        }
+        if (mode === "resource" || mode === "kanban") {
             this.state.showSideTable = false;
         } else {
             this.state.showSideTable = true;
@@ -262,6 +304,12 @@ export class UniversitySchedule extends Component {
             }
 
             this.state.role = res.role || "student";
+            if (this.state.role === "admin" && !this.state.hasUserChangedViewMode) {
+                this.state.viewMode = "resource";
+                this.state.showSideTable = false;
+            } else if (this.state.role === "student" && !this.state.hasUserChangedViewMode) {
+                this.state.viewMode = "week";
+            }
             this.state.slots = res.slots || [];
             this.state.holidays = res.holidays || [];
             this.state.assignmentMarkers = res.assignment_markers || [];
@@ -440,6 +488,21 @@ export class UniversitySchedule extends Component {
         return list;
     }
 
+    get kanbanGroups() {
+        const slots = this.filteredSlots;
+        const groups = [
+            { key: "upcoming", label: "Upcoming", badgeClass: "badge text-bg-info", slots: [] },
+            { key: "ongoing", label: "Ongoing", badgeClass: "badge text-bg-warning", slots: [] },
+            { key: "completed", label: "Completed", badgeClass: "badge text-bg-success", slots: [] },
+            { key: "cancelled", label: "Cancelled", badgeClass: "badge text-bg-danger", slots: [] },
+        ];
+        slots.forEach((s) => {
+            const grp = groups.find((g) => g.key === s.status) || groups[0];
+            grp.slots.push(s);
+        });
+        return groups;
+    }
+
     get kpiClassesCount() {
         return this.filteredSlots.length;
     }
@@ -454,6 +517,49 @@ export class UniversitySchedule extends Component {
 
     get kpiConflictCount() {
         return this.filteredSlots.filter((s) => Boolean(s.conflict || s.has_conflict)).length;
+    }
+
+    get draftSlotsCount() {
+        return this.filteredSlots.filter((s) => s.generation_state === "draft").length;
+    }
+
+    async copyPreviousWeek() {
+        if (this.state.role !== "admin") return;
+        if (!confirm("Copy all scheduled sessions from the previous week into the current week as draft?")) {
+            return;
+        }
+        try {
+            const bounds = this.getBoundsForView();
+            const res = await this.orm.call(
+                "university.timetable.slot",
+                "action_copy_previous_week",
+                [bounds.start]
+            );
+            if (res.copied_count > 0) {
+                this.notification.add(`Successfully copied ${res.copied_count} sessions from previous week.`, { type: "success" });
+            } else {
+                this.notification.add(res.message || "No eligible sessions found in the previous week to copy.", { type: "info" });
+            }
+            await this.loadScheduleData();
+        } catch (err) {
+            this.notification.add(err.message || "Could not copy sessions from previous week.", { type: "danger" });
+        }
+    }
+
+    async publishWeek() {
+        if (this.state.role !== "admin") return;
+        try {
+            const bounds = this.getBoundsForView();
+            const res = await this.orm.call(
+                "university.timetable.slot",
+                "action_publish_week_slots",
+                [bounds.start, bounds.end]
+            );
+            this.notification.add(`Published ${res.published_count || 0} sessions for this week.`, { type: "success" });
+            await this.loadScheduleData();
+        } catch (err) {
+            this.notification.add(err.message || "Could not publish sessions.", { type: "danger" });
+        }
     }
 
     get kpiEnrolledPercentage() {
@@ -609,13 +715,18 @@ export class UniversitySchedule extends Component {
 
             const holidayTooltip = dayHoliday ? this.formatHolidayTooltip(dayHoliday, d) : "";
 
+            const fullDayName = d.toLocaleDateString("en-US", { weekday: "long" });
+            const dayOrdinal = this.getOrdinal(d.getDate());
+            const dayOrdinalLabel = `${fullDayName}, ${dayOrdinal}`;
+
             days.push({
                 date: d,
                 dateStr: dateStr,
-                dayName: d.toLocaleDateString(undefined, { weekday: "short" }),
-                fullDayName: d.toLocaleDateString(undefined, { weekday: "long" }),
+                dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
+                fullDayName: fullDayName,
                 dayNumber: d.getDate(),
-                formattedDate: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+                dayOrdinalLabel: dayOrdinalLabel,
+                formattedDate: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
                 isToday: isToday,
                 slots: daySlots,
                 hasSlots: daySlots.length > 0,
@@ -669,12 +780,18 @@ export class UniversitySchedule extends Component {
 
             const isMe = Boolean(myTeacherId && myTeacherId === teacher.id);
 
+            let displayTitle = positionStr || deptStr || teacher.title || "";
+            if (!displayTitle && teacher.department_name) {
+                displayTitle = teacher.department_name;
+            }
+
             return {
                 id: teacher.id,
                 name: teacher.name,
                 title: teacher.title || "",
                 position: positionStr,
                 department: deptStr,
+                displayTitle: displayTitle,
                 email: teacher.email || "",
                 initials: initials,
                 isMe: isMe,
@@ -810,15 +927,15 @@ export class UniversitySchedule extends Component {
 
     getStatusBadgeClass(status) {
         switch (status) {
-            case "ongoing":
-                return "badge bg-warning text-dark border";
             case "completed":
-                return "badge bg-success-subtle text-success border border-success-subtle";
+                return "badge text-bg-success";
+            case "ongoing":
+                return "badge text-bg-warning";
             case "cancelled":
-                return "badge bg-danger-subtle text-danger border border-danger-subtle";
+                return "badge text-bg-danger";
             case "upcoming":
             default:
-                return "badge bg-primary-subtle text-primary border border-primary-subtle";
+                return "badge text-bg-info";
         }
     }
 

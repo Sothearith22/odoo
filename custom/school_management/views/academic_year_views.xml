@@ -246,44 +246,44 @@
 
                             <!-- Interactive Quick-Access Metric Chips -->
                             <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top">
-                                <button type="object" name="action_view_semesters" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
-                                    <i class="fa fa-bookmark-o text-secondary"/>
+                                <button type="object" name="action_view_semesters" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1" title="Semesters" aria-label="Semesters">
+                                    <i class="fa fa-bookmark-o text-secondary" title="Semesters" aria-label="Semesters"/>
                                     <span><field name="semester_count"/> Semesters</span>
                                 </button>
-                                <button type="object" name="action_view_timetable_slots" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
-                                    <i class="fa fa-calendar text-primary"/>
+                                <button type="object" name="action_view_timetable_slots" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1" title="Sessions" aria-label="Sessions">
+                                    <i class="fa fa-calendar text-primary" title="Sessions" aria-label="Sessions"/>
                                     <span><field name="timetable_slot_count"/> Sessions</span>
                                 </button>
-                                <button type="object" name="action_view_room_occupancy" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1">
-                                    <i class="fa fa-building text-info"/>
+                                <button type="object" name="action_view_room_occupancy" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1" title="Rooms" aria-label="Rooms">
+                                    <i class="fa fa-building text-info" title="Rooms" aria-label="Rooms"/>
                                     <span><field name="classroom_count"/> Rooms</span>
                                 </button>
-                                <button t-if="record.conflict_count.raw_value &gt; 0" type="object" name="action_view_conflicts" class="btn btn-sm btn-danger py-1 px-2 d-flex align-items-center gap-1 text-white">
-                                    <i class="fa fa-exclamation-triangle"/>
+                                <button t-if="record.conflict_count.raw_value &gt; 0" type="object" name="action_view_conflicts" class="btn btn-sm btn-danger py-1 px-2 d-flex align-items-center gap-1 text-white" title="Conflicts" aria-label="Conflicts">
+                                    <i class="fa fa-exclamation-triangle" title="Conflicts" aria-label="Conflicts"/>
                                     <span><field name="conflict_count"/> Conflicts</span>
                                 </button>
-                                <button t-else="" type="object" name="action_view_conflicts" class="btn btn-sm btn-outline-success py-1 px-2 d-flex align-items-center gap-1">
-                                    <i class="fa fa-check-circle"/>
+                                <button t-else="" type="object" name="action_view_conflicts" class="btn btn-sm btn-outline-success py-1 px-2 d-flex align-items-center gap-1" title="No Conflicts" aria-label="No Conflicts">
+                                    <i class="fa fa-check-circle" title="No Conflicts" aria-label="No Conflicts"/>
                                     <span>0 Conflicts</span>
                                 </button>
                             </div>
 
                             <div class="o_academic_year_footer d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
                                 <div class="d-flex align-items-center gap-2">
-                                    <button type="object" name="action_view_timetable_slots" class="btn btn-link btn-sm p-0 text-primary text-decoration-none small">
-                                        <i class="fa fa-th-large me-1"/>Sessions Kanban
+                                    <button type="object" name="action_view_timetable_slots" class="btn btn-link btn-sm p-0 text-primary text-decoration-none small" title="Sessions Kanban" aria-label="Sessions Kanban">
+                                        <i class="fa fa-th-large me-1" title="Sessions Kanban" aria-label="Sessions Kanban"/>Sessions Kanban
                                     </button>
                                     <span class="text-muted small">&#183;</span>
-                                    <button type="object" name="action_view_schedule" class="btn btn-link btn-sm p-0 text-purple text-decoration-none small">
-                                        <i class="fa fa-calendar-check-o me-1"/>Timetable UI
+                                    <button type="object" name="action_view_schedule" class="btn btn-link btn-sm p-0 text-purple text-decoration-none small" title="Timetable UI" aria-label="Timetable UI">
+                                        <i class="fa fa-calendar-check-o me-1" title="Timetable UI" aria-label="Timetable UI"/>Timetable UI
                                     </button>
                                     <span class="text-muted small">·</span>
-                                    <button type="object" name="action_view_room_occupancy" class="btn btn-link btn-sm p-0 text-info text-decoration-none small">
-                                        <i class="fa fa-building-o me-1"/>Rooms Kanban
+                                    <button type="object" name="action_view_room_occupancy" class="btn btn-link btn-sm p-0 text-info text-decoration-none small" title="Rooms Kanban" aria-label="Rooms Kanban">
+                                        <i class="fa fa-building-o me-1" title="Rooms Kanban" aria-label="Rooms Kanban"/>Rooms Kanban
                                     </button>
                                 </div>
                                 <a type="open" class="o_academic_year_open">
-                                    Details <i class="fa fa-arrow-right ms-1" title="Details"/>
+                                    Details <i class="fa fa-arrow-right ms-1" title="Details" aria-label="Details"/>
                                 </a>
                             </div>
                         </main>
@@ -416,7 +416,7 @@
                             </div>
                             <div class="text-muted small mt-1">
                                 <i class="fa fa-clock-o me-1" title="Period"/>
-                                <field name="date_start"/> → <field name="date_end"/>
+                                <field name="date_start"/> &#8594; <field name="date_end"/>
                             </div>
                             <div class="mt-2">
                                 <span class="badge text-bg-secondary"><field name="subject_count"/> Subjects</span>

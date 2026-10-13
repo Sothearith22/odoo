@@ -84,6 +84,11 @@ class AttendanceGrid extends Component {
         await this.load();
     }
 
+    async onCellChange(sectionId, studentId, day, ev) {
+        const status = ev.target.value;
+        await this.updateCell(sectionId, studentId, day, status);
+    }
+
     async updateCell(sectionId, studentId, day, status) {
         if (this.state.savingCell) {
             return;

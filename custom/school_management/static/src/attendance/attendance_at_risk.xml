@@ -9,6 +9,7 @@
                         Month
                         <select t-on-change="onMonthChange" t-att-disabled="state.loading">
                             <option t-foreach="[1,2,3,4,5,6,7,8,9,10,11,12]" t-as="m"
+                                    t-key="m"
                                     t-att-value="m" t-att-selected="state.month === m"
                                     t-esc="m"/>
                         </select>

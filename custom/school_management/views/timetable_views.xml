@@ -35,7 +35,7 @@
                         <main class="p-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="badge text-bg-primary fs-6">
-                                    <i class="fa fa-clock-o me-1"/>
+                                    <i class="fa fa-clock-o me-1" title="Time Range" aria-label="Time Range"/>
                                     <field name="time_range"/>
                                 </span>
                                 <field name="active" widget="boolean_toggle"/>
@@ -44,15 +44,15 @@
                                 <field name="name"/>
                             </div>
                             <div class="d-flex align-items-center gap-2 text-muted small mt-2">
-                                <span><i class="fa fa-hourglass-half me-1"/>Duration: <field name="duration" widget="float_time"/> hrs</span>
+                                <span><i class="fa fa-hourglass-half me-1" title="Duration" aria-label="Duration"/>Duration: <field name="duration" widget="float_time"/> hrs</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-3">
                                 <span class="badge rounded-pill bg-light text-dark border">
-                                    <i class="fa fa-calendar-check-o me-1 text-primary"/>
+                                    <i class="fa fa-calendar-check-o me-1 text-primary" title="Session Count" aria-label="Session Count"/>
                                     <field name="slot_count"/> Sessions
                                 </span>
                                 <button name="action_view_sessions" type="object" class="btn btn-sm btn-outline-primary" string="Sessions">
-                                    <i class="fa fa-arrow-right"/>
+                                    <i class="fa fa-arrow-right" title="View Sessions" aria-label="View Sessions"/>
                                 </button>
                             </div>
                         </main>
@@ -231,7 +231,7 @@
                     </div>
                     <div class="oe_title">
                         <span class="badge text-bg-danger mb-2" invisible="not has_conflict">
-                            <i class="fa fa-exclamation-triangle me-1"/>Schedule Conflict
+                            <i class="fa fa-exclamation-triangle me-1" title="Schedule Conflict" aria-label="Schedule Conflict"/>Schedule Conflict
                         </span>
                         <span class="badge text-bg-warning mb-2" invisible="not is_room_changed">Room Changed</span>
                         <span class="badge text-bg-danger mb-2" invisible="state != 'cancelled'">Cancelled</span>
@@ -333,10 +333,10 @@
                                         <field name="subject_id"/>
                                     </span>
                                     <span t-if="record.has_conflict.raw_value" class="badge text-bg-danger">
-                                        <i class="fa fa-exclamation-triangle me-1"/>Conflict
+                                        <i class="fa fa-exclamation-triangle me-1" title="Schedule Conflict" aria-label="Schedule Conflict"/>Conflict
                                     </span>
                                     <span t-if="record.is_holiday_conflict.raw_value" class="badge text-bg-warning">
-                                        <i class="fa fa-calendar-times-o me-1"/>Holiday
+                                        <i class="fa fa-calendar-times-o me-1" title="Holiday Conflict" aria-label="Holiday Conflict"/>Holiday
                                     </span>
                                 </div>
                                 <div class="d-flex gap-1">
@@ -353,27 +353,27 @@
                             </div>
                             <div class="d-flex align-items-center gap-1 mb-2 text-muted small" t-if="record.academic_year_id.value or record.semester_id.value">
                                 <span class="badge bg-purple-subtle text-purple border border-purple-subtle very-small" t-if="record.academic_year_id.value">
-                                    <i class="fa fa-graduation-cap me-1"/><field name="academic_year_id"/>
+                                    <i class="fa fa-graduation-cap me-1" title="Academic Year" aria-label="Academic Year"/><field name="academic_year_id"/>
                                 </span>
                                 <span class="badge bg-info-subtle text-info border border-info-subtle very-small" t-if="record.semester_id.value">
-                                    <i class="fa fa-bookmark-o me-1"/><field name="semester_id"/>
+                                    <i class="fa fa-bookmark-o me-1" title="Semester" aria-label="Semester"/><field name="semester_id"/>
                                 </span>
                             </div>
                             <div class="text-primary small fw-semibold mb-2">
-                                <i class="fa fa-clock-o me-1" title="Class Time"/>
-                                <field name="start_time" widget="datetime"/> – <field name="end_time" widget="datetime"/>
+                                <i class="fa fa-clock-o me-1" title="Class Time" aria-label="Class Time"/>
+                                <field name="start_time" widget="datetime"/> - <field name="end_time" widget="datetime"/>
                             </div>
                             <div class="d-flex flex-column gap-1 text-muted small border-top pt-2">
                                 <div t-if="record.classroom_id.value">
-                                    <i class="fa fa-map-marker text-danger me-1" title="Room Location"/>
+                                    <i class="fa fa-map-marker text-danger me-1" title="Room Location" aria-label="Room Location"/>
                                     <field name="classroom_id"/>
                                 </div>
                                 <div t-if="record.teacher_id.value">
-                                    <i class="fa fa-user-circle text-secondary me-1" title="Instructor"/>
+                                    <i class="fa fa-user-circle text-secondary me-1" title="Instructor" aria-label="Instructor"/>
                                     <field name="teacher_id"/>
                                 </div>
                                 <div t-att-class="record.enrolled_student_count.raw_value &gt; record.room_capacity.raw_value and record.room_capacity.raw_value &gt; 0 ? 'text-danger fw-bold' : ''">
-                                    <i class="fa fa-users text-muted me-1" title="Capacity"/>
+                                    <i class="fa fa-users text-muted me-1" title="Capacity" aria-label="Capacity"/>
                                     <t t-esc="record.enrolled_student_count.value or 0"/> / <t t-esc="record.room_capacity.value or 0"/> Students
                                     <span t-if="record.enrolled_student_count.raw_value &gt; record.room_capacity.raw_value and record.room_capacity.raw_value &gt; 0" class="badge text-bg-danger ms-1">Over Capacity</span>
                                 </div>

@@ -222,3 +222,23 @@
 .o_att_bar--bad {
     background: #dc2626;
 }
+
+/* Attendance Comparison Kanban Styles */
+.o_att_comparison {
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.o_att_section_card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-color: #e2e8f0 !important;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+    }
+}
+
+.o_att_student_mini_list {
+    scrollbar-width: thin;
+}

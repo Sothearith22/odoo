@@ -1,85 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- SERVICE HOUR LIST VIEW -->
     <record id="view_university_service_hour_list" model="ir.ui.view">
         <field name="name">university.service.hour.list</field>
         <field name="model">university.service.hour</field>
         <field name="arch" type="xml">
-            <list string="Service Hours" editable="bottom">
-                <field name="date"/>
-                <field name="student_id"/>
-                <field name="teacher_id"/>
-                <field name="academic_year_id" optional="hide"/>
-                <field name="semester_id" optional="hide"/>
-                <field name="hours"/>
-                <field name="state" widget="badge"
+            <list string="Service Hours">
+                <header>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary"
+                            groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            class="btn-outline-danger"
+                            groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
+                </header>
+                <field name="name" string="Title"/>
+                <field name="student_id" string="Student"/>
+                <field name="teacher_id" string="Supervisor"/>
+                <field name="start_time" string="Start Time"/>
+                <field name="end_time" string="End Time"/>
+                <field name="hours" string="Total Hours" widget="float_time"/>
+                <field name="approved_by" string="Approved By"/>
+                <field name="state" string="Status" widget="badge"
                        decoration-warning="state == 'pending'"
                        decoration-success="state == 'approved'"
                        decoration-danger="state == 'rejected'"/>
-                <field name="description" optional="hide"/>
+                <button name="action_approve" type="object" string="Approve" icon="fa-check"
+                        title="Approve" aria-label="Approve"
+                        class="text-success" invisible="state != 'pending'"
+                        groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
+                <button name="action_reject" type="object" string="Reject" icon="fa-times"
+                        title="Reject" aria-label="Reject"
+                        class="text-danger" invisible="state != 'pending'"
+                        groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
             </list>
         </field>
     </record>
 
+    <!-- SERVICE HOUR FORM VIEW -->
     <record id="view_university_service_hour_form" model="ir.ui.view">
         <field name="name">university.service.hour.form</field>
         <field name="model">university.service.hour</field>
         <field name="arch" type="xml">
-            <form string="Service Hour Request">
+            <form string="Service Hours">
                 <header>
                     <button name="action_approve" type="object" string="Approve"
                             class="oe_highlight" invisible="state != 'pending'"
-                            groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                            groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
                     <button name="action_reject" type="object" string="Reject"
-                            invisible="state != 'pending'"
-                            groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                            class="btn-outline-danger" invisible="state != 'pending'"
+                            groups="school_management.group_school_admin,base.group_system,school_management.group_school_teacher"/>
+                    <button name="action_reset_pending" type="object" string="Reset to Pending"
+                            invisible="state == 'pending'"
+                            groups="school_management.group_school_admin,base.group_system"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,approved,rejected"/>
                 </header>
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Title"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Volunteering, Campus Cleaning..."/>
+                        </h1>
+                    </div>
                     <group>
-                        <group string="Request">
+                        <group string="Activity Details">
                             <field name="student_id"/>
-                            <field name="teacher_id"/>
+                            <field name="teacher_id" string="Supervisor"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                            <field name="hours" string="Total Hours" widget="float_time"/>
                             <field name="date"/>
-                            <field name="hours"/>
                         </group>
-                        <group string="Academic Period">
+                        <group string="Academic &amp; Approval Info">
                             <field name="academic_year_id"/>
                             <field name="semester_id"/>
                             <field name="approved_by" readonly="1"/>
                             <field name="approved_date" readonly="1"/>
                         </group>
                     </group>
-                    <field name="description" placeholder="Describe the service activity..."/>
+                    <notebook>
+                        <page string="Description" name="description_page">
+                            <field name="description" placeholder="Describe the service activity details..."/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- SERVICE HOUR SEARCH VIEW WITH SEARCHPANEL -->
     <record id="view_university_service_hour_search" model="ir.ui.view">
         <field name="name">university.service.hour.search</field>
         <field name="model">university.service.hour</field>
         <field name="arch" type="xml">
             <search string="Search Service Hours">
-                <field name="student_id"/>
-                <field name="teacher_id"/>
-                <field name="date"/>
+                <field name="name" string="Title"/>
+                <field name="student_id" string="Student"/>
+                <field name="teacher_id" string="Supervisor"/>
+                <field name="approved_by"/>
                 <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
                 <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
                 <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter string="Start Time" name="filter_start_time" date="start_time"/>
                 <group>
                     <filter string="Student" name="group_student" context="{'group_by': 'student_id'}"/>
-                    <filter string="Teacher" name="group_teacher" context="{'group_by': 'teacher_id'}"/>
-                    <filter string="Semester" name="group_semester" context="{'group_by': 'semester_id'}"/>
-                    <filter string="Month" name="group_month" context="{'group_by': 'date:month'}"/>
+                    <filter string="Supervisor" name="group_teacher" context="{'group_by': 'teacher_id'}"/>
                     <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date:month'}"/>
+                    <filter string="Academic Year" name="group_year" context="{'group_by': 'academic_year_id'}"/>
                 </group>
                 <searchpanel>
-                    <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>
+                    <field name="student_id" icon="fa-users" enable_counters="1" select="multi"/>
+                    <field name="teacher_id" string="Supervisor" icon="fa-user" enable_counters="1" select="multi"/>
+                    <field name="state" string="Status" icon="fa-filter" enable_counters="1" select="multi"/>
                 </searchpanel>
             </search>
         </field>
     </record>
 
+    <!-- SERVER ACTIONS FOR BATCH APPROVE / REJECT -->
+    <record id="action_service_hour_batch_approve" model="ir.actions.server">
+        <field name="name">Approve Service Hours</field>
+        <field name="model_id" ref="model_university_service_hour"/>
+        <field name="binding_model_id" ref="model_university_service_hour"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="group_ids" eval="[(4, ref('school_management.group_school_admin')), (4, ref('base.group_system')), (4, ref('school_management.group_school_teacher'))]"/>
+        <field name="code">
+records.filtered(lambda r: r.state == 'pending').action_approve()
+        </field>
+    </record>
+
+    <record id="action_service_hour_batch_reject" model="ir.actions.server">
+        <field name="name">Reject Service Hours</field>
+        <field name="model_id" ref="model_university_service_hour"/>
+        <field name="binding_model_id" ref="model_university_service_hour"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="group_ids" eval="[(4, ref('school_management.group_school_admin')), (4, ref('base.group_system')), (4, ref('school_management.group_school_teacher'))]"/>
+        <field name="code">
+records.filtered(lambda r: r.state == 'pending').action_reject()
+        </field>
+    </record>
+
+    <!-- WINDOW ACTION -->
     <record id="action_university_service_hour" model="ir.actions.act_window">
         <field name="name">Service Hours</field>
         <field name="res_model">university.service.hour</field>
@@ -87,7 +152,7 @@
         <field name="search_view_id" ref="view_university_service_hour_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No service-hour requests found.</p>
-            <p>Students can submit service hours for teacher approval.</p>
+            <p>Students can submit service hours for administrator or supervisor approval.</p>
         </field>
     </record>
 </odoo>

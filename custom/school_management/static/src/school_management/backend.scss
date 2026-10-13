@@ -912,3 +912,32 @@ body:has(.o_university_academic_year_searchpanel) {
     }
 }
 
+
+
+// ---------------------------------------------------------------------------
+// Badge Utilities & Kanban Helpers
+// ---------------------------------------------------------------------------
+.text-purple {
+    color: #6f42c1 !important;
+}
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+}
+.border-purple-subtle {
+    border-color: #e9d5ff !important;
+}
+.very-small {
+    font-size: 0.72rem !important;
+}
+
+.badge.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+    color: #6f42c1 !important;
+    border-color: #e9d5ff !important;
+}
+
+.badge.bg-info-subtle {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #bae6fd !important;
+}
