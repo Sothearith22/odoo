@@ -18,7 +18,7 @@ class UniversityCurriculum(models.Model):
         string="Program",
         required=True,
         ondelete="cascade",
-        index=True,
+        index=False,
     )
     session_id = fields.Many2one(
         "university.academic.year",
@@ -153,6 +153,14 @@ class UniversityCurriculumLine(models.Model):
         for rec in self:
             if rec.semester:
                 rec.semester_number = rec.semester
+
+    @api.depends("subject_id.name", "year_level", "semester_number")
+    def _compute_display_name(self):
+        for rec in self:
+            if rec.subject_id:
+                rec.display_name = f"{rec.subject_id.name} (Year {rec.year_level or '1'} - Sem {rec.semester_number or '1'})"
+            else:
+                rec.display_name = f"Curriculum Line #{rec.id}"
 
     def _compute_student_view_flags(self):
         user = self.env.user

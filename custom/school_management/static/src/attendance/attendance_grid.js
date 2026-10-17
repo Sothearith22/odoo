@@ -20,6 +20,7 @@ class AttendanceGrid extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.action = useService("action");
         this.notification = useService("notification");
 
         const today = localToday();
@@ -31,6 +32,9 @@ class AttendanceGrid extends Component {
             grid: null,
             statuses: [],
             savingCell: false,
+            viewMode: "kanban", // "kanban" or "matrix"
+            selectedSectionId: "all",
+            searchQuery: "",
         });
 
         onWillStart(async () => {
@@ -78,6 +82,52 @@ class AttendanceGrid extends Component {
     async onYearChange(event) {
         this.state.year = Number(event.target.value);
         await this.load();
+    }
+
+    onSectionFilterChange(event) {
+        this.state.selectedSectionId = event.target.value;
+    }
+
+    onSearchInput(event) {
+        this.state.searchQuery = (event.target.value || "").trim().toLowerCase();
+    }
+
+    setViewMode(mode) {
+        this.state.viewMode = mode;
+    }
+
+    openSectionMatrix(sectionId) {
+        this.state.selectedSectionId = String(sectionId);
+        this.state.viewMode = "matrix";
+    }
+
+    openAttendanceSheet(sectionId) {
+        this.action.doAction("school_management.action_university_attendance_sheet", {
+            additionalContext: {
+                default_section_id: sectionId,
+                section_id: sectionId,
+            },
+        });
+    }
+
+    openTakeAttendance(sectionId) {
+        this.action.doAction("school_management.action_university_attendance_take_wizard", {
+            additionalContext: {
+                default_section_id: sectionId,
+            },
+        });
+    }
+
+    openPrintWizard(sectionId = null) {
+        const context = {};
+        if (sectionId) {
+            context.default_section_ids = [sectionId];
+        } else if (this.state.selectedSectionId !== "all") {
+            context.default_section_ids = [Number(this.state.selectedSectionId)];
+        }
+        this.action.doAction("school_management.action_university_attendance_print_wizard", {
+            additionalContext: context,
+        });
     }
 
     async refresh() {
@@ -141,6 +191,100 @@ class AttendanceGrid extends Component {
     isRisk(student, threshold) {
         const total = (student.cells || []).filter((cell) => cell.status).length;
         return total >= 3 && this.rate(student) < threshold;
+    }
+
+    sectionRate(section) {
+        let total = 0;
+        let credited = 0;
+        for (const student of section.students || []) {
+            for (const cell of student.cells || []) {
+                if (cell.status) {
+                    total++;
+                    if (cell.status !== "absent") {
+                        credited++;
+                    }
+                }
+            }
+        }
+        return total ? Math.round((credited * 1000) / total) / 10 : 100;
+    }
+
+    sectionAtRiskCount(section, threshold) {
+        const th = threshold || (this.state.grid ? this.state.grid.threshold : 75);
+        return (section.students || []).filter((s) => this.isRisk(s, th)).length;
+    }
+
+    sectionTotalLogs(section) {
+        let count = 0;
+        for (const student of section.students || []) {
+            for (const cell of student.cells || []) {
+                if (cell.status) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    getHealthBadgeClass(rate) {
+        if (rate >= 90) return "badge bg-success-subtle text-success border border-success-subtle";
+        if (rate >= 75) return "badge bg-warning-subtle text-warning border border-warning-subtle";
+        return "badge bg-danger-subtle text-danger border border-danger-subtle";
+    }
+
+    getHealthLabel(rate) {
+        if (rate >= 90) return _t("Excellent");
+        if (rate >= 75) return _t("Good");
+        return _t("Attention Needed");
+    }
+
+    getProgressBarClass(rate) {
+        if (rate >= 90) return "bg-success";
+        if (rate >= 75) return "bg-warning";
+        return "bg-danger";
+    }
+
+    get summary() {
+        if (!this.state.grid || !this.state.grid.sections) {
+            return { totalSections: 0, totalStudents: 0, avgRate: 0, totalAtRisk: 0 };
+        }
+        const sections = this.state.grid.sections;
+        const totalSections = sections.length;
+        let totalStudents = 0;
+        let rateSum = 0;
+        let totalAtRisk = 0;
+        const threshold = this.state.grid.threshold || 75;
+
+        for (const section of sections) {
+            totalStudents += (section.students || []).length;
+            rateSum += this.sectionRate(section);
+            totalAtRisk += this.sectionAtRiskCount(section, threshold);
+        }
+
+        const avgRate = totalSections ? Math.round((rateSum / totalSections) * 10) / 10 : 0;
+        return { totalSections, totalStudents, avgRate, totalAtRisk };
+    }
+
+    get filteredSections() {
+        if (!this.state.grid || !this.state.grid.sections) {
+            return [];
+        }
+        let list = this.state.grid.sections;
+        if (this.state.selectedSectionId !== "all") {
+            list = list.filter((s) => String(s.id) === String(this.state.selectedSectionId));
+        }
+        if (this.state.searchQuery) {
+            const q = this.state.searchQuery;
+            list = list.filter((s) => {
+                const name = (s.name || "").toLowerCase();
+                const dName = (s.display_name || "").toLowerCase();
+                const subj = (s.subject || "").toLowerCase();
+                const teacher = (s.teacher || "").toLowerCase();
+                const dept = (s.department || "").toLowerCase();
+                return name.includes(q) || dName.includes(q) || subj.includes(q) || teacher.includes(q) || dept.includes(q);
+            });
+        }
+        return list;
     }
 }
 

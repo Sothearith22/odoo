@@ -15,17 +15,20 @@ export class UniversitySchedule extends Component {
         this.notification = useService("notification");
 
         const actionContext = this.props.action?.context || this.props.context || {};
+        this.actionContext = actionContext;
         const initialSectionId = actionContext.default_section_id || actionContext.filters?.section_id || "";
         const initialAcademicYearId = actionContext.default_academic_year_id || actionContext.filters?.academic_year_id || "";
         const initialSemesterId = actionContext.default_semester_id || actionContext.filters?.semester_id || "";
+        const initialResourceType = actionContext.default_resource_type || (initialSectionId ? "section" : "teacher");
+        const initialViewMode = actionContext.default_view_mode || "resource";
+        const initialDate = actionContext.default_date ? new Date(actionContext.default_date + "T00:00:00") : new Date();
 
-        const today = new Date();
         this.state = useState({
-            currentDate: today,
-            viewMode: "resource", // 'resource' | 'week' | 'day' | 'kanban'
+            currentDate: initialDate,
+            viewMode: initialViewMode, // 'kanban' | 'resource' | 'week' | 'day'
             scale: "week", // 'day' | 'week' | 'month' | 'year'
-            hasUserChangedViewMode: false,
-            resourceType: "teacher", // 'teacher' | 'classroom'
+            hasUserChangedViewMode: Boolean(actionContext.default_view_mode),
+            resourceType: initialResourceType, // 'teacher' | 'classroom' | 'section'
             showSideTable: false,
             colorBy: "subject", // 'subject' | 'teacher' | 'classroom'
             loading: true,
@@ -144,6 +147,14 @@ export class UniversitySchedule extends Component {
         }
     }
 
+    getWeekNumber(d) {
+        const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        const dayNum = date.getUTCDay() || 7;
+        date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+        return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+    }
+
     get headerTitle() {
         const base = this.state.currentDate;
         if (this.state.scale === "day" || this.state.viewMode === "day") {
@@ -164,9 +175,10 @@ export class UniversitySchedule extends Component {
             const eParts = bounds.end.split("-");
             const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2]);
             const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2]);
-            const sStr = sDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
-            const eStr = eDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
-            return `${sStr} – ${eStr}`;
+            const sStr = sDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            const eStr = eDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+            const weekNum = this.getWeekNumber(sDate);
+            return `Week ${weekNum} · ${sStr} – ${eStr}`;
         }
     }
 
@@ -304,11 +316,9 @@ export class UniversitySchedule extends Component {
             }
 
             this.state.role = res.role || "student";
-            if (this.state.role === "admin" && !this.state.hasUserChangedViewMode) {
-                this.state.viewMode = "resource";
+            if (!this.state.hasUserChangedViewMode) {
+                this.state.viewMode = this.actionContext.default_view_mode || (this.state.role === "student" ? "week" : "resource");
                 this.state.showSideTable = false;
-            } else if (this.state.role === "student" && !this.state.hasUserChangedViewMode) {
-                this.state.viewMode = "week";
             }
             this.state.slots = res.slots || [];
             this.state.holidays = res.holidays || [];
@@ -717,7 +727,7 @@ export class UniversitySchedule extends Component {
 
             const fullDayName = d.toLocaleDateString("en-US", { weekday: "long" });
             const dayOrdinal = this.getOrdinal(d.getDate());
-            const dayOrdinalLabel = `${fullDayName}, ${dayOrdinal}`;
+            const dayOrdinalLabel = `${fullDayName} ${d.getDate()}`;
 
             days.push({
                 date: d,
@@ -725,6 +735,7 @@ export class UniversitySchedule extends Component {
                 dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
                 fullDayName: fullDayName,
                 dayNumber: d.getDate(),
+                dateNumber: d.getDate(),
                 dayOrdinalLabel: dayOrdinalLabel,
                 formattedDate: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
                 isToday: isToday,
@@ -735,6 +746,33 @@ export class UniversitySchedule extends Component {
             });
         }
         return days;
+    }
+
+    get openShifts() {
+        const slots = this.filteredSlots;
+        const days = this.weekDays;
+        let unassigned = [];
+        if (this.state.resourceType === "teacher") {
+            unassigned = slots.filter((s) => !s.teacher_id);
+        } else if (this.state.resourceType === "classroom") {
+            unassigned = slots.filter((s) => !s.classroom_id);
+        } else {
+            unassigned = slots.filter((s) => !s.section_id);
+        }
+
+        const dayMap = {};
+        days.forEach((day) => {
+            dayMap[day.dateStr] = unassigned
+                .filter((s) => s.date_str === day.dateStr)
+                .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
+        });
+        const totalHours = unassigned.reduce((acc, s) => acc + (s.duration_hours || 0), 0);
+        return {
+            slots: unassigned,
+            totalSlots: unassigned.length,
+            totalHours: Math.round(totalHours * 10) / 10,
+            dayMap: dayMap,
+        };
     }
 
     get resourceTeachers() {
@@ -840,6 +878,55 @@ export class UniversitySchedule extends Component {
                 slots: roomSlots,
                 dayMap: dayMap,
                 totalSlots: roomSlots.length,
+                totalHours: Math.round(totalHours * 10) / 10,
+            };
+        });
+
+        return mapped.sort((a, b) => {
+            if (a.totalSlots > 0 && b.totalSlots === 0) return -1;
+            if (b.totalSlots > 0 && a.totalSlots === 0) return 1;
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    get resourceSections() {
+        const sections = this.state.filtersData.sections || [];
+        const slots = this.filteredSlots;
+        const days = this.weekDays;
+        const selectedSectionId = this.state.filters.section_id ? parseInt(this.state.filters.section_id) : null;
+
+        let list = sections;
+        if (selectedSectionId) {
+            list = list.filter((s) => s.id === selectedSectionId);
+        }
+
+        const mapped = list.map((sec) => {
+            const secSlots = slots.filter((s) => s.section_id === sec.id);
+            const dayMap = {};
+            days.forEach((day) => {
+                dayMap[day.dateStr] = secSlots
+                    .filter((s) => s.date_str === day.dateStr)
+                    .sort((a, b) => (a.start_hour_decimal > b.start_hour_decimal ? 1 : -1));
+            });
+            const totalHours = secSlots.reduce((acc, s) => acc + (s.duration_hours || 0), 0);
+            const subjectName = Array.isArray(sec.subject_id) ? sec.subject_id[1] : (sec.subject_name || "");
+            const teacherName = Array.isArray(sec.teacher_id) ? sec.teacher_id[1] : (sec.teacher_name || "");
+            const classroomName = Array.isArray(sec.classroom_id) ? sec.classroom_id[1] : (sec.classroom_name || "");
+            const programName = Array.isArray(sec.program_id) ? sec.program_id[1] : (sec.program_name || "");
+            return {
+                id: sec.id,
+                name: sec.name,
+                subject_name: subjectName,
+                teacher_name: teacherName,
+                classroom_name: classroomName,
+                program_name: programName,
+                capacity: sec.capacity || 0,
+                enrolled_count: sec.enrolled_student_count || 0,
+                day_summary: sec.day_summary || "",
+                time_summary: sec.time_summary || "",
+                slots: secSlots,
+                dayMap: dayMap,
+                totalSlots: secSlots.length,
                 totalHours: Math.round(totalHours * 10) / 10,
             };
         });

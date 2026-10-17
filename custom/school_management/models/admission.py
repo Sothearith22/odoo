@@ -69,7 +69,26 @@ class UniversityAdmissionApplication(models.Model):
     fee_structure_id = fields.Many2one(
         "university.fee.structure",
         string="Fee Structure",
-        domain="['|', ('program_id', '=', False), ('program_id', '=', program_id), '|', ('semester_id', '=', False), ('semester_id', '=', semester_id)]",
+        domain="["
+        "('active', '=', True), "
+        "'|', ('program_id', '=', False), ('program_id', '=', program_id), "
+        "'|', ('academic_year_id', '=', False), ('academic_year_id', '=', academic_year_id), "
+        "'|', ('semester_id', '=', False), ('semester_id', '=', semester_id)"
+        "]",
+    )
+    currency_id = fields.Many2one(
+        "res.currency",
+        string="Currency",
+        compute="_compute_currency_id",
+        default=lambda self: self.env.company.currency_id,
+        store=True,
+    )
+    fee_amount = fields.Monetary(
+        string="Fee Amount",
+        compute="_compute_fee_amount",
+        currency_field="currency_id",
+        store=True,
+        readonly=True,
     )
     student_id = fields.Many2one(
         "university.student",
@@ -116,10 +135,138 @@ class UniversityAdmissionApplication(models.Model):
                 )
         return super().create(vals_list)
 
+    def _compute_currency_id(self):
+        currency = self.env.company.currency_id
+        for application in self:
+            application.currency_id = currency
+
+    @api.depends("fee_structure_id.total_amount", "fee_ids.total_amount", "state")
+    def _compute_fee_amount(self):
+        for application in self:
+            if application.state == "confirmed" and application.fee_ids:
+                active_fees = application.fee_ids.filtered(lambda f: f.state != "canceled")
+                if active_fees:
+                    application.fee_amount = sum(active_fees.mapped("total_amount"))
+                elif application.fee_structure_id:
+                    application.fee_amount = application.fee_structure_id.total_amount
+                else:
+                    application.fee_amount = 0.0
+            elif application.fee_structure_id:
+                application.fee_amount = application.fee_structure_id.total_amount
+            else:
+                application.fee_amount = 0.0
+
+    @api.onchange("program_id", "academic_year_id", "semester_id")
+    def _onchange_academic_fee_structure(self):
+        self.fee_structure_id = False
+        self.fee_amount = 0.0
+
+        if not (self.program_id and self.academic_year_id and self.semester_id):
+            return
+
+        # 1. Search for exact match
+        domain_exact = [
+            ("active", "=", True),
+            ("program_id", "=", self.program_id.id),
+            ("academic_year_id", "=", self.academic_year_id.id),
+            ("semester_id", "=", self.semester_id.id),
+        ]
+        matching = self.env["university.fee.structure"].search(domain_exact)
+
+        # 2. Fallback to generic fee structures if no exact match found
+        if not matching:
+            # Fallback A: program + academic year (any semester)
+            matching = self.env["university.fee.structure"].search([
+                ("active", "=", True),
+                ("program_id", "=", self.program_id.id),
+                ("academic_year_id", "=", self.academic_year_id.id),
+                ("semester_id", "=", False),
+            ])
+        if not matching:
+            # Fallback B: program only (any academic year and semester)
+            matching = self.env["university.fee.structure"].search([
+                ("active", "=", True),
+                ("program_id", "=", self.program_id.id),
+                ("academic_year_id", "=", False),
+                ("semester_id", "=", False),
+            ])
+        if not matching:
+            # Fallback C: global generic structure
+            matching = self.env["university.fee.structure"].search([
+                ("active", "=", True),
+                ("program_id", "=", False),
+                ("academic_year_id", "=", False),
+                ("semester_id", "=", False),
+            ])
+
+        if len(matching) == 1:
+            self.fee_structure_id = matching
+            self.fee_amount = matching.total_amount
+        elif len(matching) > 1:
+            self.fee_structure_id = False
+            self.fee_amount = 0.0
+            return {
+                "warning": {
+                    "title": _("Multiple Fee Structures Found"),
+                    "message": _(
+                        "Multiple fee structures match the selected academic criteria for %(program)s. "
+                        "Please select the appropriate fee structure manually.",
+                        program=self.program_id.display_name,
+                    ),
+                }
+            }
+
+    @api.onchange("fee_structure_id")
+    def _onchange_fee_structure_id(self):
+        if self.fee_structure_id:
+            self.fee_amount = self.fee_structure_id.total_amount
+        else:
+            self.fee_amount = 0.0
+
     @api.depends("fee_ids")
     def _compute_fee_count(self):
         for application in self:
             application.fee_count = len(application.fee_ids)
+
+    def _validate_fee_structure_consistency(self):
+        for application in self:
+            if not application.fee_structure_id:
+                continue
+            struct = application.fee_structure_id
+            if struct.program_id and struct.program_id != application.program_id:
+                raise ValidationError(
+                    _(
+                        "The selected fee structure '%(fee)s' belongs to program '%(fee_prog)s', "
+                        "which does not match application program '%(app_prog)s'.",
+                        fee=struct.name,
+                        fee_prog=struct.program_id.display_name,
+                        app_prog=application.program_id.display_name,
+                    )
+                )
+            if struct.academic_year_id and struct.academic_year_id != application.academic_year_id:
+                raise ValidationError(
+                    _(
+                        "The selected fee structure '%(fee)s' belongs to academic year '%(fee_year)s', "
+                        "which does not match application academic year '%(app_year)s'.",
+                        fee=struct.name,
+                        fee_year=struct.academic_year_id.name,
+                        app_year=application.academic_year_id.name,
+                    )
+                )
+            if struct.semester_id and struct.semester_id != application.semester_id:
+                raise ValidationError(
+                    _(
+                        "The selected fee structure '%(fee)s' belongs to semester '%(fee_sem)s', "
+                        "which does not match application semester '%(app_sem)s'.",
+                        fee=struct.name,
+                        fee_sem=struct.semester_id.name,
+                        app_sem=application.semester_id.name,
+                    )
+                )
+
+    @api.constrains("fee_structure_id", "program_id", "academic_year_id", "semester_id")
+    def _check_fee_structure_consistency(self):
+        self._validate_fee_structure_consistency()
 
     @api.constrains("semester_id", "academic_year_id")
     def _check_period_consistency(self):
@@ -200,6 +347,8 @@ class UniversityAdmissionApplication(models.Model):
             and self.semester_id.academic_year_id != self.academic_year_id
         ):
             self.semester_id = False
+            self.fee_structure_id = False
+            self.fee_amount = 0.0
         self.section_id = False
 
     @api.onchange("program_id", "semester_id")
@@ -253,9 +402,23 @@ class UniversityAdmissionApplication(models.Model):
     def action_confirm(self):
         self._check_workflow_manager()
         for application in self:
+            if application.state == "confirmed":
+                continue
             if application.state != "approved":
                 raise ValidationError(
-                    "Only approved admission applications can be confirmed."
+                    _("Only approved admission applications can be confirmed.")
+                )
+            if not application.fee_structure_id:
+                raise ValidationError(
+                    _("A fee structure is required to confirm the admission application.")
+                )
+            application._validate_fee_structure_consistency()
+            if not application.fee_structure_id.line_ids:
+                raise ValidationError(
+                    _(
+                        "The selected fee structure '%(fee)s' does not have any fee lines.",
+                        fee=application.fee_structure_id.name,
+                    )
                 )
             student = application._get_or_create_student()
             enrollment = application._get_or_create_enrollment(student)
@@ -368,10 +531,24 @@ class UniversityAdmissionApplication(models.Model):
 
     def _generate_required_fee(self, student):
         self.ensure_one()
-        if not self.fee_structure_id or self.fee_ids:
+        if not self.fee_structure_id:
             return self.env["university.fee"]
-        fee = self.env["university.fee"].create(
-            self.fee_structure_id._prepare_fee_vals(student, admission=self)
-        )
+
+        existing_fee = self.fee_ids.filtered(lambda f: f.state != "canceled")[:1]
+        if not existing_fee:
+            existing_fee = self.env["university.fee"].search(
+                [
+                    ("admission_application_id", "=", self.id),
+                    ("state", "!=", "canceled"),
+                ],
+                limit=1,
+            )
+        if existing_fee:
+            if existing_fee.state == "draft":
+                existing_fee.action_post()
+            return existing_fee
+
+        fee_vals = self.fee_structure_id._prepare_fee_vals(student, admission=self)
+        fee = self.env["university.fee"].create(fee_vals)
         fee.action_post()
         return fee

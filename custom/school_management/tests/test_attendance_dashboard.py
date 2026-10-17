@@ -23,15 +23,29 @@ class TestAttendanceDashboardFeatures(TransactionCase):
         cls.group_admin = cls.env.ref("school_management.group_school_admin")
 
         today = fields.Date.today()
-        cls.year = cls.env["university.academic.year"].create({
-            "name": "Dashboard Test Year", "date_start": f"{today.year}-01-01",
-            "date_end": f"{today.year}-12-31",
-        })
-        cls.semester = cls.env["university.semester"].create({
-            "name": "Dashboard Test Sem", "academic_year_id": cls.year.id,
-            "semester_type": "semester_1",
-            "date_start": f"{today.year}-01-01", "date_end": f"{today.year}-04-30",
-        })
+        existing_year = cls.env["university.academic.year"].search([
+            ("date_start", "<=", today),
+            ("date_end", ">=", today),
+        ], limit=1)
+        if existing_year:
+            cls.year = existing_year
+        else:
+            cls.year = cls.env["university.academic.year"].create({
+                "name": "Dashboard Test Year", "date_start": f"{today.year}-01-01",
+                "date_end": f"{today.year}-12-31",
+            })
+        existing_sem = cls.env["university.semester"].search([
+            ("academic_year_id", "=", cls.year.id),
+            ("semester_type", "=", "semester_1"),
+        ], limit=1)
+        if existing_sem:
+            cls.semester = existing_sem
+        else:
+            cls.semester = cls.env["university.semester"].create({
+                "name": "Dashboard Test Sem", "academic_year_id": cls.year.id,
+                "semester_type": "semester_1",
+                "date_start": cls.year.date_start, "date_end": cls.year.date_start + timedelta(days=90),
+            })
         cls.faculty = cls.env["university.faculty"].create({"name": "DS Faculty", "code": "DS-FAC"})
         cls.department = cls.env["university.department"].create({
             "name": "DS Department", "code": "DS-DEP", "faculty_id": cls.faculty.id,
@@ -271,6 +285,15 @@ class TestAttendanceDashboardFeatures(TransactionCase):
         self.assertEqual(len(records), 2)
         self.assertTrue(all(r.status == "present" for r in records))
 
+    def test_take_wizard_default_get_preloads_lines(self):
+        defaults = self.env["university.attendance.take.wizard"].with_user(
+            self.teacher_user).with_context(
+                default_section_id=self.section.id,
+                default_date=fields.Date.to_string(self.old_date),
+            ).default_get(["section_id", "date", "notes", "line_ids"])
+        self.assertEqual(defaults.get("section_id"), self.section.id)
+        self.assertEqual(len(defaults.get("line_ids", [])), 2)
+
     def test_print_wizard_grid_data_and_actions_exist(self):
         wizard = self.env["university.attendance.print.wizard"].create({
             "month": str(self.old_date.month), "year": self.old_date.year,
@@ -284,3 +307,94 @@ class TestAttendanceDashboardFeatures(TransactionCase):
         self.assertTrue(hasattr(wizard, "action_export_xlsx"))
         self.assertTrue(hasattr(wizard, "action_export_csv"))
         self.assertTrue(hasattr(wizard, "action_export_at_risk_csv"))
+
+    def test_comparison_cross_department_teacher_access(self):
+        self.other_section.write({"teacher_id": self.teacher.id})
+        data = self.Attendance.with_user(self.teacher_user).get_comparison_data()
+        departments = {d["id"]: d for d in data["departments"]}
+        self.assertIn(self.department.id, departments)
+        self.assertIn(self.other_department.id, departments)
+
+    def test_comparison_hod_cross_department_teaching(self):
+        self.other_section.write({"teacher_id": self.hod_teacher.id})
+        data = self.Attendance.with_user(self.hod_user).get_comparison_data()
+        departments = {d["id"]: d for d in data["departments"]}
+        self.assertIn(self.department.id, departments)
+        self.assertIn(self.other_department.id, departments)
+
+    def test_course_section_subject_department_grouping(self):
+        subject = self.env["university.subject"].create({
+            "name": "Course Subject",
+            "code": "CS-101",
+            "department_id": self.other_department.id,
+            "credits": 3,
+        })
+        course_section = self.env["university.class.section"].create({
+            "name": "CS-SEC",
+            "section_type": "course",
+            "subject_id": subject.id,
+            "semester_id": self.semester.id,
+            "teacher_id": self.teacher.id,
+        })
+        self.assertFalse(course_section.department_id)
+        data = self.Attendance.with_user(self.teacher_user).get_comparison_data()
+        departments = {d["id"]: d for d in data["departments"]}
+        self.assertIn(self.other_department.id, departments)
+        dept_data = departments[self.other_department.id]
+        section_ids = [s["id"] for s in dept_data["sections"]]
+        self.assertIn(course_section.id, section_ids)
+
+    def test_at_risk_hod_cross_department_student_access(self):
+        # Student from another department enrolled in HOD's department section
+        outsider_student = self.env["university.student"].create({
+            "name": "Outsider Student",
+            "program_id": self.other_program.id,
+            "department_id": self.other_department.id,
+        })
+        self.env["university.enrollment"].create({
+            "student_id": outsider_student.id,
+            "program_id": self.program.id,
+            "section_id": self.section.id,
+            "semester_id": self.semester.id,
+            "academic_year_id": self.year.id,
+            "status": "enrolled",
+        })
+        today = fields.Date.today()
+        self.Attendance.create({
+            "student_id": outsider_student.id,
+            "section_id": self.section.id,
+            "date": today,
+            "status": "absent",
+        })
+        data = self.Attendance.with_user(self.hod_user).get_at_risk_data(
+            today.month, today.year, [self.section.id]
+        )
+        student_ids = [s["id"] for s in data["students"]]
+        self.assertIn(outsider_student.id, student_ids)
+
+    def test_at_risk_dean_cross_faculty_student_access(self):
+        outsider_student = self.env["university.student"].create({
+            "name": "Outsider Faculty Student",
+            "program_id": self.other_program.id,
+            "department_id": self.other_department.id,
+        })
+        self.env["university.enrollment"].create({
+            "student_id": outsider_student.id,
+            "program_id": self.program.id,
+            "section_id": self.section.id,
+            "semester_id": self.semester.id,
+            "academic_year_id": self.year.id,
+            "status": "enrolled",
+        })
+        today = fields.Date.today()
+        self.Attendance.create({
+            "student_id": outsider_student.id,
+            "section_id": self.section.id,
+            "date": today,
+            "status": "absent",
+        })
+        data = self.Attendance.with_user(self.dean_user).get_at_risk_data(
+            today.month, today.year, [self.section.id]
+        )
+        student_ids = [s["id"] for s in data["students"]]
+        self.assertIn(outsider_student.id, student_ids)

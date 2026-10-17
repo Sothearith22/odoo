@@ -6,3 +6,4 @@ from . import teacher_account_wizard
 from . import year_rollover_wizard
 from . import transcript_request_reject_wizard
 from . import transcript_request_override_wizard
+from . import subject_selection_wizard

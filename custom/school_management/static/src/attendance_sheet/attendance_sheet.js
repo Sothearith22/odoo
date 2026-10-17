@@ -4,21 +4,23 @@ import { Component, onWillStart, onWillUnmount, useEffect, useRef, useState } fr
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
+import { user } from "@web/core/user";
 import { Chatter } from "@mail/chatter/web_portal/chatter";
 import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
 const STATUS_OPTIONS = [
     { value: "present", label: "Present", key: "P" },
-    { value: "absent", label: "Absent", key: "A" },
-    { value: "late", label: "Late", key: "L" },
+    { value: "absent",  label: "Absent",  key: "A" },
+    { value: "late",    label: "Late",    key: "L" },
     { value: "excused", label: "Excused", key: "E" },
 ];
 
 const FILTERS = [
-    { value: "all", label: "All" },
-    { value: "absent", label: "Absent" },
-    { value: "late", label: "Late" },
+    { value: "all",     label: "All" },
+    { value: "present", label: "Present" },
+    { value: "absent",  label: "Absent" },
+    { value: "late",    label: "Late" },
     { value: "excused", label: "Excused" },
 ];
 
@@ -75,6 +77,8 @@ class AttendanceSheet extends Component {
         this.state = useState({
             date: context.default_date || context.date || today(),
             sectionId: Number(context.default_section_id || context.section_id || 0) || 0,
+            departmentId: context.default_department_id || "all",
+            departments: [],
             sections: [],
             lines: [],
             taken: false,
@@ -84,12 +88,14 @@ class AttendanceSheet extends Component {
             error: null,
             query: "",
             filter: "all",
+            viewMode: "kanban", // "kanban" or "list"
             activeId: false,
             openNoteId: false,
             session: {},
             notes: "",
             tab: "attendance",
             chatterRevision: 0,
+            isAdmin: true,
         });
 
         // Restore DOM focus after a re-render so keyboard flows are not broken.
@@ -113,14 +119,21 @@ class AttendanceSheet extends Component {
         onWillUnmount(() => document.removeEventListener("keydown", this._onKeydown));
 
         onWillStart(async () => {
+            try {
+                const isSystem = Boolean(user.isAdmin || user.isSystem || (await user.hasGroup("base.group_system")));
+                const isSchoolAdmin = await user.hasGroup("school_management.group_school_admin");
+                this.state.isAdmin = Boolean(isSystem || isSchoolAdmin);
+            } catch {
+                this.state.isAdmin = Boolean(user.isAdmin || user.isSystem);
+            }
+
             await this.loadSections();
             const passedId = Number(context.default_section_id || context.section_id || 0) || 0;
-            if (passedId && this.state.sections.some(s => s.id === passedId)) {
+            if (passedId && this.state.sections.some((s) => s.id === passedId)) {
                 this.state.sectionId = passedId;
             } else {
-                this.state.sectionId = this.state.sections.length
-                    ? this.state.sections[0].id
-                    : 0;
+                const available = this.filteredSections;
+                this.state.sectionId = available.length ? available[0].id : 0;
             }
             if (this.state.sectionId) {
                 await this.loadSheet();
@@ -132,15 +145,23 @@ class AttendanceSheet extends Component {
     // Derived data
     // ------------------------------------------------------------------
     get counts() {
-        const counts = { present: 0, absent: 0, late: 0, total: this.state.lines.length };
+        const counts = { present: 0, absent: 0, late: 0, excused: 0, total: this.state.lines.length };
         for (const line of this.state.lines) {
             counts[line.status] = (counts[line.status] || 0) + 1;
         }
         return counts;
     }
 
+    get filteredSections() {
+        if (!this.state.departmentId || this.state.departmentId === "all") {
+            return this.state.sections;
+        }
+        const deptId = Number(this.state.departmentId);
+        return this.state.sections.filter((s) => s.department_id && s.department_id[0] === deptId);
+    }
+
     get currentSectionName() {
-        const sec = this.state.sections.find(s => s.id === this.state.sectionId);
+        const sec = this.state.sections.find((s) => s.id === this.state.sectionId);
         return sec ? sec.display_name : "";
     }
 
@@ -159,6 +180,24 @@ class AttendanceSheet extends Component {
         this.state.tab = tab;
     }
 
+    setViewMode(mode) {
+        this.state.viewMode = mode;
+    }
+
+    getStatusBadgeClass(status) {
+        if (status === "present") return "badge bg-success-subtle text-success border border-success-subtle";
+        if (status === "absent") return "badge bg-danger-subtle text-danger border border-danger-subtle";
+        if (status === "late") return "badge bg-warning-subtle text-warning border border-warning-subtle";
+        return "badge bg-secondary-subtle text-secondary border";
+    }
+
+    getStatusIconClass(status) {
+        if (status === "present") return "text-success";
+        if (status === "absent") return "text-danger";
+        if (status === "late") return "text-warning";
+        return "text-secondary";
+    }
+
     onTabKeydown(ev) {
         if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(ev.key)) {
             ev.preventDefault();
@@ -166,6 +205,10 @@ class AttendanceSheet extends Component {
                 this.state.tab === "attendance" ? "details" : "attendance";
             this._pendingFocus = `[role="tab"][data-tab="${this.state.tab}"]`;
         }
+    }
+
+    get visibleRows() {
+        return this.visibleLines;
     }
 
     get visibleLines() {
@@ -203,13 +246,13 @@ class AttendanceSheet extends Component {
     get noStudents() {
         return (
             !this.state.loading &&
-            !!this.state.sectionId &&
+            Boolean(this.state.sectionId) &&
             !this.state.lines.length
         );
     }
 
     get hasNoMatch() {
-        return !this.state.loading && !!this.state.lines.length && !this.visibleLines.length;
+        return !this.state.loading && Boolean(this.state.lines.length) && !this.visibleLines.length;
     }
 
     snapshot() {
@@ -222,45 +265,49 @@ class AttendanceSheet extends Component {
     // Data loading
     // ------------------------------------------------------------------
     async loadSections() {
-        this.state.sections = await this.orm.searchRead(
-            "university.class.section",
-            [["active", "=", true]],
-            ["display_name"],
-            { order: "name asc" }
-        );
+        try {
+            this.state.departments = await this.orm.searchRead(
+                "university.department",
+                [["active", "=", true]],
+                ["id", "name", "display_name"],
+                { order: "name asc" }
+            );
+
+            this.state.sections = await this.orm.call(
+                "university.attendance",
+                "get_available_sections",
+                []
+            );
+        } catch (error) {
+            this.state.error = error.message || _t("Unable to load sections.");
+        }
     }
 
     applySheet(sheet) {
-        this.state.session = sheet;
-        this.state.notes = sheet.notes || "";
+        this.state.lines = sheet.lines || [];
+        this.state.session = sheet.session || sheet || {};
+        this.state.notes = this.state.session.notes || sheet.notes || "";
         this.state.taken = Boolean(sheet.taken);
-        this.state.lastSaved = clockTime(sheet.last_saved_at);
-        this.state.lines = (sheet.lines || []).map((line) => ({
-            ...line,
-            showRemark: Boolean(line.remark),
-        }));
+        this.state.lastSaved = clockTime(sheet.last_saved || sheet.last_saved_at || sheet.saved_at);
         this.state.activeId = this.state.lines.length ? this.state.lines[0].student_id : false;
         this.state.openNoteId = false;
+        this.state.chatterRevision += 1;
         this._baseline = this.snapshot();
     }
 
     async loadSheet() {
-        if (!this.state.sectionId || !this.state.date) {
+        if (!this.state.sectionId) {
             this.state.lines = [];
+            this.state.session = {};
             this.state.taken = false;
             this.state.lastSaved = "";
-            this.state.activeId = false;
-            this.state.session = {};
-            this.state.notes = "";
             this._baseline = this.snapshot();
             return;
         }
         this.state.loading = true;
         this.state.error = null;
-        this.state.session = {};
-        this.state.lines = [];
         try {
-            const sheet = await this.orm.call("university.attendance", "get_sheet", [
+            const sheet = await this.orm.call("university.attendance", "get_section_attendance_sheet", [
                 this.state.sectionId,
                 this.state.date,
             ]);
@@ -299,6 +346,25 @@ class AttendanceSheet extends Component {
         }
     }
 
+    onPrint() {
+        window.print();
+    }
+
+    openAttendanceReport() {
+        this.action.doAction("school_management.action_university_attendance");
+    }
+
+    openStudent(studentId) {
+        if (!studentId) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.student",
+            res_id: studentId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
     async onDateChange(ev) {
         if (!ev.target.value || !await this.confirmDiscard()) {
             ev.target.value = this.state.date;
@@ -306,6 +372,48 @@ class AttendanceSheet extends Component {
         }
         this.state.date = ev.target.value;
         await this.loadSheet();
+    }
+
+    async onPrevDay() {
+        if (!await this.confirmDiscard()) return;
+        const parts = this.state.date.split("-").map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() - 1);
+        const pad = (n) => String(n).padStart(2, "0");
+        this.state.date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        await this.loadSheet();
+    }
+
+    async onNextDay() {
+        if (!await this.confirmDiscard()) return;
+        const parts = this.state.date.split("-").map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() + 1);
+        const pad = (n) => String(n).padStart(2, "0");
+        this.state.date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        await this.loadSheet();
+    }
+
+    async onToday() {
+        if (!await this.confirmDiscard()) return;
+        this.state.date = today();
+        await this.loadSheet();
+    }
+
+    async onDepartmentFilterChange(ev) {
+        if (!await this.confirmDiscard()) {
+            ev.target.value = this.state.departmentId;
+            return;
+        }
+        this.state.departmentId = ev.target.value;
+        const available = this.filteredSections;
+        if (available.length && !available.some((s) => s.id === this.state.sectionId)) {
+            this.state.sectionId = available[0].id;
+            await this.loadSheet();
+        } else if (!available.length) {
+            this.state.sectionId = 0;
+            await this.loadSheet();
+        }
     }
 
     async onSectionChange(ev) {
@@ -411,8 +519,6 @@ class AttendanceSheet extends Component {
     }
 
     onSegKeydown(line, ev) {
-        // Left/Right move within the radiogroup; Up/Down are left to the
-        // document handler so they can walk between student rows.
         if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") {
             return;
         }
@@ -446,92 +552,67 @@ class AttendanceSheet extends Component {
         if (this.state.tab !== "attendance" || !this.rootRef.el?.contains(target) || target.closest(".o_att_chatter")) {
             return;
         }
-        const tag = (target.tagName || "").toLowerCase();
-        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) {
+        if (target.matches("input, textarea, select")) {
             return;
         }
-        if (ev.ctrlKey || ev.metaKey || ev.altKey) {
-            return;
-        }
-        if (this.state.saving || this.state.loading || !this.state.lines.length) {
-            return;
-        }
-
-        if (ev.key === "Escape" && this.state.openNoteId) {
+        if (["ArrowDown", "ArrowUp", "j", "k"].includes(ev.key)) {
             ev.preventDefault();
-            this.closeRemark();
+            const visible = this.visibleLines;
+            if (!visible.length) {
+                return;
+            }
+            const currentIndex = visible.findIndex((line) => line.student_id === this.state.activeId);
+            const delta = ["ArrowDown", "j"].includes(ev.key) ? 1 : -1;
+            const nextIndex = Math.max(0, Math.min(visible.length - 1, currentIndex + delta));
+            const nextLine = visible[nextIndex];
+            this.state.activeId = nextLine.student_id;
+            this._pendingFocus = this.statusButtonSelector(nextLine.student_id, nextLine.status);
             return;
         }
-
-        const visible = this.visibleLines;
-        if (!visible.length) {
-            return;
+        if (["p", "a", "l", "e"].includes(ev.key.toLowerCase())) {
+            const current = this.activeStudent;
+            if (!current) {
+                return;
+            }
+            const map = { p: "present", a: "absent", l: "late", e: "excused" };
+            this.setStatus(current, map[ev.key.toLowerCase()]);
+            this._pendingFocus = this.statusButtonSelector(current.student_id, map[ev.key.toLowerCase()]);
         }
-
-        let index = visible.findIndex((line) => line.student_id === this.state.activeId);
-        if (index < 0) {
-            index = 0;
-        }
-
-        const focus = this.focusDescriptor();
-
-        if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
-            ev.preventDefault();
-            const next = ev.key === "ArrowDown" ? index + 1 : index - 1;
-            this.state.activeId = visible[Math.min(Math.max(next, 0), visible.length - 1)].student_id;
-            this._pendingFocus = focus;
-            return;
-        }
-
-        const option = this.statusOptions.find(
-            (item) => item.key.toLowerCase() === ev.key.toLowerCase()
-        );
-        if (!option) {
-            return;
-        }
-
-        ev.preventDefault();
-        visible[index].status = option.value;
-        this.state.activeId =
-            index < visible.length - 1 ? visible[index + 1].student_id : visible[index].student_id;
-        this._pendingFocus = focus;
     }
 
     // ------------------------------------------------------------------
     // Save
     // ------------------------------------------------------------------
     async saveAttendance() {
-        if (!this.state.sectionId || !this.state.date || !this.state.lines.length) {
+        if (!this.state.sectionId) {
             return;
         }
         this.state.saving = true;
         this.state.error = null;
         try {
-            const payload = this.state.lines.map((line) => ({
+            const linesPayload = this.state.lines.map((line) => ({
                 student_id: line.student_id,
                 status: line.status,
                 remark: line.remark || "",
             }));
-            const sheet = await this.orm.call("university.attendance", "save_sheet", [
+
+            const result = await this.orm.call("university.attendance", "save_section_attendance", [
                 this.state.sectionId,
                 this.state.date,
-                payload,
+                linesPayload,
                 this.state.notes,
             ]);
-            this.applySheet(sheet);
-            this.state.chatterRevision++;
-            const counts = this.counts;
-            const sectionName =
-                this.state.sections.find((s) => s.id === this.state.sectionId)?.display_name || "";
-            this.notification.add(
-                sectionName ? `${_t("Attendance saved for")} ${sectionName}` : _t("Attendance saved"),
-                {
-                    type: "success",
-                    message: `${counts.total} ${_t("students")} · ${counts.present} ${_t("present")} · ${counts.absent} ${_t("absent")} · ${counts.late} ${_t("late")}`,
-                }
-            );
+
+            this.state.taken = true;
+            this.state.lastSaved = clockTime(result.saved_at || result.last_saved || result.last_saved_at);
+            const sessionId = result.session_id || result.session?.id || result.session?.session_id;
+            if (sessionId) {
+                this.state.session.session_id = sessionId;
+            }
+            this._baseline = this.snapshot();
+            this.notification.add(_t("Attendance saved successfully."), { type: "success" });
         } catch (error) {
-            this.state.error = error.message || _t("Unable to save attendance.");
+            this.state.error = error.message || _t("Failed to save attendance.");
             this.notification.add(this.state.error, { type: "danger" });
         } finally {
             this.state.saving = false;
@@ -541,4 +622,4 @@ class AttendanceSheet extends Component {
 
 registry.category("actions").add("university_attendance_sheet", AttendanceSheet);
 
-export default AttendanceSheet;
+export { AttendanceSheet };

@@ -84,6 +84,18 @@ class UniversitySemester(models.Model):
     subject_count = fields.Integer(
         string="Subject Count", compute="_compute_subject_count"
     )
+    section_count = fields.Integer(
+        string="Sections Count", compute="_compute_metrics"
+    )
+    enrollment_count = fields.Integer(
+        string="Enrolled Students", compute="_compute_metrics"
+    )
+    timetable_slot_count = fields.Integer(
+        string="Sessions Count", compute="_compute_metrics"
+    )
+    classroom_count = fields.Integer(
+        string="Rooms Count", compute="_compute_metrics"
+    )
     active = fields.Boolean(string="Active", default=True)
 
     @api.depends("semester_type")
@@ -158,6 +170,14 @@ class UniversitySemester(models.Model):
             semester.subject_count = len(
                 semester.with_context(active_test=False).semester_subject_ids
             )
+
+    def _compute_metrics(self):
+        for semester in self:
+            semester.section_count = self.env["university.class.section"].search_count([("semester_id", "=", semester.id)])
+            semester.enrollment_count = self.env["university.enrollment"].search_count([("semester_id", "=", semester.id), ("status", "=", "enrolled")])
+            slots = self.env["university.timetable.slot"].search([("semester_id", "=", semester.id)])
+            semester.timetable_slot_count = len(slots)
+            semester.classroom_count = len(set(slots.mapped("classroom_id.id")))
 
     @api.depends("date_start", "date_end")
     def _compute_is_active(self):
@@ -263,6 +283,50 @@ class UniversitySemester(models.Model):
                 raise ValidationError(
                     "Semester dates must include all department schedule dates."
                 )
+
+    def action_view_subjects(self):
+        self.ensure_one()
+        return {
+            "name": f"Offered Subjects - {self.name} ({self.academic_year_id.name})",
+            "type": "ir.actions.act_window",
+            "res_model": "university.semester.subject",
+            "view_mode": "kanban,list,form",
+            "domain": [("semester_id", "=", self.id)],
+            "context": {"default_semester_id": self.id, "default_academic_year_id": self.academic_year_id.id},
+        }
+
+    def action_view_sections(self):
+        self.ensure_one()
+        return {
+            "name": f"Class Sections - {self.name} ({self.academic_year_id.name})",
+            "type": "ir.actions.act_window",
+            "res_model": "university.class.section",
+            "view_mode": "list,kanban,form",
+            "domain": [("semester_id", "=", self.id)],
+            "context": {"default_semester_id": self.id, "default_academic_year_id": self.academic_year_id.id},
+        }
+
+    def action_view_enrollments(self):
+        self.ensure_one()
+        return {
+            "name": f"Enrolled Students - {self.name} ({self.academic_year_id.name})",
+            "type": "ir.actions.act_window",
+            "res_model": "university.enrollment",
+            "view_mode": "list,kanban,form",
+            "domain": [("semester_id", "=", self.id)],
+            "context": {"default_semester_id": self.id, "default_academic_year_id": self.academic_year_id.id},
+        }
+
+    def action_view_timetable_slots(self):
+        self.ensure_one()
+        return {
+            "name": f"Scheduled Sessions - {self.name} ({self.academic_year_id.name})",
+            "type": "ir.actions.act_window",
+            "res_model": "university.timetable.slot",
+            "view_mode": "kanban,calendar,list,form",
+            "domain": [("semester_id", "=", self.id)],
+            "context": {"default_semester_id": self.id, "default_academic_year_id": self.academic_year_id.id},
+        }
 
     def action_generate_department_terms(self):
         self.ensure_one()

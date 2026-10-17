@@ -7,6 +7,7 @@ class UniversitySemesterSubject(models.Model):
     _name = "university.semester.subject"
     _description = "Semester Subject Offering"
     _rec_name = "display_name"
+    _order = "academic_year_id desc, semester_id, subject_id"
 
     semester_id = fields.Many2one(
         "university.semester",
@@ -19,6 +20,12 @@ class UniversitySemesterSubject(models.Model):
         string="Subject",
         required=True,
         ondelete="cascade",
+    )
+    subject_code = fields.Char(
+        string="Subject Code",
+        related="subject_id.code",
+        store=True,
+        readonly=True,
     )
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -34,6 +41,19 @@ class UniversitySemesterSubject(models.Model):
         store=True,
         readonly=True,
     )
+    faculty_id = fields.Many2one(
+        "university.faculty",
+        related="department_id.faculty_id",
+        string="Faculty",
+        store=True,
+        readonly=True,
+    )
+    teacher_ids = fields.Many2many(
+        "university.teacher",
+        string="Instructors",
+        related="subject_id.teacher_ids",
+        readonly=True,
+    )
     credits = fields.Integer(
         related="subject_id.credits",
         string="Credits",
@@ -46,10 +66,54 @@ class UniversitySemesterSubject(models.Model):
     )
     active = fields.Boolean(string="Active", default=True)
 
+    section_count = fields.Integer(
+        string="Active Sections",
+        compute="_compute_section_metrics",
+    )
+    enrollment_count = fields.Integer(
+        string="Enrolled Students",
+        compute="_compute_section_metrics",
+    )
+
     _unique_semester_subject = models.Constraint(
         "UNIQUE (semester_id, subject_id)",
         "This subject is already offered in the selected semester. An archived offering may already exist.",
     )
+
+    @api.depends("semester_id", "subject_id")
+    def _compute_section_metrics(self):
+        for rec in self:
+            if not rec.semester_id or not rec.subject_id:
+                rec.section_count = 0
+                rec.enrollment_count = 0
+                continue
+            sections = self.env["university.class.section"].search([
+                ("semester_id", "=", rec.semester_id.id),
+                ("subject_id", "=", rec.subject_id.id),
+            ])
+            rec.section_count = len(sections)
+            rec.enrollment_count = self.env["university.enrollment"].search_count([
+                ("class_section_id", "in", sections.ids),
+                ("status", "=", "enrolled"),
+            ]) if sections else 0
+
+    def action_view_sections(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": f"Sections for {self.subject_id.name}",
+            "res_model": "university.class.section",
+            "view_mode": "list,form",
+            "domain": [
+                ("semester_id", "=", self.semester_id.id),
+                ("subject_id", "=", self.subject_id.id),
+            ],
+            "context": {
+                "default_semester_id": self.semester_id.id,
+                "default_subject_id": self.subject_id.id,
+                "default_academic_year_id": self.academic_year_id.id,
+            },
+        }
 
     def _effective_semesters_for_create(self, vals_list):
         default_semester_id = self.default_get(["semester_id"]).get("semester_id")

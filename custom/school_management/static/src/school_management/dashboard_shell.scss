@@ -1,33 +1,22 @@
 // =============================================================================
-// University Management System - Executive Dashboard Shell (Clean Light Design)
+// University Management System - Executive Command Dashboard (Elevated Modern UI)
 // -----------------------------------------------------------------------------
-// Scoped strictly to `.o_school_dashboard_layout`. Clean modern styling with
-// crisp alignment, distinct color badges, and responsive Bootstrap grid cards.
+// Scoped strictly to `.o_school_dashboard_layout`. Clean, executive command center
+// with sleek cards, alerts triage ribbon, glowing status badges, and Chart.js integration.
 // =============================================================================
 
 .o_school_dashboard_layout {
     // ---- Scoped Enterprise Design Tokens ------------------------------------
-    --brand-navy: #1b2a4a;
-    --brand-navy-hover: #29385c;
-    --brand-navy-subtle: #edf2f9;
+    --brand-navy: #0f172a;
+    --brand-navy-surface: #1e293b;
+    --brand-sapphire: #2563eb;
+    --brand-emerald: #059669;
+    --brand-amber: #d97706;
+    --brand-indigo: #4f46e5;
+    --brand-teal: #0d9488;
+    --brand-rose: #e11d48;
 
-    --kpi-blue: #2563eb;
-    --kpi-blue-bg: #eff6ff;
-    --kpi-blue-border: #bfdbfe;
-
-    --kpi-emerald: #059669;
-    --kpi-emerald-bg: #ecfdf5;
-    --kpi-emerald-border: #a7f3d0;
-
-    --kpi-amber: #d97706;
-    --kpi-amber-bg: #fffbeb;
-    --kpi-amber-border: #fde68a;
-
-    --kpi-indigo: #4f46e5;
-    --kpi-indigo-bg: #eef2ff;
-    --kpi-indigo-border: #c7d2fe;
-
-    --surface-bg: #f8f9fc;
+    --surface-bg: #f8fafc;
     --surface-card: #ffffff;
     --border-color: #e2e8f0;
     --border-subtle: #f1f5f9;
@@ -37,10 +26,10 @@
     --text-muted: #64748b;
     --text-light: #94a3b8;
 
-    --radius-card: 12px;
+    --radius-card: 14px;
     --radius-sm: 8px;
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-hover: 0 8px 20px -4px rgba(0, 0, 0, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+    --shadow-subtle: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    --shadow-elevated: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
 
     background-color: var(--surface-bg);
     color: var(--text-body);
@@ -48,16 +37,16 @@
     min-height: 100%;
 
     // -------------------------------------------------------------------------
-    // Topbar & Header
+    // Topbar & Executive Command Header
     // -------------------------------------------------------------------------
     .o_dashboard_topbar {
         background: #ffffff;
         border-bottom: 1px solid var(--border-color);
-        padding: 12px 24px;
+        padding: 14px 28px;
         position: sticky;
         top: 0;
         z-index: 10;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03);
     }
 
     .o_dashboard_header_main {
@@ -65,9 +54,9 @@
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
-        gap: 12px 16px;
+        gap: 14px 20px;
         width: 100%;
-        max-width: 1600px;
+        max-width: 1680px;
         margin: 0 auto;
     }
 
@@ -75,13 +64,18 @@
         min-width: 0;
     }
 
-    .o_dashboard_eyebrow {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-muted);
-        margin-bottom: 2px;
+    .o_univ_crest_icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        flex-shrink: 0;
     }
 
     .o_dashboard_title_row {
@@ -92,22 +86,22 @@
     }
 
     .dashboard-title {
-        font-size: 1.5rem;
-        font-weight: 700;
+        font-size: 1.45rem;
+        font-weight: 800;
         color: var(--text-heading);
         margin: 0;
-        line-height: 1.25;
-        letter-spacing: -0.02em;
+        line-height: 1.2;
+        letter-spacing: -0.025em;
     }
 
     .o_dashboard_status_badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
+        gap: 7px;
+        padding: 4px 12px;
         border-radius: 9999px;
         font-size: 0.75rem;
-        font-weight: 600;
+        font-weight: 700;
         background: #ecfdf5;
         color: #065f46;
         border: 1px solid #a7f3d0;
@@ -143,7 +137,7 @@
         gap: 8px;
         font-size: 0.8125rem;
         color: var(--text-muted);
-        margin-top: 4px;
+        margin-top: 3px;
         flex-wrap: wrap;
     }
 
@@ -163,13 +157,22 @@
     .o_dashboard_period_filters {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
 
         .form-select {
-            min-width: 132px;
-            max-width: 180px;
-            font-size: 0.78rem;
+            min-width: 140px;
+            max-width: 190px;
+            font-size: 0.8125rem;
             border-color: var(--border-color);
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding-top: 5px;
+            padding-bottom: 5px;
+
+            &:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+            }
         }
     }
 
@@ -177,10 +180,21 @@
         position: relative;
         width: 36px;
         height: 36px;
+        border-radius: 8px;
         padding: 0;
         color: var(--text-muted);
         border: 1px solid var(--border-color);
         background: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+
+        &:hover {
+            color: var(--text-heading);
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
 
         .badge {
             position: absolute;
@@ -195,7 +209,7 @@
     .btn-refresh {
         width: 36px;
         height: 36px;
-        border-radius: var(--radius-sm);
+        border-radius: 8px;
         border: 1px solid var(--border-color);
         background: #ffffff;
         color: var(--text-muted);
@@ -216,47 +230,29 @@
         }
     }
 
-    .o_dashboard_action_group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .o_dashboard_action_label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: none;
-    }
-    @media (min-width: 1200px) {
-        .o_dashboard_action_label {
-            display: inline-block;
-        }
-    }
-
     .o_dashboard_action_buttons {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-wrap: wrap;
     }
 
     .btn-brand-primary {
-        background-color: var(--brand-navy);
-        border-color: var(--brand-navy);
+        background-color: #1e3a8a;
+        border-color: #1e3a8a;
         color: #ffffff;
         font-weight: 600;
-        border-radius: var(--radius-sm);
+        border-radius: 8px;
         padding: 6px 14px;
         font-size: 0.8125rem;
         transition: all 0.15s ease;
 
         &:hover, &:focus {
-            background-color: var(--brand-navy-hover);
-            border-color: var(--brand-navy-hover);
+            background-color: #172554;
+            border-color: #172554;
             color: #ffffff;
-            box-shadow: 0 2px 6px rgba(27, 42, 74, 0.25);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+            transform: translateY(-1px);
         }
     }
 
@@ -265,7 +261,7 @@
         border: 1px solid var(--border-color);
         color: var(--text-body);
         font-weight: 600;
-        border-radius: var(--radius-sm);
+        border-radius: 8px;
         padding: 6px 14px;
         font-size: 0.8125rem;
         transition: all 0.15s ease;
@@ -274,6 +270,7 @@
             background-color: #f8fafc;
             border-color: #cbd5e1;
             color: var(--text-heading);
+            transform: translateY(-1px);
         }
     }
 
@@ -281,121 +278,331 @@
     // Canvas & Main Container
     // -------------------------------------------------------------------------
     .o_dashboard_content {
-        max-width: 1600px;
+        max-width: 1680px;
         margin: 0 auto;
         width: 100%;
         overflow-x: hidden;
     }
 
+    .o_admin_clean_container {
+        width: 100%;
+    }
+
     // -------------------------------------------------------------------------
-    // TIER 1: Primary KPI Cards
+    // URGENT ATTENTION TRIAGE CENTER (ALERT BANNERS)
     // -------------------------------------------------------------------------
-    .o_kpi_card {
-        background: var(--surface-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 20px;
-        box-shadow: var(--shadow-card);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-hover);
-            border-color: #cbd5e1;
-        }
-
-        .o_kpi_label {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--text-muted);
-        }
-
-        .o_kpi_icon_box {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
+    .o_urgent_alerts_ribbon {
+        .o_alert_banner {
+            border-radius: var(--radius-card);
+            padding: 14px 18px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.125rem;
-            flex-shrink: 0;
-        }
-
-        &.o_kpi_students .o_kpi_icon_box {
-            background-color: var(--kpi-blue-bg);
-            color: var(--kpi-blue);
-            border: 1px solid var(--kpi-blue-border);
-        }
-
-        &.o_kpi_teachers .o_kpi_icon_box {
-            background-color: var(--kpi-emerald-bg);
-            color: var(--kpi-emerald);
-            border: 1px solid var(--kpi-emerald-border);
-        }
-
-        &.o_kpi_programs .o_kpi_icon_box {
-            background-color: var(--kpi-amber-bg);
-            color: var(--kpi-amber);
-            border: 1px solid var(--kpi-amber-border);
-        }
-
-        &.o_kpi_departments .o_kpi_icon_box {
-            background-color: var(--kpi-indigo-bg);
-            color: var(--kpi-indigo);
-            border: 1px solid var(--kpi-indigo-border);
-        }
-
-        .o_kpi_value {
-            font-size: 2.125rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            line-height: 1.15;
-            font-variant-numeric: tabular-nums;
-            margin-top: 6px;
-            margin-bottom: 12px;
-        }
-
-        .o_kpi_footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .o_kpi_action_btn {
-            padding: 2px 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--kpi-blue);
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            transition: all 0.15s ease;
-            text-decoration: none;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
 
             &:hover {
-                background: var(--kpi-blue-bg);
-                color: #1d4ed8;
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-elevated) !important;
+            }
+
+            .o_alert_icon_box {
+                width: 42px;
+                height: 42px;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .o_alert_content {
+                flex-grow: 1;
+                min-width: 0;
+            }
+
+            .o_alert_title {
+                font-size: 0.9375rem;
+                font-weight: 700;
+                line-height: 1.25;
+                margin-bottom: 2px;
+            }
+
+            .o_alert_desc {
+                font-size: 0.775rem;
+                color: var(--text-muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .o_alert_action {
+                font-size: 0.75rem;
+                font-weight: 700;
+                flex-shrink: 0;
+                display: inline-flex;
+                align-items: center;
+            }
+
+            &.o_alert_danger {
+                background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%);
+                border: 1px solid #fecdd3;
+                border-left: 4px solid #e11d48;
+
+                .o_alert_icon_box {
+                    background: #ffe4e6;
+                }
+                .o_alert_title {
+                    color: #9f1239;
+                }
+                .o_alert_action {
+                    color: #e11d48;
+                }
+            }
+
+            &.o_alert_warning {
+                background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+                border: 1px solid #fde68a;
+                border-left: 4px solid #d97706;
+
+                .o_alert_icon_box {
+                    background: #fef3c7;
+                }
+                .o_alert_title {
+                    color: #92400e;
+                }
+                .o_alert_action {
+                    color: #d97706;
+                }
+            }
+
+            &.o_alert_info {
+                background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+                border: 1px solid #bfdbfe;
+                border-left: 4px solid #2563eb;
+
+                .o_alert_icon_box {
+                    background: #dbeafe;
+                }
+                .o_alert_title {
+                    color: #1e40af;
+                }
+                .o_alert_action {
+                    color: #2563eb;
+                }
             }
         }
     }
 
     // -------------------------------------------------------------------------
-    // TIER 2: Secondary Academic Infrastructure Ribbon
+    // EXECUTIVE 5-CARD KPI COMMAND RIBBON
+    // -------------------------------------------------------------------------
+    .o_kpi_card_elevated {
+        background: #ffffff;
+        border-radius: var(--radius-card);
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-subtle);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        &.o_kpi_border_blue::before {
+            background: linear-gradient(90deg, #2563eb, #38bdf8);
+        }
+        &.o_kpi_border_emerald::before {
+            background: linear-gradient(90deg, #059669, #34d399);
+        }
+        &.o_kpi_border_indigo::before {
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+        }
+        &.o_kpi_border_amber::before {
+            background: linear-gradient(90deg, #d97706, #fbbf24);
+        }
+        &.o_kpi_border_teal::before {
+            background: linear-gradient(90deg, #0d9488, #2dd4bf);
+        }
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-elevated);
+            border-color: #cbd5e1;
+        }
+
+        .o_kpi_card_eyebrow {
+            font-size: 0.775rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .o_kpi_icon_badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+
+            &.bg-blue-subtle { background: #eff6ff; color: #2563eb; }
+            &.bg-emerald-subtle { background: #ecfdf5; color: #059669; }
+            &.bg-indigo-subtle { background: #eef2ff; color: #4f46e5; }
+            &.bg-amber-subtle { background: #fffbeb; color: #d97706; }
+            &.bg-teal-subtle { background: #f0fdfa; color: #0d9488; }
+        }
+
+        .o_kpi_card_metric {
+            font-size: 2.15rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            line-height: 1.15;
+            letter-spacing: -0.025em;
+            margin: 6px 0 12px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .o_kpi_card_footer {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 10px;
+            margin-top: auto;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // MODERN DASHBOARD PANELS
+    // -------------------------------------------------------------------------
+    .o_modern_panel {
+        background: #ffffff;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-subtle);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+
+        .o_panel_topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: #ffffff;
+
+            .o_panel_title {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-heading);
+                letter-spacing: -0.01em;
+            }
+
+            .o_panel_icon_bubble {
+                width: 36px;
+                height: 36px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // ATTENDANCE GAUGES & DONUT CHARTS
+    // -------------------------------------------------------------------------
+    .o_donut_wrapper {
+        position: relative;
+        width: 210px;
+        height: 210px;
+        margin: 0 auto;
+
+        .o_donut_center_text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            width: 100%;
+
+            .o_center_label {
+                font-size: 13px;
+                font-weight: 600;
+                color: #64748b;
+                margin-bottom: 2px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .o_center_val {
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: #0f172a;
+                line-height: 1;
+            }
+        }
+    }
+
+    .o_donut_legend {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 170px;
+
+        .o_legend_pill {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            transition: all 0.15s ease;
+
+            &:hover {
+                background-color: #ffffff;
+                box-shadow: 0 4px 8px -2px rgba(15, 23, 42, 0.06);
+            }
+        }
+
+        .o_legend_box {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            flex-shrink: 0;
+
+            &.o_bg_present {
+                background-color: #2563eb;
+            }
+
+            &.o_bg_absent {
+                background-color: #f87171;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // SECONDARY ACADEMIC INFRASTRUCTURE RIBBON
     // -------------------------------------------------------------------------
     .o_sec_kpi_card {
-        background: var(--surface-card);
+        background: #ffffff;
         border: 1px solid var(--border-color);
         border-radius: 10px;
         padding: 12px 16px;
-        box-shadow: var(--shadow-card);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -419,8 +626,6 @@
             width: 36px;
             height: 36px;
             border-radius: 8px;
-            background: #f1f5f9;
-            color: #475569;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -466,77 +671,15 @@
             transition: all 0.15s ease;
 
             &:hover {
-                background: var(--brand-navy);
+                background: #1e3a8a;
                 color: #ffffff;
-                border-color: var(--brand-navy);
+                border-color: #1e3a8a;
             }
         }
     }
 
     // -------------------------------------------------------------------------
-    // TIER 3 & 4: Dashboard Panels & Cards
-    // -------------------------------------------------------------------------
-    .o_dashboard_panel {
-        background: var(--surface-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        box-shadow: var(--shadow-card);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-
-        .o_panel_header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-subtle);
-            background: #ffffff;
-        }
-
-        .o_panel_title {
-            font-size: 0.9375rem;
-            font-weight: 700;
-            color: var(--text-heading);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .o_panel_link {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--kpi-blue);
-            text-decoration: none;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            padding: 0;
-
-            &:hover {
-                color: #1d4ed8;
-                text-decoration: underline;
-            }
-        }
-
-        .o_panel_body {
-            padding: 20px;
-            flex-grow: 1;
-        }
-
-        .o_chart_panel_body {
-            padding: 16px 20px 20px 20px;
-            min-height: 280px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Canvas & Chart Constraints (Fixes Ellipse Distortion)
+    // CANVAS & CHART CONSTRAINTS
     // -------------------------------------------------------------------------
     .o_chart_canvas {
         position: relative;
@@ -560,12 +703,14 @@
                 max-height: 180px;
             }
         }
+
+        &.o_chart_canvas_bar {
+            height: 240px;
+            max-height: 240px;
+        }
     }
 
     .o_student_status_breakdown {
-        border-top: 1px solid var(--border-color);
-        padding-top: 10px;
-
         .o_status_pill {
             background: #f8fafc;
             border: 1px solid var(--border-color);
@@ -575,14 +720,14 @@
             &:hover {
                 background: #ffffff;
                 transform: translateY(-2px);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
                 border-color: #cbd5e1;
             }
         }
     }
 
     // -------------------------------------------------------------------------
-    // Financial Metrics & Receipts Stream
+    // FINANCIAL HEALTH STYLING
     // -------------------------------------------------------------------------
     .o_finance_stat {
         padding: 12px 8px;
@@ -594,49 +739,18 @@
 
     .o_finance_label {
         font-size: 0.725rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.04em;
         margin-bottom: 4px;
         color: var(--text-muted);
     }
 
     .o_finance_num {
         font-size: 1.15rem;
-        font-weight: 700;
+        font-weight: 800;
         line-height: 1.2;
         font-variant-numeric: tabular-nums;
-    }
-
-    .o_attendance_rate {
-        font-size: 2.25rem;
-        font-weight: 700;
-        color: var(--kpi-emerald);
-        line-height: 1;
-    }
-
-    .o_activity_list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-
-        li {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            min-width: 0;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-subtle);
-
-            &:last-child {
-                border-bottom: 0;
-            }
-
-            > div {
-                min-width: 0;
-            }
-        }
     }
 
     .o_finance_progress_bar {
@@ -710,7 +824,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // TIER 5: Quick Operations & Roadmap
+    // QUICK OPERATION ACTION TILES
     // -------------------------------------------------------------------------
     .o_quick_op_btn {
         width: 100%;
@@ -723,7 +837,7 @@
         background: #ffffff;
         color: var(--text-body);
         font-size: 0.875rem;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.15s ease;
         cursor: pointer;
         text-align: left;
@@ -732,606 +846,30 @@
             border-color: #93c5fd;
             background: #f8fafc;
             color: #1d4ed8;
-            transform: translateX(2px);
-        }
-    }
-
-    .o_cap_body {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .o_cap_overview {
-        margin-bottom: 16px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid var(--border-subtle);
-    }
-
-    .o_cap_pct {
-        font-size: 1.5rem;
-        color: var(--text-heading);
-        font-weight: 700;
-    }
-
-    .o_cap_progress {
-        height: 6px;
-        background: #e2e8f0;
-        border-radius: 9999px;
-        overflow: hidden;
-
-        .o_cap_progress_fill {
-            height: 100%;
-            background: #10b981;
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-
-            &.o_cap_fill_empty {
-                background: #cbd5e1;
-            }
-        }
-    }
-
-    .o_cap_categories {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 16px;
-    }
-
-    .o_cap_cat {
-        padding: 10px;
-        background: #f8fafc;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--border-subtle);
-    }
-
-    .o_cap_cat_head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-    }
-
-    .o_cap_phases {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-    }
-
-    .o_cap_phase_chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        border: 1px solid var(--border-color);
-        background: #ffffff;
-
-        &.o_cap_phase_done {
-            background: #ecfdf5;
-            border-color: #a7f3d0;
-            color: #065f46;
-        }
-
-        .o_cap_phase_count {
-            background: #f1f5f9;
-            color: #475569;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-        }
-    }
-
-    .o_cap_items_scroll {
-        max-height: 220px;
-        overflow-y: auto;
-        margin-bottom: 16px;
-    }
-
-    .o_cap_item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 6px;
-        font-size: 0.8125rem;
-        transition: background 0.15s ease;
-
-        &.o_cap_item_clickable {
-            cursor: pointer;
-            &:hover {
-                background: #f1f5f9;
-            }
-        }
-
-        .o_cap_item_icon {
-            font-size: 1rem;
-            width: 20px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .o_cap_item_text {
-            flex-grow: 1;
-            min-width: 0;
-        }
-
-        .o_cap_item_name {
-            font-weight: 500;
-        }
-
-        .o_cap_item_meta {
-            font-size: 0.7rem;
+            transform: translateX(3px);
         }
     }
 
     // -------------------------------------------------------------------------
-    // Empty & Shimmer States
+    // CAMPUS NOTICE BOARD TABLE
     // -------------------------------------------------------------------------
-    .o_empty_state {
-        text-align: center;
-        padding: 32px 16px;
-
-        .o_empty_icon {
-            font-size: 2.25rem;
-            color: #cbd5e1;
-            margin-bottom: 10px;
-        }
-
-        .o_empty_title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-heading);
-            margin-bottom: 4px;
-        }
-
-        .o_empty_desc {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            max-width: 280px;
-            margin: 0 auto;
-        }
-    }
-
-    .o_skeleton_box {
-        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-        background-size: 200% 100%;
-        animation: skeleton-shimmer 1.5s infinite;
-        border-radius: 6px;
-    }
-
-    @keyframes skeleton-shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-
-    @media (max-width: 767.98px) {
-        .o_dashboard_topbar {
-            padding: 12px 16px;
-        }
-
-        .o_dashboard_header_main,
-        .o_dashboard_header_actions {
-            align-items: stretch;
-        }
-
-        .o_dashboard_period_filters {
-            width: 100%;
-
-            .form-select {
-                flex: 1 1 0;
-                min-width: 0;
-                max-width: none;
-            }
-        }
-
-        .o_dashboard_notifications,
-        .btn-refresh {
-            flex: 0 0 36px;
-        }
-
-        .o_dashboard_action_group {
-            min-width: 0;
-            flex: 1 1 auto;
-        }
-
-        .o_dashboard_action_buttons {
-            width: 100%;
-
-            .btn {
-                flex: 1 1 auto;
-                min-width: 0;
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Clean Modern Admin Dashboard Styles (Matching image spec)
-    // -------------------------------------------------------------------------
-    .o_admin_clean_container {
-        max-width: 1600px;
-        margin: 0 auto;
-    }
-
-    .o_role_dashboard_context {
-        align-items: stretch;
-        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 58%, #ffffff 100%);
-        border: 1px solid #bfdbfe;
-        border-radius: 14px;
-        display: flex;
-        gap: 24px;
-        justify-content: space-between;
-        padding: 20px 24px;
-
-        .o_role_context_heading {
-            flex: 1 1 260px;
-
-            h2 {
-                color: #0f172a;
-                font-size: 1.25rem;
-                font-weight: 800;
-                letter-spacing: -0.02em;
-                margin: 3px 0 4px;
-            }
-
-            p {
-                color: #64748b;
-                font-size: 0.8125rem;
-                margin: 0;
-            }
-        }
-
-        .o_role_context_eyebrow {
-            color: #2563eb;
-            font-size: 0.6875rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .o_role_context_metrics {
-            display: grid;
-            flex: 1 1 520px;
-            gap: 10px;
-            grid-template-columns: repeat(4, minmax(100px, 1fr));
-        }
-
-        .o_role_context_metric {
-            background: rgba(255, 255, 255, 0.76);
-            border: 1px solid #dbeafe;
-            border-radius: 10px;
-            color: #475569;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 11px 12px;
-            text-align: left;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
-
-            span {
-                font-size: 0.75rem;
-                font-weight: 600;
-            }
-
-            strong {
-                color: #0f172a;
-                font-size: 1.4rem;
-                line-height: 1;
-            }
-
-            &:hover,
-            &:focus-visible {
-                border-color: #60a5fa;
-                box-shadow: 0 5px 14px rgba(37, 99, 235, 0.12);
-                outline: none;
-                transform: translateY(-1px);
-            }
-        }
-
-        .o_role_context_metric_risk strong {
-            color: #dc2626;
-        }
-    }
-
-    .o_role_dashboard_context_faculty {
-        background: linear-gradient(135deg, #f5f3ff 0%, #fafafa 58%, #ffffff 100%);
-        border-color: #ddd6fe;
-
-        .o_role_context_eyebrow {
-            color: #7c3aed;
-        }
-
-        .o_role_context_metric {
-            border-color: #ede9fe;
-
-            &:hover,
-            &:focus-visible {
-                border-color: #a78bfa;
-                box-shadow: 0 5px 14px rgba(124, 58, 237, 0.12);
-            }
-        }
-    }
-
-    .o_role_dashboard_context_registrar {
-        background: linear-gradient(135deg, #ecfdf5 0%, #f8fafc 58%, #ffffff 100%);
-        border-color: #a7f3d0;
-
-        .o_role_context_eyebrow {
-            color: #047857;
-        }
-
-        .o_role_context_metric {
-            border-color: #d1fae5;
-
-            &:hover,
-            &:focus-visible {
-                border-color: #6ee7b7;
-                box-shadow: 0 5px 14px rgba(5, 150, 105, 0.12);
-            }
-        }
-    }
-
-    .o_admin_clean_title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: -0.03em;
-        margin: 0;
-    }
-
-    @media (max-width: 991.98px) {
-        .o_role_dashboard_context {
-            flex-direction: column;
-
-            .o_role_context_metrics {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-    }
-
-    // Tier 1: 4 KPI Cards
-    .o_admin_kpi_card {
-        background: #ffffff;
-        border: 1px solid #f1f5f9;
-        border-radius: 14px;
-        padding: 22px 24px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        cursor: pointer;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.09), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
-            border-color: #cbd5e1;
-        }
-
-        .o_admin_kpi_top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-        }
-
-        .o_admin_kpi_icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            background: #eff6ff;
-            color: #2563eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .o_admin_kpi_num {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1;
-            letter-spacing: -0.02em;
-        }
-
-        .o_admin_kpi_title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 3px;
-        }
-
-        .o_admin_kpi_subtitle {
-            font-size: 13px;
-            font-weight: 400;
-            color: #64748b;
-        }
-    }
-
-    // Tier 2 & 3: White Chart Cards
-    .o_admin_chart_card {
-        background: #ffffff;
-        border: 1px solid #f1f5f9;
-        border-radius: 14px;
-        padding: 24px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
-        display: flex;
-        flex-direction: column;
-
-        .o_admin_card_header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            border-bottom: 1px solid #f8fafc;
-            padding-bottom: 14px;
-
-            .o_admin_card_title {
-                font-size: 1.25rem;
-                font-weight: 800;
-                color: #0f172a;
-                margin: 0;
-            }
-        }
-
-        .o_admin_card_body {
-            flex-grow: 1;
-        }
-    }
-
-    // Donut wrapper with centered text
-    .o_donut_wrapper {
-        position: relative;
-        width: 220px;
-        height: 220px;
-        margin: 0 auto;
-
-        .o_donut_center_text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            pointer-events: none;
-            width: 100%;
-
-            .o_center_label {
-                font-size: 14px;
-                font-weight: 600;
-                color: #475569;
-                margin-bottom: 2px;
-            }
-
-            .o_center_val {
-                font-size: 2.15rem;
-                font-weight: 800;
-                color: #0f172a;
-                line-height: 1;
-            }
-        }
-    }
-
-    // Donut legend
-    .o_donut_legend {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-
-        .o_legend_item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .o_legend_box {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            flex-shrink: 0;
-
-            &.o_bg_present {
-                background-color: #2563eb;
-            }
-
-            &.o_bg_absent {
-                background-color: #f87171;
-            }
-        }
-    }
-
-    // Sort By selector
-    .o_admin_sort_select {
-        background-color: #f1f5f9;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #334155;
-        padding: 5px 12px;
-        cursor: pointer;
-
-        &:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-    }
-
-    .o_admin_sort_label {
-        color: #64748b;
-        font-size: 0.6875rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
-
-    .o_admin_statistics_section {
-        .o_admin_chart_card {
-            min-height: 344px;
-        }
-    }
-
-    .o_admin_operations_section {
-        .btn-group {
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-    }
-
-    .o_admin_overview_hint {
-        align-items: center;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px 16px;
-        justify-content: center;
-        min-height: 72px;
-        padding: 16px 20px;
-        text-align: center;
-
-        p {
-            color: #64748b;
-            font-size: 0.8125rem;
-            margin: 0;
-        }
-    }
-
-    // Notice Board Table
     .o_notice_table {
         margin: 0;
         border-collapse: separate;
         border-spacing: 0;
 
         thead {
-            background-color: #f0f4f8;
+            background-color: #f8fafc;
 
             th {
                 border-top: none;
                 border-bottom: 1px solid #e2e8f0;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 700;
-                color: #475569;
+                color: #64748b;
                 padding: 10px 16px;
-                text-transform: capitalize;
-
-                &:first-child {
-                    border-top-left-radius: 8px;
-                }
-                &:last-child {
-                    border-top-right-radius: 8px;
-                }
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
             }
         }
 
@@ -1368,5 +906,92 @@
                 }
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // SYSTEM CAPABILITIES & ROADMAP
+    // -------------------------------------------------------------------------
+    .o_cap_progress {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 9999px;
+        overflow: hidden;
+
+        .o_cap_progress_fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+    }
+
+    .o_cap_items_scroll {
+        max-height: 240px;
+        overflow-y: auto;
+    }
+
+    .o_cap_item {
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            transform: translateX(2px);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // OVERVIEW HINT BANNER
+    // -------------------------------------------------------------------------
+    .o_admin_overview_hint {
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 16px;
+        justify-content: space-between;
+        padding: 16px 20px;
+
+        p {
+            color: var(--text-body);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // EMPTY STATES & SKELETON SHIMMER
+    // -------------------------------------------------------------------------
+    .o_empty_state {
+        text-align: center;
+        padding: 32px 16px;
+
+        .o_empty_icon {
+            font-size: 2.25rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .o_empty_title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+    }
+
+    .o_skeleton_box {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.5s infinite;
+        border-radius: 6px;
+    }
+
+    @keyframes skeleton-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
 }

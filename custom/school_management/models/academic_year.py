@@ -22,6 +22,7 @@ class UniversityAcademicYear(models.Model):
     _order = "date_start desc, name desc, id desc"
 
     name = fields.Char(string="Academic Year", required=True)
+    image_1920 = fields.Image(string="Year Badge / Photo", max_width=1024, max_height=1024)
     date_start = fields.Date(string="Start Date", required=True)
     date_end = fields.Date(string="End Date", required=True)
     semester_ids = fields.One2many(
@@ -41,6 +42,9 @@ class UniversityAcademicYear(models.Model):
     )
     classroom_count = fields.Integer(
         string="Occupied Rooms", compute="_compute_timetable_metrics"
+    )
+    enrollment_count = fields.Integer(
+        string="Enrolled Students", compute="_compute_timetable_metrics"
     )
     timeslot_count = fields.Integer(
         string="Timeslots", compute="_compute_timeslot_count"
@@ -124,10 +128,18 @@ class UniversityAcademicYear(models.Model):
                 aggregates=["classroom_id:count_distinct"],
             )
         )
+        enrollment_data = dict(
+            self.env["university.enrollment"]._read_group(
+                [("academic_year_id", "in", self.ids), ("status", "=", "enrolled")],
+                groupby=["academic_year_id"],
+                aggregates=["__count"],
+            )
+        )
         for year in self:
             year.timetable_slot_count = slot_data.get(year, 0)
             year.conflict_count = conflict_data.get(year, 0)
             year.classroom_count = room_data.get(year, 0)
+            year.enrollment_count = enrollment_data.get(year, 0)
 
     def init(self):
         super().init()
@@ -333,6 +345,20 @@ class UniversityAcademicYear(models.Model):
                 "default_academic_year_id": self.id,
                 "search_default_group_by_room": 1,
                 "default_mode": "week",
+            },
+        }
+
+    def action_view_enrollments(self):
+        self.ensure_one()
+        return {
+            "name": _("Enrolled Students - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "res_model": "university.enrollment",
+            "view_mode": "list,kanban,form",
+            "domain": [("academic_year_id", "=", self.id)],
+            "context": {
+                "default_academic_year_id": self.id,
+                "search_default_filter_enrolled": 1,
             },
         }
 

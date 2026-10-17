@@ -39,6 +39,20 @@ class UniversityExam(models.Model):
         required=True,
         tracking=True,
     )
+    department_id = fields.Many2one(
+        "university.department",
+        string="Department",
+        related="section_id.department_id",
+        store=True,
+        readonly=True,
+    )
+    program_id = fields.Many2one(
+        "university.program",
+        string="Program / Major",
+        related="section_id.program_id",
+        store=True,
+        readonly=True,
+    )
     timetable_slot_id = fields.Many2one(
         "university.timetable.slot",
         string="Timetable Session",

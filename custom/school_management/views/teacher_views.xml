@@ -23,7 +23,7 @@
                 <field name="faculty_id"/>
                 <field name="class_count" string="Classes" optional="show"/>
                 <field name="weekly_hours" string="Weekly Hours" optional="show"/>
-                <field name="is_head" widget="badge" decoration-warning="is_head" string="Leadership" optional="show"/>
+                <field name="is_head" decoration-warning="is_head" string="Leadership" optional="show"/>
                 <field name="is_present" widget="boolean_toggle" string="Present Today" optional="hide"/>
                 <field name="email" widget="email"/>
                 <field name="phone" widget="phone" optional="hide"/>
@@ -304,7 +304,47 @@
                         </page>
 
                         <page string="Documents" name="documents_tab">
-                            <group string="Administrative Notes">
+                            <div class="alert alert-info d-flex align-items-center mb-3" role="status">
+                                <i class="fa fa-file-text-o fa-2x me-3 text-primary" title="Academic Credentials &amp; Employment Documents"/>
+                                <div>
+                                    <h5 class="mb-0 fw-bold">Academic Credentials &amp; Faculty Employment Files</h5>
+                                    <small class="text-muted">Repository of verified academic diplomas, curriculum vitae, employment agreements, and research portfolios.</small>
+                                </div>
+                            </div>
+                            <group string="Verification Status &amp; Compliance">
+                                <group>
+                                    <field name="doc_verification_status" widget="badge"
+                                           decoration-success="doc_verification_status == 'verified'"
+                                           decoration-warning="doc_verification_status == 'pending'"
+                                           decoration-danger="doc_verification_status == 'requires_update'"/>
+                                    <field name="verification_date"/>
+                                </group>
+                                <group>
+                                    <field name="verified_by"/>
+                                </group>
+                            </group>
+                            <group string="Primary Credentials &amp; Employment Documents">
+                                <group string="Curriculum Vitae &amp; Diplomas">
+                                    <field name="resume_file" filename="resume_filename" widget="binary"/>
+                                    <field name="resume_filename" invisible="1"/>
+                                    <field name="degree_file" filename="degree_filename" widget="binary"/>
+                                    <field name="degree_filename" invisible="1"/>
+                                </group>
+                                <group string="Contract &amp; Identification">
+                                    <field name="contract_file" filename="contract_filename" widget="binary"/>
+                                    <field name="contract_filename" invisible="1"/>
+                                    <field name="id_card_file" filename="id_card_filename" widget="binary"/>
+                                    <field name="id_card_filename" invisible="1"/>
+                                </group>
+                            </group>
+                            <group string="Research Portfolio &amp; Publications">
+                                <field name="research_interests" placeholder="e.g. Brand Architecture, Strategic Brand Equity, Global Marketing Management..."/>
+                                <field name="publications_summary" placeholder="e.g. Published Books, Key Journal Publications, Citations, Research Grants..."/>
+                            </group>
+                            <group string="Additional Certified Documents">
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </group>
+                            <group string="Administrative Remarks">
                                 <field name="notes" nolabel="1" placeholder="Add administrative notes, qualifications, or internal remarks..."/>
                             </group>
                         </page>
@@ -370,7 +410,7 @@
         <field name="arch" type="xml">
             <pivot string="Academic Staff Workload">
                 <field name="department_id" type="row"/>
-                <field name="display_name" type="row"/>
+                <field name="name" type="row"/>
                 <field name="position" type="col"/>
                 <field name="weekly_hours" type="measure"/>
                 <field name="class_count" type="measure"/>

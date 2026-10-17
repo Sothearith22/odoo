@@ -419,7 +419,8 @@ school_management/
 │                            # dashboard, document_signature, res_config_settings
 ├── data/                    # cleanup_legacy_models, dashboard_data, fee_sequence,
 │   │                        # academic_defaults, mail_template, capability_data,
-│   │                        # fix_user_teacher_links (noupdate <function> migration)
+│   │                        # fix_user_teacher_links, demo_attendance_links
+├── demo/                    # attendance_demo (idempotent _seed_attendance_demo for roles)
 ├── migrations/
 │   ├── 19.0.1.2.0/pre-migrate.py
 │   └── 19.0.1.2.1/pre-migrate.py  # data repair before schema reload
@@ -449,6 +450,21 @@ school_management/
 └── document/                # project_overview, project_structure, agent_guide,
                              # local_configuration_guide, login_guide, architecture, QNA review
 ```
+
+### Financial & Analytic Accounting Architecture Notes
+
+- **Fee Model Boundary:** `school_management` maintains standalone fee and payment models (`university.fee`, `university.fee.line`, `university.fee.structure`, `university.payment`) for student fee invoicing and receipts without forcing full General Ledger setup.
+- **Integration with Odoo `account.analytic.account`:**
+  - Academic units (`university.faculty`, `university.department`, `university.program`) map directly to Odoo 19 `account.analytic.account` cost centers (`addons/account/models/account_analytic_account.py`).
+  - Student fee moves tag revenue using Odoo 19's `analytic_distribution` dictionary (e.g. `{"<analytic_account_id>": 100.0}`).
+  - Leverages standard computed fields `invoice_count` and `vendor_bill_count` along with smart actions `action_view_invoice()` and `action_view_vendor_bill()` to drill down into student invoices and departmental expenses directly from the analytic account.
+  - Complete conceptual specifications are documented in [`university_management_system_architecture.md`](university_management_system_architecture.md#13--fee-architecture).
+
+### Demo Data & Attendance Seeding (`demo/attendance_demo.xml`)
+
+- **Role Demonstration:** Loads deterministic attendance data across four core seeded class sections (`DBMS-A101`, `R2`, `B202`, `GM-Y1-A`) so that Student, Teacher, Head of Department, and Dean roles immediately have attendance statistics and risk metrics to review in their dashboards.
+- **Execution Mechanism:** Invoked via `<function model="university.attendance" name="_seed_attendance_demo"/>` in `demo/attendance_demo.xml` when installing with demo data enabled (`--without-demo=False`).
+- **Idempotency & Pre-requisites:** `_seed_attendance_demo()` creates only missing records and never overwrites existing attendance data. It depends on `data/demo_attendance_links.xml` running first to establish staff/user relationships.
 
 ### Class Section & Assignment Architecture Notes
 

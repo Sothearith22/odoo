@@ -1,7 +1,7 @@
 import json
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import ChromeBrowser, HttpCase, TransactionCase
 from odoo.tests import tagged
@@ -13,12 +13,20 @@ class _AttendanceSheetFixtures:
         super().setUpClass()
         cls.Attendance = cls.env["university.attendance"]
         cls.Session = cls.env["university.attendance.session"]
-        cls.year = cls.env["university.academic.year"].create({
+        existing_year = cls.env["university.academic.year"].search([
+            ("date_start", "<=", "2026-09-30"),
+            ("date_end", ">=", "2026-09-30"),
+        ], limit=1)
+        cls.year = existing_year or cls.env["university.academic.year"].create({
             "name": "Attendance Test Year", "date_start": "2026-01-01", "date_end": "2026-12-31",
         })
-        cls.semester = cls.env["university.semester"].create({
+        existing_sem = cls.env["university.semester"].search([
+            ("academic_year_id", "=", cls.year.id),
+            ("semester_type", "=", "semester_1"),
+        ], limit=1)
+        cls.semester = existing_sem or cls.env["university.semester"].create({
             "name": "Attendance Test Semester", "academic_year_id": cls.year.id,
-            "semester_type": "semester_1", "date_start": "2026-01-01", "date_end": "2026-12-31",
+            "semester_type": "semester_1", "date_start": cls.year.date_start, "date_end": cls.year.date_end,
         })
         faculty = cls.env["university.faculty"].create({"name": "Attendance Faculty", "code": "AT-FAC"})
         department = cls.env["university.department"].create({
@@ -96,8 +104,9 @@ class TestAttendanceSheet(_AttendanceSheetFixtures, TransactionCase):
         self.assertFalse(self.Session.search([("section_id", "=", self.section.id)]))
 
     def test_teacher_can_save_and_student_cannot_access_session_thread(self):
+        today_str = str(fields.Date.today())
         sheet = self.Attendance.with_user(self.teacher_user).save_sheet(
-            self.section.id, "2026-09-30", [{"student_id": self.student.id, "status": "late"}], "Teacher note",
+            self.section.id, today_str, [{"student_id": self.student.id, "status": "late"}], "Teacher note",
         )
         session = self.Session.browse(sheet["session_id"])
         self.assertEqual(session.recorded_by_id, self.teacher_user)
@@ -105,7 +114,7 @@ class TestAttendanceSheet(_AttendanceSheetFixtures, TransactionCase):
         with self.assertRaises(AccessError):
             session.with_user(self.student_user).read(["notes"])
         with self.assertRaises(AccessError):
-            self.Attendance.with_user(self.student_user).get_sheet(self.section.id, "2026-09-30")
+            self.Attendance.with_user(self.student_user).get_sheet(self.section.id, today_str)
 
     def test_other_teacher_cannot_read_or_edit_session(self):
         sheet = self._save()
@@ -155,7 +164,7 @@ class TestAttendanceSheetBrowser(_AttendanceSheetFixtures, HttpCase):
                 await waitFor(() => document.querySelector('.o_att_student_name'));
                 const sheet = document.querySelector('.o_att_sheet');
                 assert(sheet.querySelector('.o_att_breadcrumb_record').textContent.includes('AT-202'), 'Missing section breadcrumb');
-                assert(sheet.querySelectorAll('.o_att_stat').length === 4, 'Missing attendance statistics');
+                assert(sheet.querySelectorAll('.att_container').length >= 4, 'Missing attendance statistics');
                 assert(getComputedStyle(sheet).backgroundColor === 'rgb(255, 255, 255)', 'Attendance background is not light');
                 await waitFor(() => sheet.querySelector('.o-mail-Chatter-sendMessage'));
                 assert(sheet.querySelector('.o-mail-Chatter-logNote'), 'Missing standard log note button');

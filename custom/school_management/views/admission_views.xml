@@ -13,9 +13,67 @@
                 <field name="section_id" optional="hide"/>
                 <field name="email" optional="hide"/>
                 <field name="phone" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="fee_amount" widget="monetary" optional="show"/>
                 <field name="application_date" optional="show"/>
                 <field name="state" widget="badge" decoration-info="state in ('draft', 'submitted')" decoration-success="state == 'confirmed'" decoration-warning="state == 'approved'" decoration-danger="state in ('rejected', 'cancelled')"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_university_admission_application_kanban" model="ir.ui.view">
+        <field name="name">university.admission.application.kanban</field>
+        <field name="model">university.admission.application</field>
+        <field name="arch" type="xml">
+            <kanban sample="1" default_group_by="state" quick_create="false" class="o_university_admission_kanban">
+                <field name="name"/>
+                <field name="applicant_name"/>
+                <field name="program_id"/>
+                <field name="academic_year_id"/>
+                <field name="semester_id"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="gender"/>
+                <field name="fee_amount"/>
+                <field name="currency_id"/>
+                <field name="application_date"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <main class="ms-2 p-3">
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="fs-6 o_kanban_record_title text-primary"><field name="applicant_name"/></strong>
+                                    <span class="text-muted small ms-2"><field name="name"/></span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <span class="badge text-bg-light border text-dark fw-semibold">
+                                    <i class="fa fa-graduation-cap me-1 text-primary"/>
+                                    <field name="program_id"/>
+                                </span>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.email.raw_value">
+                                <i class="fa fa-envelope me-1" title="Email"/>
+                                <field name="email"/>
+                            </div>
+                            <div class="text-muted small mt-1" t-if="record.phone.raw_value">
+                                <i class="fa fa-phone me-1" title="Phone"/>
+                                <field name="phone"/>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <span class="small text-muted">
+                                    <i class="fa fa-calendar me-1"/>
+                                    <field name="application_date"/>
+                                </span>
+                                <span class="badge text-bg-success-subtle text-success border border-success-subtle px-2 py-1" t-if="record.fee_amount.raw_value">
+                                    <field name="fee_amount" widget="monetary"/>
+                                </span>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -58,7 +116,9 @@
                             <field name="academic_year_id"/>
                             <field name="semester_id"/>
                             <field name="section_id"/>
+                            <field name="currency_id" invisible="1"/>
                             <field name="fee_structure_id"/>
+                            <field name="fee_amount" widget="monetary" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -116,7 +176,7 @@
     <record id="action_university_admission_application" model="ir.actions.act_window">
         <field name="name">Admission Applications</field>
         <field name="res_model">university.admission.application</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_admission_application_search"/>
     </record>
 </odoo>

@@ -132,12 +132,14 @@
                             </div>
                         </div>
 
-                        <!-- Right Legend Badges (A: Absent, L: Leave, W: Weekend) -->
-                        <div class="col-12 col-xl-4 text-xl-end">
+                        <!-- Right Legend Badges (P: Present, A: Absent, L: Leave, W: Weekend, H: Holiday) -->
+                        <div class="col-12 col-xl-5 text-xl-end">
                             <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge o_att_legend_pill o_att_legend--present">P: Present</span>
                                 <span class="badge o_att_legend_pill o_att_legend--absent">A: Absent</span>
                                 <span class="badge o_att_legend_pill o_att_legend--leave">L: Leave</span>
                                 <span class="badge o_att_legend_pill o_att_legend--weekend">W: Weekend</span>
+                                <span class="badge o_att_legend_pill o_att_legend--holiday">H: Holiday</span>
                             </div>
                         </div>
                     </div>
@@ -153,22 +155,16 @@
                     <div t-elif="state.matrix &amp;&amp; state.matrix.rows &amp;&amp; state.matrix.rows.length" class="o_att_matrix_table_wrap table-responsive">
                         <table class="table table-bordered mb-0 align-middle o_att_matrix_table">
                             <thead>
-                                <!-- Row 1: Employees + Day Name (SAT, SUN, MON...) -->
-                                <tr class="o_matrix_head_row_days">
-                                    <th rowspan="2" class="o_matrix_col_emp bg-light fw-bold text-dark px-3 align-middle">
+                                <tr>
+                                    <th class="o_matrix_col_emp bg-light fw-bold text-dark px-3 align-middle text-start">
                                         Employees
                                     </th>
                                     <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
-                                        <th t-att-class="'text-center py-1 px-1 o_matrix_th_day' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '')">
-                                            <span t-esc="d.day_name"/>
-                                        </th>
-                                    </t>
-                                </tr>
-                                <!-- Row 2: Day Numbers (1, 2, 3... 31) -->
-                                <tr class="o_matrix_head_row_nums">
-                                    <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
-                                        <th t-att-class="'text-center py-1 px-1 o_matrix_th_num' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '')">
-                                            <span t-esc="d.day_num"/>
+                                        <th t-att-class="'text-center py-2 px-1 o_matrix_th_day' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '')">
+                                            <div class="d-flex flex-column align-items-center justify-content-center">
+                                                <span class="o_matrix_day_name" t-esc="d.day_name"/>
+                                                <span class="o_matrix_day_num" t-esc="d.day_num"/>
+                                            </div>
                                         </th>
                                     </t>
                                 </tr>
@@ -198,14 +194,15 @@
                                     <!-- Day Cells (1 to 31) -->
                                     <t t-foreach="state.matrix.days" t-as="d" t-key="d.day_num">
                                         <t t-set="cell" t-value="row.days[d.date_str]"/>
-                                        <td t-att-class="'text-center p-1 o_matrix_cell' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '') + (cell ? ' o_matrix_cell--' + cell.cell_type : '')"
+                                        <td t-att-class="'text-center p-0 o_matrix_cell' + (d.is_weekend ? ' is_weekend' : '') + (d.is_today ? ' is_today' : '') + (cell ? ' o_matrix_cell--' + cell.cell_type : '')"
                                             t-att-title="row.name + ' (' + d.date_str + '): ' + (cell ? cell.display : '')"
                                             t-on-click="() => this.onMatrixCellClick(row, d)">
                                             <t t-if="cell">
-                                                <span t-if="cell.cell_type === 'absent'" class="o_matrix_badge o_matrix_badge--absent">A</span>
-                                                <span t-elif="cell.cell_type === 'leave'" class="o_matrix_badge o_matrix_badge--leave">L</span>
-                                                <span t-elif="cell.cell_type === 'weekend'" class="o_matrix_text_weekend">W</span>
-                                                <span t-elif="cell.cell_type === 'holiday'" class="o_matrix_badge o_matrix_badge--leave">H</span>
+                                                <span t-if="cell.cell_type === 'absent'" class="o_matrix_badge o_matrix_badge--absent" title="Absent">A</span>
+                                                <span t-elif="cell.cell_type === 'leave'" class="o_matrix_badge o_matrix_badge--leave" title="Leave">L</span>
+                                                <span t-elif="cell.cell_type === 'weekend'" class="o_matrix_text_weekend" title="Weekend">W</span>
+                                                <span t-elif="cell.cell_type === 'holiday'" class="o_matrix_badge o_matrix_badge--holiday" title="Holiday">H</span>
+                                                <span t-elif="cell.cell_type === 'worked'" class="o_matrix_badge o_matrix_badge--worked" title="Present" t-esc="cell.display || 'P'"/>
                                                 <span t-elif="cell.display" class="o_matrix_hours_text" t-esc="cell.display"/>
                                             </t>
                                         </td>
@@ -512,120 +509,127 @@
                         </div>
                     </div>
 
-                    <!-- ==================== TABLE VIEW ==================== -->
+                    <!-- ==================== TABLE VIEW (Clean Table Layout) ==================== -->
                     <t t-if="state.viewMode === 'table'">
-                        <div class="o_att_listhead o_att_listhead--staff" t-if="visibleRows.length" aria-hidden="true">
-                            <span class="o_att_listhead_label">Staff Member</span>
-                            <span class="o_att_listhead_label o_att_listhead_label--center">Attendance Status</span>
-                            <span class="o_att_listhead_label o_att_listhead_label--center">Check-In</span>
-                            <span class="o_att_listhead_label o_att_listhead_label--center">Check-Out</span>
-                            <span class="o_att_listhead_label o_att_listhead_label--center">Hours</span>
-                            <span class="o_att_listhead_label o_att_listhead_label--center">Note</span>
+                        <div t-if="visibleRows.length" class="table-responsive bg-white rounded-3 border shadow-sm mb-4">
+                            <table class="table table-hover align-middle mb-0 o_att_tabular_staff_list">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center py-2 text-muted fw-bold" style="width: 45px;">#</th>
+                                        <th class="py-2 fw-bold text-dark" style="min-width: 220px;">Staff Member</th>
+                                        <th class="py-2 fw-bold text-dark" style="min-width: 140px;">Department</th>
+                                        <th class="text-center py-2 fw-bold text-dark" style="min-width: 120px;">Status</th>
+                                        <th class="text-center py-2 fw-bold text-dark" style="min-width: 220px;">Quick Status</th>
+                                        <th class="text-center py-2 fw-bold text-dark" style="min-width: 110px;">Check-In</th>
+                                        <th class="text-center py-2 fw-bold text-dark" style="min-width: 110px;">Check-Out</th>
+                                        <th class="text-center py-2 fw-bold text-dark" style="min-width: 80px;">Hours</th>
+                                        <th class="py-2 fw-bold text-dark" style="min-width: 180px;">Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
+                                        <tr t-att-class="line.teacher_id === state.activeId ? 'table-active' : ''"
+                                            t-on-click="() =&gt; this.setActive(line)">
+                                            <td class="text-center text-muted fw-semibold small" t-esc="line_index + 1"/>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <t t-if="line.has_image">
+                                                        <img class="rounded-circle object-fit-cover flex-shrink-0 border shadow-sm"
+                                                             t-att-src="'/web/image/university.teacher/' + line.teacher_id + '/image_1920'"
+                                                             alt="" style="width: 34px; height: 34px;"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span t-att-class="'rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm flex-shrink-0 o_att_avatar--' + teacherTone(line)"
+                                                              style="width: 34px; height: 34px; font-size: 11px;"
+                                                              t-esc="teacherInitial(line)"/>
+                                                    </t>
+                                                    <div class="d-flex flex-column text-truncate min-w-0">
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <strong class="text-dark text-truncate small" t-att-title="line.name" t-esc="line.name"/>
+                                                            <span t-if="line.state === 'approved'" class="badge rounded-pill bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.65rem;">Approved</span>
+                                                            <span t-elif="line.state === 'submitted'" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle ms-1" style="font-size: 0.65rem;">Submitted</span>
+                                                            <span t-elif="line.state === 'rejected'" class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size: 0.65rem;">Rejected</span>
+                                                        </div>
+                                                        <span class="text-muted small text-truncate" style="font-size: 11px;" t-esc="line.code || 'No ID'"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge text-bg-light border text-muted small" t-if="line.department" t-esc="line.department"/>
+                                                <span class="text-muted small" t-else="">-</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-att-class="'badge ' + (line.status === 'present' ? 'bg-success-subtle text-success border border-success-subtle' : (line.status === 'absent' ? 'bg-danger-subtle text-danger border border-danger-subtle' : (line.status === 'late' ? 'bg-warning-subtle text-warning border border-warning-subtle' : (line.status === 'leave' ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-secondary-subtle text-secondary border'))))">
+                                                    <span class="text-capitalize" t-esc="line.status"/>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm shadow-sm" role="group" t-att-aria-label="'Status for ' + line.name">
+                                                    <button t-foreach="statusOptions" t-as="opt" t-key="opt.value"
+                                                            type="button"
+                                                            t-att-class="'btn btn-sm ' + (line.status === opt.value ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary bg-white')"
+                                                            t-att-title="opt.label"
+                                                            t-att-disabled="line.state === 'approved' || !state.isAdmin || state.loading || state.saving"
+                                                            t-on-click="() =&gt; this.setStatus(line, opt.value)">
+                                                        <i t-if="line.status === opt.value" class="fa fa-check me-1" aria-hidden="true"/>
+                                                        <span t-esc="opt.key"/>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="time"
+                                                       class="form-control form-control-sm text-center py-0 px-1 mx-auto"
+                                                       style="width: 85px;"
+                                                       t-att-value="line.check_in"
+                                                       t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
+                                                       t-on-change="(ev) =&gt; this.onCheckInChange(line, ev)"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="time"
+                                                       class="form-control form-control-sm text-center py-0 px-1 mx-auto"
+                                                       style="width: 85px;"
+                                                       t-att-value="line.check_out"
+                                                       t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
+                                                       t-on-change="(ev) =&gt; this.onCheckOutChange(line, ev)"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-att-class="'badge ' + (line.worked_hours &gt; 0 ? 'bg-light text-dark border fw-bold' : 'text-muted')"
+                                                      t-esc="fmtHours(line.worked_hours)"/>
+                                            </td>
+                                            <td>
+                                                <div t-if="state.openNoteId === line.teacher_id" class="d-flex align-items-center gap-1">
+                                                    <input type="text"
+                                                           class="form-control form-control-sm o_att_note_input"
+                                                           t-att-value="line.remark"
+                                                           t-att-disabled="!state.isAdmin || state.loading || state.saving"
+                                                           placeholder="Add note..."
+                                                           t-on-input="(ev) =&gt; this.updateNote(line, ev)"
+                                                           t-on-keydown="(ev) =&gt; ev.key === 'Enter' || ev.key === 'Escape' ? this.closeNote() : null"/>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" t-on-click="closeNote">Done</button>
+                                                </div>
+                                                <div t-else="" class="d-flex align-items-center justify-content-between gap-1">
+                                                    <span t-if="line.remark" class="text-muted small text-truncate cursor-pointer"
+                                                          t-att-title="line.remark"
+                                                          t-on-click="() =&gt; this.toggleNote(line)">
+                                                        <i class="fa fa-commenting text-primary me-1" aria-hidden="true"/>
+                                                        <span t-esc="line.remark"/>
+                                                    </span>
+                                                    <span t-else="" class="text-muted small fst-italic cursor-pointer"
+                                                          t-on-click="() =&gt; this.toggleNote(line)">
+                                                        <i class="fa fa-comment-o me-1 text-muted" aria-hidden="true"/>Add note
+                                                    </span>
+                                                    <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted"
+                                                            t-on-click="() =&gt; this.toggleNote(line)"
+                                                            title="Edit note">
+                                                        <i class="fa fa-pencil" aria-hidden="true"/>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
                         </div>
-
-                        <ul class="o_att_rows" t-if="visibleRows.length">
-                            <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
-                                <li t-att-class="'o_att_row o_att_row--staff' + (line.teacher_id === state.activeId ? ' o_att_row--active' : '')">
-                                <div class="o_att_student" t-on-click="() => this.setActive(line)">
-                                    <t t-if="line.has_image">
-                                        <img class="o_att_avatar" t-att-src="'/web/image/university.teacher/' + line.teacher_id + '/image_1920'" alt=""/>
-                                    </t>
-                                    <t t-else="">
-                                        <span t-att-class="'o_att_avatar o_att_avatar--' + teacherTone(line)"
-                                              aria-hidden="true"
-                                              t-esc="teacherInitial(line)"/>
-                                    </t>
-                                    <span class="o_att_student_text">
-                                        <span class="o_att_student_name">
-                                            <t t-esc="line.name"/>
-                                            <span t-if="line.state === 'approved'" class="badge rounded-pill bg-success-subtle text-success border border-success-subtle ms-1" style="font-size: 0.7rem;">Approved</span>
-                                            <span t-elif="line.state === 'submitted'" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle ms-1" style="font-size: 0.7rem;">Submitted</span>
-                                            <span t-elif="line.state === 'rejected'" class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size: 0.7rem;">Rejected</span>
-                                        </span>
-                                        <span class="o_att_student_meta">
-                                            <span t-esc="line.code || 'No ID'"/>
-                                            <span class="o_att_student_sep" aria-hidden="true">·</span>
-                                            <span t-if="line.department" class="o_att_chip" t-esc="line.department"/>
-                                        </span>
-                                    </span>
-                                </div>
-
-                                <div class="o_att_seg o_att_seg--staff" role="radiogroup"
-                                     t-att-aria-label="'Status for ' + line.name">
-                                    <button t-foreach="statusOptions" t-as="opt" t-key="opt.value"
-                                            type="button"
-                                            t-att-class="'o_att_seg__btn o_att_seg__btn--' + opt.value + (line.status === opt.value ? ' o_att_seg__btn--on' : '')"
-                                            role="radio"
-                                            t-att-data-teacher="line.teacher_id"
-                                            t-att-data-status="opt.value"
-                                            t-att-aria-checked="line.status === opt.value ? 'true' : 'false'"
-                                            t-att-title="opt.label"
-                                            t-att-disabled="line.state === 'approved' || !state.isAdmin || state.loading || state.saving"
-                                            t-on-click="() => this.setStatus(line, opt.value)">
-                                        <i t-if="line.status === opt.value" class="fa fa-check me-1" aria-hidden="true"/>
-                                        <span t-esc="opt.label"/>
-                                    </button>
-                                </div>
-
-                                <div class="o_att_timecell">
-                                    <div t-att-class="'o_att_time_wrap' + (line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_att_time_wrap--disabled' : '')">
-                                        <i class="fa fa-sign-in text-success o_att_time_icon" aria-hidden="true"/>
-                                        <input type="time"
-                                               class="o_att_time_input"
-                                               t-att-value="line.check_in"
-                                               t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
-                                               t-att-aria-label="'Check-in for ' + line.name"
-                                               t-on-change="(ev) => this.onCheckInChange(line, ev)"/>
-                                    </div>
-                                </div>
-
-                                <div class="o_att_timecell">
-                                    <div t-att-class="'o_att_time_wrap' + (line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin ? ' o_att_time_wrap--disabled' : '')">
-                                        <i class="fa fa-sign-out text-danger o_att_time_icon" aria-hidden="true"/>
-                                        <input type="time"
-                                               class="o_att_time_input"
-                                               t-att-value="line.check_out"
-                                               t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
-                                               t-att-aria-label="'Check-out for ' + line.name"
-                                               t-on-change="(ev) => this.onCheckOutChange(line, ev)"/>
-                                    </div>
-                                </div>
-
-                                <div class="o_att_hourscell">
-                                    <span t-att-class="'o_att_hours_badge' + (line.worked_hours > 0 ? ' o_att_hours_badge--filled' : '')"
-                                          t-esc="fmtHours(line.worked_hours)"/>
-                                </div>
-
-                                <div class="o_att_notecell">
-                                    <button type="button"
-                                            t-att-class="'o_att_notebtn' + (line.remark ? ' o_att_notebtn--has-note' : (state.openNoteId === line.teacher_id ? ' o_att_notebtn--open' : ''))"
-                                            t-att-aria-expanded="state.openNoteId === line.teacher_id ? 'true' : 'false'"
-                                            t-att-aria-label="(line.remark ? 'Edit note' : 'Add note') + ' for ' + line.name"
-                                            t-on-click="() => this.toggleNote(line)">
-                                        <i class="fa fa-comment-o" aria-hidden="true"/>
-                                        <span t-if="line.remark" class="o_att_notebtn_dot" aria-hidden="true"/>
-                                    </button>
-                                </div>
-                            </li>
-
-                            <li t-if="state.openNoteId === line.teacher_id" class="o_att_row o_att_noterow">
-                                <div class="o_att_noterow_inner">
-                                    <div class="o_att_noterow_field">
-                                        <input type="text"
-                                               class="o_att_note_input"
-                                               t-att-value="line.remark"
-                                               t-att-disabled="!state.isAdmin || state.loading || state.saving"
-                                               t-att-placeholder="'Add an attendance note for ' + line.name + '...'"
-                                               t-on-input="(ev) => this.updateNote(line, ev)"
-                                               t-on-keydown="(ev) => ev.key === 'Enter' || ev.key === 'Escape' ? this.closeNote() : null"/>
-                                    </div>
-                                    <button type="button" class="o_att_linkbtn" t-on-click="closeNote">Done</button>
-                                    <button t-if="line.remark and state.isAdmin" type="button" class="o_att_linkbtn o_att_linkbtn--danger"
-                                            t-on-click="() => this.clearNote(line)">Clear</button>
-                                </div>
-                            </li>
-                        </t>
-                    </ul>
                     </t>
 
                     <!-- Polished Empty States Matching Student Attendance -->
@@ -711,7 +715,7 @@
                 <footer class="o_att_actionbar">
                     <p t-att-class="'o_att_hint ' + (isDirty ? 'o_att_hint--dirty' : 'o_att_hint--clean')" aria-live="polite">
                         <span class="o_att_hint_dot" aria-hidden="true"/>
-                        <span t-if="!state.isAdmin">View only · Administrator privileges required to edit</span>
+                        <span t-if="!state.isAdmin">View only &#183; Administrator privileges required to edit</span>
                         <span t-elif="isDirty">Unsaved changes</span>
                         <span t-elif="state.lastSaved">All changes saved</span>
                         <span t-else="">Draft (not saved)</span>
@@ -743,11 +747,11 @@
                 <Chatter t-if="activeStaffAttendanceId &amp;&amp; !state.loading"
                          t-key="'att-' + activeStaffAttendanceId + '-' + state.chatterRevision"
                          threadModel="'university.staff.attendance'" threadId="activeStaffAttendanceId"
-                         has_activities="true" isChatterAside="false"/>
+                         />
                 <Chatter t-elif="state.activeId &amp;&amp; !state.loading"
                          t-key="'teacher-' + state.activeId + '-' + state.chatterRevision"
                          threadModel="'university.teacher'" threadId="state.activeId"
-                         has_activities="true" isChatterAside="false"/>
+                         />
                 <div t-else="" class="o_att_chatter_empty">
                     <i class="fa fa-comments-o" aria-hidden="true"/>
                     <span t-if="state.loading">Loading attendance log...</span>

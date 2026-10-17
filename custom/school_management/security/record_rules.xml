@@ -371,7 +371,7 @@
         <field name="name">Head of Department: department attendance sessions</field>
         <field name="model_id" ref="model_university_attendance_session"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">['|', ('section_id.program_id.department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('section_id.program_id.department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -381,7 +381,7 @@
         <field name="name">Head of Faculty: faculty attendance sessions</field>
         <field name="model_id" ref="model_university_attendance_session"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">['|', ('section_id.program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('section_id.program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -398,7 +398,7 @@
         <field name="name">Head of Department: department attendance</field>
         <field name="model_id" ref="model_university_attendance"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">[('department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -409,7 +409,7 @@
         <field name="name">Head of Faculty: faculty attendance</field>
         <field name="model_id" ref="model_university_attendance"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">[('faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -500,7 +500,7 @@
         <field name="name">HOD: department students</field>
         <field name="model_id" ref="model_university_student"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">[('department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', '|', ('department_id.head_id.user_id', '=', user.id), ('enrollment_ids.section_id.subject_id.department_id.head_id.user_id', '=', user.id), ('enrollment_ids.section_id.program_id.department_id.head_id.user_id', '=', user.id), ('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -511,7 +511,7 @@
         <field name="name">HOD: department class sections</field>
         <field name="model_id" ref="model_university_class_section"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">['|', ('subject_id.department_id.head_id.user_id', '=', user.id), ('program_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('subject_id.department_id.head_id.user_id', '=', user.id), ('program_id.department_id.head_id.user_id', '=', user.id), ('teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -534,7 +534,7 @@
         <field name="name">HOD: department enrollments</field>
         <field name="model_id" ref="model_university_enrollment"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">['|', ('program_id.department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('program_id.department_id.head_id.user_id', '=', user.id), ('section_id.subject_id.department_id.head_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -558,7 +558,7 @@
         <field name="name">Head of Faculty: faculty departments</field>
         <field name="model_id" ref="model_university_department"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">[('faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', '|', ('faculty_id.dean_id.user_id', '=', user.id), ('teacher_ids.user_id', '=', user.id), ('program_ids.section_ids.teacher_id.user_id', '=', user.id), ('subject_ids.section_ids.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
@@ -593,7 +593,7 @@
         <field name="name">Head of Faculty: faculty students</field>
         <field name="model_id" ref="model_university_student"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">[('department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', '|', ('department_id.faculty_id.dean_id.user_id', '=', user.id), ('enrollment_ids.section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('enrollment_ids.section_id.program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -604,7 +604,7 @@
         <field name="name">Head of Faculty: faculty enrollments</field>
         <field name="model_id" ref="model_university_enrollment"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">['|', ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -627,7 +627,7 @@
         <field name="name">Head of Faculty: faculty class sections</field>
         <field name="model_id" ref="model_university_class_section"/>
         <field name="groups" eval="[(4, ref('group_school_dean'))]"/>
-        <field name="domain_force">['|', ('subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('subject_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('program_id.department_id.faculty_id.dean_id.user_id', '=', user.id), ('teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -1039,7 +1039,7 @@
         <field name="name">Head of Department: managed department</field>
         <field name="model_id" ref="model_university_department"/>
         <field name="groups" eval="[(4, ref('group_school_hod'))]"/>
-        <field name="domain_force">['|', ('head_id.user_id', '=', user.id), ('head_id', '=', user.teacher_id.id)]</field>
+        <field name="domain_force">['|', '|', '|', '|', ('head_id.user_id', '=', user.id), ('head_id', '=', user.teacher_id.id), ('teacher_ids.user_id', '=', user.id), ('program_ids.section_ids.teacher_id.user_id', '=', user.id), ('subject_ids.section_ids.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
@@ -1050,7 +1050,7 @@
         <field name="name">Teacher: own department</field>
         <field name="model_id" ref="model_university_department"/>
         <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('teacher_ids.user_id', '=', user.id), ('teacher_ids', '=', user.teacher_id.id)]</field>
+        <field name="domain_force">['|', '|', '|', ('teacher_ids.user_id', '=', user.id), ('teacher_ids', '=', user.teacher_id.id), ('program_ids.section_ids.teacher_id.user_id', '=', user.id), ('subject_ids.section_ids.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

@@ -1,3 +1,4 @@
+import pytz
 import math
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -153,6 +154,19 @@ class UniversityClassSection(models.Model):
         "section_id",
         string="Assignments",
     )
+    assignment_count = fields.Integer(
+        string="Assignments Count",
+        compute="_compute_assignment_count",
+    )
+    exam_ids = fields.One2many(
+        "university.exam",
+        "section_id",
+        string="Exams & Quizzes",
+    )
+    exam_count = fields.Integer(
+        string="Exams Count",
+        compute="_compute_exam_count",
+    )
     date_start = fields.Date(
         string="Start Date",
         help="Custom class start date (overrides term start date).",
@@ -276,6 +290,48 @@ class UniversityClassSection(models.Model):
                 section.is_full = False
                 section.available_seats = 0
                 section.has_available_seats = False
+
+    @api.depends("assignment_ids")
+    def _compute_assignment_count(self):
+        for section in self:
+            section.assignment_count = len(section.assignment_ids)
+
+    @api.depends("exam_ids")
+    def _compute_exam_count(self):
+        for section in self:
+            section.exam_count = len(section.exam_ids)
+
+    def action_view_assignments(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Assignments - %s") % self.name,
+            "res_model": "university.assignment",
+            "view_mode": "list,form",
+            "domain": [("section_id", "=", self.id)],
+            "context": {
+                "default_section_id": self.id,
+                "default_subject_id": self.subject_id.id if self.subject_id else False,
+                "default_teacher_id": self.teacher_id.id if self.teacher_id else False,
+            },
+        }
+
+    def action_view_exams(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Exams & Quizzes - %s") % self.name,
+            "res_model": "university.exam",
+            "view_mode": "list,form,pivot,graph",
+            "domain": [("section_id", "=", self.id)],
+            "context": {
+                "default_section_id": self.id,
+                "default_subject_id": self.subject_id.id if self.subject_id else False,
+                "default_teacher_id": self.teacher_id.id if self.teacher_id else False,
+                "default_semester_id": self.semester_id.id if self.semester_id else False,
+                "default_academic_year_id": self.academic_year_id.id if self.academic_year_id else False,
+            },
+        }
 
     @api.depends("slot_ids")
     def _compute_slot_count(self):
@@ -474,7 +530,7 @@ class UniversityClassSection(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Sessions - %s") % self.name,
             "res_model": "university.timetable.slot",
-            "view_mode": "list,calendar,form",
+            "view_mode": "kanban,list,calendar,form",
             "domain": [("section_id", "=", self.id)],
             "context": {
                 "default_section_id": self.id,
@@ -514,14 +570,30 @@ class UniversityClassSection(models.Model):
 
     def action_view_schedule(self):
         self.ensure_one()
+        default_date = False
+        today = fields.Datetime.now()
+        upcoming_slot = self.slot_ids.filtered(lambda s: s.start_time and s.start_time >= today).sorted("start_time")
+        if upcoming_slot:
+            default_date = upcoming_slot[0].start_time.strftime("%Y-%m-%d")
+        elif self.slot_ids:
+            latest_slot = self.slot_ids.filtered(lambda s: bool(s.start_time)).sorted("start_time", reverse=True)
+            if latest_slot:
+                default_date = latest_slot[0].start_time.strftime("%Y-%m-%d")
+
+        ctx = {
+            "default_section_id": self.id,
+            "default_view_mode": "resource",
+            "default_resource_type": "section",
+            "filters": {"section_id": str(self.id)},
+        }
+        if default_date:
+            ctx["default_date"] = default_date
+
         return {
             "type": "ir.actions.client",
             "tag": "university_schedule_view",
             "name": f"Weekly Schedule - {self.name}",
-            "context": {
-                "default_section_id": self.id,
-                "filters": {"section_id": str(self.id)},
-            },
+            "context": ctx,
         }
 
     def action_open_bulk_enroll_wizard(self):
@@ -569,3 +641,42 @@ class UniversityClassSection(models.Model):
                 "default_section_ids": [(6, 0, [self.id])],
             },
         }
+
+
+    def action_sync_schedule_lines(self):
+        self.ensure_one()
+        user_tz = pytz.timezone(self.env.user.tz or 'Asia/Phnom_Penh')
+        all_ts = self.env['university.timeslot'].search([('active', '=', True)])
+        ts_map = {(str(ts.day_of_week), round(ts.start_hour, 2)): ts for ts in all_ts}
+
+        for s in self.slot_ids:
+            if not s.start_time:
+                continue
+            dt_local = pytz.utc.localize(s.start_time).astimezone(user_tz)
+            weekday = str(dt_local.weekday())
+            start_hour = round(dt_local.hour + dt_local.minute / 60.0, 2)
+            ts = s.timeslot_id or ts_map.get((weekday, start_hour))
+            if not ts:
+                day_ts = [t for t in all_ts if str(t.day_of_week) == weekday]
+                if day_ts:
+                    ts = min(day_ts, key=lambda t: abs(t.start_hour - start_hour))
+            room = s.classroom_id or self.classroom_id
+            teacher = s.teacher_id or self.teacher_id
+            if ts:
+                line_day = str(ts.day_of_week) if ts.day_of_week is not False else weekday
+                existing = self.env['university.class.schedule.line'].search([
+                    ('class_id', '=', self.id),
+                    ('weekday', '=', line_day),
+                    ('timeslot_id', '=', ts.id),
+                ], limit=1)
+                if not existing:
+                    self.env['university.class.schedule.line'].create({
+                        'class_id': self.id,
+                        'weekday': line_day,
+                        'timeslot_id': ts.id,
+                        'room_id': room.id if room else False,
+                        'teacher_id': teacher.id if teacher else False,
+                        'active': True,
+                    })
+        self._compute_schedule_summary()
+        return True

@@ -19,6 +19,12 @@ class UniversityAcademicAssignment(models.Model):
         required=True,
         ondelete="cascade",
     )
+    staff_image = fields.Binary(related="staff_id.image_1920", string="Staff Photo")
+    staff_avatar = fields.Binary(related="staff_id.avatar_128", string="Staff Avatar")
+    staff_email = fields.Char(related="staff_id.email", string="Staff Email")
+    staff_phone = fields.Char(related="staff_id.phone", string="Staff Phone")
+    staff_code = fields.Char(related="staff_id.teacher_id", string="Staff ID")
+
     role = fields.Selection(
         [
             ("dean", "Head of Faculty"),

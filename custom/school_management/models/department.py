@@ -10,6 +10,8 @@ class UniversityDepartment(models.Model):
     faculty_id = fields.Many2one(
         "university.faculty", string="Faculty", required=True
     )
+    image_1920 = fields.Image(string="Department Cover / Logo", max_width=1024, max_height=1024)
+    color = fields.Integer(string="Color Index", default=0)
     head_id = fields.Many2one(
         "university.teacher",
         string="Head of Department",

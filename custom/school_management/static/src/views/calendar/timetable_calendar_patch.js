@@ -2,7 +2,7 @@
 
 import { patch } from "@web/core/utils/patch";
 import { CalendarCommonRenderer } from "@web/views/calendar/calendar_common/calendar_common_renderer";
-import { onWillStart, onWillUpdateProps, useEffect } from "@odoo/owl";
+import { onWillStart, onWillUpdateProps, useEffect, useState } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 
 patch(CalendarCommonRenderer.prototype, {
@@ -14,6 +14,12 @@ patch(CalendarCommonRenderer.prototype, {
             this.timetableSlotMinTime = "07:00:00";
             this.timetableSlotMaxTime = "20:00:00";
             this.timetableConfigLoaded = false;
+            this.timetableKpi = useState({
+                upcoming_classes: 0,
+                completed_classes: 0,
+                todo_assignments: 0,
+                completed_assignments: 0,
+            });
 
             onWillStart(async () => {
                 await this.loadTimetableExtras();
@@ -136,6 +142,17 @@ patch(CalendarCommonRenderer.prototype, {
                     }
                 }
                 this.timetableConfigLoaded = true;
+            }
+
+            if (this.orm) {
+                const kpis = await this.orm.call(
+                    "university.timetable.slot",
+                    "get_timetable_dashboard_kpis",
+                    []
+                );
+                if (kpis) {
+                    Object.assign(this.timetableKpi, kpis);
+                }
             }
 
             if (this.orm && this.props.model?.date) {

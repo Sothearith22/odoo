@@ -186,6 +186,35 @@
 
                         </header>
 
+                        <!-- Urgent Tuition Fee Due Alert Banner -->
+                        <div t-if="state.student.fee_balance and state.student.fee_balance > 0"
+                             class="o_alert_banner o_alert_danger d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 rounded-3 shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="o_alert_icon_box rounded-circle bg-danger-subtle text-danger d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; min-width: 44px;">
+                                    <i class="fa fa-exclamation-triangle fa-lg" aria-hidden="true"/>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h4 class="h6 mb-0 fw-bold text-danger">Action Required: Outstanding Tuition Fee Balance</h4>
+                                        <span class="badge bg-danger text-white">Payment Due</span>
+                                    </div>
+                                    <p class="small text-muted mb-0 mt-1">
+                                        You have an outstanding balance of <strong class="text-danger fs-6" t-esc="this.formatCurrency(state.student.fee_balance)"/>. Please complete your payment as soon as possible to avoid course registration and transcript holds.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                                <button type="button" class="btn btn-sm btn-danger fw-semibold px-3 py-1 shadow-sm"
+                                        t-on-click="() => this.openMyInvoices()">
+                                    <i class="fa fa-credit-card me-1" aria-hidden="true"/>Pay Now / View Invoices
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary px-3 py-1"
+                                        t-on-click="() => this.setActiveTab('financial')">
+                                    <i class="fa fa-list-alt me-1" aria-hidden="true"/>Financial Ledger
+                                </button>
+                            </div>
+                        </div>
+
 
 
                         <div>
@@ -305,139 +334,77 @@
                         <div class="col-12 col-xl-8">
 
                             <!-- Top KPI Stat Cards -->
-
                             <div class="row g-3 mb-3">
-
                                 <div class="col-6 col-md-3">
-
-                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
-
+                                    <div class="o_kpi_card_elevated o_kpi_border_blue h-100 d-flex flex-column justify-content-between">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-
-                                            <span class="text-muted small fw-semibold">GPA</span>
-
+                                            <span class="o_kpi_card_eyebrow text-muted">Cumulative GPA</span>
                                             <div class="o_stat_icon_box bg-primary-subtle text-primary">
-
                                                 <i class="fa fa-graduation-cap" aria-hidden="true"/>
-
                                             </div>
-
                                         </div>
-
                                         <div>
-
-                                            <div class="fs-4 fw-bold text-dark" t-esc="state.student.gpa || 0.0"/>
-
-                                            <div class="very-small text-muted">Scale 4.00</div>
-
+                                            <div class="o_kpi_card_value text-dark" t-esc="state.student.gpa || '0.00'"/>
+                                            <div class="o_kpi_card_sub text-muted">Scale 4.00 Max</div>
                                         </div>
-
                                     </div>
-
                                 </div>
-
                                 <div class="col-6 col-md-3">
-
-                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
-
+                                    <div class="o_kpi_card_elevated o_kpi_border_indigo h-100 d-flex flex-column justify-content-between cursor-pointer"
                                          t-on-click="() => this.setActiveTab('attendance')"
-
                                          title="Click to view attendance details">
-
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-
-                                            <span class="text-muted small fw-semibold">Attendance</span>
-
+                                            <span class="o_kpi_card_eyebrow text-muted">Attendance</span>
                                             <div t-att-class="'o_stat_icon_box ' + (state.attendanceStats.rate >= 80 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger')">
-
                                                 <i class="fa fa-check-circle" aria-hidden="true"/>
-
                                             </div>
-
                                         </div>
-
                                         <div>
-
-                                            <div t-att-class="'fs-4 fw-bold ' + (state.attendanceStats.rate >= 80 ? 'text-success' : 'text-danger')"
-
+                                            <div t-att-class="'o_kpi_card_value ' + (state.attendanceStats.rate >= 80 ? 'text-success' : 'text-danger')"
                                                  t-esc="state.attendanceStats.rate + '%'"/>
-
-                                            <div class="very-small text-muted">
-
-                                                <span t-if="state.attendanceStats.rate >= 80" class="text-success fw-semibold">Above 80% Min</span>
-
-                                                <span t-else="" class="text-danger fw-semibold">Below 80% Req</span>
-
+                                            <div class="o_kpi_card_sub">
+                                                <span t-if="state.attendanceStats.rate >= 80" class="badge bg-success-subtle text-success">Above 80% Min</span>
+                                                <span t-else="" class="badge bg-danger-subtle text-danger">Below 80% Req</span>
                                             </div>
-
                                         </div>
-
                                     </div>
-
                                 </div>
-
                                 <div class="col-6 col-md-3">
-
-                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
-
+                                    <div class="o_kpi_card_elevated o_kpi_border_emerald h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('curriculum')"
+                                         title="Click to view degree curriculum">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-
-                                            <span class="text-muted small fw-semibold">Credits</span>
-
+                                            <span class="o_kpi_card_eyebrow text-muted">Credits</span>
                                             <div class="o_stat_icon_box bg-info-subtle text-info">
-
                                                 <i class="fa fa-book" aria-hidden="true"/>
-
                                             </div>
-
                                         </div>
-
                                         <div>
-
-                                            <div class="fs-4 fw-bold text-info" t-esc="state.student.completed_credits || 0"/>
-
-                                            <div class="very-small text-muted">Completed</div>
-
+                                            <div class="o_kpi_card_value text-info" t-esc="state.student.completed_credits || 0"/>
+                                            <div class="o_kpi_card_sub text-muted">Completed Credits</div>
                                         </div>
-
                                     </div>
-
                                 </div>
-
                                 <div class="col-6 col-md-3">
-
-                                    <div class="o_student_stat_card h-100 d-flex flex-column justify-content-between">
-
+                                    <div class="o_kpi_card_elevated o_kpi_border_amber h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                         t-on-click="() => this.setActiveTab('financial')"
+                                         title="Click to view fee balance and invoices">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-
-                                            <span class="text-muted small fw-semibold">Standing</span>
-
-                                            <div class="o_stat_icon_box bg-warning-subtle text-warning">
-
-                                                <i class="fa fa-shield" aria-hidden="true"/>
-
+                                            <span class="o_kpi_card_eyebrow text-muted">Fee Balance</span>
+                                            <div t-att-class="'o_stat_icon_box ' + (state.student.fee_balance > 0 ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success')">
+                                                <i class="fa fa-credit-card" aria-hidden="true"/>
                                             </div>
-
                                         </div>
-
                                         <div>
-
-                                            <span t-if="state.student.risk_level === 'low'" class="badge bg-success-subtle text-success fs-6">On Track</span>
-
-                                            <span t-elif="state.student.risk_level === 'medium'" class="badge bg-warning-subtle text-warning fs-6">Watch</span>
-
-                                            <span t-elif="state.student.risk_level === 'high'" class="badge bg-danger-subtle text-danger fs-6">High Risk</span>
-
-                                            <span t-else="" class="badge bg-success-subtle text-success fs-6">Good</span>
-
-                                            <div class="very-small text-muted mt-1">Status</div>
-
+                                            <div t-att-class="'o_kpi_card_value ' + (state.student.fee_balance > 0 ? 'text-danger' : 'text-success')"
+                                                 t-esc="this.formatCurrency(state.student.fee_balance || 0)"/>
+                                            <div class="o_kpi_card_sub">
+                                                <span t-if="state.student.fee_balance > 0" class="badge bg-danger-subtle text-danger">Payment Due</span>
+                                                <span t-else="" class="badge bg-success-subtle text-success">Fully Paid</span>
+                                            </div>
                                         </div>
-
                                     </div>
-
                                 </div>
-
                             </div>
 
 

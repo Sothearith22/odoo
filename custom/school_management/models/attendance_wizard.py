@@ -17,6 +17,35 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
         "university.attendance.take.wizard.line", "wizard_id", string="Students",
     )
 
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        section_id = res.get("section_id") or self.env.context.get("default_section_id")
+        att_date = res.get("date") or self.env.context.get("default_date") or fields.Date.context_today(self)
+        if section_id and "line_ids" in fields_list:
+            Attendance = self.env["university.attendance"]
+            section = self.env["university.class.section"].browse(section_id)
+            if section.exists():
+                existing = Attendance.search([
+                    ("section_id", "=", section.id),
+                    ("date", "=", att_date),
+                ])
+                by_student = {record.student_id.id: record for record in existing}
+                lines = []
+                for student in Attendance._attendance_sheet_students(section):
+                    record = by_student.get(student.id)
+                    lines.append((0, 0, {
+                        "student_id": student.id,
+                        "status": record.status if record else "present",
+                        "remark": (record.remark or "") if record else "",
+                    }))
+                res["line_ids"] = lines
+                if "notes" in fields_list and not res.get("notes"):
+                    notes = [record.notes for record in existing if record.notes]
+                    if notes:
+                        res["notes"] = notes[0]
+        return res
+
     @api.model_create_multi
     def create(self, vals_list):
         Attendance = self.env["university.attendance"]
@@ -78,6 +107,9 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
 
     def action_mark_all_absent(self):
         return self._mark_all("absent")
+
+    def action_mark_all_late(self):
+        return self._mark_all("late")
 
     def _mark_all(self, status):
         self.ensure_one()

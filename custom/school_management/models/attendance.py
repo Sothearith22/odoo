@@ -18,7 +18,7 @@ def _section_info(section):
         "display_name": section.display_name,
         "subject": sec.subject_id.name or "",
         "teacher": sec.teacher_id.name or "",
-        "department": sec.department_id.name or "",
+        "department": sec.sudo().department_id.name or "",
         "semester": sec.semester_id.name or "",
     }
 
@@ -154,6 +154,30 @@ class UniversityAttendance(models.Model):
                 "date": date,
             }
 
+    def action_set_present(self):
+        for rec in self:
+            if not self._allowed_edit(rec.section_id):
+                raise AccessError(_("You are not allowed to record attendance for this class section."))
+            rec.status = "present"
+
+    def action_set_absent(self):
+        for rec in self:
+            if not self._allowed_edit(rec.section_id):
+                raise AccessError(_("You are not allowed to record attendance for this class section."))
+            rec.status = "absent"
+
+    def action_set_late(self):
+        for rec in self:
+            if not self._allowed_edit(rec.section_id):
+                raise AccessError(_("You are not allowed to record attendance for this class section."))
+            rec.status = "late"
+
+    def action_set_excused(self):
+        for rec in self:
+            if not self._allowed_edit(rec.section_id):
+                raise AccessError(_("You are not allowed to record attendance for this class section."))
+            rec.status = "excused"
+
     @api.model
     def _attendance_sheet_statuses(self):
         return {"present", "absent", "late", "excused"}
@@ -213,12 +237,16 @@ class UniversityAttendance(models.Model):
             return Section.search([])
         if user.has_group("school_management.group_school_dean"):
             return Section.search(
-                [("department_id.faculty_id.dean_id.user_id", "=", user.id)]
+                ["|", "|",
+                 ("department_id.faculty_id.dean_id.user_id", "=", user.id),
+                 ("subject_id.department_id.faculty_id.dean_id.user_id", "=", user.id),
+                 ("teacher_id.user_id", "=", user.id)]
             )
         if user.has_group("school_management.group_school_hod"):
             return Section.search(
-                ["|",
+                ["|", "|",
                  ("department_id.head_id.user_id", "=", user.id),
+                 ("subject_id.department_id.head_id.user_id", "=", user.id),
                  ("teacher_id.user_id", "=", user.id)]
             )
         if user.has_group("school_management.group_school_teacher"):
@@ -510,6 +538,54 @@ class UniversityAttendance(models.Model):
 
         return self.get_sheet(section.id, fields.Date.to_string(attendance_date))
 
+    @api.model
+    def get_available_sections(self):
+        """Sections available to the current user for attendance recording."""
+        sections = self._get_role_sections().filtered(lambda s: s.active)
+        return sections.read(["id", "name", "display_name", "department_id"])
+
+    @api.model
+    def get_section_attendance_sheet(self, section_id, date):
+        """Wrapper around get_sheet matching frontend RPC expectations."""
+        sheet = self.get_sheet(section_id, date)
+        sheet["session"] = {
+            "id": sheet.get("session_id"),
+            "session_id": sheet.get("session_id"),
+            "notes": sheet.get("notes") or "",
+            "recorded_by": sheet.get("recorded_by") or "",
+            "recorded_at": sheet.get("recorded_at") or False,
+            "subject": sheet.get("subject") or "",
+            "teacher": sheet.get("teacher") or "",
+            "semester": sheet.get("semester") or "",
+            "academic_year": sheet.get("academic_year") or "",
+            "classroom": sheet.get("classroom") or "",
+            "slots": sheet.get("slots") or [],
+        }
+        sheet["last_saved"] = sheet.get("last_saved_at")
+        sheet["saved_at"] = sheet.get("last_saved_at")
+        return sheet
+
+    @api.model
+    def save_section_attendance(self, section_id, date, lines, notes=None):
+        """Wrapper around save_sheet matching frontend RPC expectations."""
+        sheet = self.save_sheet(section_id, date, lines, notes=notes)
+        sheet["session"] = {
+            "id": sheet.get("session_id"),
+            "session_id": sheet.get("session_id"),
+            "notes": sheet.get("notes") or "",
+            "recorded_by": sheet.get("recorded_by") or "",
+            "recorded_at": sheet.get("recorded_at") or False,
+            "subject": sheet.get("subject") or "",
+            "teacher": sheet.get("teacher") or "",
+            "semester": sheet.get("semester") or "",
+            "academic_year": sheet.get("academic_year") or "",
+            "classroom": sheet.get("classroom") or "",
+            "slots": sheet.get("slots") or [],
+        }
+        sheet["last_saved"] = sheet.get("last_saved_at")
+        sheet["saved_at"] = sheet.get("last_saved_at")
+        return sheet
+
     # =====================================================================
     # Role-scoped helpers shared by the attendance dashboard / grid / reports
     # =====================================================================
@@ -631,7 +707,9 @@ class UniversityAttendance(models.Model):
                 "name": student.name,
                 "code": student.student_id or "",
                 "program": student.program_id.name or "",
-                "department": student.department_id.name or "",
+                "email": student.email or "",
+                "phone": student.phone or "",
+                "department": student.sudo().department_id.name or "",
             },
             "sections": per_section,
             "selected_section_id": selected.id or False,
@@ -710,7 +788,7 @@ class UniversityAttendance(models.Model):
                     "student_id": student.id,
                     "name": student.name,
                     "code": student.student_id or "",
-                    "department": student.department_id.name or "",
+                    "department": student.sudo().department_id.name or "",
                     "cells": cells,
                 })
             grid_sections.append({
@@ -816,12 +894,22 @@ class UniversityAttendance(models.Model):
             rate = self._attendance_percentage(counts)
             if rate >= threshold:
                 continue
+            dept_name = student.sudo().department_id.name or (
+                records.sudo().mapped("section_id.department_id.name") and records.sudo().mapped("section_id.department_id.name")[0]
+            ) or (
+                records.sudo().mapped("section_id.subject_id.department_id.name") and records.sudo().mapped("section_id.subject_id.department_id.name")[0]
+            ) or ""
+            prog_name = student.sudo().program_id.name or (
+                records.sudo().mapped("section_id.program_id.name") and records.sudo().mapped("section_id.program_id.name")[0]
+            ) or ""
             rows.append({
                 "id": student.id,
                 "name": student.name,
                 "code": student.student_id or "",
-                "department": student.department_id.name or "",
-                "program": student.program_id.name or "",
+                "department": dept_name,
+                "program": prog_name,
+                "email": student.email or "",
+                "phone": student.phone or "",
                 "sections": ", ".join(
                     records.mapped("section_id.name") and sorted(set(records.mapped("section_id.name"))) or []
                 ),
@@ -843,7 +931,17 @@ class UniversityAttendance(models.Model):
     def get_comparison_data(self, year=None):
         sections = self._get_role_sections()
         year = int(year) if year and str(year).isdigit() else None
-        departments = sections.mapped("department_id")
+
+        dept_ids = set()
+        faculty_ids = set()
+        for sec in sections:
+            dept = sec.department_id or (sec.subject_id and sec.subject_id.department_id)
+            if dept:
+                dept_ids.add(dept.id)
+                if dept.faculty_id:
+                    faculty_ids.add(dept.faculty_id.id)
+        departments = self.env["university.department"].browse(list(dept_ids))
+        faculties = self.env["university.faculty"].browse(list(faculty_ids))
 
         domain = [("section_id", "in", sections.ids or [0])]
         if year:
@@ -852,7 +950,9 @@ class UniversityAttendance(models.Model):
 
         departments_data = []
         for department in departments:
-            dept_sections = sections.filtered(lambda s: s.department_id == department)
+            dept_sections = sections.filtered(
+                lambda s: s.department_id == department or (not s.department_id and s.subject_id and s.subject_id.department_id == department)
+            )
             sections_data = []
             for section in dept_sections:
                 students = self._enrolled_students(section)
@@ -892,13 +992,48 @@ class UniversityAttendance(models.Model):
             departments_data.append({
                 "id": department.id,
                 "name": department.name,
+                "faculty_id": department.sudo().faculty_id.id if department.sudo().faculty_id else False,
+                "faculty_name": department.sudo().faculty_id.name if department.sudo().faculty_id else "",
+                "faculty_code": department.sudo().faculty_id.code if department.sudo().faculty_id else "",
                 "sections": sections_data,
                 "total": len(dept_records),
                 "rate": self._attendance_percentage(dept_counts),
             })
 
         departments_data.sort(key=lambda d: d["name"])
-        return {"departments": departments_data, "year": year}
+
+        # Also aggregate faculty-level stats
+        faculties_data = []
+        for faculty in faculties:
+            fac_depts = [d for d in departments_data if d["faculty_id"] == faculty.id]
+            fac_total_records = sum(d["total"] for d in fac_depts)
+            fac_total_sections = sum(len(d["sections"]) for d in fac_depts)
+            fac_dept_objs = departments.filtered(lambda d: d.sudo().faculty_id == faculty)
+            fac_sections = sections.filtered(
+                lambda s: s.department_id in fac_dept_objs or (s.subject_id and s.subject_id.department_id in fac_dept_objs)
+            )
+            fac_records = records.filtered(lambda r: r.section_id in fac_sections)
+            fac_counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
+            for record in fac_records:
+                fac_counts[record.status] = fac_counts.get(record.status, 0) + 1
+            fac_rate = self._attendance_percentage(fac_counts)
+            faculties_data.append({
+                "id": faculty.id,
+                "name": faculty.name,
+                "code": faculty.code or "",
+                "dean_name": faculty.sudo().dean_id.name or "",
+                "department_count": len(fac_depts),
+                "section_count": fac_total_sections,
+                "total": fac_total_records,
+                "rate": fac_rate,
+            })
+        faculties_data.sort(key=lambda f: f["name"])
+
+        return {
+            "departments": departments_data,
+            "faculties": faculties_data,
+            "year": year,
+        }
 
     # ----------------------------------------------------------------- Export
     def _export_grid_data(self, month, year, section_ids):

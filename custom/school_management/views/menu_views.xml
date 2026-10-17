@@ -169,24 +169,23 @@
         sequence="20"
         groups="school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
-    <!-- Teacher only (hidden from Admin by _filter_visible_menus): My Timetable -->
-    <menuitem
-        id="menu_university_timetable_teacher"
-        name="My Timetable"
-        parent="menu_university_schedule_category"
-        action="action_university_schedule_view"
-        sequence="10"
-        groups="school_management.group_school_teacher"
-    />
-    <!-- Admin: Timetable (Complete University Timetable) -->
-    <menuitem
-        id="menu_university_timetable"
-        name="Timetable"
-        parent="menu_university_schedule_category"
-        action="action_university_schedule_view"
-        sequence="10"
-        groups="school_management.group_school_admin,base.group_system"
-    />
+    <!-- Deactivated legacy Timetable menus (Rule 1: Deactivated Duplicates) -->
+    <record id="menu_university_timetable_teacher" model="ir.ui.menu">
+        <field name="name">My Timetable</field>
+        <field name="parent_id" ref="menu_university_schedule_category"/>
+        <field name="action" ref="action_university_schedule_view"/>
+        <field name="sequence">10</field>
+        <field name="active" eval="False"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher')])]"/>
+    </record>
+    <record id="menu_university_timetable" model="ir.ui.menu">
+        <field name="name">Timetable</field>
+        <field name="parent_id" ref="menu_university_schedule_category"/>
+        <field name="action" ref="action_university_schedule_view"/>
+        <field name="sequence">10</field>
+        <field name="active" eval="False"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_admin'), ref('base.group_system')])]"/>
+    </record>
     <menuitem
         id="menu_university_timetable_sessions"
         name="Scheduled Sessions"

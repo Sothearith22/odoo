@@ -71,12 +71,10 @@ class UniversityFaculty(models.Model):
         string="Students",
     )
 
-    @api.depends("department_ids")
+    @api.depends("department_ids", "department_ids.active")
     def _compute_department_count(self):
         for rec in self:
-            rec.department_count = len(
-                rec.with_context(active_test=False).department_ids
-            )
+            rec.department_count = len(rec.department_ids)
 
     @api.depends(
         "assignment_ids.role",
@@ -122,3 +120,17 @@ class UniversityFaculty(models.Model):
 
     def action_set_closed(self):
         self.write({"state": "closed"})
+
+    def action_view_departments(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id(
+            "school_management.action_university_department"
+        )
+        action["domain"] = [("faculty_id", "=", self.id)]
+        context = dict(self.env.context)
+        context.update({
+            "default_faculty_id": self.id,
+            "search_default_faculty_id": self.id,
+        })
+        action["context"] = context
+        return action

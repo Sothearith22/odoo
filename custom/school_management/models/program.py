@@ -75,6 +75,7 @@ class UniversityProgram(models.Model):
         store=True,
     )
     active = fields.Boolean(string="Active", default=True, tracking=True)
+    color = fields.Integer(string="Color Index", default=0)
 
     @api.depends("subject_ids", "student_ids.status", "section_ids")
     def _compute_counts(self):

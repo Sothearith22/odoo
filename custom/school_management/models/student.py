@@ -256,6 +256,27 @@ class Student(models.Model):
         compute="_compute_fee_totals",
         currency_field="currency_id",
     )
+    financial_status = fields.Selection(
+        [
+            ("good_standing", "Paid / Good Standing"),
+            ("pending", "Tuition Pending"),
+            ("overdue", "Payment Overdue / Urgent Alert"),
+            ("no_invoices", "No Invoices"),
+        ],
+        string="Financial Status",
+        compute="_compute_financial_status",
+        store=True,
+    )
+    overdue_fee_count = fields.Integer(
+        string="Overdue Invoices Count",
+        compute="_compute_financial_status",
+        store=True,
+    )
+    unpaid_fee_count = fields.Integer(
+        string="Unpaid Invoices Count",
+        compute="_compute_financial_status",
+        store=True,
+    )
     enrollment_count = fields.Integer(
         string="Enrollment Count",
         compute="_compute_counts",
@@ -343,6 +364,31 @@ class Student(models.Model):
             "view_mode": "list,form",
             "domain": [("student_id", "=", self.id)],
             "context": {"default_student_id": self.id},
+        }
+
+    def action_register_student_payment(self):
+        self.ensure_one()
+        fee = self.fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0).sorted("date asc, id asc")[:1]
+        if not fee:
+            raise UserError(_("No unpaid posted fee invoices found for this student."))
+        return fee.action_register_payment()
+
+    def action_send_urgent_payment_reminder(self):
+        self.ensure_one()
+        fees = self.fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0)
+        if not fees:
+            raise UserError(_("No unpaid posted fee invoices found for this student."))
+        for f in fees:
+            f.action_send_payment_reminder()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Urgent Payment Notices Sent"),
+                "message": _("Payment alert notifications sent for %s's outstanding fees totaling $%.2f.") % (self.name, self.fee_balance),
+                "type": "warning",
+                "sticky": False,
+            }
         }
 
     def action_open_enrollment_registration(self):
@@ -511,6 +557,29 @@ class Student(models.Model):
             rec.fee_total = sum(confirmed.mapped("total_amount"))
             rec.fee_paid = sum(confirmed.mapped("paid_amount"))
             rec.fee_balance = sum(confirmed.mapped("balance"))
+
+    @api.depends("fee_ids.balance", "fee_ids.state", "fee_ids.due_date")
+    def _compute_financial_status(self):
+        today = fields.Date.context_today(self)
+        for student in self:
+            active_fees = student.fee_ids.filtered(lambda f: f.state in ("posted", "paid"))
+            if not active_fees:
+                student.financial_status = "no_invoices"
+                student.overdue_fee_count = 0
+                student.unpaid_fee_count = 0
+                continue
+
+            overdue_fees = active_fees.filtered(lambda f: f.state == "posted" and f.balance > 0 and f.due_date and f.due_date < today)
+            unpaid_fees = active_fees.filtered(lambda f: f.state == "posted" and f.balance > 0)
+            student.overdue_fee_count = len(overdue_fees)
+            student.unpaid_fee_count = len(unpaid_fees)
+
+            if overdue_fees:
+                student.financial_status = "overdue"
+            elif unpaid_fees:
+                student.financial_status = "pending"
+            else:
+                student.financial_status = "good_standing"
 
     @api.depends("program_id.department_id")
     def _compute_department_id(self):

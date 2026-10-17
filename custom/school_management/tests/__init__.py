@@ -24,3 +24,5 @@ from . import test_timetable_attendance_flow
 from . import test_timetable_generation
 from . import test_study_plan
 from . import test_weekly_schedule_timetable
+from . import test_admission_fee
+from . import test_faculty

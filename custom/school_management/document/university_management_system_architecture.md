@@ -429,6 +429,37 @@ Balance                $0
 Later you can integrate Odoo's accounting functionality rather than
 rebuilding an accounting system yourself.
 
+### Integration with Odoo Standard Accounting & Analytic Accounts
+
+When transitioning or bridging custom fees (`university.fee`) with standard Odoo accounting, the system leverages Odoo's core `account` and `account.analytic.account` infrastructure (`addons/account/models/account_analytic_account.py`):
+
+``` text
+Academic Entity (Faculty / Department / Program)
+   │
+   ↓
+Analytic Account (`account.analytic.account`)
+   │
+   ├── Student Fee Invoices (`account.move.line`) ──► analytic_distribution (Revenue)
+   └── Vendor Bills / Operating Costs (`account.move.line`) ──► analytic_distribution (Cost)
+```
+
+#### 1. Departmental & Academic Cost Centers
+- **Analytic Mapping:** Each `university.faculty`, `university.department`, or `university.program` can be mapped to an `account.analytic.account` (or analytic plan).
+- **Analytic Distribution:** When student fee lines (`university.fee.line` / `account.move.line`) are confirmed and posted, revenue is tagged with the corresponding academic entity's analytic account using Odoo 19's `analytic_distribution` dictionary (e.g., `{"<analytic_account_id>": 100.0}`).
+
+#### 2. Capabilities from Standard `account_analytic_account.py`
+Standard Odoo `account.analytic.account` (`addons/account/models/account_analytic_account.py`) extends analytic accounts with built-in invoice and vendor bill synchronization:
+- **`invoice_count`:** Dynamically aggregates all posted customer invoices / student receipts (`account.move` with sale move types) associated with this analytic account via `analytic_distribution`.
+- **`vendor_bill_count`:** Aggregates all posted supplier bills / departmental operational expenses (`account.move` with purchase move types) allocated to the analytic account.
+- **Smart Actions:**
+  - `action_view_invoice()`: Provides instant drill-down to examine all student invoices and fee receipts attributed to the faculty or program.
+  - `action_view_vendor_bill()`: Provides instant access to procurement, instructor contractor costs, and departmental vendor bills.
+
+#### 3. Financial Visibility & P&L per Academic Unit
+By linking `university.fee` entries to `account.analytic.account`:
+- University management gains direct profitability and cost-center reporting per department, semester, or academic program without creating complex custom accounting ledgers.
+- Academic administrators can inspect live revenue collections alongside faculty operating expenses directly from the standard Analytic Accounts view.
+
 ## 14. 🎓 Scholarship
 
 ``` text
@@ -758,6 +789,7 @@ Fee
 Invoice
 Payment
 Scholarship
+Analytic Accounting (Cost Centers)
 ```
 
 ### Phase 6 --- Graduation

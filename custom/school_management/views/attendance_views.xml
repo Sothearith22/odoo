@@ -1,20 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_university_attendance_kanban" model="ir.ui.view">
+        <field name="name">university.attendance.kanban</field>
+        <field name="model">university.attendance</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status" sample="1" quick_create="false">
+                <field name="id"/>
+                <field name="date"/>
+                <field name="student_id"/>
+                <field name="section_id"/>
+                <field name="teacher_id"/>
+                <field name="status"/>
+                <field name="remark"/>
+                <templates>
+                    <t t-name="card" class="d-flex flex-column justify-content-between p-3">
+                        <main class="d-flex gap-3 align-items-start min-w-0">
+                            <div class="flex-shrink-0" style="width: 48px; height: 48px;">
+                                <img t-att-src="'/web/image/university.student/' + record.student_id.raw_value + '/avatar_128'"
+                                     class="rounded-circle object-fit-cover w-100 h-100 border shadow-sm"
+                                     alt="Student Avatar"
+                                     onerror="this.src='/web/static/img/placeholder.png'"/>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                    <strong class="text-truncate fs-6 text-dark" t-att-title="record.student_id.value">
+                                        <field name="student_id"/>
+                                    </strong>
+                                    <field name="status" widget="badge"
+                                           decoration-success="status == 'present'"
+                                           decoration-danger="status == 'absent'"
+                                           decoration-warning="status == 'late'"
+                                           decoration-info="status == 'excused'"/>
+                                </div>
+                                <div class="text-muted small text-truncate mb-1">
+                                    <i class="fa fa-users me-1 text-primary" title="Class Section"/>
+                                    <field name="section_id" options="{'no_open': True}"/>
+                                </div>
+                                <div class="text-muted small text-truncate" t-if="record.teacher_id.value">
+                                    <i class="fa fa-user me-1 text-secondary" title="Teacher"/>
+                                    <field name="teacher_id" options="{'no_open': True}"/>
+                                </div>
+                            </div>
+                        </main>
+                        <footer class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
+                            <span class="badge text-bg-light border text-muted small">
+                                <i class="fa fa-calendar me-1" title="Date"/>
+                                <field name="date"/>
+                            </span>
+                            <span class="text-muted small text-truncate ms-2" t-if="record.remark.value" t-att-title="record.remark.value">
+                                <i class="fa fa-comment-o me-1" title="Remark"/>
+                                <field name="remark"/>
+                            </span>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_university_attendance_list" model="ir.ui.view">
         <field name="name">university.attendance.list</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
             <list string="Attendance" sample="1" js_class="university_attendance_list">
+                <header>
+                    <button name="action_set_present" string="Mark Present" type="object" class="btn-success text-white" icon="fa-check"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
+                    <button name="action_set_absent" string="Mark Absent" type="object" class="btn-outline-danger" icon="fa-times"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
+                    <button name="action_set_late" string="Mark Late" type="object" class="btn-outline-warning text-dark" icon="fa-clock-o"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
+                </header>
                 <field name="date"/>
-                <field name="student_id"/>
-                <field name="section_id"/>
-                <field name="teacher_id"/>
+                <field name="student_id" string="Student"/>
+                <field name="section_id" string="Class Section"/>
+                <field name="teacher_id" string="Instructor" optional="show"/>
                 <field name="status" widget="badge"
-                       class="o_attendance_status_badge"
                        decoration-success="status == 'present'"
                        decoration-danger="status == 'absent'"
-                       decoration-warning="status == 'late'"/>
-                <field name="remark" optional="hide"/>
+                       decoration-warning="status == 'late'"
+                       decoration-muted="status == 'excused'"/>
+                <field name="remark" optional="show" string="Note"/>
+                <button name="action_set_present" type="object" string="Present" icon="fa-check"
+                        title="Mark Present" aria-label="Mark Present" class="text-success"
+                        invisible="status == 'present'"
+                        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
+                <button name="action_set_absent" type="object" string="Absent" icon="fa-times"
+                        title="Mark Absent" aria-label="Mark Absent" class="text-danger"
+                        invisible="status == 'absent'"
+                        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
+                <button name="action_set_late" type="object" string="Late" icon="fa-clock-o"
+                        title="Mark Late" aria-label="Mark Late" class="text-warning"
+                        invisible="status == 'late'"
+                        groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
             </list>
         </field>
     </record>
@@ -33,7 +111,8 @@
                                    widget="badge"
                                    decoration-success="status == 'present'"
                                    decoration-danger="status == 'absent'"
-                                   decoration-warning="status == 'late'"/>
+                                   decoration-warning="status == 'late'"
+                                   decoration-muted="status == 'excused'"/>
                             <field name="remark"/>
                         </group>
                         <group>
@@ -73,7 +152,7 @@
     <record id="action_university_attendance" model="ir.actions.act_window">
         <field name="name">Attendance</field>
         <field name="res_model">university.attendance</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_attendance_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No attendance records found.</p>
@@ -84,7 +163,7 @@
     <record id="action_university_attendance_student" model="ir.actions.act_window">
         <field name="name">My Attendance</field>
         <field name="res_model">university.attendance</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_attendance_search"/>

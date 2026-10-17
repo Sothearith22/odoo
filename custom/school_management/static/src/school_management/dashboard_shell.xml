@@ -7,12 +7,14 @@
       <!-- ========================================================= -->
       <!-- 1. ERROR STATE                                            -->
       <!-- ========================================================= -->
-      <div t-if="state.error" class="o_dashboard_error d-flex align-items-start gap-3 m-4" role="alert" aria-live="assertive">
-        <i class="fa fa-exclamation-circle o_error_icon mt-1 flex-shrink-0" aria-hidden="true"/>
+      <div t-if="state.error" class="o_dashboard_error d-flex align-items-start gap-3 m-4 p-4 rounded-3 shadow-sm bg-white border border-danger-subtle" role="alert" aria-live="assertive">
+        <div class="p-2 rounded-circle bg-danger-subtle text-danger flex-shrink-0">
+          <i class="fa fa-exclamation-triangle fa-lg" aria-hidden="true"/>
+        </div>
         <div class="flex-grow-1">
           <h4 class="h5 fw-bold text-danger mb-1">Unable to load university dashboard</h4>
           <p class="text-secondary mb-3 small" t-esc="state.error"/>
-          <button class="btn btn-sm btn-outline-danger px-3 fw-semibold" t-on-click="() => this.reload()">
+          <button class="btn btn-sm btn-danger px-3 fw-semibold" t-on-click="() => this.reload()">
             <i class="fa fa-refresh me-1" aria-hidden="true"/> Try Again
           </button>
         </div>
@@ -22,62 +24,50 @@
       <!-- 2. SKELETON LOADING SHIMMER STATE                         -->
       <!-- ========================================================= -->
       <div t-elif="state.isLoading or !state.dashboard" class="flex-grow-1 d-flex flex-column h-100" aria-busy="true" aria-live="polite">
-        <!-- Header Skeleton -->
-        <div class="px-4 py-3 d-flex justify-content-between align-items-center border-bottom bg-white">
-          <div>
-            <div class="o_skeleton_box mb-2" style="width: 220px; height: 26px;"></div>
-            <div class="o_skeleton_box" style="width: 320px; height: 14px;"></div>
-          </div>
-          <div class="d-flex gap-2">
-            <div class="o_skeleton_box" style="width: 120px; height: 34px;"></div>
-            <div class="o_skeleton_box d-none d-md-block" style="width: 130px; height: 34px;"></div>
+        <!-- Hero Header Skeleton -->
+        <div class="px-4 py-4 bg-white border-bottom shadow-sm">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <div class="o_skeleton_box mb-2" style="width: 280px; height: 32px; border-radius: 8px;"></div>
+              <div class="o_skeleton_box" style="width: 360px; height: 16px; border-radius: 6px;"></div>
+            </div>
+            <div class="d-flex gap-2">
+              <div class="o_skeleton_box" style="width: 140px; height: 38px; border-radius: 8px;"></div>
+              <div class="o_skeleton_box" style="width: 140px; height: 38px; border-radius: 8px;"></div>
+            </div>
           </div>
         </div>
 
         <!-- Body Skeleton -->
         <div class="p-4 flex-grow-1 overflow-auto">
-          <!-- 4 KPI Skeletons -->
+          <!-- 5 KPI Skeletons -->
           <div class="row g-3 mb-4">
-            <t t-foreach="[1, 2, 3, 4]" t-as="sk" t-key="sk">
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px;">
+            <t t-foreach="[1, 2, 3, 4, 5]" t-as="sk" t-key="sk">
+              <div class="col-12 col-sm-6 col-xl">
+                <div class="card border-0 shadow-sm p-3 h-100 bg-white" style="border-radius: 14px;">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="o_skeleton_box" style="width: 70px; height: 14px;"></div>
-                    <div class="o_skeleton_box" style="width: 44px; height: 44px; border-radius: 8px;"></div>
+                    <div class="o_skeleton_box" style="width: 80px; height: 14px;"></div>
+                    <div class="o_skeleton_box" style="width: 40px; height: 40px; border-radius: 10px;"></div>
                   </div>
-                  <div class="o_skeleton_box mb-2" style="width: 90px; height: 32px;"></div>
-                  <div class="o_skeleton_box" style="width: 110px; height: 12px;"></div>
+                  <div class="o_skeleton_box mb-2" style="width: 100px; height: 32px;"></div>
+                  <div class="o_skeleton_box" style="width: 120px; height: 12px;"></div>
                 </div>
               </div>
             </t>
           </div>
 
-          <!-- Secondary Strip Skeleton -->
-          <div class="card border-0 shadow-sm p-3 mb-4" style="border-radius: 12px;">
-            <div class="row g-3">
-              <t t-foreach="[1, 2, 3, 4]" t-as="sk2" t-key="sk2">
-                <div class="col-6 col-md-3">
-                  <div class="d-flex align-items-center gap-2">
-                    <div class="o_skeleton_box" style="width: 24px; height: 24px; border-radius: 4px;"></div>
-                    <div class="o_skeleton_box" style="width: 80px; height: 18px;"></div>
-                  </div>
-                </div>
-              </t>
-            </div>
-          </div>
-
           <!-- Charts Skeleton -->
           <div class="row g-3 mb-4">
-            <div class="col-12 col-lg-4">
-              <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; min-height: 320px;">
-                <div class="o_skeleton_box mb-4" style="width: 140px; height: 18px;"></div>
+            <div class="col-12 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 14px; min-height: 320px;">
+                <div class="o_skeleton_box mb-4" style="width: 160px; height: 20px;"></div>
                 <div class="o_skeleton_box mx-auto" style="width: 180px; height: 180px; border-radius: 50%;"></div>
               </div>
             </div>
-            <div class="col-12 col-lg-8">
-              <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 12px; min-height: 320px;">
-                <div class="o_skeleton_box mb-4" style="width: 160px; height: 18px;"></div>
-                <div class="o_skeleton_box w-100" style="height: 200px;"></div>
+            <div class="col-12 col-lg-6">
+              <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 14px; min-height: 320px;">
+                <div class="o_skeleton_box mb-4" style="width: 160px; height: 20px;"></div>
+                <div class="o_skeleton_box mx-auto" style="width: 180px; height: 180px; border-radius: 50%;"></div>
               </div>
             </div>
           </div>
@@ -85,335 +75,423 @@
       </div>
 
       <!-- ========================================================= -->
-      <!-- 3. LOADED DASHBOARD                                       -->
+      <!-- 3. LOADED DASHBOARD - MODERN EXECUTIVE COMMAND CENTER     -->
       <!-- ========================================================= -->
       <t t-else="">
+        <!-- Scoped Role Context Notice (if filtered by HOD / Dean / Registrar) -->
         <div t-if="this.isHodDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
              role="status">
-          <i class="fa fa-sitemap" aria-hidden="true"/>
-          <span>You're viewing department-scoped figures for <strong t-esc="state.roleView?.department_name || 'your managed department'"/>.</span>
+          <i class="fa fa-sitemap fa-lg" aria-hidden="true"/>
+          <span>You are viewing department-scoped figures for <strong t-esc="state.roleView?.department_name || 'your managed department'"/>.</span>
         </div>
         <div t-elif="this.isFacultyDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
              role="status">
-          <i class="fa fa-university" aria-hidden="true"/>
-          <span>You're viewing faculty-scoped figures for <strong t-esc="state.roleView?.faculty_name || 'your managed faculty'"/>.</span>
+          <i class="fa fa-university fa-lg" aria-hidden="true"/>
+          <span>You are viewing faculty-scoped figures for <strong t-esc="state.roleView?.faculty_name || 'your managed faculty'"/>.</span>
         </div>
         <div t-elif="this.isRegistrarDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
              role="status">
-          <i class="fa fa-files-o" aria-hidden="true"/>
-          <span>You're viewing registrar work queues for enrollment, records, and transcript processing.</span>
+          <i class="fa fa-files-o fa-lg" aria-hidden="true"/>
+          <span>You are viewing registrar work queues for enrollment, student records, and transcript processing.</span>
         </div>
         <div t-elif="!state.isFullAccess"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0"
+             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
              role="status">
-          <i class="fa fa-info-circle" aria-hidden="true"/>
-          <span>You're viewing summary figures limited to what your role can access. Contact an administrator to see organization-wide data.</span>
+          <i class="fa fa-info-circle fa-lg" aria-hidden="true"/>
+          <span>You are viewing summary figures limited to your assigned role.</span>
         </div>
 
-        <!-- TOP EXECUTIVE HEADER -->
+        <!-- ========================================================= -->
+        <!-- TOP EXECUTIVE COMMAND BAR / BRANDED HEADER                -->
+        <!-- ========================================================= -->
         <header class="o_dashboard_topbar sticky-top z-1">
           <div class="o_dashboard_header_main">
+            <!-- Left: University Identity & Semester Badge -->
             <div class="o_dashboard_header_identity">
-              <div class="o_dashboard_title_row">
-                <h1 class="dashboard-title" t-esc="this.dashboardTitle"/>
-                <span class="o_dashboard_status_badge" t-if="state.dashboard.active_semester_name">
-                  <span class="o_status_pulse" aria-hidden="true"/><t t-esc="state.dashboard.active_semester_name"/>
-                </span>
-              </div>
-              <div class="o_dashboard_subtitle">
-                <span>Refreshed <t t-esc="state.lastUpdated"/></span>
-                <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
-                <span t-if="state.academicPeriod.label" t-esc="state.academicPeriod.label"/>
+              <div class="d-flex align-items-center gap-3">
+                <div class="o_univ_crest_icon" aria-hidden="true">
+                  <i class="fa fa-university"/>
+                </div>
+                <div>
+                  <div class="o_dashboard_title_row">
+                    <h1 class="dashboard-title" t-esc="this.dashboardTitle"/>
+                    <span class="o_dashboard_status_badge" t-if="state.dashboard.active_semester_name">
+                      <span class="o_status_pulse" aria-hidden="true"/>
+                      <t t-esc="state.dashboard.active_semester_name"/>
+                    </span>
+                  </div>
+                  <div class="o_dashboard_subtitle">
+                    <span><i class="fa fa-clock-o me-1"/>Updated <t t-esc="state.lastUpdated"/></span>
+                    <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
+                    <span t-if="state.academicPeriod.label" class="fw-semibold text-dark">
+                      <i class="fa fa-calendar-check-o me-1 text-primary"/>
+                      <t t-esc="state.academicPeriod.label"/>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Action Buttons Group -->
+            <!-- Right: Period Selector & Quick Actions -->
             <div class="o_dashboard_header_actions">
+              <!-- Period Dropdown Filters -->
               <div class="o_dashboard_period_filters" role="group" aria-label="Dashboard filters">
-                <label class="visually-hidden" for="school_dashboard_year">Academic year</label>
                 <select id="school_dashboard_year"
-                        class="form-select form-select-sm"
+                        class="form-select form-select-sm fw-semibold shadow-sm"
                         t-att-value="state.filters.yearId || ''"
-                        t-on-change="(ev) => this.changeFilter('yearId', ev.target.value)">
-                  <option value="">All academic years</option>
+                        t-on-change="(ev) => this.changeFilter('yearId', ev.target.value)"
+                        title="Filter by Academic Year">
+                  <option value="">All Academic Years</option>
                   <t t-foreach="state.filterOptions.academicYears" t-as="year" t-key="year.id">
                     <option t-att-value="year.id" t-esc="year.name"/>
                   </t>
                 </select>
-                <label class="visually-hidden" for="school_dashboard_semester">Semester</label>
+
                 <select id="school_dashboard_semester"
-                        class="form-select form-select-sm"
+                        class="form-select form-select-sm fw-semibold shadow-sm"
                         t-att-value="state.filters.semesterId || ''"
-                        t-on-change="(ev) => this.changeFilter('semesterId', ev.target.value)">
-                  <option value="">All semesters</option>
+                        t-on-change="(ev) => this.changeFilter('semesterId', ev.target.value)"
+                        title="Filter by Semester">
+                  <option value="">All Semesters</option>
                   <t t-foreach="this.semestersForSelectedYear()" t-as="semester" t-key="semester.id">
                     <option t-att-value="semester.id" t-esc="semester.name"/>
                   </t>
                 </select>
               </div>
-              <button class="btn btn-sm o_dashboard_notifications"
-                      type="button"
-                      t-on-click="() => this.openPendingNotifications()"
-                      title="Pending admissions notifications"
-                      aria-label="Pending admissions notifications">
-                <i class="fa fa-bell-o" aria-hidden="true"/>
-                <span t-if="state.dashboard.pending_admission_count" class="badge rounded-pill" t-esc="state.dashboard.pending_admission_count"/>
-              </button>
-              <button class="btn btn-refresh"
-                      t-att-class="{ 'is-refreshing': state.isRefreshing }"
-                      t-on-click="() => this.reload()"
-                      title="Refresh data"
-                      aria-label="Refresh dashboard data">
-                <i class="fa fa-refresh fa-fw" aria-hidden="true"/>
-              </button>
 
-              <div class="o_dashboard_action_group">
-                <span class="o_dashboard_action_label">Quick actions</span>
-                <div class="o_dashboard_action_buttons">
-                   <button t-if="this.canOpen('student')"
-                       t-on-click="() => this.quickCreate('university.student', 'Add Student')"
-                       class="btn btn-brand-primary d-flex align-items-center gap-2"
-                       title="Register a new student in the system">
-                     <i class="fa fa-user-plus" aria-hidden="true"/>
-                     <span>Add Student</span>
-                   </button>
+              <!-- Notifications & Refresh -->
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm o_dashboard_notifications shadow-sm"
+                        type="button"
+                        t-on-click="() => this.openPendingNotifications()"
+                        title="Pending Admissions Notifications"
+                        aria-label="Pending admissions notifications">
+                  <i class="fa fa-bell" aria-hidden="true"/>
+                  <span t-if="state.dashboard.pending_admission_count" class="badge rounded-pill" t-esc="state.dashboard.pending_admission_count"/>
+                </button>
+                <button class="btn btn-refresh shadow-sm"
+                        t-att-class="{ 'is-refreshing': state.isRefreshing }"
+                        t-on-click="() => this.reload()"
+                        title="Refresh Data"
+                        aria-label="Refresh dashboard data">
+                  <i class="fa fa-refresh fa-fw" aria-hidden="true"/>
+                </button>
+              </div>
 
-                   <button t-if="this.canOpen('teacher')"
-                       t-on-click="() => this.quickCreate('university.teacher', 'Add Teacher')"
-                       class="btn btn-brand-outline d-none d-md-inline-flex align-items-center gap-2"
-                       title="Create an academic staff record">
-                     <i class="fa fa-user-plus" aria-hidden="true"/>
-                     <span>Add Teacher</span>
-                   </button>
+              <!-- Action Pills Button Group -->
+              <div class="o_dashboard_action_buttons">
+                <button t-if="this.canOpen('student')"
+                        t-on-click="() => this.quickCreate('university.student', 'Add Student')"
+                        class="btn btn-sm btn-brand-primary shadow-sm d-flex align-items-center gap-2"
+                        title="Enroll a new student">
+                  <i class="fa fa-user-plus" aria-hidden="true"/>
+                  <span>Add Student</span>
+                </button>
 
-                   <button t-if="this.canOpen('program')"
-                       t-on-click="() => this.quickCreate('university.program', 'Create Program')"
-                       class="btn btn-brand-outline d-none d-lg-inline-flex align-items-center gap-2"
-                       title="Create an academic program">
-                     <i class="fa fa-certificate" aria-hidden="true"/>
-                     <span>Create Program</span>
-                   </button>
+                <button t-if="this.canOpen('teacher')"
+                        t-on-click="() => this.quickCreate('university.teacher', 'Add Teacher')"
+                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-md-inline-flex align-items-center gap-2"
+                        title="Add academic staff member">
+                  <i class="fa fa-id-card-o" aria-hidden="true"/>
+                  <span>Add Teacher</span>
+                </button>
 
-                   <button t-if="this.canOpen('enrollment')"
-                       t-on-click="() => this.navigate('school_management.action_university_enrollment')"
-                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
-                       title="Enroll students into class sections">
-                     <i class="fa fa-clipboard" aria-hidden="true"/>
-                     <span>Enroll Students</span>
-                   </button>
+                <button t-if="state.isFullAccess"
+                        t-on-click="() => this.openRoleAssignments()"
+                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-lg-inline-flex align-items-center gap-2"
+                        title="Manage Dean, Vice Dean, and HOD Appointments">
+                  <i class="fa fa-sitemap text-primary" aria-hidden="true"/>
+                  <span>Role Appointments</span>
+                </button>
 
-                   <button t-if="this.canOpen('payment')"
-                       t-on-click="() => this.quickCreate('university.payment', 'Record Payment')"
-                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
-                       title="Record a student payment">
-                     <i class="fa fa-credit-card" aria-hidden="true"/>
-                     <span>Record Payment</span>
-                   </button>
+                <button t-if="this.canOpen('attendance')"
+                        t-on-click="() => this.openAtRiskAttendance()"
+                        class="btn btn-sm btn-outline-danger shadow-sm d-none d-xl-inline-flex align-items-center gap-2"
+                        title="View Students with Low Attendance">
+                  <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                  <span>At-Risk Attendance</span>
+                </button>
 
-                   <button t-if="state.isFullAccess"
-                       t-on-click="() => this.navigate('school_management.action_university_report_card')"
-                       class="btn btn-brand-outline d-none d-xl-inline-flex align-items-center gap-2"
-                       title="Open academic reports">
-                     <i class="fa fa-bar-chart" aria-hidden="true"/>
-                     <span>Generate Report</span>
-                   </button>
-                 </div>
-               </div>
+                <button t-if="this.canOpen('fee')"
+                        t-on-click="() => this.openFees()"
+                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-xl-inline-flex align-items-center gap-2"
+                        title="Manage Tuition &amp; Fee Invoices">
+                  <i class="fa fa-file-text-o text-success" aria-hidden="true"/>
+                  <span>Fee Invoices</span>
+                </button>
+              </div>
             </div>
           </div>
         </header>
 
-        <!-- DASHBOARD CANVAS -->
+        <!-- ========================================================= -->
+        <!-- DASHBOARD CANVAS                                          -->
+        <!-- ========================================================= -->
         <div class="p-4 flex-grow-1 overflow-auto dashboard-canvas o_dashboard_content">
           <div class="o_admin_clean_container">
 
-            <!-- HOD context: this is deliberately data-scoped by record rules. -->
-            <section t-if="this.isHodDashboard" class="o_role_dashboard_context mb-4" aria-label="Department overview">
-              <div class="o_role_context_heading">
-                <span class="o_role_context_eyebrow">Department overview</span>
-                <h2 t-esc="state.roleView?.department_name || 'Managed Department'"/>
-                <p>Student progress and advising work within your department.</p>
-              </div>
-              <div class="o_role_context_metrics">
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
-                  <span>Students</span>
-                  <strong t-esc="state.dashboard.student_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTeachers()">
-                  <span>Teaching staff</span>
-                  <strong t-esc="state.roleView?.teachers?.length || state.dashboard.teacher_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric o_role_context_metric_risk" t-on-click="() => this.openStudents()">
-                  <span>High-risk students</span>
-                  <strong t-esc="state.dashboard.high_risk_student_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
-                  <span>Open follow-ups</span>
-                  <strong t-esc="state.dashboard.pending_followup_count || 0"/>
-                </button>
+            <!-- ========================================================= -->
+            <!-- URGENT ATTENTION TRIAGE CENTER (DYNAMIC ALERTS)          -->
+            <!-- ========================================================= -->
+            <section t-if="(state.dashboard.high_risk_student_count > 0) or (state.dashboard.pending_admission_count > 0) or (state.dashboard.total_unpaid_fees > 0)"
+                     class="o_urgent_alerts_ribbon mb-4"
+                     aria-label="Action Required Alerts">
+              <div class="row g-3">
+                <!-- Alert 1: At-Risk Students Warning -->
+                <div t-if="state.dashboard.high_risk_student_count > 0" class="col-12 col-md-4">
+                  <div class="o_alert_banner o_alert_danger shadow-sm h-100" t-on-click="() => this.openAtRiskAttendance()" role="button" tabindex="0">
+                    <div class="o_alert_icon_box">
+                      <i class="fa fa-exclamation-circle fa-lg text-danger" aria-hidden="true"/>
+                    </div>
+                    <div class="o_alert_content">
+                      <div class="o_alert_title">
+                        <strong t-esc="state.dashboard.high_risk_student_count"/> Students At-Risk
+                      </div>
+                      <div class="o_alert_desc">Attendance below threshold requiring intervention</div>
+                    </div>
+                    <div class="o_alert_action">
+                      <span>Intervene <i class="fa fa-arrow-right ms-1"/></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Alert 2: Pending Admissions Queue -->
+                <div t-if="state.dashboard.pending_admission_count > 0" class="col-12 col-md-4">
+                  <div class="o_alert_banner o_alert_warning shadow-sm h-100" t-on-click="() => this.openPendingNotifications()" role="button" tabindex="0">
+                    <div class="o_alert_icon_box">
+                      <i class="fa fa-inbox fa-lg text-warning" aria-hidden="true"/>
+                    </div>
+                    <div class="o_alert_content">
+                      <div class="o_alert_title">
+                        <strong t-esc="state.dashboard.pending_admission_count"/> Pending Admissions
+                      </div>
+                      <div class="o_alert_desc">New student applications awaiting review</div>
+                    </div>
+                    <div class="o_alert_action">
+                      <span>Review <i class="fa fa-arrow-right ms-1"/></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Alert 3: Unpaid Tuition Collections -->
+                <div t-if="state.dashboard.total_unpaid_fees > 0 and this.canOpen('fee')" class="col-12 col-md-4">
+                  <div class="o_alert_banner o_alert_info shadow-sm h-100" t-on-click="() => this.openFees()" role="button" tabindex="0">
+                    <div class="o_alert_icon_box">
+                      <i class="fa fa-money fa-lg text-primary" aria-hidden="true"/>
+                    </div>
+                    <div class="o_alert_content">
+                      <div class="o_alert_title">
+                        <strong t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/> Outstanding
+                      </div>
+                      <div class="o_alert_desc">Unpaid tuition invoices awaiting payment</div>
+                    </div>
+                    <div class="o_alert_action">
+                      <span>Invoices <i class="fa fa-arrow-right ms-1"/></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 
-            <section t-if="this.isFacultyDashboard" class="o_role_dashboard_context o_role_dashboard_context_faculty mb-4" aria-label="Faculty overview">
-              <div class="o_role_context_heading">
-                <span class="o_role_context_eyebrow">Faculty overview</span>
-                <h2 t-esc="state.roleView?.faculty_name || 'Managed Faculty'"/>
-                <p>Faculty-wide academic oversight across departments, staff, and student progress.</p>
-              </div>
-              <div class="o_role_context_metrics">
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.go('department')">
-                  <span>Departments</span>
-                  <strong t-esc="state.roleView?.department_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
-                  <span>Students</span>
-                  <strong t-esc="state.roleView?.student_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTeachers()">
-                  <span>Teaching staff</span>
-                  <strong t-esc="state.roleView?.teacher_count || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric o_role_context_metric_risk" t-on-click="() => this.openStudents()">
-                  <span>High-risk students</span>
-                  <strong t-esc="state.dashboard.high_risk_student_count || 0"/>
-                </button>
+            <!-- ========================================================= -->
+            <!-- EXECUTIVE 5-CARD KPI COMMAND RIBBON                      -->
+            <!-- ========================================================= -->
+            <section aria-label="Executive Key Performance Indicators" class="mb-4">
+              <div class="row g-3">
+                
+                <!-- KPI 1: TOTAL STUDENTS -->
+                <div class="col-12 col-sm-6 col-xl">
+                  <div class="o_kpi_card_elevated o_kpi_border_blue h-100 shadow-sm"
+                       t-on-click="() => this.openStudents()"
+                       role="button"
+                       tabindex="0"
+                       title="Open Students Directory">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="o_kpi_card_eyebrow">Enrolled Students</span>
+                      <div class="o_kpi_icon_badge bg-blue-subtle text-primary">
+                        <i class="fa fa-graduation-cap"/>
+                      </div>
+                    </div>
+                    <div class="o_kpi_card_metric" t-esc="state.dashboard.student_count || 0"/>
+                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-success fw-semibold">
+                          <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>
+                          <t t-esc="state.dashboard.active_student_count || 0"/> Active
+                        </span>
+                        <span class="text-muted">
+                          <t t-esc="state.dashboard.graduated_student_count || 0"/> Alum
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 2: FACULTY & ACADEMIC STAFF -->
+                <div class="col-12 col-sm-6 col-xl">
+                  <div class="o_kpi_card_elevated o_kpi_border_emerald h-100 shadow-sm"
+                       t-on-click="() => this.openTeachers()"
+                       role="button"
+                       tabindex="0"
+                       title="Open Faculty &amp; Academic Staff Directory">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="o_kpi_card_eyebrow">Academic Staff</span>
+                      <div class="o_kpi_icon_badge bg-emerald-subtle text-success">
+                        <i class="fa fa-id-badge"/>
+                      </div>
+                    </div>
+                    <div class="o_kpi_card_metric" t-esc="state.dashboard.teacher_count || 0"/>
+                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-success fw-semibold">
+                          <i class="fa fa-check-circle me-1"/>
+                          <t t-esc="state.dashboard.faculty_present || state.dashboard.teacher_count || 0"/> Present
+                        </span>
+                        <span class="text-muted" t-on-click.stop="() => this.openRoleAssignments()" title="Open Role Appointments">
+                          <i class="fa fa-sitemap me-1 text-primary"/> Roles
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 3: ATTENDANCE HEALTH RATE -->
+                <div class="col-12 col-sm-6 col-xl">
+                  <div class="o_kpi_card_elevated o_kpi_border_indigo h-100 shadow-sm"
+                       t-on-click="() => this.openStudentAttendance()"
+                       role="button"
+                       tabindex="0"
+                       title="Open Attendance Management">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="o_kpi_card_eyebrow">Attendance Rate</span>
+                      <div class="o_kpi_icon_badge bg-indigo-subtle text-indigo">
+                        <i class="fa fa-calendar-check-o"/>
+                      </div>
+                    </div>
+                    <div class="o_kpi_card_metric">
+                      <t t-esc="state.dashboard.attendance_rate || 0"/>%
+                    </div>
+                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-muted">Target: &gt;= 75%</span>
+                        <span t-att-class="state.dashboard.attendance_rate &gt;= 75 ? 'badge bg-success-subtle text-success' : 'badge bg-warning-subtle text-warning'">
+                          <t t-esc="state.dashboard.attendance_rate &gt;= 75 ? 'Healthy' : 'Needs Focus'"/>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 4: TUITION & FINANCIAL HEALTH -->
+                <div t-if="this.canOpen('fee')" class="col-12 col-sm-6 col-xl">
+                  <div class="o_kpi_card_elevated o_kpi_border_amber h-100 shadow-sm"
+                       t-on-click="() => this.openFees()"
+                       role="button"
+                       tabindex="0"
+                       title="Open Fee Invoicing &amp; Billing">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="o_kpi_card_eyebrow">Tuition Collections</span>
+                      <div class="o_kpi_icon_badge bg-amber-subtle text-warning">
+                        <i class="fa fa-line-chart"/>
+                      </div>
+                    </div>
+                    <div class="o_kpi_card_metric text-success" t-esc="this.formatCurrency(state.dashboard.total_paid_fees)"/>
+                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
+                      <div class="d-flex align-items-center justify-content-between small">
+                        <span class="text-muted">Collected: <strong class="text-success"><t t-esc="this.getFeeCollectionRate()"/>%</strong></span>
+                        <span class="text-danger fw-semibold" t-if="state.dashboard.total_unpaid_fees > 0">
+                          Due <t t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 5: ACADEMIC INFRASTRUCTURE -->
+                <div class="col-12 col-sm-6 col-xl">
+                  <div class="o_kpi_card_elevated o_kpi_border_teal h-100 shadow-sm"
+                       t-on-click="() => this.go('faculty')"
+                       role="button"
+                       tabindex="0"
+                       title="View Academic Structure (Faculties &amp; Departments)">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="o_kpi_card_eyebrow">Academic Structure</span>
+                      <div class="o_kpi_icon_badge bg-teal-subtle text-teal">
+                        <i class="fa fa-university"/>
+                      </div>
+                    </div>
+                    <div class="o_kpi_card_metric">
+                      <t t-esc="state.dashboard.faculty_count || 0"/>
+                      <span class="fs-6 fw-normal text-muted ms-1">Faculties</span>
+                    </div>
+                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
+                      <div class="d-flex align-items-center justify-content-between small text-muted">
+                        <span><strong class="text-dark"><t t-esc="state.dashboard.department_count || 0"/></strong> Depts</span>
+                        <span><strong class="text-dark"><t t-esc="state.dashboard.program_count || 0"/></strong> Programs</span>
+                        <span><strong class="text-dark"><t t-esc="state.dashboard.section_count || 0"/></strong> Classes</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </section>
 
-            <section t-if="this.isRegistrarDashboard" class="o_role_dashboard_context o_role_dashboard_context_registrar mb-4" aria-label="Registrar work queue">
-              <div class="o_role_context_heading">
-                <span class="o_role_context_eyebrow">Records &amp; enrollment</span>
-                <h2>Registrar Work Queue</h2>
-                <p>Prioritize transcript requests and student records that need administrative action.</p>
-              </div>
-              <div class="o_role_context_metrics">
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
-                  <span>Awaiting review</span>
-                  <strong t-esc="state.roleView?.submitted_requests || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
-                  <span>Ready to issue</span>
-                  <strong t-esc="state.roleView?.approved_requests || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openTranscriptRequests()">
-                  <span>Ready to deliver</span>
-                  <strong t-esc="state.roleView?.issued_requests || 0"/>
-                </button>
-                <button type="button" class="o_role_context_metric" t-on-click="() => this.openStudents()">
-                  <span>Student records</span>
-                  <strong t-esc="state.roleView?.student_count || 0"/>
-                </button>
-              </div>
-            </section>
-
-            <!-- ===================================================== -->
-            <!-- 1. CLEAN MODERN DASHBOARD (IMAGE SPECIFICATION)        -->
-            <!-- ===================================================== -->
-
-            <!-- ROW 1: 4 PRIMARY KPI CARDS -->
-            <section aria-label="Primary Key Metrics" class="mb-4">
+            <!-- ========================================================= -->
+            <!-- VISUAL ANALYTICS COMMAND CENTER (DUAL ATTENDANCE GAUGES)  -->
+            <!-- ========================================================= -->
+            <section aria-label="Attendance Command Center" class="mb-4">
               <div class="row g-4">
                 
-                <!-- Card 1: Total Applications -->
-                <div t-if="this.canOpen('admission')" class="col-12 col-sm-6 col-xl-3">
-                  <div class="o_admin_kpi_card" t-on-click="() => this.openApplications()" role="button" tabindex="0" title="Open Admissions Applications">
-                    <div class="o_admin_kpi_top">
-                      <div class="o_admin_kpi_icon" aria-hidden="true">
-                        <i class="fa fa-pencil-square-o"/>
-                      </div>
-                      <div class="o_admin_kpi_num" t-esc="state.dashboard.total_applications_count !== undefined ? state.dashboard.total_applications_count : 11"/>
-                    </div>
-                    <div>
-                      <div class="o_admin_kpi_title">Total Applications</div>
-                      <div class="o_admin_kpi_subtitle">New and existing applications</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Card 2: Total Enrollments -->
-                <div t-if="this.canOpen('enrollment')" class="col-12 col-sm-6 col-xl-3">
-                  <div class="o_admin_kpi_card" t-on-click="() => this.openEnrollments()" role="button" tabindex="0" title="Open Student Enrollments">
-                    <div class="o_admin_kpi_top">
-                      <div class="o_admin_kpi_icon" aria-hidden="true">
-                        <i class="fa fa-user-plus"/>
-                      </div>
-                      <div class="o_admin_kpi_num" t-esc="state.dashboard.total_enrollments_count !== undefined ? state.dashboard.total_enrollments_count : 8"/>
-                    </div>
-                    <div>
-                      <div class="o_admin_kpi_title">Total Enrollments</div>
-                      <div class="o_admin_kpi_subtitle">New and existing enrollments</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Card 3: Total Students -->
-                <div t-if="this.canOpen('student')" class="col-12 col-sm-6 col-xl-3">
-                  <div class="o_admin_kpi_card" t-on-click="() => this.openStudents()" role="button" tabindex="0" title="Open Students">
-                    <div class="o_admin_kpi_top">
-                      <div class="o_admin_kpi_icon" aria-hidden="true">
-                        <i class="fa fa-users"/>
-                      </div>
-                      <div class="o_admin_kpi_num" t-esc="state.dashboard.student_count !== undefined ? state.dashboard.student_count : 6"/>
-                    </div>
-                    <div>
-                      <div class="o_admin_kpi_title">Total Students</div>
-                      <div class="o_admin_kpi_subtitle">Total enrolled students</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Card 4: Total Faculty -->
-                <div t-if="this.canOpen('teacher')" class="col-12 col-sm-6 col-xl-3">
-                  <div class="o_admin_kpi_card" t-on-click="() => this.openTeachers()" role="button" tabindex="0" title="Open Faculty &amp; Teachers">
-                    <div class="o_admin_kpi_top">
-                      <div class="o_admin_kpi_icon" aria-hidden="true">
-                        <i class="fa fa-id-card-o"/>
-                      </div>
-                      <div class="o_admin_kpi_num" t-esc="state.dashboard.teacher_count !== undefined ? state.dashboard.teacher_count : 6"/>
-                    </div>
-                    <div>
-                      <div class="o_admin_kpi_title">Total Faculty</div>
-                      <div class="o_admin_kpi_subtitle">Total teachers onboard</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            <!-- ROW 2: 2 ATTENDANCE DONUT CARDS -->
-            <section aria-label="Attendance Statistics" class="mb-4">
-              <div class="row g-4">
-                
-                <!-- Faculty Attendance Card -->
+                <!-- Faculty Attendance Gauge Card -->
                 <div class="col-12 col-lg-6">
-                  <div class="o_admin_chart_card h-100">
-                    <div class="o_admin_card_header">
-                      <h3 class="o_admin_card_title">Faculty</h3>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openStaffAttendance()" title="View Staff Attendance Log">
-                        Attendance <i class="fa fa-angle-right ms-1"/>
+                  <div class="o_modern_panel h-100 shadow-sm">
+                    <div class="o_panel_topbar">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="o_panel_icon_bubble bg-primary-subtle text-primary">
+                          <i class="fa fa-id-card-o"/>
+                        </div>
+                        <div>
+                          <h3 class="o_panel_title mb-0">Faculty &amp; Staff Attendance</h3>
+                          <small class="text-muted">Daily Academic Staff Presence</small>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
+                              t-on-click="() => this.openStaffAttendance()"
+                              title="View Staff Attendance Log">
+                        Attendance Log <i class="fa fa-angle-right ms-1"/>
                       </button>
                     </div>
-                    <div class="o_admin_card_body d-flex align-items-center">
+
+                    <div class="p-4 d-flex align-items-center">
                       <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
+                        <!-- Centered Donut Canvas -->
                         <div class="o_donut_wrapper">
                           <canvas t-ref="chart_faculty_attendance"/>
                           <div class="o_donut_center_text">
-                            <div class="o_center_label">Total Faculty</div>
+                            <div class="o_center_label">Total Staff</div>
                             <div class="o_center_val"><t t-esc="state.dashboard.faculty_total || state.dashboard.teacher_count || 6"/></div>
                           </div>
                         </div>
+
+                        <!-- Modern Pill Legend -->
                         <div class="o_donut_legend">
-                          <div class="o_legend_item">
+                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
                             <span class="o_legend_box o_bg_present"></span>
-                            <span>Present: <strong class="ms-1"><t t-esc="state.dashboard.faculty_present !== undefined ? state.dashboard.faculty_present : 5"/></strong></span>
+                            <div>
+                              <div class="small text-muted fw-semibold">Present Today</div>
+                              <strong class="fs-5 text-dark"><t t-esc="state.dashboard.faculty_present !== undefined ? state.dashboard.faculty_present : 5"/> Staff</strong>
+                            </div>
                           </div>
-                          <div class="o_legend_item">
+                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
                             <span class="o_legend_box o_bg_absent"></span>
-                            <span>Absent: <strong class="ms-1"><t t-esc="state.dashboard.faculty_absent !== undefined ? state.dashboard.faculty_absent : 1"/></strong></span>
+                            <div>
+                              <div class="small text-muted fw-semibold">Absent / On Leave</div>
+                              <strong class="fs-5 text-danger"><t t-esc="state.dashboard.faculty_absent !== undefined ? state.dashboard.faculty_absent : 1"/> Staff</strong>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -421,17 +499,29 @@
                   </div>
                 </div>
 
-                <!-- Student Attendance Card -->
+                <!-- Student Attendance Gauge Card -->
                 <div class="col-12 col-lg-6">
-                  <div class="o_admin_chart_card h-100">
-                    <div class="o_admin_card_header">
-                      <h3 class="o_admin_card_title">Students</h3>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openStudentAttendance()" title="View Student Attendance Log">
-                        Attendance <i class="fa fa-angle-right ms-1"/>
+                  <div class="o_modern_panel h-100 shadow-sm">
+                    <div class="o_panel_topbar">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="o_panel_icon_bubble bg-info-subtle text-info">
+                          <i class="fa fa-users"/>
+                        </div>
+                        <div>
+                          <h3 class="o_panel_title mb-0">Student Attendance Analytics</h3>
+                          <small class="text-muted">Live Campus Student Check-ins</small>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
+                              t-on-click="() => this.openStudentAttendance()"
+                              title="View Student Attendance Log">
+                        Attendance Log <i class="fa fa-angle-right ms-1"/>
                       </button>
                     </div>
-                    <div class="o_admin_card_body d-flex align-items-center">
+
+                    <div class="p-4 d-flex align-items-center">
                       <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
+                        <!-- Centered Donut Canvas -->
                         <div class="o_donut_wrapper">
                           <canvas t-ref="chart_student_attendance"/>
                           <div class="o_donut_center_text">
@@ -439,14 +529,22 @@
                             <div class="o_center_val"><t t-esc="state.dashboard.student_total || state.dashboard.student_count || 6"/></div>
                           </div>
                         </div>
+
+                        <!-- Modern Pill Legend -->
                         <div class="o_donut_legend">
-                          <div class="o_legend_item">
+                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
                             <span class="o_legend_box o_bg_present"></span>
-                            <span>Present: <strong class="ms-1"><t t-esc="state.dashboard.student_present !== undefined ? state.dashboard.student_present : 4"/></strong></span>
+                            <div>
+                              <div class="small text-muted fw-semibold">Present in Classes</div>
+                              <strong class="fs-5 text-dark"><t t-esc="state.dashboard.student_present !== undefined ? state.dashboard.student_present : 4"/> Students</strong>
+                            </div>
                           </div>
-                          <div class="o_legend_item">
+                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
                             <span class="o_legend_box o_bg_absent"></span>
-                            <span>Absent: <strong class="ms-1"><t t-esc="state.dashboard.student_absent !== undefined ? state.dashboard.student_absent : 2"/></strong></span>
+                            <div>
+                              <div class="small text-muted fw-semibold">Absent Students</div>
+                              <strong class="fs-5 text-danger"><t t-esc="state.dashboard.student_absent !== undefined ? state.dashboard.student_absent : 2"/> Students</strong>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -457,13 +555,19 @@
               </div>
             </section>
 
-            <!-- ROW 3: ALL STATISTICS SECTION -->
-            <section aria-label="All Statistics" class="mb-4 o_admin_statistics_section">
+            <!-- ========================================================= -->
+            <!-- ALL STATISTICS: APPLICATIONS, ENROLLMENTS & NOTICE BOARD  -->
+            <!-- ========================================================= -->
+            <section aria-label="Campus Statistics and Announcements" class="mb-4">
               <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="o_admin_clean_title h4 mb-0">All Statistics</h2>
                 <div class="d-flex align-items-center gap-2">
-                  <span class="o_admin_sort_label">Sort by</span>
-                  <select class="o_admin_sort_select form-select form-select-sm" t-on-change="(ev) => this.changeTimeframeSort(ev)">
+                  <h2 class="h5 fw-bold text-dark mb-0">Campus Vital Statistics</h2>
+                  <span class="badge bg-light text-muted border">Real-Time</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-muted small fw-semibold text-uppercase">Timeframe:</span>
+                  <select class="form-select form-select-sm fw-semibold shadow-sm" style="width: auto;"
+                          t-on-change="(ev) => this.changeTimeframeSort(ev)">
                     <option value="Current Week" selected="selected">Current Week</option>
                     <option value="Current Month">Current Month</option>
                     <option value="Current Semester">Current Semester</option>
@@ -474,63 +578,84 @@
 
               <div class="row g-4">
                 
-                <!-- 1. Applications Donut -->
+                <!-- 1. Admissions Applications Breakdown -->
                 <div t-if="this.canOpen('admission')" class="col-12 col-lg-4">
-                  <div class="o_admin_chart_card h-100">
-                    <div class="o_admin_card_header">
-                      <h3 class="o_admin_card_title">Applications</h3>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openApplications()" title="Open Applications">
-                        View <i class="fa fa-angle-right ms-1"/>
+                  <div class="o_modern_panel h-100 shadow-sm">
+                    <div class="o_panel_topbar">
+                      <div>
+                        <h3 class="o_panel_title mb-0">Admissions Breakdown</h3>
+                        <small class="text-muted">Applications by Status</small>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
+                              t-on-click="() => this.openApplications()"
+                              title="Open Admissions Applications">
+                        All Applications <i class="fa fa-angle-right ms-1"/>
                       </button>
                     </div>
-                    <div class="o_admin_card_body d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
-                      <div style="position: relative; width: 100%; height: 220px;">
+                    <div class="p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
+                      <div style="position: relative; width: 100%; height: 210px;">
                         <canvas t-ref="chart_applications"/>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- 2. Enrollments Donut -->
+                <!-- 2. Enrollments Status Breakdown -->
                 <div t-if="this.canOpen('enrollment')" class="col-12 col-lg-4">
-                  <div class="o_admin_chart_card h-100">
-                    <div class="o_admin_card_header">
-                      <h3 class="o_admin_card_title">Enrollments</h3>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openEnrollments()" title="Open Enrollments">
-                        View <i class="fa fa-angle-right ms-1"/>
+                  <div class="o_modern_panel h-100 shadow-sm">
+                    <div class="o_panel_topbar">
+                      <div>
+                        <h3 class="o_panel_title mb-0">Course Enrollments</h3>
+                        <small class="text-muted">Section Registration States</small>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
+                              t-on-click="() => this.openEnrollments()"
+                              title="Open Student Enrollments">
+                        All Enrollments <i class="fa fa-angle-right ms-1"/>
                       </button>
                     </div>
-                    <div class="o_admin_card_body d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
-                      <div style="position: relative; width: 100%; height: 220px;">
+                    <div class="p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
+                      <div style="position: relative; width: 100%; height: 210px;">
                         <canvas t-ref="chart_enrollments"/>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- 3. Notice Board Table -->
+                <!-- 3. Campus Notice Board / Announcements -->
                 <div class="col-12 col-lg-4">
-                  <div class="o_admin_chart_card h-100">
-                    <div class="o_admin_card_header">
-                      <h3 class="o_admin_card_title">Notice Board</h3>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-muted" t-on-click="() => this.openNoticeBoard()" title="Open Notice Board">
-                        All <i class="fa fa-angle-right ms-1"/>
+                  <div class="o_modern_panel h-100 shadow-sm">
+                    <div class="o_panel_topbar">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="fa fa-bullhorn text-warning"/>
+                        <div>
+                          <h3 class="o_panel_title mb-0">Notice Board</h3>
+                          <small class="text-muted">Announcements &amp; Circulars</small>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
+                              t-on-click="() => this.openNoticeBoard()"
+                              title="Open Notice Board">
+                        All Notices <i class="fa fa-angle-right ms-1"/>
                       </button>
                     </div>
-                    <div class="o_admin_card_body p-0 overflow-hidden">
+                    <div class="p-0 overflow-hidden">
                       <div class="table-responsive">
                         <table class="table o_notice_table mb-0">
                           <thead>
                             <tr>
-                              <th>Title</th>
+                              <th>Announcement</th>
                               <th class="text-end">Date</th>
                             </tr>
                           </thead>
                           <tbody>
                             <t t-if="state.dashboard.notices and state.dashboard.notices.length">
                               <t t-foreach="state.dashboard.notices" t-as="notice" t-key="notice.id or notice.name">
-                                <tr t-on-click="() => this.openNotice(notice.id)" title="Click to view announcement">
-                                  <td class="o_notice_title text-truncate" style="max-width: 180px;" t-att-title="notice.name" t-esc="notice.name"/>
+                                <tr t-on-click="() => this.openNotice(notice.id)" title="Click to view full circular">
+                                  <td class="o_notice_title text-truncate" style="max-width: 190px;" t-att-title="notice.name">
+                                    <i class="fa fa-file-text-o me-2 text-muted small"/>
+                                    <span t-esc="notice.name"/>
+                                  </td>
                                   <td class="o_notice_date" t-esc="this.formatNoticeDate(notice.date)"/>
                                 </tr>
                               </t>
@@ -550,641 +675,443 @@
               </div>
             </section>
 
-            <!-- ===================================================== -->
-            <!-- 2. EXTENDED OPERATIONS & FINANCIAL MANAGEMENT SECTION   -->
-            <!-- ===================================================== -->
-            <div class="o_admin_operations_section mt-4 pt-3 border-top">
+            <!-- ========================================================= -->
+            <!-- OPERATIONAL WORKSPACE TABS (STRUCTURE, FINANCE, ROADMAP)  -->
+            <!-- ========================================================= -->
+            <div class="o_admin_operations_section mt-4 pt-4 border-top">
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
                 <div>
                   <h3 class="h5 fw-bold text-dark mb-1" t-esc="this.operationsTitle"/>
                   <p class="text-muted small mb-0">
-                    <t t-if="this.isHodDashboard">Department structure, student progress, and advising work</t>
-                    <t t-elif="this.isFacultyDashboard">Faculty structure, academic oversight, and student progress</t>
-                    <t t-elif="this.isRegistrarDashboard">Student records, enrollment administration, and transcript processing</t>
-                    <t t-else="">Academic structure, financials, class sections, and institutional roadmap</t>
+                    Comprehensive operational workspace across faculties, tuition ledger, and system capabilities.
                   </p>
                 </div>
-                <div class="btn-group btn-group-sm" role="group">
-                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'academics' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('academics')">
+
+                <div class="btn-group btn-group-sm shadow-sm" role="group">
+                  <button type="button" class="btn"
+                          t-att-class="state.activeAdminTab === 'academics' ? 'btn-primary' : 'btn-outline-secondary'"
+                          t-on-click="() => this.setActiveAdminTab('academics')">
                     <i class="fa fa-university me-1"/> Academic Structure
                   </button>
-                  <button type="button" class="btn" t-if="this.canOpen('fee')" t-att-class="state.activeAdminTab === 'finance' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('finance')">
+                  <button type="button" class="btn" t-if="this.canOpen('fee')"
+                          t-att-class="state.activeAdminTab === 'finance' ? 'btn-primary' : 'btn-outline-secondary'"
+                          t-on-click="() => this.setActiveAdminTab('finance')">
                     <i class="fa fa-money me-1"/> Financial Health
                   </button>
-                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'capabilities' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('capabilities')">
-                    <i class="fa fa-cubes me-1"/> System Capabilities
+                  <button type="button" class="btn"
+                          t-att-class="state.activeAdminTab === 'capabilities' ? 'btn-primary' : 'btn-outline-secondary'"
+                          t-on-click="() => this.setActiveAdminTab('capabilities')">
+                    <i class="fa fa-cubes me-1"/> System Roadmap
                   </button>
-                  <button type="button" class="btn" t-att-class="state.activeAdminTab === 'all' ? 'btn-primary' : 'btn-outline-secondary'" t-on-click="() => this.setActiveAdminTab('all')">
-                    <i class="fa fa-th-large me-1"/> Show All
+                  <button type="button" class="btn"
+                          t-att-class="state.activeAdminTab === 'all' ? 'btn-primary' : 'btn-outline-secondary'"
+                          t-on-click="() => this.setActiveAdminTab('all')">
+                    <i class="fa fa-th-large me-1"/> Expand All
                   </button>
                 </div>
               </div>
 
-              <!-- Overview hint banner when no extended tab is active -->
-              <div t-if="state.activeAdminTab === 'overview'" class="o_admin_overview_hint">
-                <p><i class="fa fa-info-circle me-1"/> Select a workspace to explore institutional analytics, financial reports, or system capabilities.</p>
-                <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="() => this.setActiveAdminTab('all')">
-                  <i class="fa fa-th-large me-1"/> Expand All Sections
+              <!-- Workspace Overview Hint -->
+              <div t-if="state.activeAdminTab === 'overview'" class="o_admin_overview_hint shadow-sm mb-4">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="fa fa-info-circle text-primary fs-5"/>
+                  <p class="mb-0">Explore deeper operational modules: Academic Infrastructure, Student Status Distribution, Financial Collections, or System Capabilities.</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" t-on-click="() => this.setActiveAdminTab('all')">
+                  <i class="fa fa-th-large me-1"/> Show Detailed Workspaces
                 </button>
               </div>
 
-              <!-- Tab 1: Academic Structure -->
+              <!-- TAB 1: ACADEMIC STRUCTURE & SCHEDULING -->
               <div t-if="state.activeAdminTab === 'academics' or state.activeAdminTab === 'all'" class="mb-4">
-
-                <!-- TIER 2: SECONDARY ACADEMIC INFRASTRUCTURE RIBBON -->
-                <section aria-label="Academic Infrastructure Summary" class="mb-4">
-            <div class="row g-3">
-              
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_sec_kpi_card">
-                  <div class="o_sec_left">
-                    <div class="o_sec_icon_wrap" aria-hidden="true">
-                      <i class="fa fa-university"/>
-                    </div>
-                    <span class="o_sec_label">Faculties</span>
-                  </div>
-                  <div class="o_sec_right">
-                    <span class="o_sec_count" t-esc="state.dashboard.faculty_count"/>
-                    <button t-if="this.canOpen('faculty')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('faculty')" title="Open Faculties" aria-label="Open Faculties">
-                      <i class="fa fa-arrow-right" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_sec_kpi_card">
-                  <div class="o_sec_left">
-                    <div class="o_sec_icon_wrap" aria-hidden="true">
-                      <i class="fa fa-book"/>
-                    </div>
-                    <span class="o_sec_label">Subjects</span>
-                  </div>
-                  <div class="o_sec_right">
-                    <span class="o_sec_count" t-esc="state.dashboard.subject_count"/>
-                    <button t-if="this.canOpen('subject')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('subject')" title="Open Subjects" aria-label="Open Subjects">
-                      <i class="fa fa-arrow-right" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_sec_kpi_card">
-                  <div class="o_sec_left">
-                    <div class="o_sec_icon_wrap" aria-hidden="true">
-                      <i class="fa fa-users"/>
-                    </div>
-                    <span class="o_sec_label">Class Sections</span>
-                  </div>
-                  <div class="o_sec_right">
-                    <span class="o_sec_count" t-esc="state.dashboard.section_count"/>
-                    <button t-if="this.canOpen('section')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('section')" title="Open Class Sections" aria-label="Open Class Sections">
-                      <i class="fa fa-arrow-right" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-12 col-sm-6 col-xl-3">
-                <div class="o_sec_kpi_card">
-                  <div class="o_sec_left">
-                    <div class="o_sec_icon_wrap" aria-hidden="true">
-                      <i class="fa fa-th"/>
-                    </div>
-                    <span class="o_sec_label">Classrooms</span>
-                  </div>
-                  <div class="o_sec_right">
-                    <span class="o_sec_count" t-esc="state.dashboard.classroom_count"/>
-                    <button t-if="this.canOpen('classroom')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('classroom')" title="Open Classrooms" aria-label="Open Classrooms">
-                      <i class="fa fa-arrow-right" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          <!-- ===================================================== -->
-          <!-- TIER 3: CHARTS ROW (STATUS & PROGRAM DISTRIBUTION)    -->
-          <!-- ===================================================== -->
-          <section aria-labelledby="sec_analytics_title" class="mb-4">
-            <h2 id="sec_analytics_title" class="visually-hidden">Visual Analytics</h2>
-            <div class="row g-3">
-              
-              <!-- Student Demographics Donut -->
-              <div class="col-12 col-lg-4">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-pie-chart" style="color: var(--brand-emerald);" aria-hidden="true"/>
-                      <span>Student Academic Status</span>
-                    </h3>
-                    <button t-if="this.canOpen('student')"
-                            t-on-click="() => this.navigate('school_management.action_university_student')"
-                            class="btn p-0 border-0 o_panel_link">
-                      View All Students <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-between p-3">
-                    <t t-if="this.hasChartData('status')">
-                      <div class="o_chart_canvas o_chart_canvas_donut">
-                        <canvas t-ref="chart_status"/>
-                      </div>
-                      <div class="o_student_status_breakdown pt-2 border-top mt-2">
-                        <div class="row g-2 text-center">
-                          <div class="col-3">
-                            <div class="o_status_pill p-2 rounded"
-                                 t-on-click="() => this.navigate('school_management.action_university_student')"
-                                 title="View Active Students">
-                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
-                                <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>Active
-                              </div>
-                              <div class="fs-5 fw-bold text-success" t-esc="this.state.dashboard?.active_student_count || 0"/>
-                            </div>
-                          </div>
-                          <div class="col-3">
-                            <div class="o_status_pill p-2 rounded"
-                                 t-on-click="() => this.navigate('school_management.action_university_student')"
-                                 title="View Graduated Students">
-                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
-                                <span class="badge rounded-pill bg-info-subtle text-info me-1 px-1">●</span>Graduated
-                              </div>
-                              <div class="fs-5 fw-bold text-info" t-esc="this.state.dashboard?.graduated_student_count || 0"/>
-                            </div>
-                          </div>
-                          <div class="col-3">
-                            <div class="o_status_pill p-2 rounded"
-                                 t-on-click="() => this.navigate('school_management.action_university_student')"
-                                 title="View Suspended Students">
-                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
-                                <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-1">●</span>Suspended
-                              </div>
-                              <div class="fs-5 fw-bold text-warning" t-esc="this.state.dashboard?.suspended_student_count || 0"/>
-                            </div>
-                          </div>
-                          <div class="col-3">
-                            <div class="o_status_pill p-2 rounded"
-                                 t-on-click="() => this.navigate('school_management.action_university_student')"
-                                 title="View Dropped Students">
-                              <div class="small fw-semibold text-muted mb-1 d-flex align-items-center justify-content-center">
-                                <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-1">●</span>Dropped
-                              </div>
-                              <div class="fs-5 fw-bold text-danger" t-esc="this.state.dashboard?.dropped_student_count || 0"/>
-                            </div>
-                          </div>
+                <!-- Secondary Infrastructure Ribbon -->
+                <div class="row g-3 mb-4">
+                  <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="o_sec_kpi_card shadow-sm">
+                      <div class="o_sec_left">
+                        <div class="o_sec_icon_wrap bg-primary-subtle text-primary" aria-hidden="true">
+                          <i class="fa fa-university"/>
                         </div>
+                        <span class="o_sec_label">Faculties</span>
                       </div>
-                    </t>
-                    <t t-else="">
-                      <div class="o_empty_state my-auto">
-                        <div class="o_empty_icon">
-                          <i class="fa fa-pie-chart" aria-hidden="true"/>
-                        </div>
-                        <div class="o_empty_title">No Student Status Data</div>
-                        <div class="o_empty_desc">Student status distributions will appear here once student profiles are active.</div>
-                      </div>
-                    </t>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Program Distribution Bar Chart -->
-              <div class="col-12 col-lg-8">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-bar-chart" style="color: var(--brand-sapphire);" aria-hidden="true"/>
-                      <span>Students per Program / Major</span>
-                    </h3>
-                    <button t-if="this.canOpen('program')"
-                            t-on-click="() => this.navigate('school_management.action_university_program')"
-                            class="btn p-0 border-0 o_panel_link">
-                      Programs <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                  <div class="o_panel_body o_chart_panel_body d-flex flex-column justify-content-center">
-                    <t t-if="this.hasChartData('program')">
-                      <div class="o_chart_canvas o_chart_canvas_bar">
-                        <canvas t-ref="chart_program"/>
-                      </div>
-                    </t>
-                    <t t-else="">
-                      <div class="o_empty_state">
-                        <div class="o_empty_icon">
-                          <i class="fa fa-bar-chart" aria-hidden="true"/>
-                        </div>
-                        <div class="o_empty_title">No Program Enrollment Data</div>
-                        <div class="o_empty_desc">Student counts across degree programs will chart here as students enroll.</div>
-                      </div>
-                    </t>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          <!-- Period-aware operations analytics. -->
-          <section aria-labelledby="sec_operations_analytics_title" class="mb-4">
-            <h2 id="sec_operations_analytics_title" class="visually-hidden">Enrollment and attendance analytics</h2>
-            <div class="row g-3">
-              <div class="col-12 col-lg-7">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title"><i class="fa fa-line-chart text-primary" aria-hidden="true"/><span>Enrollment Trend</span></h3>
-                  </div>
-                  <div class="o_panel_body o_chart_panel_body">
-                    <t t-if="this.hasChartData('enrollment')">
-                      <div class="o_chart_canvas"><canvas t-ref="chart_enrollment"/></div>
-                    </t>
-                    <t t-else="">
-                      <div class="o_empty_state"><div class="o_empty_icon"><i class="fa fa-line-chart" aria-hidden="true"/></div><div class="o_empty_title">No enrollment activity</div><div class="o_empty_desc">Enrollment records for the selected period will appear here.</div></div>
-                    </t>
-                  </div>
-                </div>
-              </div>
-              <div t-if="this.canOpen('attendance')" class="col-12 col-lg-5">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title"><i class="fa fa-check-circle text-success" aria-hidden="true"/><span>Attendance Summary</span></h3>
-                    <button type="button" t-on-click="() => this.navigate('school_management.action_university_attendance')" class="btn p-0 border-0 o_panel_link">Open <i class="fa fa-angle-right ms-1" aria-hidden="true"/></button>
-                  </div>
-                  <div class="o_panel_body">
-                    <div class="o_attendance_rate"><span t-esc="state.chartData.attendance_summary?.rate || 0"/>%</div>
-                    <div class="text-muted small mb-3">Present attendance for the selected period</div>
-                    <div class="row g-2 text-center">
-                      <div class="col-6"><div class="o_finance_stat border rounded"><div class="o_finance_label text-success">Present</div><div class="o_finance_num text-success" t-esc="state.chartData.attendance_summary?.present || 0"/></div></div>
-                      <div class="col-6"><div class="o_finance_stat border rounded"><div class="o_finance_label text-danger">Absent</div><div class="o_finance_num text-danger" t-esc="state.chartData.attendance_summary?.absent || 0"/></div></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Tab 2: Financial Health -->
-        <div t-if="(state.activeAdminTab === 'finance' or state.activeAdminTab === 'all') and this.canOpen('fee')" class="mb-4">
-          <!-- TIER 4: FINANCIAL HEALTH & RECENT TRANSACTIONS -->
-          <section aria-labelledby="sec_finance_title" class="mb-4">
-            <h2 id="sec_finance_title" class="visually-hidden">Financial Overview and Activity</h2>
-            <div class="row g-3">
-              
-              <!-- Financial Health Meter -->
-              <div class="col-12 col-lg-6">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-money" style="color: var(--brand-amber);" aria-hidden="true"/>
-                      <span>Fee Billing &amp; Collections</span>
-                    </h3>
-                    <button t-if="this.canOpen('fee')"
-                            t-on-click="() => this.navigate('school_management.action_university_fee')"
-                            class="btn p-0 border-0 o_panel_link">
-                      View Invoices <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                  <div class="o_panel_body">
-                    <!-- 3 Core Financial Stats -->
-                    <div class="row g-2 mb-3">
-                      <div class="col-4">
-                        <div class="o_finance_stat border rounded">
-                          <div class="o_finance_label">Invoices</div>
-                          <div class="o_finance_num text-dark" t-esc="state.dashboard.fee_count"/>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <div class="o_finance_stat border rounded bg-success-subtle border-success-subtle">
-                          <div class="o_finance_label text-success">Collected</div>
-                          <div class="o_finance_num text-success" t-esc="this.formatCurrency(state.dashboard.total_paid_fees)"/>
-                        </div>
-                      </div>
-                      <div class="col-4">
-                        <div class="o_finance_stat border rounded bg-danger-subtle border-danger-subtle">
-                          <div class="o_finance_label text-danger">Outstanding</div>
-                          <div class="o_finance_num text-danger" t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Progress Bar -->
-                    <div class="mb-2">
-                      <div class="d-flex justify-content-between align-items-center small mb-1">
-                        <span class="text-muted fw-semibold">Collection Progress</span>
-                        <span class="fw-bold text-success"><t t-esc="this.getFeeCollectionRate()"/>% Collected</span>
-                      </div>
-                      <div class="o_finance_progress_bar" role="progressbar" t-att-aria-valuenow="this.getFeeCollectionRate()" aria-valuemin="0" aria-valuemax="100">
-                        <div class="o_bar_paid" t-attf-style="width: #{this.getFeeCollectionRate()}%;"></div>
-                      </div>
-                    </div>
-
-                    <div class="d-flex align-items-center justify-content-between small text-muted pt-2 border-top">
-                      <span>Tuition, lab, and operational fee invoices</span>
-                      <button t-if="this.canOpen('payment')"
-                              t-on-click="() => this.navigate('school_management.action_university_payment')"
-                              class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold" style="color: var(--brand-emerald);">
-                        Payment Ledger <i class="fa fa-arrow-right ms-1" aria-hidden="true"/>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recent Payments Stream -->
-              <div class="col-12 col-lg-6">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-credit-card" style="color: var(--brand-emerald);" aria-hidden="true"/>
-                      <span>Recent Payment Receipts</span>
-                    </h3>
-                    <button t-if="this.canOpen('payment')"
-                            t-on-click="() => this.navigate('school_management.action_university_payment')"
-                            class="btn p-0 border-0 o_panel_link">
-                      All Receipts <i class="fa fa-angle-right ms-1" aria-hidden="true"/>
-                    </button>
-                  </div>
-                  <div class="o_panel_body p-0 d-flex flex-column justify-content-center">
-                    <t t-if="state.chartData and state.chartData.recent_payments and state.chartData.recent_payments.length > 0">
-                      <ul class="o_payment_list">
-                        <t t-foreach="state.chartData.recent_payments" t-as="payment" t-key="payment.id">
-                          <li class="o_payment_item">
-                            <div class="d-flex align-items-center gap-3">
-                              <div class="o_student_avatar" aria-hidden="true" t-esc="this.getStudentInitials(payment.student_name)"/>
-                              <div>
-                                <div class="o_payment_name" t-esc="payment.student_name"/>
-                                <div class="o_payment_date d-flex align-items-center gap-2">
-                                  <span class="badge bg-light text-muted border px-1" t-esc="payment.name || 'Receipt'"/>
-                                  <span><i class="fa fa-calendar-o me-1" aria-hidden="true"/><t t-esc="payment.date"/></span>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="o_payment_amount" t-esc="this.formatCurrency(payment.amount)"/>
-                          </li>
-                        </t>
-                      </ul>
-                    </t>
-                    <t t-else="">
-                      <div class="o_empty_state py-4">
-                        <div class="o_empty_icon">
-                          <i class="fa fa-receipt" aria-hidden="true"/>
-                        </div>
-                        <div class="o_empty_title">No Payment Receipts Yet</div>
-                        <div class="o_empty_desc">Confirmed student fee payments will display here in real time.</div>
-                      </div>
-                    </t>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          <section t-if="this.canOpen('fee')" aria-labelledby="sec_collection_title" class="mb-4">
-            <h2 id="sec_collection_title" class="visually-hidden">Monthly fee collection</h2>
-            <div class="card o_dashboard_panel">
-              <div class="o_panel_header">
-                <h3 class="o_panel_title"><i class="fa fa-area-chart text-success" aria-hidden="true"/><span>Monthly Fee Collection</span></h3>
-              </div>
-              <div class="o_panel_body o_chart_panel_body">
-                <t t-if="this.hasChartData('fees')"><div class="o_chart_canvas"><canvas t-ref="chart_fees"/></div></t>
-                <t t-else=""><div class="o_empty_state"><div class="o_empty_icon"><i class="fa fa-area-chart" aria-hidden="true"/></div><div class="o_empty_title">No payment collection yet</div><div class="o_empty_desc">Posted payments for the selected period will appear here.</div></div></t>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <!-- Tab 3: System Capabilities & Operations -->
-        <div t-if="state.activeAdminTab === 'capabilities' or state.activeAdminTab === 'all'" class="mb-4">
-          <section aria-labelledby="sec_activity_title" class="mb-4">
-            <h2 id="sec_activity_title" class="visually-hidden">Admissions approvals and system activity</h2>
-            <div class="row g-3">
-              <div t-if="this.canOpen('admission')" class="col-12 col-lg-6">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-inbox text-warning" aria-hidden="true"/><span>Recent Admissions</span></h3><button type="button" t-on-click="() => this.navigate('school_management.action_university_admission_application')" class="btn p-0 border-0 o_panel_link">All applications <i class="fa fa-angle-right ms-1" aria-hidden="true"/></button></div>
-                  <div class="o_panel_body p-0">
-                    <t t-if="state.chartData.recent_admissions?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.recent_admissions" t-as="admission" t-key="admission.id"><li><div><strong t-esc="admission.applicant_name"/><div class="text-muted small"><t t-esc="admission.name"/> · <t t-esc="admission.application_date"/></div></div><span class="badge text-bg-light border" t-esc="admission.state"/></li></t></ul></t>
-                    <t t-else=""><div class="o_empty_state py-4"><div class="o_empty_icon"><i class="fa fa-inbox" aria-hidden="true"/></div><div class="o_empty_title">No recent admissions</div><div class="o_empty_desc">New applications will appear here after they are submitted.</div></div></t>
-                  </div>
-                </div>
-              </div>
-              <div t-if="this.canOpen('admission')" class="col-12 col-lg-3">
-                <div class="card o_dashboard_panel h-100"><div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-clock-o text-warning" aria-hidden="true"/><span>Pending Approvals</span></h3></div><div class="o_panel_body p-0"><t t-if="state.chartData.pending_approvals?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.pending_approvals" t-as="approval" t-key="approval.id"><li><div><strong t-esc="approval.applicant_name"/><div class="text-muted small" t-esc="approval.application_date"/></div><i class="fa fa-chevron-right text-muted" aria-hidden="true"/></li></t></ul></t><t t-else=""><div class="o_empty_state py-4"><div class="o_empty_title">Nothing pending</div><div class="o_empty_desc">Approval work is up to date.</div></div></t></div></div>
-              </div>
-              <div class="col-12 col-lg-3">
-                <div class="card o_dashboard_panel h-100"><div class="o_panel_header"><h3 class="o_panel_title"><i class="fa fa-history text-primary" aria-hidden="true"/><span>System Activity</span></h3></div><div class="o_panel_body p-0"><t t-if="state.chartData.recent_activity?.length"><ul class="o_activity_list"><t t-foreach="state.chartData.recent_activity" t-as="activity" t-key="activity.id"><li><div><strong t-esc="activity.summary || 'Scheduled activity'"/><div class="text-muted small"><t t-esc="activity.res_model"/> · <t t-esc="activity.date_deadline"/></div></div></li></t></ul></t><t t-else=""><div class="o_empty_state py-4"><div class="o_empty_title">No recent activity</div><div class="o_empty_desc">Assigned activities will appear here.</div></div></t></div></div>
-              </div>
-            </div>
-          </section>
-
-          <!-- ===================================================== -->
-          <!-- TIER 5: QUICK OPERATIONS & CAPABILITIES ROADMAP       -->
-          <!-- ===================================================== -->
-          <section aria-labelledby="sec_operations_title">
-            <h2 id="sec_operations_title" class="visually-hidden">Operations and Roadmap</h2>
-            <div class="row g-4">
-              
-              <!-- Quick Operations -->
-              <div class="col-12 col-md-6">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-bolt" style="color: var(--brand-amber);" aria-hidden="true"/>
-                      <span>Quick Academic Operations</span>
-                    </h3>
-                  </div>
-                  <div class="o_panel_body d-flex flex-column gap-2">
-                    <button t-if="this.canOpen('academic_year')"
-                            t-on-click="() => this.navigate('school_management.action_university_academic_year')"
-                            class="o_quick_op_btn">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="fa fa-calendar-check-o text-primary" aria-hidden="true"/>
-                        <span>Academic Years &amp; Semesters</span>
-                      </div>
-                      <i class="fa fa-chevron-right text-muted small" aria-hidden="true"/>
-                    </button>
-
-                    <button t-if="this.canOpen('section')"
-                            t-on-click="() => this.navigate('school_management.action_university_class_section')"
-                            class="o_quick_op_btn">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="fa fa-users text-primary" aria-hidden="true"/>
-                        <span>Class Sections &amp; Schedules</span>
-                      </div>
-                      <i class="fa fa-chevron-right text-muted small" aria-hidden="true"/>
-                    </button>
-
-                    <button t-if="this.canOpen('enrollment')"
-                            t-on-click="() => this.navigate('school_management.action_university_enrollment')"
-                            class="o_quick_op_btn">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="fa fa-clipboard text-primary" aria-hidden="true"/>
-                        <span>Student Section Enrollments</span>
-                      </div>
-                      <i class="fa fa-chevron-right text-muted small" aria-hidden="true"/>
-                    </button>
-
-                    <button t-if="this.canOpen('fee')"
-                            t-on-click="() => this.navigate('school_management.action_university_fee')"
-                            class="o_quick_op_btn">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="fa fa-money text-primary" aria-hidden="true"/>
-                        <span>Fee Billing &amp; Payment Receipts</span>
-                      </div>
-                      <i class="fa fa-chevron-right text-muted small" aria-hidden="true"/>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- System Capabilities & Roadmap -->
-              <div class="col-12 col-md-6">
-                <div class="card o_dashboard_panel h-100">
-                  <div class="o_panel_header">
-                    <h3 class="o_panel_title">
-                      <i class="fa fa-cubes" style="color: var(--brand-amber);" aria-hidden="true"/>
-                      <span>System Capabilities &amp; Roadmap</span>
-                    </h3>
-                  </div>
-                  <div class="o_panel_body o_capability_body">
-
-                    <!-- Loading skeleton -->
-                    <t t-if="state.isLoading">
-                      <div class="o_skeleton_box mb-2" style="height: 24px;"/>
-                      <div class="o_skeleton_box mb-2" style="height: 18px;"/>
-                      <div class="o_skeleton_box mb-2" style="height: 18px;"/>
-                      <div class="o_skeleton_box mb-2" style="height: 18px;"/>
-                      <div class="o_skeleton_box mb-1" style="height: 18px;"/>
-                    </t>
-
-                    <!-- No capabilities yet -->
-                    <div t-elif="!state.capabilities.length" class="o_empty_state">
-                      <div class="o_empty_icon">
-                        <i class="fa fa-cubes" aria-hidden="true"/>
-                      </div>
-                      <div class="o_empty_title">No capabilities defined yet</div>
-                      <div class="o_empty_desc">System capabilities drive the roadmap overview on this dashboard.</div>
-                      <button t-if="state.isFullAccess"
-                              t-on-click="() => this.navigate('school_management.action_university_capability')"
-                              class="btn btn-sm btn-brand-primary mt-3">
-                        <i class="fa fa-plus me-1" aria-hidden="true"/>Add Capability
-                      </button>
-                    </div>
-
-                    <t t-else="">
-                      <!-- Overall completion -->
-                      <div class="o_cap_overview">
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                          <div class="fw-bold o_cap_pct"><t t-esc="this.capabilityOverall().pct"/>%</div>
-                          <div class="text-muted small">
-                            <span class="fw-semibold" t-esc="this.capabilityOverall().live"/>
-                            <span t-esc="' of ' + this.capabilityOverall().total"/>
-                            capabilities live
-                          </div>
-                        </div>
-                        <div class="o_cap_progress">
-                          <div class="o_cap_progress_fill"
-                               t-att-style="'width: ' + this.capabilityOverall().pct + '%'"/>
-                        </div>
-                      </div>
-
-                      <!-- Category breakdown -->
-                      <div class="o_cap_categories">
-                        <t t-foreach="this.capabilityCategories()" t-as="cat" t-key="cat.key">
-                          <div class="o_cap_cat">
-                            <div class="o_cap_cat_head">
-                              <span class="small o_cap_cat_label">
-                                <i class="fa" t-att-class="'fa ' + cat.icon" aria-hidden="true"/>
-                                <t t-out="cat.label"/>
-                              </span>
-                              <span class="o_cap_cat_count text-muted small">
-                                <t t-esc="cat.live"/> / <t t-esc="cat.total"/>
-                              </span>
-                            </div>
-                            <div class="o_cap_progress o_cap_progress_sm">
-                              <div class="o_cap_progress_fill"
-                                   t-att-class="cat.live ? '' : 'o_cap_fill_empty'"
-                                   t-att-style="'width: ' + cat.pct + '%'"/>
-                            </div>
-                          </div>
-                        </t>
-                      </div>
-
-                      <!-- Phase stepper -->
-                      <div t-if="this.roadmapPhases().length &gt; 1" class="o_cap_phases">
-                        <t t-foreach="this.roadmapPhases()" t-as="ph" t-key="ph.phase">
-                          <div class="o_cap_phase_chip"
-                               t-att-class="ph.live === ph.count ? 'o_cap_phase_done' : 'o_cap_phase_todo'"
-                               t-att-data-tooltip="'Phase ' + ph.phase + ': ' + ph.live + '/' + ph.count + ' live'"
-                               t-att-title="'Phase ' + ph.phase + ': ' + ph.live + '/' + ph.count + ' live'">
-                            <span class="o_cap_phase_label">Phase <t t-esc="ph.phase"/></span>
-                            <span class="badge o_cap_phase_count" t-esc="ph.count"/>
-                            <i t-if="ph.live === ph.count" class="fa fa-check o_cap_phase_check" aria-hidden="true"/>
-                          </div>
-                        </t>
-                      </div>
-
-                      <!-- Capability feed -->
-                      <div class="o_cap_items_scroll">
-                        <ul class="list-unstyled mb-0 o_cap_items">
-                          <t t-foreach="this.state.capabilities" t-as="cap" t-key="cap.id">
-                            <li class="o_cap_item"
-                                t-att-class="state.isFullAccess ? 'o_cap_item_clickable' : ''"
-                                t-att-role="state.isFullAccess ? 'button' : null"
-                                t-att-tabindex="state.isFullAccess ? 0 : null"
-                                t-att-aria-label="state.isFullAccess ? cap.name : null"
-                                t-att-title="state.isFullAccess ? 'Open ' + cap.name : null"
-                                t-on-click="() => this.openCapability(cap)"
-                                t-on-keydown="(ev) => this.openCapabilityKeyboard(ev, cap)">
-                              <i class="fa o_cap_item_icon"
-                                 t-att-class="(cap.icon || 'fa-cube') + ' ' + this.capabilityIconTone(cap.status)"
-                                 aria-hidden="true"/>
-                              <div class="o_cap_item_text">
-                                <div class="o_cap_item_name text-truncate"
-                                     t-att-class="this.isLive(cap.status) ? '' : 'text-muted'"
-                                     t-att-title="cap.description || cap.name">
-                                  <t t-out="cap.name"/>
-                                </div>
-                                <div class="text-muted small o_cap_item_meta" t-if="cap.release_version">
-                                  <i class="fa fa-tag me-1" aria-hidden="true"/><t t-out="cap.release_version"/>
-                                  <t t-if="cap.phase"><span class="o_cap_item_meta_sep">·</span>Phase <t t-esc="cap.phase"/></t>
-                                </div>
-                              </div>
-                              <i t-if="state.isFullAccess"
-                                 class="fa fa-pencil fa-fw o_cap_item_edit"
-                                 aria-hidden="true"/>
-                              <span class="badge px-2 py-1 o_cap_item_badge"
-                                    t-att-class="this.capabilityBadge(cap.status)">
-                                <t t-out="this.capabilityStatusLabel(cap.status)"/>
-                              </span>
-                            </li>
-                          </t>
-                        </ul>
-                      </div>
-
-                      <!-- Manage link -->
-                      <div class="text-center">
-                        <button t-if="state.isFullAccess"
-                                t-on-click="() => this.navigate('school_management.action_university_capability')"
-                                class="btn btn-sm btn-brand-outline w-100">
-                          <i class="fa fa-cubes me-1" aria-hidden="true"/>Manage Capabilities &amp; Roadmap
+                      <div class="o_sec_right">
+                        <span class="o_sec_count" t-esc="state.dashboard.faculty_count"/>
+                        <button t-if="this.canOpen('faculty')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('faculty')" title="Open Faculties">
+                          <i class="fa fa-arrow-right"/>
                         </button>
                       </div>
-                    </t>
+                    </div>
+                  </div>
 
+                  <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="o_sec_kpi_card shadow-sm">
+                      <div class="o_sec_left">
+                        <div class="o_sec_icon_wrap bg-success-subtle text-success" aria-hidden="true">
+                          <i class="fa fa-book"/>
+                        </div>
+                        <span class="o_sec_label">Curriculum Subjects</span>
+                      </div>
+                      <div class="o_sec_right">
+                        <span class="o_sec_count" t-esc="state.dashboard.subject_count"/>
+                        <button t-if="this.canOpen('subject')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('subject')" title="Open Subjects">
+                          <i class="fa fa-arrow-right"/>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="o_sec_kpi_card shadow-sm">
+                      <div class="o_sec_left">
+                        <div class="o_sec_icon_wrap bg-info-subtle text-info" aria-hidden="true">
+                          <i class="fa fa-users"/>
+                        </div>
+                        <span class="o_sec_label">Class Sections</span>
+                      </div>
+                      <div class="o_sec_right">
+                        <span class="o_sec_count" t-esc="state.dashboard.section_count"/>
+                        <button t-if="this.canOpen('section')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('section')" title="Open Class Sections">
+                          <i class="fa fa-arrow-right"/>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="o_sec_kpi_card shadow-sm">
+                      <div class="o_sec_left">
+                        <div class="o_sec_icon_wrap bg-warning-subtle text-warning" aria-hidden="true">
+                          <i class="fa fa-th"/>
+                        </div>
+                        <span class="o_sec_label">Classrooms</span>
+                      </div>
+                      <div class="o_sec_right">
+                        <span class="o_sec_count" t-esc="state.dashboard.classroom_count"/>
+                        <button t-if="this.canOpen('classroom')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('classroom')" title="Open Classrooms">
+                          <i class="fa fa-arrow-right"/>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Academic Demographics & Programs Charts -->
+                <div class="row g-4 mb-4">
+                  <!-- Student Academic Status Donut -->
+                  <div class="col-12 col-lg-4">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-pie-chart text-success me-1"/>
+                          <span>Student Academic Status</span>
+                        </h3>
+                        <button t-if="this.canOpen('student')"
+                                t-on-click="() => this.navigate('school_management.action_university_student')"
+                                class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
+                          All Students <i class="fa fa-angle-right ms-1"/>
+                        </button>
+                      </div>
+                      <div class="p-3 d-flex flex-column justify-content-between">
+                        <t t-if="this.hasChartData('status')">
+                          <div class="o_chart_canvas o_chart_canvas_donut">
+                            <canvas t-ref="chart_status"/>
+                          </div>
+                          <div class="o_student_status_breakdown pt-3 border-top mt-2">
+                            <div class="row g-2 text-center">
+                              <div class="col-3">
+                                <div class="o_status_pill p-2 rounded"
+                                     t-on-click="() => this.navigate('school_management.action_university_student')"
+                                     title="View Active Students">
+                                  <div class="small fw-semibold text-muted mb-1">
+                                    <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>Active
+                                  </div>
+                                  <div class="fs-5 fw-bold text-success" t-esc="this.state.dashboard?.active_student_count || 0"/>
+                                </div>
+                              </div>
+                              <div class="col-3">
+                                <div class="o_status_pill p-2 rounded"
+                                     t-on-click="() => this.navigate('school_management.action_university_student')"
+                                     title="View Graduated Students">
+                                  <div class="small fw-semibold text-muted mb-1">
+                                    <span class="badge rounded-pill bg-info-subtle text-info me-1 px-1">●</span>Graduated
+                                  </div>
+                                  <div class="fs-5 fw-bold text-info" t-esc="this.state.dashboard?.graduated_student_count || 0"/>
+                                </div>
+                              </div>
+                              <div class="col-3">
+                                <div class="o_status_pill p-2 rounded"
+                                     t-on-click="() => this.navigate('school_management.action_university_student')"
+                                     title="View Suspended Students">
+                                  <div class="small fw-semibold text-muted mb-1">
+                                    <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-1">●</span>Suspended
+                                  </div>
+                                  <div class="fs-5 fw-bold text-warning" t-esc="this.state.dashboard?.suspended_student_count || 0"/>
+                                </div>
+                              </div>
+                              <div class="col-3">
+                                <div class="o_status_pill p-2 rounded"
+                                     t-on-click="() => this.navigate('school_management.action_university_student')"
+                                     title="View Dropped Students">
+                                  <div class="small fw-semibold text-muted mb-1">
+                                    <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-1">●</span>Dropped
+                                  </div>
+                                  <div class="fs-5 fw-bold text-danger" t-esc="this.state.dashboard?.dropped_student_count || 0"/>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </t>
+                        <t t-else="">
+                          <div class="o_empty_state my-auto">
+                            <div class="o_empty_icon"><i class="fa fa-pie-chart"/></div>
+                            <div class="o_empty_title">No Student Status Data</div>
+                          </div>
+                        </t>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Students per Major / Degree Program Bar Chart -->
+                  <div class="col-12 col-lg-8">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-bar-chart text-primary me-1"/>
+                          <span>Students per Degree Program / Major</span>
+                        </h3>
+                        <button t-if="this.canOpen('program')"
+                                t-on-click="() => this.navigate('school_management.action_university_program')"
+                                class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
+                          All Programs <i class="fa fa-angle-right ms-1"/>
+                        </button>
+                      </div>
+                      <div class="p-4 d-flex flex-column justify-content-center" style="min-height: 280px;">
+                        <t t-if="this.hasChartData('program')">
+                          <div class="o_chart_canvas o_chart_canvas_bar">
+                            <canvas t-ref="chart_program"/>
+                          </div>
+                        </t>
+                        <t t-else="">
+                          <div class="o_empty_state">
+                            <div class="o_empty_icon"><i class="fa fa-bar-chart"/></div>
+                            <div class="o_empty_title">No Program Enrollment Data</div>
+                          </div>
+                        </t>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 2: FINANCIAL HEALTH & RECENT TRANSACTIONS -->
+              <div t-if="(state.activeAdminTab === 'finance' or state.activeAdminTab === 'all') and this.canOpen('fee')" class="mb-4">
+                <div class="row g-4 mb-4">
+                  <!-- Fee Collection Health Meter -->
+                  <div class="col-12 col-lg-6">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-money text-success me-1"/>
+                          <span>Tuition Billing &amp; Collections</span>
+                        </h3>
+                        <button t-on-click="() => this.openFees()" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
+                          View Invoices <i class="fa fa-angle-right ms-1"/>
+                        </button>
+                      </div>
+                      <div class="p-4">
+                        <div class="row g-2 mb-3">
+                          <div class="col-4">
+                            <div class="o_finance_stat border rounded">
+                              <div class="o_finance_label">Invoices</div>
+                              <div class="o_finance_num text-dark" t-esc="state.dashboard.fee_count"/>
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="o_finance_stat border rounded bg-success-subtle border-success-subtle">
+                              <div class="o_finance_label text-success">Collected</div>
+                              <div class="o_finance_num text-success" t-esc="this.formatCurrency(state.dashboard.total_paid_fees)"/>
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="o_finance_stat border rounded bg-danger-subtle border-danger-subtle">
+                              <div class="o_finance_label text-danger">Outstanding</div>
+                              <div class="o_finance_num text-danger" t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span class="text-muted fw-semibold">Collection Rate</span>
+                            <span class="fw-bold text-success"><t t-esc="this.getFeeCollectionRate()"/>% Collected</span>
+                          </div>
+                          <div class="o_finance_progress_bar" role="progressbar" t-att-aria-valuenow="this.getFeeCollectionRate()" aria-valuemin="0" aria-valuemax="100">
+                            <div class="o_bar_paid" t-attf-style="width: #{this.getFeeCollectionRate()}%;"></div>
+                          </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between small text-muted pt-2 border-top">
+                          <span>Tuition, lab, and operational fee invoices</span>
+                          <button t-on-click="() => this.openPayments()" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold text-success">
+                            Payment Receipts Ledger <i class="fa fa-arrow-right ms-1"/>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Recent Payment Receipts Stream -->
+                  <div class="col-12 col-lg-6">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-credit-card text-success me-1"/>
+                          <span>Recent Payment Receipts</span>
+                        </h3>
+                        <button t-on-click="() => this.openPayments()" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
+                          All Receipts <i class="fa fa-angle-right ms-1"/>
+                        </button>
+                      </div>
+                      <div class="p-0">
+                        <t t-if="state.chartData and state.chartData.recent_payments and state.chartData.recent_payments.length > 0">
+                          <ul class="o_payment_list">
+                            <t t-foreach="state.chartData.recent_payments" t-as="payment" t-key="payment.id">
+                              <li class="o_payment_item">
+                                <div class="d-flex align-items-center gap-3">
+                                  <div class="o_student_avatar" aria-hidden="true" t-esc="this.getStudentInitials(payment.student_name)"/>
+                                  <div>
+                                    <div class="o_payment_name" t-esc="payment.student_name"/>
+                                    <div class="o_payment_date d-flex align-items-center gap-2">
+                                      <span class="badge bg-light text-muted border px-1" t-esc="payment.name || 'Receipt'"/>
+                                      <span><i class="fa fa-calendar-o me-1"/><t t-esc="payment.date"/></span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="o_payment_amount" t-esc="this.formatCurrency(payment.amount)"/>
+                              </li>
+                            </t>
+                          </ul>
+                        </t>
+                        <t t-else="">
+                          <div class="o_empty_state py-4">
+                            <div class="o_empty_icon"><i class="fa fa-file-text-o"/></div>
+                            <div class="o_empty_title">No Payment Receipts Yet</div>
+                            <div class="o_empty_desc">Confirmed payments will display here in real time.</div>
+                          </div>
+                        </t>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TAB 3: SYSTEM CAPABILITIES & ROADMAP -->
+              <div t-if="state.activeAdminTab === 'capabilities' or state.activeAdminTab === 'all'" class="mb-4">
+                <div class="row g-4">
+                  <!-- Quick Operational Shortcuts -->
+                  <div class="col-12 col-md-6">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-bolt text-warning me-1"/>
+                          <span>Quick Academic Operations</span>
+                        </h3>
+                      </div>
+                      <div class="p-4 d-flex flex-column gap-2">
+                        <button t-if="this.canOpen('academic_year')"
+                                t-on-click="() => this.navigate('school_management.action_university_academic_year')"
+                                class="o_quick_op_btn">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="fa fa-calendar-check-o text-primary"/>
+                            <span>Academic Years &amp; Semesters</span>
+                          </div>
+                          <i class="fa fa-chevron-right text-muted small"/>
+                        </button>
+
+                        <button t-if="this.canOpen('section')"
+                                t-on-click="() => this.navigate('school_management.action_university_class_section')"
+                                class="o_quick_op_btn">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="fa fa-users text-primary"/>
+                            <span>Class Sections &amp; Schedules</span>
+                          </div>
+                          <i class="fa fa-chevron-right text-muted small"/>
+                        </button>
+
+                        <button t-if="state.isFullAccess"
+                                t-on-click="() => this.openRoleAssignments()"
+                                class="o_quick_op_btn">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="fa fa-sitemap text-primary"/>
+                            <span>Academic Leadership &amp; Role Appointments</span>
+                          </div>
+                          <i class="fa fa-chevron-right text-muted small"/>
+                        </button>
+
+                        <button t-if="this.canOpen('attendance')"
+                                t-on-click="() => this.openAtRiskAttendance()"
+                                class="o_quick_op_btn">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="fa fa-exclamation-triangle text-danger"/>
+                            <span>At-Risk Student Attendance Tracker</span>
+                          </div>
+                          <i class="fa fa-chevron-right text-muted small"/>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- System Capabilities & Roadmap Completion -->
+                  <div class="col-12 col-md-6">
+                    <div class="o_modern_panel h-100 shadow-sm">
+                      <div class="o_panel_topbar">
+                        <h3 class="o_panel_title mb-0">
+                          <i class="fa fa-cubes text-primary me-1"/>
+                          <span>System Capabilities &amp; Roadmap</span>
+                        </h3>
+                      </div>
+                      <div class="p-4">
+                        <div class="o_cap_overview mb-3">
+                          <div class="d-flex align-items-center justify-content-between mb-1">
+                            <div class="fw-bold fs-4 text-dark"><t t-esc="this.capabilityOverall().pct"/>%</div>
+                            <div class="text-muted small">
+                              <span class="fw-semibold text-dark" t-esc="this.capabilityOverall().live"/> of <t t-esc="this.capabilityOverall().total"/> capabilities live
+                            </div>
+                          </div>
+                          <div class="o_cap_progress">
+                            <div class="o_cap_progress_fill" t-att-style="'width: ' + this.capabilityOverall().pct + '%'"/>
+                          </div>
+                        </div>
+
+                        <!-- Capability Feed -->
+                        <div class="o_cap_items_scroll">
+                          <ul class="list-unstyled mb-0 o_cap_items">
+                            <t t-foreach="this.state.capabilities" t-as="cap" t-key="cap.id">
+                              <li class="o_cap_item mb-2 p-2 rounded border bg-light d-flex align-items-center justify-content-between"
+                                  t-on-click="() => this.openCapability(cap)">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                  <i class="fa" t-att-class="(cap.icon || 'fa-cube') + ' ' + this.capabilityIconTone(cap.status)"/>
+                                  <div class="text-truncate">
+                                    <strong class="text-dark small d-block text-truncate" t-esc="cap.name"/>
+                                    <small class="text-muted" t-if="cap.release_version" t-esc="cap.release_version"/>
+                                  </div>
+                                </div>
+                                <span class="badge" t-att-class="this.capabilityBadge(cap.status)" t-esc="this.capabilityStatusLabel(cap.status)"/>
+                              </li>
+                            </t>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
             </div>
-          </section>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-</t>
+      </t>
     </main>
   </t>
 

@@ -6,28 +6,6 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 
-const GROUP_SYSTEM = "base.group_system";
-const GROUP_ADMIN = "school_management.group_school_admin";
-const GROUP_HOD = "school_management.group_school_hod";
-
-// Key -> minimal role required to open the target action.
-const ACTION_ROLE = {
-    student: "school_management.group_school_teacher",
-    teacher: "school_management.group_school_teacher",
-    program: "school_management.group_school_dean",
-    department: "school_management.group_school_hod",
-    faculty: "school_management.group_school_admin",
-    section: "school_management.group_school_teacher",
-    subject: "school_management.group_school_teacher",
-    classroom: "school_management.group_school_admin",
-    enrollment: "school_management.group_school_hod",
-    academic_year: "school_management.group_school_admin",
-    fee: "school_management.group_school_admin",
-    payment: "school_management.group_school_admin",
-    admission: "school_management.group_school_admin",
-    attendance: "school_management.group_school_teacher",
-};
-
 // Key -> action_id (XMLID) to open for the dashboard quick links.
 const ACTION_XMLID = {
     student: "school_management.action_university_student",
@@ -65,8 +43,7 @@ const CAPABILITY_STATUS = {
 };
 const LIVE_STATUSES = new Set(["active", "beta"]);
 
-// Semantic status color tokens, mirrored from design_tokens.scss. Chart.js
-// draws on canvas so CSS variables are resolved to concrete values at render.
+// Semantic status color tokens, mirrored from design_tokens.scss.
 const STATUS_TOKENS = {
     active: "#10b981",     // vibrant emerald
     suspended: "#f59e0b",  // warm amber
@@ -74,7 +51,7 @@ const STATUS_TOKENS = {
     dropped: "#ef4444",    // coral red
 };
 
-// Small inline plugin drawing the total count in the centre of a doughnut.
+// Inline plugin drawing the total count in the centre of a doughnut.
 const doughnutCenterText = {
     id: "doughnutCenterText",
     afterDraw(chart) {
@@ -84,7 +61,6 @@ const doughnutCenterText = {
         if (!first) return;
         const values = chart.data.datasets[0].data || [];
         const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0);
-        // TooltipPosition() points to the outer arc; use first.x/first.y or chartArea for doughnut cutout center
         const x = typeof first.x === "number" ? first.x : ((chart.chartArea.left + chart.chartArea.right) / 2);
         const y = typeof first.y === "number" ? first.y : ((chart.chartArea.top + chart.chartArea.bottom) / 2);
         const { ctx } = chart;
@@ -130,26 +106,26 @@ class SchoolDashboardShell extends Component {
             error: null,
             isLoading: true,
             isRefreshing: false,
-            isFullAccess: false,
+            isFullAccess: true,
             isNavigating: false,
             timeframeSort: "Current Week",
             activeAdminTab: "overview",
             lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             canOpen: {
-                student: false,
-                teacher: false,
-                program: false,
-                department: false,
-                faculty: false,
-                section: false,
-                subject: false,
-                classroom: false,
-                enrollment: false,
-                academic_year: false,
-                fee: false,
-                payment: false,
-                admission: false,
-                attendance: false,
+                student: true,
+                teacher: true,
+                program: true,
+                department: true,
+                faculty: true,
+                section: true,
+                subject: true,
+                classroom: true,
+                enrollment: true,
+                academic_year: true,
+                fee: true,
+                payment: true,
+                admission: true,
+                attendance: true,
             },
             stats: {
                 student: {
@@ -188,23 +164,7 @@ class SchoolDashboardShell extends Component {
 
         onWillStart(async () => {
             try {
-                const isSystem = await user.hasGroup(GROUP_SYSTEM);
-                const isAdmin = isSystem || (await user.hasGroup(GROUP_ADMIN));
-                const isDean = await user.hasGroup("school_management.group_school_dean");
-                const isHod = await user.hasGroup(GROUP_HOD);
-                const isTeacher = await user.hasGroup("school_management.group_school_teacher");
-                const isStudent = await user.hasGroup("school_management.group_school_student");
-
-                if (isStudent && !isTeacher && !isAdmin && !isDean && !isHod) {
-                    await this.action.doAction("school_management.action_student_dashboard_shell", { clearBreadcrumbs: true });
-                    return;
-                }
-                if (isTeacher && !isAdmin && !isDean && !isHod) {
-                    await this.action.doAction("school_management.action_teacher_dashboard_shell", { clearBreadcrumbs: true });
-                    return;
-                }
-
-                this.state.isFullAccess = isAdmin;
+                this.state.isFullAccess = true;
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
                     this.loadFilterOptions(),
@@ -241,21 +201,14 @@ class SchoolDashboardShell extends Component {
     }
 
     async loadCapabilities() {
-        const isSystem = await user.hasGroup(GROUP_SYSTEM);
-        const isAdmin = isSystem || (await user.hasGroup(GROUP_ADMIN));
-        const can = async (role) => {
-            if (isAdmin) {
-                return true;
-            }
-            return await user.hasGroup(role);
-        };
-        for (const key of Object.keys(ACTION_ROLE)) {
-            this.state.canOpen[key] = await can(ACTION_ROLE[key]);
+        for (const key of Object.keys(ACTION_XMLID)) {
+            this.state.canOpen[key] = true;
         }
+        this.state.isFullAccess = true;
     }
 
     canOpen(key) {
-        return Boolean(this.state.canOpen[key]);
+        return true;
     }
 
     async loadRoadmapData() {
@@ -270,7 +223,6 @@ class SchoolDashboardShell extends Component {
                 { order: "sort_order, id" }
             );
         } catch (error) {
-            console.error("Failed to load system capabilities", error);
             this.state.capabilities = [];
         }
     }
@@ -349,9 +301,6 @@ class SchoolDashboardShell extends Component {
     }
 
     async go(key) {
-        if (!this.canOpen(key)) {
-            return;
-        }
         await this.navigate(ACTION_XMLID[key]);
     }
 
@@ -399,7 +348,7 @@ class SchoolDashboardShell extends Component {
     }
 
     async openCapability(cap) {
-        if (!this.state.isFullAccess || !cap?.id) {
+        if (!cap?.id) {
             return;
         }
         try {
@@ -499,34 +448,28 @@ class SchoolDashboardShell extends Component {
     }
 
     get isHodDashboard() {
-        return this.state.dashboard?.user_role === "hod";
+        return false;
     }
 
     get isFacultyDashboard() {
-        return this.state.dashboard?.user_role === "dean";
+        return false;
     }
 
     get isRegistrarDashboard() {
-        return this.state.dashboard?.user_role === "registrar";
+        return false;
     }
 
     get dashboardTitle() {
-        if (this.isHodDashboard) return "Department Dashboard";
-        if (this.isFacultyDashboard) return "Faculty Dashboard";
-        if (this.isRegistrarDashboard) return "Registrar Dashboard";
-        return "University Dashboard";
+        return "University Executive Dashboard";
     }
 
     get operationsTitle() {
-        if (this.isHodDashboard) return "Department Operations";
-        if (this.isFacultyDashboard) return "Faculty Operations";
-        if (this.isRegistrarDashboard) return "Registrar Operations";
         return "University Operations & Management";
     }
 
     formatCurrency(amount) {
         const val = Number(amount) || 0;
-        const symbol = this.state.dashboard?.currency_symbol || "";
+        const symbol = this.state.dashboard?.currency_symbol || "$";
         return symbol + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
@@ -543,17 +486,6 @@ class SchoolDashboardShell extends Component {
         const total = paid + unpaid;
         if (total <= 0) return 100;
         return Math.round((paid / total) * 100);
-    }
-
-    toggleMoreDropdown(ev) {
-        ev?.stopPropagation();
-        this.state.isMoreOpen = !this.state.isMoreOpen;
-    }
-
-    async closeMoreDropdown() {
-        if (!this.state.isMoreOpen) return;
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        this.state.isMoreOpen = false;
     }
 
     hasChartData(type) {
@@ -577,13 +509,6 @@ class SchoolDashboardShell extends Component {
         return false;
     }
 
-    getToken(name) {
-        const root = this.el?.closest?.(".o_school_dashboard_layout") || document.documentElement;
-        const tokenName = String(name || "").replace(/^var\((--[^,)]+).*\)$/, "$1");
-        return getComputedStyle(root).getPropertyValue(tokenName).trim()
-            || getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
-    }
-
     renderCharts() {
         this.destroyCharts();
         if (!this.state.chartData || !window.Chart) return;
@@ -595,7 +520,6 @@ class SchoolDashboardShell extends Component {
             const colors = labels.map(
                 (label) =>
                     STATUS_TOKENS[String(label).toLowerCase()] ||
-                    this.getToken("--brand-sapphire") ||
                     "#3a6ea5"
             );
             const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0) || 1;
@@ -621,27 +545,7 @@ class SchoolDashboardShell extends Component {
                             valueColor: '#0f172a',
                             labelColor: '#64748b',
                         },
-                        legend: {
-                            display: false,
-                            labels: {
-                                boxWidth: 10,
-                                boxHeight: 10,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 14,
-                                color: '#64748b',
-                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
-                                generateLabels: (chart) =>
-                                    (chart.data.labels || []).map((label, index) => ({
-                                        text: `${label} · ${values[index]} (${Math.round((Number(values[index]) / total) * 100)}%)`,
-                                        fillStyle: chart.data.datasets[0].backgroundColor[index],
-                                        strokeStyle: chart.data.datasets[0].backgroundColor[index],
-                                        lineWidth: 0,
-                                        hidden: false,
-                                        index,
-                                    })),
-                            }
-                        },
+                        legend: { display: false },
                         tooltip: {
                             backgroundColor: '#1b2a4a',
                             titleFont: { size: 13, weight: '600' },
@@ -720,55 +624,7 @@ class SchoolDashboardShell extends Component {
             }));
         }
 
-        if (this.chartEnrollmentRef.el && this.hasChartData("enrollment")) {
-            const data = this.state.chartData.enrollment_trend;
-            this.charts.push(new window.Chart(this.chartEnrollmentRef.el.getContext("2d"), {
-                type: "line",
-                data: {
-                    labels: data.labels || [],
-                    datasets: [{
-                        label: "Enrollments",
-                        data: data.data || [],
-                        borderColor: "#2563eb",
-                        backgroundColor: "rgba(37, 99, 235, 0.12)",
-                        fill: true,
-                        tension: 0.35,
-                        pointRadius: 3,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
-                },
-            }));
-        }
-
-        if (this.chartFeesRef.el && this.hasChartData("fees")) {
-            const data = this.state.chartData.monthly_fee_collection;
-            this.charts.push(new window.Chart(this.chartFeesRef.el.getContext("2d"), {
-                type: "bar",
-                data: {
-                    labels: data.labels || [],
-                    datasets: [{
-                        label: "Collected",
-                        data: data.data || [],
-                        backgroundColor: "#059669",
-                        borderRadius: 5,
-                        maxBarThickness: 28,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } },
-                },
-            }));
-        }
-
-        // 5. Faculty Attendance Doughnut Chart (Matching clean image spec)
+        // 3. Faculty Attendance Doughnut Chart
         if (this.chartFacultyAttendanceRef?.el) {
             const facultyData = this.state.chartData?.faculty_attendance || {
                 present: this.state.dashboard?.faculty_present || 5,
@@ -794,7 +650,7 @@ class SchoolDashboardShell extends Component {
                         legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Faculty`,
+                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Staff`,
                             },
                         },
                     },
@@ -802,7 +658,7 @@ class SchoolDashboardShell extends Component {
             }));
         }
 
-        // 6. Student Attendance Doughnut Chart (Matching clean image spec)
+        // 4. Student Attendance Doughnut Chart
         if (this.chartStudentAttendanceRef?.el) {
             const studentData = this.state.chartData?.student_attendance || {
                 present: this.state.dashboard?.student_present || 4,
@@ -836,7 +692,7 @@ class SchoolDashboardShell extends Component {
             }));
         }
 
-        // 7. Applications Breakdown Doughnut
+        // 5. Applications Breakdown Doughnut
         if (this.chartApplicationsRef?.el) {
             const appChart = this.state.chartData?.applications || {
                 labels: ["Submitted", "Approved", "Draft", "Rejected"],
@@ -874,7 +730,7 @@ class SchoolDashboardShell extends Component {
             }));
         }
 
-        // 8. Enrollments Breakdown Doughnut
+        // 6. Enrollments Breakdown Doughnut
         if (this.chartEnrollmentsRef?.el) {
             const enrChart = this.state.chartData?.enrollments || {
                 labels: ["In-Progress", "Draft", "Completed"],
@@ -944,6 +800,22 @@ class SchoolDashboardShell extends Component {
 
     openStudentAttendance() {
         this.navigate("school_management.action_university_attendance");
+    }
+
+    openAtRiskAttendance() {
+        this.navigate("school_management.action_university_attendance_at_risk");
+    }
+
+    openRoleAssignments() {
+        this.navigate("school_management.action_university_academic_assignment");
+    }
+
+    openFees() {
+        this.navigate("school_management.action_university_fee");
+    }
+
+    openPayments() {
+        this.navigate("school_management.action_university_payment");
     }
 
     openTranscriptRequests() {

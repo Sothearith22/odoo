@@ -13,42 +13,42 @@
                 <field name="assignment_type"/>
                 <field name="due_date"/>
                 <field name="submission_count"/>
+                <field name="max_score"/>
                 <field name="state"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-6 o_kanban_record_title"><field name="name"/></strong>
-                                </div>
+                        <main class="p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong class="fs-6 text-primary"><field name="name"/></strong>
                                 <span class="badge rounded-pill"
-                                      t-attf-class="badge-#{record.state.raw_value == 'approved' ? 'success' : 'secondary'}">
+                                      t-attf-class="#{record.state.raw_value == 'approved' ? 'text-bg-success' : 'text-bg-secondary'}">
                                     <field name="state"/>
                                 </span>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.subject_id.value">
-                                <i class="fa fa-book me-1" title="Subject"/>
+                                <i class="fa fa-book text-secondary me-1" title="Subject"/>
                                 <field name="subject_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.section_id.value">
-                                <i class="fa fa-users me-1" title="Section / Grade"/>
+                                <i class="fa fa-users text-secondary me-1" title="Section / Grade"/>
                                 <field name="section_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.teacher_id.value">
-                                <i class="fa fa-user me-1" title="Teacher"/>
+                                <i class="fa fa-user-circle text-primary me-1" title="Teacher"/>
                                 <field name="teacher_id"/>
                             </div>
-                            <div class="mt-2 d-flex justify-content-between align-items-center text-muted small">
-                                <span t-if="record.due_date.value">
-                                    <i class="fa fa-calendar me-1" title="Due Date"/>
+                            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center small">
+                                <span t-if="record.due_date.value" class="badge text-bg-light border text-dark">
+                                    <i class="fa fa-calendar me-1 text-danger" title="Due Date"/>
                                     <field name="due_date"/>
                                 </span>
-                                <span class="badge text-bg-light border" groups="school_management.group_school_teacher,school_management.group_school_admin">
+                                <span class="badge text-bg-info text-white" groups="school_management.group_school_teacher,school_management.group_school_admin">
                                     <i class="fa fa-inbox me-1" title="Submissions"/>
                                     <field name="submission_count"/> Submissions
                                 </span>
                             </div>
-                            <div class="mt-2 pt-2 border-top d-flex justify-content-end" groups="school_management.group_school_student">
+                            <div class="mt-2 d-flex justify-content-between align-items-center" groups="school_management.group_school_student">
+                                <span class="small text-muted">Max: <field name="max_score"/> pts</span>
                                 <button name="action_student_submit_work" type="object" class="btn btn-sm btn-outline-primary" invisible="state != 'approved'">
                                     <i class="fa fa-upload me-1" title="Submit"/> Submit Work
                                 </button>
@@ -72,7 +72,7 @@
                 <field name="section_id"/>
                 <field name="teacher_id"/>
                 <field name="due_date"/>
-                <field name="submission_count" string="Submissions" widget="badge" groups="school_management.group_school_teacher,school_management.group_school_admin"/>
+                <field name="submission_count" string="Submissions" groups="school_management.group_school_teacher,school_management.group_school_admin"/>
                 <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'draft'"/>
                 <button name="action_student_submit_work" type="object" string="Submit Work" icon="fa-upload" invisible="state != 'approved'" groups="school_management.group_school_student"/>
             </list>
@@ -240,35 +240,36 @@
                 <field name="is_evaluated"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-6 o_kanban_record_title"><field name="assignment_id"/></strong>
-                                </div>
+                        <main class="p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <strong class="fs-6 text-primary"><field name="assignment_id"/></strong>
                                 <span class="badge rounded-pill"
-                                      t-att-class="record.is_evaluated.raw_value ? 'badge-success' : (record.state.raw_value == 'submitted' or record.state.raw_value == 'reviewing' ? 'badge-info' : (record.state.raw_value == 'rejected' or record.state.raw_value == 'returned' ? 'badge-warning' : 'badge-secondary'))">
+                                      t-att-class="record.is_evaluated.raw_value ? 'text-bg-success' : (record.state.raw_value == 'submitted' or record.state.raw_value == 'reviewing' ? 'text-bg-info text-white' : (record.state.raw_value == 'rejected' or record.state.raw_value == 'returned' ? 'text-bg-danger' : 'text-bg-secondary'))">
                                     <field name="state"/>
                                 </span>
                             </div>
-                            <div class="text-muted small mt-1" t-if="record.student_id.value">
-                                <i class="fa fa-graduation-cap me-1" title="Student"/>
+                            <div class="text-dark fw-bold small mt-1" t-if="record.student_id.value">
+                                <i class="fa fa-graduation-cap text-primary me-1" title="Student"/>
                                 <field name="student_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.subject_id.value">
-                                <i class="fa fa-book me-1" title="Subject"/>
+                                <i class="fa fa-book text-secondary me-1" title="Subject"/>
                                 <field name="subject_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.section_id.value">
-                                <i class="fa fa-users me-1" title="Section / Grade"/>
+                                <i class="fa fa-users text-secondary me-1" title="Section / Grade"/>
                                 <field name="section_id"/>
                             </div>
-                            <div class="mt-2 d-flex justify-content-between align-items-center text-muted small">
-                                <span t-if="record.submitted_on.value">
-                                    <i class="fa fa-clock-o me-1" title="Submitted On"/>
+                            <div class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center small">
+                                <span t-if="record.submitted_on.value" class="text-muted">
+                                    <i class="fa fa-clock-o me-1 text-secondary" title="Submitted On"/>
                                     <field name="submitted_on"/>
                                 </span>
                                 <span t-if="record.is_evaluated.raw_value" class="badge text-bg-success">
-                                    Score: <field name="score"/> / <field name="max_score"/>
+                                    <i class="fa fa-check-circle me-1"/>Score: <field name="score"/> / <field name="max_score"/>
+                                </span>
+                                <span t-else="" class="badge text-bg-warning text-dark">
+                                    <i class="fa fa-hourglass-half me-1"/>Pending Review
                                 </span>
                             </div>
                         </main>

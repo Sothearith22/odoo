@@ -1,11 +1,44 @@
 /** @odoo-module **/
 
 import { WebClient } from "@web/webclient/webclient";
+import { KanbanRecord, getImageSrcFromRecordInfo } from "@web/views/kanban/kanban_record";
+import { KanbanArchParser } from "@web/views/kanban/kanban_arch_parser";
 import { user } from "@web/core/user";
 import { router } from "@web/core/browser/router";
 import { patch } from "@web/core/utils/patch";
 import { useService, useBus } from "@web/core/utils/hooks";
 import { onMounted, useState } from "@odoo/owl";
+
+// Backward compatibility for legacy kanban templates invoking kanban_image(...)
+patch(KanbanRecord.prototype, {
+    kanban_image(model, field, id, cache, default_url) {
+        if (this.props?.record) {
+            return getImageSrcFromRecordInfo(this.props.record, model, field, id, default_url);
+        }
+        return id ? `/web/image/${model}/${id}/${field}` : (default_url || "");
+    },
+});
+
+// Guard against TypeError: Cannot read properties of undefined (reading 'type') in KanbanArchParser
+patch(KanbanArchParser.prototype, {
+    parse(xmlDoc, models, modelName) {
+        const modelFields = models?.[modelName]?.fields;
+        if (modelFields && xmlDoc && xmlDoc.getElementsByTagName) {
+            const fieldNodes = xmlDoc.getElementsByTagName("field");
+            for (let i = 0; i < fieldNodes.length; i++) {
+                const name = fieldNodes[i].getAttribute("name");
+                if (name && !modelFields[name]) {
+                    modelFields[name] = {
+                        name,
+                        type: "char",
+                        string: name,
+                    };
+                }
+            }
+        }
+        return super.parse(xmlDoc, models, modelName);
+    },
+});
 
 const SCHOOL_APP_XMLID = "school_management.menu_school_root";
 const SCHOOL_DASHBOARD_XMLID = "school_management.action_school_dashboard_shell";

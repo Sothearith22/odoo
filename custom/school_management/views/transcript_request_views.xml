@@ -100,10 +100,11 @@
                 <field name="state"/>
                 <field name="has_holds"/>
                 <field name="show_holds_alert"/>
+                <field name="verification_code"/>
                 <templates>
                     <t t-name="card">
                         <div class="d-flex flex-column h-100 p-2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <strong class="text-primary fs-6"><field name="name"/></strong>
                                 <field name="state" widget="badge"
                                        decoration-info="state == 'submitted'"
@@ -112,8 +113,8 @@
                                        decoration-danger="state == 'rejected'"
                                        decoration-muted="state == 'cancelled'"/>
                             </div>
-                            <div class="text-dark fw-bold mb-1">
-                                <field name="student_id"/>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <field name="student_id" widget="many2one_avatar"/>
                             </div>
                             <div class="text-muted small mb-2">
                                 <span class="badge bg-light text-dark border me-1"><field name="request_type"/></span>
@@ -121,6 +122,11 @@
                             </div>
                             <div t-if="record.show_holds_alert.raw_value" class="alert alert-warning py-1 px-2 mb-2 small" role="alert">
                                 <i class="fa fa-exclamation-triangle me-1" title="Hold warning"/>Holds Detected
+                            </div>
+                            <div t-if="record.verification_code.raw_value" class="mb-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace very-small">
+                                    <i class="fa fa-qrcode me-1" title="Code"/><field name="verification_code"/>
+                                </span>
                             </div>
                             <div class="mt-auto d-flex justify-content-between align-items-center text-muted very-small pt-2 border-top">
                                 <span><i class="fa fa-envelope me-1" title="Delivery"/><field name="delivery_method"/></span>
@@ -191,7 +197,7 @@
                                 <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning mt-1" title="Active Holds"/>
                                 <div>
                                     <h5 class="mb-1 fw-bold">Active Academic or Financial Hold(s) Detected</h5>
-                                    <field name="holds_summary" readonly="1" widget="html" class="mb-0"/>
+                                    <field name="holds_summary" readonly="1" class="mb-0"/>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2 ms-auto">
@@ -330,9 +336,9 @@
     <record id="action_university_transcript_request" model="ir.actions.act_window">
         <field name="name">Transcript Requests</field>
         <field name="res_model">university.transcript.request</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_transcript_request_search"/>
-        <field name="context">{'search_default_filter_submitted': 1}</field>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No transcript requests found.

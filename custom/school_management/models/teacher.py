@@ -257,6 +257,37 @@ class Teacher(models.Model):
         compute="_compute_advisee_count",
     )
 
+    # Academic Credentials & Employment Documentation
+    resume_file = fields.Binary(string="Curriculum Vitae (CV)", attachment=True)
+    resume_filename = fields.Char(string="CV Filename")
+    degree_file = fields.Binary(string="Highest Degree & Transcripts", attachment=True)
+    degree_filename = fields.Char(string="Degree Filename")
+    contract_file = fields.Binary(string="Employment Contract", attachment=True)
+    contract_filename = fields.Char(string="Contract Filename")
+    id_card_file = fields.Binary(string="National ID / Passport", attachment=True)
+    id_card_filename = fields.Char(string="ID Document Filename")
+    doc_verification_status = fields.Selection(
+        [
+            ("verified", "Verified & Authenticated"),
+            ("pending", "Pending Verification"),
+            ("requires_update", "Requires Update"),
+        ],
+        string="Credentials Status",
+        default="verified",
+        tracking=True,
+    )
+    verification_date = fields.Date(string="Verified On")
+    verified_by = fields.Many2one("res.users", string="Verified By")
+    research_interests = fields.Text(string="Research Interests & Expertise")
+    publications_summary = fields.Text(string="Key Publications & Research Projects")
+    attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "university_teacher_attachment_rel",
+        "teacher_id",
+        "attachment_id",
+        string="Additional Documents & Certifications",
+    )
+
     # Odoo 19 Constraints / Indexes
     _unique_user_id = models.UniqueIndex(
         "(user_id) WHERE user_id IS NOT NULL",

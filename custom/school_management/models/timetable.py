@@ -1,3 +1,4 @@
+import calendar
 from datetime import datetime, time, timedelta
 import pytz
 
@@ -26,7 +27,15 @@ class UniversityTimeslot(models.Model):
         default="0",
     )
     start_hour = fields.Float(string="Start Hour", required=True, default=8.0)
-    end_hour = fields.Float(string="End Hour", required=True, default=9.0)
+    end_hour = fields.Float(
+        string="End Hour",
+        compute="_compute_end_hour",
+        store=True,
+        readonly=False,
+        precompute=True,
+        required=True,
+        default=9.5,
+    )
     duration = fields.Float(string="Duration (Hours)", compute="_compute_duration", store=True)
     time_range = fields.Char(string="Time Range", compute="_compute_name", store=True)
     active = fields.Boolean(string="Active", default=True)
@@ -38,18 +47,26 @@ class UniversityTimeslot(models.Model):
         "A timeslot for this day and time range already exists.",
     )
 
+    @api.depends("start_hour")
+    def _compute_end_hour(self):
+        for slot in self:
+            if slot.start_hour is not None and slot.start_hour is not False:
+                slot.end_hour = min(slot.start_hour + 1.5, 23.99)
+            else:
+                slot.end_hour = 9.5
+
     @api.depends("start_hour", "end_hour")
     def _compute_duration(self):
         for slot in self:
             slot.duration = max(0.0, slot.end_hour - slot.start_hour)
 
     def _compute_slot_count(self):
-        slot_data = self.env["university.timetable.slot"].read_group(
+        slot_data = self.env["university.timetable.slot"]._read_group(
             [("timeslot_id", "in", self.ids)],
             ["timeslot_id"],
-            ["timeslot_id"],
+            ["__count"],
         )
-        count_map = {item["timeslot_id"][0]: item["timeslot_id_count"] for item in slot_data if item.get("timeslot_id")}
+        count_map = {item[0].id: item[1] for item in slot_data if item[0]}
         for slot in self:
             slot.slot_count = count_map.get(slot.id, 0)
 
@@ -81,7 +98,7 @@ class UniversityTimeslot(models.Model):
     @api.constrains("start_hour", "end_hour")
     def _check_hours(self):
         for slot in self:
-            if slot.start_hour < 0 or slot.start_hour >= 24 or slot.end_hour > 24:
+            if slot.start_hour < 0 or slot.start_hour >= 24 or slot.end_hour > 23.99:
                 raise ValidationError("Timeslot hours must be between 0 and 24.")
             if slot.start_hour >= slot.end_hour:
                 raise ValidationError("Timeslot start hour must be before end hour.")
@@ -152,6 +169,13 @@ class UniversityTimetableSlot(models.Model):
         related="section_id.semester_id",
         store=True,
         readonly=True,
+    )
+    year_level = fields.Selection(
+        related="section_id.year_level",
+        string="Year Level",
+        store=True,
+        readonly=True,
+        index=True,
     )
     location = fields.Char(string="Location")
     start_time = fields.Datetime(string="Start Time", required=True)
@@ -264,6 +288,11 @@ class UniversityTimetableSlot(models.Model):
         string="Is This Week",
         compute="_compute_is_this_week",
         search="_search_is_this_week",
+    )
+    is_this_month = fields.Boolean(
+        string="Is This Month",
+        compute="_compute_is_this_month",
+        search="_search_is_this_month",
     )
     has_attendance = fields.Boolean(
         string="Has Attendance",
@@ -395,6 +424,34 @@ class UniversityTimetableSlot(models.Model):
         tz = pytz.timezone(tz_name)
         start_dt = tz.localize(datetime.combine(today, time.min)).astimezone(pytz.utc).replace(tzinfo=None)
         end_dt = tz.localize(datetime.combine(today, time.max)).astimezone(pytz.utc).replace(tzinfo=None)
+        if (operator == "=" and value) or (operator == "!=" and not value):
+            return [("start_time", ">=", start_dt), ("start_time", "<=", end_dt)]
+        else:
+            return ["|", ("start_time", "<", start_dt), ("start_time", ">", end_dt)]
+
+    def _compute_is_this_month(self):
+        today = fields.Date.context_today(self)
+        first_day = today.replace(day=1)
+        last_day_num = calendar.monthrange(today.year, today.month)[1]
+        last_day = today.replace(day=last_day_num)
+        for slot in self:
+            if slot.start_time:
+                slot_date = fields.Datetime.context_timestamp(slot, slot.start_time).date()
+                slot.is_this_month = (first_day <= slot_date <= last_day)
+            else:
+                slot.is_this_month = False
+
+    def _search_is_this_month(self, operator, value):
+        if operator not in ("=", "!="):
+            return []
+        today = fields.Date.context_today(self)
+        first_day = today.replace(day=1)
+        last_day_num = calendar.monthrange(today.year, today.month)[1]
+        last_day = today.replace(day=last_day_num)
+        tz_name = self.env.user.tz or "UTC"
+        tz = pytz.timezone(tz_name)
+        start_dt = tz.localize(datetime.combine(first_day, time.min)).astimezone(pytz.utc).replace(tzinfo=None)
+        end_dt = tz.localize(datetime.combine(last_day, time.max)).astimezone(pytz.utc).replace(tzinfo=None)
         if (operator == "=" and value) or (operator == "!=" and not value):
             return [("start_time", ">=", start_dt), ("start_time", "<=", end_dt)]
         else:
@@ -577,18 +634,21 @@ class UniversityTimetableSlot(models.Model):
 
         return holidays_data
 
-    @api.depends("section_id.name", "subject_id.name", "classroom_id.name", "location")
+    @api.depends("section_id.name", "subject_id.name", "classroom_id.name", "location", "date")
     def _compute_name(self):
         for slot in self:
             subj = slot.subject_id.name if slot.subject_id else "Class"
             room = slot.classroom_id.name or slot.location or ""
             sec = slot.section_id.name or ""
-            if room and sec:
+            date_str = str(slot.date) if slot.date else ""
+            if sec and subj and date_str:
+                slot.name = f"{sec}-{subj} ({date_str})"
+            elif sec and subj:
+                slot.name = f"{sec}-{subj}"
+            elif room and sec:
                 slot.name = f"{subj} ({sec} - {room})"
             elif room:
                 slot.name = f"{subj} [{room}]"
-            elif sec:
-                slot.name = f"{subj} ({sec})"
             else:
                 slot.name = subj
 
@@ -1501,7 +1561,7 @@ class UniversityTimetableSlot(models.Model):
         classrooms = self.env["university.classroom"].search_read(
             [], ["id", "name", "building", "capacity", "room_type"], order="name asc"
         )
-        sections = self.env["university.class.section"].search_read([], ["id", "name"], order="name asc")
+        sections = self.env["university.class.section"].search_read([], ["id", "name", "subject_id", "teacher_id", "classroom_id", "capacity", "enrolled_student_count", "day_summary", "time_summary", "program_id"], order="name asc")
         teachers = self.env["university.teacher"].search_read(
             [], ["id", "name", "title", "position", "department_id", "email", "phone"], order="name asc"
         )
@@ -1576,6 +1636,67 @@ class UniversityTimetableSlot(models.Model):
         res["exam_markers"] = exam_markers
         return res
 
+    def action_view_lesson_plans(self):
+        self.ensure_one()
+        return {
+            "name": _("Lesson Plans: %s - %s") % (self.section_id.name or "", self.subject_id.name or ""),
+            "type": "ir.actions.act_window",
+            "res_model": "university.lesson.plan",
+            "view_mode": "list,form",
+            "domain": [
+                ("section_id", "=", self.section_id.id),
+                ("subject_id", "=", self.subject_id.id),
+            ],
+            "context": {
+                "default_section_id": self.section_id.id,
+                "default_subject_id": self.subject_id.id,
+                "default_teacher_id": self.teacher_id.id,
+            },
+        }
+
+    @api.model
+    def get_timetable_dashboard_kpis(self):
+        now = fields.Datetime.now()
+        domain_upcoming = [("start_time", ">=", now), ("state", "!=", "cancelled")]
+        domain_completed = [
+            "|",
+            ("state", "in", ["done", "completed"]),
+            ("end_time", "<", now),
+            ("state", "!=", "cancelled"),
+        ]
+
+        user = self.env.user
+        student = self.env["university.student"].search([("user_id", "=", user.id)], limit=1)
+        teacher = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
+
+        assignment_todo_domain = [("state", "in", ["draft", "approved"])]
+        assignment_done_domain = [("state", "=", "approved")]
+
+        if student:
+            enrollments = self.env["university.student.enrollment"].search([("student_id", "=", student.id)])
+            section_ids = enrollments.mapped("class_section_id").ids
+            domain_upcoming.append(("section_id", "in", section_ids))
+            domain_completed.append(("section_id", "in", section_ids))
+            assignment_todo_domain.append(("section_id", "in", section_ids))
+            assignment_done_domain.append(("section_id", "in", section_ids))
+        elif teacher:
+            domain_upcoming.append(("teacher_id", "=", teacher.id))
+            domain_completed.append(("teacher_id", "=", teacher.id))
+            assignment_todo_domain.append(("teacher_id", "=", teacher.id))
+            assignment_done_domain.append(("teacher_id", "=", teacher.id))
+
+        upcoming_count = self.search_count(domain_upcoming)
+        completed_count = self.search_count(domain_completed)
+        todo_assignments_count = self.env["university.assignment"].search_count(assignment_todo_domain)
+        completed_assignments_count = self.env["university.assignment"].search_count(assignment_done_domain)
+
+        return {
+            "upcoming_classes": upcoming_count,
+            "completed_classes": completed_count,
+            "todo_assignments": todo_assignments_count,
+            "completed_assignments": completed_assignments_count,
+        }
+
 
 class IrUiMenu(models.Model):
     _inherit = "ir.ui.menu"
@@ -1589,3 +1710,38 @@ class IrUiMenu(models.Model):
             if my_timetable and my_timetable in res:
                 res = res - my_timetable
         return res
+
+
+
+class TimeConfig(models.Model):
+    _name = "time.config"
+    _description = "Time Configuration"
+    _order = "start_hour asc"
+
+    name = fields.Char(string="Name", default="Standard Shift")
+    start_hour = fields.Float(string="Start Hour", required=True, default=8.0)
+    end_hour = fields.Float(
+        string="End Hour",
+        compute="_compute_end_hour",
+        store=True,
+        readonly=False,
+        precompute=True,
+        required=True,
+        default=9.5,
+    )
+
+    @api.depends("start_hour")
+    def _compute_end_hour(self):
+        for record in self:
+            if record.start_hour is not None and record.start_hour is not False:
+                record.end_hour = min(record.start_hour + 1.5, 23.99)
+            else:
+                record.end_hour = 9.5
+
+    @api.constrains("start_hour", "end_hour")
+    def _check_hours(self):
+        for record in self:
+            if record.start_hour < 0 or record.start_hour >= 24 or record.end_hour > 23.99:
+                raise ValidationError("Hours must be between 0 and 23.99.")
+            if record.start_hour >= record.end_hour:
+                raise ValidationError("Start hour must be before end hour.")

@@ -29,7 +29,7 @@
         color: #0d9488;
     }
 
-    // ── Time Input Cells ───────────────────────────────────────────────
+    // -- Time Input Cells -----------------------------------------------
     .o_att_timecell {
         display: flex;
         align-items: center;
@@ -71,7 +71,7 @@
         font-variant-numeric: tabular-nums;
     }
 
-    // ── Worked Hours Badge ─────────────────────────────────────────────
+    // -- Worked Hours Badge ---------------------------------------------
     .o_att_hourscell {
         display: flex;
         align-items: center;
@@ -96,7 +96,7 @@
         }
     }
 
-    // ── Timeline Schedule View ─────────────────────────────────────────
+    // -- Timeline Schedule View -----------------------------------------
     .o_att_tl_wrapper {
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -211,9 +211,9 @@
         }
     }
 
-    // ═════════════════════════════════════════════════════════════════════
+    // ---------------------------------------------------------------------
     // MONTHLY MATRIX DASHBOARD (Matching User Screenshot)
-    // ═════════════════════════════════════════════════════════════════════
+    // ---------------------------------------------------------------------
     .o_att_matrix_container {
         max-width: 100%;
         margin: 0 auto;
@@ -278,6 +278,11 @@
             line-height: 1.2;
         }
 
+        .o_att_legend--present {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+        }
+
         .o_att_legend--absent {
             background-color: #ef4444 !important;
             color: #ffffff !important;
@@ -293,81 +298,140 @@
             color: #ffffff !important;
         }
 
+        .o_att_legend--holiday {
+            background-color: #8b5cf6 !important;
+            color: #ffffff !important;
+        }
+
         // Table & Sticky Column
         .o_att_matrix_table_wrap {
-            max-height: 72vh;
+            max-height: calc(100vh - 280px);
+            min-height: 420px;
             overflow: auto;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+
+            &::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            &::-webkit-scrollbar-track {
+                background: #f8fafc;
+            }
+            &::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+                &:hover {
+                    background: #94a3b8;
+                }
+            }
         }
 
         .o_att_matrix_table {
             border-collapse: separate;
             border-spacing: 0;
-            min-width: 980px;
+            width: max-content;
+            min-width: 100%;
+            table-layout: fixed;
 
             // Sticky Employee Column
             .o_matrix_col_emp {
                 position: sticky;
                 left: 0;
                 z-index: 4;
-                width: 240px;
-                min-width: 220px;
-                max-width: 260px;
+                width: 250px;
+                min-width: 250px;
+                max-width: 250px;
+                background-color: #ffffff;
                 border-right: 2px solid #cbd5e1 !important;
-                box-shadow: 2px 0 6px rgba(0, 0, 0, 0.04);
+                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
             }
 
             thead {
                 position: sticky;
                 top: 0;
-                z-index: 5;
+                z-index: 6;
+
+                th {
+                    position: sticky;
+                    top: 0;
+                    background-color: #f8fafc;
+                    border-bottom: 2px solid #cbd5e1 !important;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+                }
 
                 .o_matrix_col_emp {
-                    z-index: 6;
+                    top: 0;
+                    left: 0;
+                    z-index: 10 !important;
+                    background-color: #f8fafc !important;
+                    border-right: 2px solid #cbd5e1 !important;
+                    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.06);
                 }
 
-                .o_matrix_head_row_days th {
-                    background-color: #f8fafc;
-                    font-size: 11px;
-                    font-weight: 700;
-                    color: #475569;
-                    letter-spacing: 0.3px;
-                    border-bottom: 1px solid #e2e8f0;
-                }
+                .o_matrix_th_day {
+                    width: 44px;
+                    min-width: 44px;
+                    max-width: 44px;
+                    padding: 8px 2px;
+                    vertical-align: middle;
 
-                .o_matrix_head_row_nums th {
-                    background-color: #f8fafc;
-                    font-size: 12px;
-                    font-weight: 700;
-                    color: #0f172a;
-                    border-bottom: 2px solid #cbd5e1;
-                }
+                    .o_matrix_day_name {
+                        font-size: 10px;
+                        font-weight: 700;
+                        color: #64748b;
+                        letter-spacing: 0.3px;
+                        display: block;
+                        line-height: 1;
+                    }
 
-                .is_weekend {
-                    background-color: #f1f5f9 !important;
-                    color: #64748b !important;
-                }
+                    .o_matrix_day_num {
+                        font-size: 13px;
+                        font-weight: 700;
+                        color: #0f172a;
+                        display: block;
+                        line-height: 1.2;
+                        margin-top: 4px;
+                    }
 
-                .is_today {
-                    background-color: #e0e7ff !important;
-                    color: #3730a3 !important;
-                    border-left: 1px solid #818cf8 !important;
-                    border-right: 1px solid #818cf8 !important;
+                    &.is_weekend {
+                        background-color: #f1f5f9 !important;
+                        .o_matrix_day_name, .o_matrix_day_num {
+                            color: #94a3b8 !important;
+                        }
+                    }
+
+                    &.is_today {
+                        background-color: #e0e7ff !important;
+                        border-left: 2px solid #6366f1 !important;
+                        border-right: 2px solid #6366f1 !important;
+                        .o_matrix_day_name, .o_matrix_day_num {
+                            color: #4338ca !important;
+                        }
+                    }
                 }
             }
 
             tbody {
                 .o_matrix_data_row {
                     &:hover {
+                        td {
+                            background-color: #f8fafc;
+                        }
                         .o_matrix_col_emp {
-                            background-color: #f8fafc !important;
+                            background-color: #f1f5f9 !important;
                         }
                     }
                 }
 
                 .o_matrix_cell {
-                    height: 44px;
-                    min-width: 36px;
+                    height: 48px;
+                    width: 44px;
+                    min-width: 44px;
                     max-width: 44px;
+                    vertical-align: middle;
+                    text-align: center;
                     cursor: pointer;
                     user-select: none;
                     transition: background-color 0.12s ease;
@@ -384,8 +448,29 @@
 
                     &.is_today {
                         background-color: #eef2ff !important;
-                        border-left: 1px solid #c7d2fe !important;
-                        border-right: 1px solid #c7d2fe !important;
+                        border-left: 2px solid #818cf8 !important;
+                        border-right: 2px solid #818cf8 !important;
+                    }
+
+                    &.o_matrix_cell--worked {
+                        background-color: #f0fdf4;
+                        &:hover {
+                            background-color: #dcfce7 !important;
+                        }
+                    }
+
+                    &.o_matrix_cell--absent {
+                        background-color: #fef2f2;
+                        &:hover {
+                            background-color: #fee2e2 !important;
+                        }
+                    }
+
+                    &.o_matrix_cell--leave {
+                        background-color: #fffbeb;
+                        &:hover {
+                            background-color: #fef3c7 !important;
+                        }
                     }
                 }
             }
@@ -396,9 +481,9 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
             color: #ffffff;
@@ -411,6 +496,17 @@
             &--leave {
                 background-color: #f59e0b;
             }
+
+            &--holiday {
+                background-color: #8b5cf6;
+            }
+
+            &--worked {
+                background-color: #10b981;
+                font-size: 10px;
+                letter-spacing: -0.2px;
+                padding: 0 2px;
+            }
         }
 
         .o_matrix_text_weekend {
@@ -422,7 +518,7 @@
         .o_matrix_hours_text {
             font-size: 12px;
             font-weight: 600;
-            color: #1e293b;
+            color: #166534;
             font-variant-numeric: tabular-nums;
         }
     }

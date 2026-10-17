@@ -16,6 +16,8 @@
                        decoration-danger="exam_type == 'final'"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
+                <field name="department_id" optional="show"/>
+                <field name="program_id" optional="hide"/>
                 <field name="teacher_id"/>
                 <field name="exam_date"/>
                 <field name="average_score" string="Avg Score"/>
@@ -191,6 +193,8 @@
                 <field name="name"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
+                <field name="department_id"/>
+                <field name="program_id"/>
                 <field name="teacher_id"/>
                 <separator/>
                 <filter string="Quizzes" name="filter_quiz" domain="[('exam_type', '=', 'quiz')]"/>
@@ -202,6 +206,8 @@
                 <filter string="Grading in Progress" name="filter_grading" domain="[('state', '=', 'grading')]"/>
                 <filter string="Published" name="filter_published" domain="[('state', '=', 'published')]"/>
                 <group>
+                    <filter string="Department" name="group_by_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Program" name="group_by_program" context="{'group_by': 'program_id'}"/>
                     <filter string="Subject" name="group_by_subject" context="{'group_by': 'subject_id'}"/>
                     <filter string="Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
                     <filter string="Exam Type" name="group_by_exam_type" context="{'group_by': 'exam_type'}"/>
@@ -210,6 +216,7 @@
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
                 </group>
                 <searchpanel class="o_university_exam_searchpanel">
+                    <field name="department_id" icon="fa-building" enable_counters="1"/>
                     <field name="subject_id" icon="fa-book" enable_counters="1"/>
                     <field name="exam_type" icon="fa-pencil-square-o" enable_counters="1" select="multi"/>
                     <field name="state" icon="fa-filter" enable_counters="1" select="multi"/>

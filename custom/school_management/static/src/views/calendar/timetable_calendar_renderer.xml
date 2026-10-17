@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.CalendarCommonRenderer" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_calendar_widget')]" position="before">
+            <t t-if="isTimetableModel">
+                <div class="o_timetable_kpi_bar px-3 pt-3 pb-2 bg-light border-bottom">
+                    <div class="row g-3">
+                        <!-- Card 1: Upcoming Classes -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card h-100 p-3 border-0 rounded-3 bg-white shadow-sm o_timetable_kpi_card">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="text-muted small fw-semibold">Upcoming Classes</div>
+                                        <div class="fs-2 fw-bold text-primary mt-1">
+                                            <t t-esc="timetableKpi.upcoming_classes || 0"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_kpi_icon rounded-circle p-3 bg-primary-subtle text-primary">
+                                        <i class="fa fa-calendar-check-o fa-2x" title="Upcoming Classes"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Completed Classes -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card h-100 p-3 border-0 rounded-3 bg-white shadow-sm o_timetable_kpi_card">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="text-muted small fw-semibold">Completed Classes</div>
+                                        <div class="fs-2 fw-bold text-success mt-1">
+                                            <t t-esc="timetableKpi.completed_classes || 0"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_kpi_icon rounded-circle p-3 bg-success-subtle text-success">
+                                        <i class="fa fa-check-circle-o fa-2x" title="Completed Classes"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: To-do Assignments -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card h-100 p-3 border-0 rounded-3 bg-white shadow-sm o_timetable_kpi_card">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="text-muted small fw-semibold">To-do Assignments</div>
+                                        <div class="fs-2 fw-bold text-warning mt-1">
+                                            <t t-esc="timetableKpi.todo_assignments || 0"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_kpi_icon rounded-circle p-3 bg-warning-subtle text-warning">
+                                        <i class="fa fa-pencil-square-o fa-2x" title="To-do Assignments"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Completed Assignments -->
+                        <div class="col-12 col-sm-6 col-xl-3">
+                            <div class="card h-100 p-3 border-0 rounded-3 bg-white shadow-sm o_timetable_kpi_card">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="text-muted small fw-semibold">Completed Assignments</div>
+                                        <div class="fs-2 fw-bold text-info mt-1">
+                                            <t t-esc="timetableKpi.completed_assignments || 0"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_kpi_icon rounded-circle p-3 bg-info-subtle text-info">
+                                        <i class="fa fa-file-text-o fa-2x" title="Completed Assignments"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+</templates>

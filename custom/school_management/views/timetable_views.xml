@@ -193,6 +193,7 @@
                        decoration-danger="state == 'cancelled'"/>
                 <field name="is_today" invisible="1"/>
                 <field name="is_this_week" invisible="1"/>
+                <field name="is_this_month" invisible="1"/>
             </list>
         </field>
     </record>
@@ -224,6 +225,7 @@
                 <sheet>
                     <field name="is_today" invisible="1"/>
                     <field name="is_this_week" invisible="1"/>
+                    <field name="is_this_month" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_assignments" type="object" class="oe_stat_button" icon="fa-tasks">
                             <span class="o_stat_text">Assignments</span>
@@ -281,16 +283,19 @@
                       date_stop="end_time"
                       color="teacher_id"
                       mode="week"
-                      scales="week,day"
+                      scales="day,week,month"
                       event_limit="8"
                       quick_create="0"
                       create="0"
                       delete="0"
                       event_open_popup="true">
-                <field name="subject_id"/>
-                <field name="section_id" string="Class" filters="1"/>
-                <field name="classroom_id" filters="1"/>
-                <field name="teacher_id" filters="1"/>
+                <field name="academic_year_id" string="Academic Year" filters="1"/>
+                <field name="year_level" string="Year Level" filters="1"/>
+                <field name="semester_id" string="Semester" filters="1"/>
+                <field name="classroom_id" string="Location" filters="1"/>
+                <field name="section_id" string="Grade / Section" filters="1"/>
+                <field name="subject_id" string="Subject"/>
+                <field name="teacher_id" string="Teacher" filters="1"/>
                 <field name="session_type"/>
                 <field name="location"/>
                 <field name="has_conflict"/>
@@ -324,6 +329,7 @@
                 <field name="room_capacity"/>
                 <field name="is_today"/>
                 <field name="is_this_week"/>
+                <field name="is_this_month"/>
                 <templates>
                     <t t-name="card">
                         <main class="p-3">
@@ -401,12 +407,24 @@
                 <field name="name"/>
                 <field name="academic_year_id"/>
                 <field name="semester_id"/>
+                <field name="year_level"/>
                 <field name="section_id"/>
                 <field name="subject_id"/>
                 <field name="teacher_id"/>
                 <field name="classroom_id"/>
+                <filter string="Current Academic Year" name="filter_current_year" domain="[('academic_year_id.current', '=', True)]"/>
+                <filter string="Year 2026-2027" name="filter_year_2026" domain="[('academic_year_id.name', 'ilike', '2026-2027')]"/>
+                <filter string="Year 2025-2026" name="filter_year_2025" domain="[('academic_year_id.name', 'ilike', '2025-2026')]"/>
+                <separator/>
+                <filter string="Year 1 (Freshman)" name="filter_year_level_1" domain="[('year_level', '=', '1')]"/>
+                <filter string="Year 2 (Sophomore)" name="filter_year_level_2" domain="[('year_level', '=', '2')]"/>
+                <filter string="Year 3 (Junior)" name="filter_year_level_3" domain="[('year_level', '=', '3')]"/>
+                <filter string="Year 4 (Senior)" name="filter_year_level_4" domain="[('year_level', '=', '4')]"/>
+                <separator/>
                 <filter string="Today" name="filter_today" domain="[('is_today', '=', True)]"/>
                 <filter string="This Week" name="filter_this_week" domain="[('is_this_week', '=', True)]"/>
+                <filter string="This Month" name="filter_this_month" domain="[('is_this_month', '=', True)]"/>
+                <filter string="Session Date" name="filter_session_date" date="start_time"/>
                 <separator/>
                 <filter string="Lecture" name="filter_lecture" domain="[('session_type', '=', 'lecture')]"/>
                 <filter string="Lab" name="filter_lab" domain="[('session_type', '=', 'lab')]"/>
@@ -423,7 +441,8 @@
                 <filter string="Draft" name="filter_draft" domain="[('generation_state', '=', 'draft')]"/>
                 <filter string="Published" name="filter_published" domain="[('generation_state', '=', 'published')]"/>
                 <group>
-                    <filter string="Academic Session" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
+                    <filter string="Year Level" name="group_by_year_level" context="{'group_by': 'year_level'}"/>
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
                     <filter string="Date" name="group_by_date" context="{'group_by': 'start_time:day'}"/>
                     <filter string="Week" name="group_by_week" context="{'group_by': 'start_time:week'}"/>
@@ -436,6 +455,7 @@
                 </group>
                 <searchpanel>
                     <field name="academic_year_id" icon="fa-graduation-cap" enable_counters="1" select="multi"/>
+                    <field name="year_level" icon="fa-level-up" enable_counters="1"/>
                     <field name="semester_id" icon="fa-calendar" enable_counters="1" select="multi"/>
                     <field name="section_id" icon="fa-users" enable_counters="1"/>
                     <field name="subject_id" icon="fa-book" enable_counters="1"/>

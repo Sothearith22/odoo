@@ -163,40 +163,40 @@
                             <div class="row g-3 mb-3">
                                 <!-- KPI 1: Scheduled Classes -->
                                 <div class="col-6 col-md-3">
-                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                    <div class="o_kpi_card_elevated o_kpi_border_blue h-100 d-flex flex-column justify-content-between cursor-pointer"
                                          t-on-click="() => this.setActiveTab('schedule')"
                                          title="Click to view weekly schedule">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="text-muted small fw-semibold">Teaching</span>
+                                            <span class="o_kpi_card_eyebrow text-muted">Teaching</span>
                                             <div class="o_stat_icon_box bg-primary-subtle text-primary">
                                                 <i class="fa fa-calendar-check-o" aria-hidden="true"/>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="fs-4 fw-bold text-dark" t-esc="state.stats.totalClasses"/>
-                                            <div class="very-small text-muted">Class Sessions</div>
+                                            <div class="o_kpi_card_value text-dark" t-esc="state.stats.totalClasses"/>
+                                            <div class="o_kpi_card_sub text-muted">Class Sessions</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- KPI 2: Assigned Advisees -->
                                 <div class="col-6 col-md-3">
-                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                    <div class="o_kpi_card_elevated o_kpi_border_indigo h-100 d-flex flex-column justify-content-between cursor-pointer"
                                          t-on-click="() => this.setActiveTab('advising')"
                                          title="Click to view assigned advisees">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="text-muted small fw-semibold">Advisees</span>
+                                            <span class="o_kpi_card_eyebrow text-muted">Advisees</span>
                                             <div class="o_stat_icon_box bg-info-subtle text-info">
                                                 <i class="fa fa-graduation-cap" aria-hidden="true"/>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="fs-4 fw-bold text-dark" t-esc="state.stats.adviseeCount"/>
-                                            <div class="very-small text-muted">
+                                            <div class="o_kpi_card_value text-dark" t-esc="state.stats.adviseeCount"/>
+                                            <div class="o_kpi_card_sub">
                                                 <span t-if="state.stats.highRiskAdvisees > 0" class="badge bg-danger text-white">
                                                     <t t-esc="state.stats.highRiskAdvisees"/> At Risk
                                                 </span>
-                                                <span t-else="" class="text-success fw-semibold">Good Standing</span>
+                                                <span t-else="" class="badge bg-success-subtle text-success">Good Standing</span>
                                             </div>
                                         </div>
                                     </div>
@@ -204,21 +204,21 @@
 
                                 <!-- KPI 3: Pending Reviews -->
                                 <div class="col-6 col-md-3">
-                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                    <div class="o_kpi_card_elevated o_kpi_border_amber h-100 d-flex flex-column justify-content-between cursor-pointer"
                                          t-on-click="() => this.setActiveTab('assignments')"
                                          title="Click to view pending reviews">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="text-muted small fw-semibold">Grading</span>
+                                            <span class="o_kpi_card_eyebrow text-muted">Grading</span>
                                             <div class="o_stat_icon_box bg-warning-subtle text-warning">
                                                 <i class="fa fa-clock-o" aria-hidden="true"/>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="fs-4 fw-bold" t-att-class="state.stats.pendingReviews > 0 ? 'text-warning' : 'text-dark'"
+                                            <div t-att-class="'o_kpi_card_value ' + (state.stats.pendingReviews > 0 ? 'text-warning' : 'text-dark')"
                                                  t-esc="state.stats.pendingReviews"/>
-                                            <div class="very-small text-muted">
+                                            <div class="o_kpi_card_sub">
                                                 <span t-if="state.stats.pendingReviews > 0" class="badge bg-warning-subtle text-warning">Action Req</span>
-                                                <span t-else="" class="text-muted">All Reviewed</span>
+                                                <span t-else="" class="badge bg-light text-muted border">All Reviewed</span>
                                             </div>
                                         </div>
                                     </div>
@@ -226,23 +226,23 @@
 
                                 <!-- KPI 4: Attendance Rate -->
                                 <div class="col-6 col-md-3">
-                                    <div class="o_teacher_stat_card h-100 d-flex flex-column justify-content-between cursor-pointer"
+                                    <div class="o_kpi_card_elevated o_kpi_border_emerald h-100 d-flex flex-column justify-content-between cursor-pointer"
                                          t-on-click="() => this.setActiveTab('attendance')"
                                          title="Click to manage class attendance">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="text-muted small fw-semibold">Attendance</span>
+                                            <span class="o_kpi_card_eyebrow text-muted">Attendance</span>
                                             <div class="o_stat_icon_box bg-success-subtle text-success">
                                                 <i class="fa fa-check-circle" aria-hidden="true"/>
                                             </div>
                                         </div>
                                         <div>
-                                            <div class="fs-4 fw-bold text-success">
+                                            <div class="o_kpi_card_value text-success">
                                                 <t t-if="state.hasAttendanceData">
                                                     <span t-esc="state.attendanceRate + '%'"/>
                                                 </t>
                                                 <t t-else="">100%</t>
                                             </div>
-                                            <div class="very-small text-muted">Present Rate</div>
+                                            <div class="o_kpi_card_sub text-muted">Present Rate</div>
                                         </div>
                                     </div>
                                 </div>

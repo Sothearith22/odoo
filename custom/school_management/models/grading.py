@@ -1,5 +1,6 @@
+import secrets
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from .academic_lock import can_maintain_closed_year_records
 
@@ -66,13 +67,127 @@ class UniversityAssessmentCategory(models.Model):
         default=10.0,
         help="Percent contribution to the final subject score.",
     )
+    evaluation_type = fields.Selection(
+        [
+            ("coursework", "Coursework & Homework"),
+            ("exam", "Formal Examination"),
+            ("quiz", "Quizzes & Short Tests"),
+            ("attendance", "Attendance & Participation"),
+            ("practical", "Lab & Practical"),
+            ("project", "Project / Capstone"),
+        ],
+        string="Evaluation Type",
+        default="coursework",
+        required=True,
+    )
+    description = fields.Text(
+        string="Description / Policy",
+        help="Institutional grading policy, assessment criteria, and rubrics for this category.",
+    )
+    icon = fields.Char(string="Icon", default="fa-tasks")
+    color = fields.Integer(string="Color Index", default=0)
     active = fields.Boolean(string="Active", default=True)
+
+    assignment_ids = fields.One2many(
+        "university.assignment",
+        "category_id",
+        string="Linked Assignments",
+    )
+    result_ids = fields.One2many(
+        "university.assessment.result",
+        "category_id",
+        string="Assessment Results",
+    )
+
+    assignment_count = fields.Integer(
+        string="Assignments",
+        compute="_compute_category_metrics",
+    )
+    exam_count = fields.Integer(
+        string="Exams",
+        compute="_compute_category_metrics",
+    )
+    result_count = fields.Integer(
+        string="Graded Records",
+        compute="_compute_category_metrics",
+    )
+    avg_score = fields.Float(
+        string="Avg Score (%)",
+        compute="_compute_category_metrics",
+        digits=(5, 2),
+    )
+    passing_rate = fields.Float(
+        string="Pass Rate (%)",
+        compute="_compute_category_metrics",
+        digits=(5, 2),
+    )
+
+    @api.depends("assignment_ids", "result_ids", "result_ids.percentage", "result_ids.state")
+    def _compute_category_metrics(self):
+        for category in self:
+            category.assignment_count = len(category.assignment_ids)
+            results = category.result_ids
+            category.result_count = len(results)
+
+            exam_domain = [
+                "|",
+                ("exam_type", "=", category.code.lower() if category.code else ""),
+                ("name", "ilike", category.name or ""),
+            ]
+            category.exam_count = self.env["university.exam"].search_count(exam_domain)
+
+            if results:
+                published = results.filtered(lambda r: r.state == "published") or results
+                percentages = published.mapped("percentage")
+                category.avg_score = round(sum(percentages) / len(percentages), 1) if percentages else 0.0
+                passing = len([p for p in percentages if p >= 50.0])
+                category.passing_rate = round((passing / len(percentages)) * 100.0, 1) if percentages else 0.0
+            else:
+                category.avg_score = 0.0
+                category.passing_rate = 0.0
 
     @api.constrains("weight")
     def _check_weight(self):
         for category in self:
             if category.weight <= 0 or category.weight > 100:
                 raise ValidationError("Assessment category weight must be above 0 and no more than 100.")
+
+    def action_view_assignments(self):
+        self.ensure_one()
+        return {
+            "name": _("Assignments: %s", self.name),
+            "type": "ir.actions.act_window",
+            "res_model": "university.assignment",
+            "view_mode": "list,form",
+            "domain": [("category_id", "=", self.id)],
+            "context": {"default_category_id": self.id},
+        }
+
+    def action_view_results(self):
+        self.ensure_one()
+        return {
+            "name": _("Assessment Results: %s", self.name),
+            "type": "ir.actions.act_window",
+            "res_model": "university.assessment.result",
+            "view_mode": "list,form",
+            "domain": [("category_id", "=", self.id)],
+            "context": {"default_category_id": self.id},
+        }
+
+    def action_view_exams(self):
+        self.ensure_one()
+        exam_domain = [
+            "|",
+            ("exam_type", "=", self.code.lower() if self.code else ""),
+            ("name", "ilike", self.name or ""),
+        ]
+        return {
+            "name": _("Exams: %s", self.name),
+            "type": "ir.actions.act_window",
+            "res_model": "university.exam",
+            "view_mode": "list,form",
+            "domain": exam_domain,
+        }
 
 
 class UniversityAssessmentResult(models.Model):
@@ -414,7 +529,11 @@ class UniversityReportCard(models.Model):
             card.write({"line_ids": lines, "state": "generated"})
 
     def action_approve(self):
-        self.write({"state": "approved"})
+        for card in self:
+            vals = {"state": "approved"}
+            if not card.verification_code:
+                vals["verification_code"] = secrets.token_hex(8).upper()
+            card.write(vals)
 
     def action_print_report_card(self):
         return self.env.ref("school_management.action_report_university_report_card").report_action(self)
@@ -525,7 +644,11 @@ class UniversityTranscript(models.Model):
             transcript.write({"line_ids": lines, "state": "generated"})
 
     def action_approve(self):
-        self.write({"state": "approved"})
+        for transcript in self:
+            vals = {"state": "approved"}
+            if not transcript.verification_code:
+                vals["verification_code"] = secrets.token_hex(8).upper()
+            transcript.write(vals)
 
     def action_print_transcript(self):
         return self.env.ref("school_management.action_report_university_transcript").report_action(self)

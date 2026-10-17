@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 
 class UniversityPayment(models.Model):
     _name = "university.payment"
-    _inherit = ["mail.thread"]
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Student Payment"
     _order = "date desc, id desc"
 
@@ -14,13 +14,19 @@ class UniversityPayment(models.Model):
         copy=False,
         readonly=True,
         default=lambda self: "New",
+        tracking=True,
     )
-    student_id = fields.Many2one("university.student", string="Student", required=True)
-    fee_id = fields.Many2one("university.fee", string="Fee Invoice", domain="[('student_id', '=', student_id), ('state', '=', 'posted')]")
+    student_id = fields.Many2one("university.student", string="Student", required=True, tracking=True)
+    fee_id = fields.Many2one(
+        "university.fee",
+        string="Fee Invoice",
+        domain="[('student_id', '=', student_id), ('state', '=', 'posted')]",
+        tracking=True,
+    )
 
-    date = fields.Date(string="Payment Date", default=fields.Date.context_today, required=True)
+    date = fields.Date(string="Payment Date", default=fields.Date.context_today, required=True, tracking=True)
     currency_id = fields.Many2one("res.currency", string="Currency", compute="_compute_currency_id")
-    amount = fields.Float(string="Amount", required=True)
+    amount = fields.Float(string="Amount", required=True, tracking=True)
     payment_method = fields.Selection(
         [
             ("cash", "Cash"),
@@ -30,8 +36,9 @@ class UniversityPayment(models.Model):
         string="Payment Method",
         default="cash",
         required=True,
+        tracking=True,
     )
-    reference = fields.Char(string="Transaction Reference")
+    reference = fields.Char(string="Transaction Reference", tracking=True)
 
     state = fields.Selection(
         [
@@ -41,6 +48,7 @@ class UniversityPayment(models.Model):
         ],
         string="Status",
         default="draft",
+        tracking=True,
     )
 
     @api.model_create_multi
@@ -119,6 +127,21 @@ class UniversityPayment(models.Model):
             payment.with_context(bypass_payment_write_guard=True).write({"state": "posted"})
             if fee:
                 fee._update_state_from_balance()
+                # Post chatter confirmation note
+                method_name = dict(payment._fields["payment_method"].selection).get(payment.payment_method, payment.payment_method)
+                msg = _(
+                    "<p>✅ <strong>Payment Received:</strong> $%(amount).2f via %(method)s "
+                    "(Receipt: %(receipt)s, Ref: %(ref)s). Remaining Invoice Balance: $%(balance).2f.</p>",
+                    amount=payment.amount,
+                    method=method_name,
+                    receipt=payment.name,
+                    ref=payment.reference or "N/A",
+                    balance=fee.balance,
+                )
+                fee.message_post(body=msg)
+                if payment.student_id:
+                    payment.student_id.message_post(body=msg)
+
                 if not was_paid and fee.state == "paid":
                     fee._send_payment_receipt_email(payment)
 
@@ -145,3 +168,23 @@ class UniversityPayment(models.Model):
         return self.env.ref(
             "school_management.action_report_university_payment_receipt"
         ).report_action(self)
+
+    def action_view_fee(self):
+        self.ensure_one()
+        if not self.fee_id:
+            raise ValidationError(_("No fee invoice linked to this payment."))
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "university.fee",
+            "view_mode": "form",
+            "res_id": self.fee_id.id,
+        }
+
+    def action_view_student(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "university.student",
+            "view_mode": "form",
+            "res_id": self.student_id.id,
+        }

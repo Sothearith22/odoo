@@ -15,6 +15,10 @@
             <list string="Staff Attendance" editable="bottom" sample="1">
                 <header>
                     <button name="%(action_university_staff_attendance_sheet)d" string="Attendance Dashboard" type="action" class="btn-primary" icon="fa-th"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-success text-white" icon="fa-check"
+                            groups="school_management.group_school_admin,base.group_system"/>
+                    <button name="action_reject" type="object" string="Reject" class="btn-outline-danger" icon="fa-times"
+                            groups="school_management.group_school_admin,base.group_system"/>
                 </header>
                 <field name="date"/>
                 <field name="staff_id"/>
@@ -38,6 +42,12 @@
                        decoration-danger="state == 'rejected'"
                        optional="show"/>
                 <field name="remark" optional="hide"/>
+                <button name="action_approve" type="object" string="Approve" icon="fa-check"
+                        title="Approve" aria-label="Approve" class="text-success" invisible="state != 'submitted'"
+                        groups="school_management.group_school_admin,base.group_system"/>
+                <button name="action_reject" type="object" string="Reject" icon="fa-times"
+                        title="Reject" aria-label="Reject" class="text-danger" invisible="state != 'submitted'"
+                        groups="school_management.group_school_admin,base.group_system"/>
             </list>
         </field>
     </record>

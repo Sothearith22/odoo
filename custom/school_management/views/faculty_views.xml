@@ -2,7 +2,7 @@
 <!--
     Faculty Views
 
-    Upgraded Faculty list and detail form exposing Head of Faculty, Departments,
+    Upgraded Faculty list, kanban, and detail form exposing Head of Faculty, Departments,
     Teachers, Programs, and Students through tabs and statistics.
 -->
 <odoo>
@@ -31,32 +31,167 @@
         <field name="name">university.faculty.kanban</field>
         <field name="model">university.faculty</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban sample="1" class="o_university_faculty_kanban" highlight_color="color" records_draggable="0">
+                <field name="id"/>
                 <field name="name"/>
                 <field name="code"/>
                 <field name="dean_id"/>
                 <field name="department_count"/>
+                <field name="program_count"/>
+                <field name="teacher_count"/>
+                <field name="student_count"/>
                 <field name="state"/>
+                <field name="color"/>
+                <field name="active"/>
                 <templates>
-                    <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
-                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                    <t t-name="card" class="o_faculty_kanban_card p-3 d-flex flex-column justify-content-between h-100">
+                        <main class="d-flex flex-column gap-2">
+                            <!-- Top row: Faculty Icon + Name & Code + Stage Badge + Actions Dropdown -->
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <span class="badge rounded-3 bg-primary-subtle text-primary p-2 flex-shrink-0" title="Faculty">
+                                        <i class="fa fa-university fa-fw fa-lg" title="Faculty"/>
+                                    </span>
+                                    <div class="min-w-0">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <strong class="fs-5 o_kanban_record_title text-truncate text-dark d-block" t-att-title="record.name.value">
+                                                <field name="name"/>
+                                            </strong>
+                                            <span class="badge text-bg-light border text-secondary small flex-shrink-0">
+                                                <field name="code"/>
+                                            </span>
+                                        </div>
+                                        <div class="text-muted small mt-1">
+                                            <span>Higher Education Academic Faculty</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'draft'"
+                                           decoration-success="state == 'active'"
+                                           decoration-warning="state == 'closed'"/>
+                                    <div class="o_dropdown_kanban dropdown">
+                                        <a class="dropdown-toggle btn p-0 text-muted" role="button" data-bs-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                            <i class="fa fa-ellipsis-v" title="Options"/>
+                                        </a>
+                                        <div class="dropdown-menu" role="menu">
+                                            <a role="menuitem" type="open" class="dropdown-item">View Details</a>
+                                            <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                                            <div role="separator" class="dropdown-divider"/>
+                                            <a role="menuitem" type="object" name="action_set_active" invisible="state == 'active'" class="dropdown-item text-success">
+                                                <i class="fa fa-check-circle me-1" title="Activate"/>Activate
+                                            </a>
+                                            <a role="menuitem" type="object" name="action_set_closed" invisible="state == 'closed'" class="dropdown-item text-warning">
+                                                <i class="fa fa-lock me-1" title="Close"/>Close
+                                            </a>
+                                            <a role="menuitem" type="object" name="action_set_draft" invisible="state == 'draft'" class="dropdown-item text-secondary">
+                                                <i class="fa fa-pencil me-1" title="Reset to Draft"/>Reset to Draft
+                                            </a>
+                                            <div role="separator" class="dropdown-divider"/>
+                                            <field name="color" widget="kanban_color_picker"/>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'active'" decoration-warning="state == 'closed'"/>
+
+                            <!-- Head of Faculty (Dean) Info Box -->
+                            <div class="p-2 rounded-2 bg-light border mt-1">
+                                <t t-if="record.dean_id.value">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa fa-user-circle text-primary fs-5 flex-shrink-0" title="Dean / Head of Faculty"/>
+                                        <div class="min-w-0">
+                                            <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Head of Faculty (Dean)</div>
+                                            <div class="fw-semibold text-dark text-truncate">
+                                                <field name="dean_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="d-flex align-items-center gap-2 text-muted small">
+                                        <i class="fa fa-user-o text-muted fs-5 flex-shrink-0"/>
+                                        <span class="fst-italic">Dean / Head of Faculty not appointed</span>
+                                    </div>
+                                </t>
                             </div>
-                            <div class="text-muted small mt-1" t-if="record.dean_id.value">
-                                <i class="fa fa-user me-1" title="Head of Faculty"/>
-                                <field name="dean_id"/>
-                            </div>
-                            <div class="mt-2 text-muted small">
-                                <span><i class="fa fa-building" title="Departments"/> <field name="department_count"/> Departments</span>
+
+                            <!-- 4 Key Academic Stat Tiles -->
+                            <div class="row g-2 mt-1">
+                                <div class="col-6">
+                                    <div class="p-2 border rounded bg-white text-center shadow-sm h-100">
+                                        <div class="text-muted small d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa fa-building text-info" aria-hidden="true"/>
+                                            <span>Departments</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark mt-1">
+                                            <field name="department_count"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded bg-white text-center shadow-sm h-100">
+                                        <div class="text-muted small d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa fa-certificate text-warning" aria-hidden="true"/>
+                                            <span>Programs</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark mt-1">
+                                            <field name="program_count"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded bg-white text-center shadow-sm h-100">
+                                        <div class="text-muted small d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa fa-id-badge text-primary" aria-hidden="true"/>
+                                            <span>Teachers</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark mt-1">
+                                            <field name="teacher_count"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded bg-white text-center shadow-sm h-100">
+                                        <div class="text-muted small d-flex align-items-center justify-content-center gap-1">
+                                            <i class="fa fa-graduation-cap text-success" aria-hidden="true"/>
+                                            <span>Students</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark mt-1">
+                                            <field name="student_count"/>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </main>
+
+                        <!-- Footer Actions -->
+                        <footer class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                            <button name="action_view_departments"
+                                    type="object"
+                                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 py-1 px-2"
+                                    title="View Departments">
+                                <i class="fa fa-building me-1" aria-hidden="true"/>
+                                <span><field name="department_count"/> Departments</span>
+                            </button>
+                            <div class="d-flex align-items-center gap-1">
+                                <t t-if="record.state.raw_value == 'active'">
+                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle py-1 px-2">
+                                        <i class="fa fa-check-circle me-1" aria-hidden="true"/>Active
+                                    </span>
+                                </t>
+                                <t t-elif="record.state.raw_value == 'closed'">
+                                    <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle py-1 px-2">
+                                        <i class="fa fa-lock me-1" aria-hidden="true"/>Closed
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2">
+                                        <i class="fa fa-pencil me-1" aria-hidden="true"/>Draft
+                                    </span>
+                                </t>
+                            </div>
+                        </footer>
                     </t>
                 </templates>
             </kanban>
@@ -81,9 +216,8 @@
 
                     <!-- Stat buttons -->
                     <div class="oe_button_box" name="button_box">
-                        <button name="%(school_management.action_university_department)d"
-                                type="action" class="oe_stat_button" icon="fa-building"
-                                context="{'search_default_faculty_id': id}">
+                        <button name="action_view_departments"
+                                type="object" class="oe_stat_button" icon="fa-building">
                             <field name="department_count" widget="statinfo" string="Departments"/>
                         </button>
                         <button name="%(school_management.action_university_teacher)d"
@@ -122,6 +256,7 @@
                                     class="btn-link"
                                     icon="fa-tasks"/>
                             <field name="code" string="Faculty Code"/>
+                            <field name="color" widget="color_picker"/>
                         </group>
                         <group string="Description">
                             <field name="description"/>

@@ -125,7 +125,7 @@ class StudentDashboardShell extends Component {
                     if (isAdmin || isStaff) {
                         const previewStudents = await this.orm.searchRead(
                             "university.student",
-                            [["status", "in", ["enrolled", "admitted", "graduated"]]],
+                            [["status", "in", ["active", "graduated"]]],
                             ["id", "name", "student_id", "status"],
                             { order: "id asc", limit: 20 }
                         );
@@ -1185,7 +1185,36 @@ class StudentDashboardShell extends Component {
     formatSlotTime(startStr, endStr) {
         return this.parseSlotTimes(startStr, endStr).timeFormatted;
     }
+    formatCurrency(amount) {
+        const val = Number(amount) || 0;
+        return '$' + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    openMyInvoices() {
+        if (!this.state.student) return;
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            name: 'My Invoices',
+            res_model: 'university.fee',
+            domain: [['student_id', '=', this.state.student.id]],
+            views: [[false, 'list'], [false, 'form']],
+            view_mode: 'list,form',
+        });
+    }
+
+    openMyPayments() {
+        if (!this.state.student) return;
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            name: 'My Payment Receipts',
+            res_model: 'university.payment',
+            domain: [['student_id', '=', this.state.student.id]],
+            views: [[false, 'list'], [false, 'form']],
+            view_mode: 'list,form',
+        });
+    }
 }
+
 
 registry.category("actions").add("student_dashboard_shell", StudentDashboardShell);
 

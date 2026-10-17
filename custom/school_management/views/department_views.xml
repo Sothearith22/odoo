@@ -13,16 +13,16 @@
         <field name="name">university.department.list</field>
         <field name="model">university.department</field>
         <field name="arch" type="xml">
-            <list string="Departments" sample="1">
-                <field name="code" decoration-bf="1"/>
-                <field name="name" decoration-bf="1"/>
-                <field name="faculty_id"/>
-                <field name="head_id"/>
-                <field name="program_count" optional="hide"/>
-                <field name="teacher_count" optional="show"/>
-                <field name="subject_count" optional="hide"/>
-                <field name="student_count" optional="hide"/>
-                <field name="class_section_count" optional="hide"/>
+            <list string="Departments" sample="1" default_order="faculty_id asc, code asc">
+                <field name="code" string="Code" decoration-bf="1" widget="badge" decoration-primary="1"/>
+                <field name="name" string="Department Name" decoration-bf="1"/>
+                <field name="faculty_id" string="Faculty"/>
+                <field name="head_id" string="Head of Department" widget="many2one_avatar"/>
+                <field name="teacher_count" string="Teachers" optional="show"/>
+                <field name="program_count" string="Programs" optional="show"/>
+                <field name="student_count" string="Students" optional="show"/>
+                <field name="subject_count" string="Subjects" optional="show"/>
+                <field name="class_section_count" string="Active Classes" optional="hide"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
         </field>
@@ -33,33 +33,70 @@
         <field name="name">university.department.kanban</field>
         <field name="model">university.department</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="faculty_id" quick_create="false">
+            <kanban sample="1" default_group_by="faculty_id" quick_create="false" highlight_color="color">
+                <field name="id"/>
                 <field name="name"/>
                 <field name="code"/>
                 <field name="faculty_id"/>
                 <field name="head_id"/>
+                <field name="image_1920"/>
+                <field name="color"/>
                 <field name="program_count"/>
                 <field name="teacher_count"/>
+                <field name="subject_count"/>
+                <field name="student_count"/>
+                <field name="class_section_count"/>
                 <templates>
                     <t t-name="card">
-                        <main class="ms-2 p-3">
-                            <div class="o_kanban_record_top mb-2">
-                                <div class="o_kanban_record_headings">
-                                    <strong class="fs-5 o_kanban_record_title"><field name="name"/></strong>
-                                    <span class="text-muted ms-2">(<field name="code"/>)</span>
+                        <main class="p-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <t t-if="record.image_1920.raw_value">
+                                    <img t-attf-src="/web/image/university.department/#{record.id.raw_value}/image_1920"
+                                         alt="Department Cover"
+                                         class="rounded object-fit-cover shadow-sm flex-shrink-0"
+                                         style="width: 64px; height: 64px;"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="rounded d-flex align-items-center justify-content-center bg-primary-subtle text-primary fw-bold shadow-sm flex-shrink-0"
+                                         style="width: 64px; height: 64px; font-size: 1.25rem;">
+                                        <field name="code"/>
+                                    </div>
+                                </t>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="badge text-bg-light border text-truncate">
+                                            <i class="fa fa-university me-1 text-primary" title="Faculty"/>
+                                            <field name="faculty_id"/>
+                                        </span>
+                                        <span class="badge text-bg-secondary"><field name="code"/></span>
+                                    </div>
+                                    <strong class="fs-5 o_kanban_record_title text-dark d-block text-truncate" t-att-title="record.name.value">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="text-muted small mt-1" t-if="record.head_id.value">
+                                        <i class="fa fa-user-circle text-secondary me-1" title="Head of Department"/>
+                                        <span class="fw-medium"><field name="head_id"/></span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fa fa-university me-1" role="img" title="Faculty" aria-label="Faculty"/>
-                                <field name="faculty_id"/>
-                            </div>
-                            <div class="text-muted small mt-1" t-if="record.head_id.value">
-                                <i class="fa fa-user me-1" role="img" title="Head" aria-label="Head"/>
-                                <field name="head_id"/>
-                            </div>
-                            <div class="mt-2 text-muted small d-flex gap-3">
-                                <span><i class="fa fa-graduation-cap" role="img" title="Programs" aria-label="Programs"/> <field name="program_count"/> Programs</span>
-                                <span><i class="fa fa-id-badge" role="img" title="Teachers" aria-label="Teachers"/> <field name="teacher_count"/> Teachers</span>
+
+                            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top">
+                                <span class="badge text-bg-light border text-secondary px-2 py-1">
+                                    <i class="fa fa-graduation-cap text-primary me-1"/>
+                                    <strong><field name="program_count"/></strong> Programs
+                                </span>
+                                <span class="badge text-bg-light border text-secondary px-2 py-1">
+                                    <i class="fa fa-id-badge text-info me-1"/>
+                                    <strong><field name="teacher_count"/></strong> Faculty
+                                </span>
+                                <span class="badge text-bg-light border text-secondary px-2 py-1">
+                                    <i class="fa fa-book text-success me-1"/>
+                                    <strong><field name="subject_count"/></strong> Subjects
+                                </span>
+                                <span class="badge text-bg-light border text-secondary px-2 py-1">
+                                    <i class="fa fa-users text-warning me-1"/>
+                                    <strong><field name="student_count"/></strong> Students
+                                </span>
                             </div>
                         </main>
                     </t>
@@ -96,10 +133,13 @@
                             <field name="subject_count" widget="statinfo" string="Subjects"/>
                         </button>
                         <button name="%(school_management.action_university_class_section)d"
-                                type="action" class="oe_stat_button" icon="fa-users">
+                                type="action" class="oe_stat_button" icon="fa-users"
+                                context="{'search_default_department_id': id}">
                             <field name="class_section_count" widget="statinfo" string="Classes"/>
                         </button>
                     </div>
+
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_1920'}"/>
 
                     <div class="oe_title">
                         <label for="name" string="Department Name"/>
@@ -122,6 +162,7 @@
                                     class="btn-link"
                                     icon="fa-tasks"/>
                             <field name="code" string="Department Code"/>
+                            <field name="color" widget="color_picker"/>
                         </group>
                         <group string="Statistics">
                             <field name="teacher_count" string="Teachers"/>

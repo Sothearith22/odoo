@@ -39,7 +39,7 @@ patch(CalendarCommonPopover.prototype, {
     },
 
     get hasFooter() {
-        return super.hasFooter || this.canTrackAttendance;
+        return super.hasFooter || this.canTrackAttendance || this.isTimetableSlot;
     },
 
     async _checkAttendancePermission() {
@@ -59,6 +59,16 @@ patch(CalendarCommonPopover.prototype, {
         this.props.close();
         await this.actionService.doActionButton({
             name: "action_track_attendance",
+            type: "object",
+            resModel: this.props.model.resModel,
+            resId: this.timetableRecordId,
+        });
+    },
+
+    async onViewLessonPlans() {
+        this.props.close();
+        await this.actionService.doActionButton({
+            name: "action_view_lesson_plans",
             type: "object",
             resModel: this.props.model.resModel,
             resId: this.timetableRecordId,

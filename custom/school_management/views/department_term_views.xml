@@ -29,6 +29,61 @@
         </field>
     </record>
 
+    <!-- KANBAN VIEW -->
+    <record id="view_university_department_term_kanban" model="ir.ui.view">
+        <field name="name">university.department.term.kanban</field>
+        <field name="model">university.department.term</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" sample="1" quick_create="false">
+                <field name="id"/>
+                <field name="department_id"/>
+                <field name="faculty_id"/>
+                <field name="semester_id"/>
+                <field name="academic_year_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="teaching_weeks"/>
+                <field name="is_below_min_weeks"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="p-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge text-bg-light border text-truncate" style="max-width: 170px;">
+                                    <i class="fa fa-university me-1 text-primary"/>
+                                    <field name="faculty_id"/>
+                                </span>
+                                <field name="state" widget="badge"
+                                       decoration-info="state == 'planned'"
+                                       decoration-success="state == 'running'"
+                                       decoration-muted="state == 'ended'"/>
+                            </div>
+                            <div class="fw-bold fs-6 mb-1 text-dark">
+                                <field name="department_id"/>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                <i class="fa fa-bookmark-o me-1 text-secondary"/>
+                                <field name="semester_id"/>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted">
+                                <div>
+                                    <i class="fa fa-calendar me-1"/>
+                                    <field name="date_start"/> &#8594; <field name="date_end"/>
+                                </div>
+                                <span t-if="record.is_below_min_weeks.raw_value" class="badge text-bg-warning">
+                                    <field name="teaching_weeks"/> wks
+                                </span>
+                                <span t-else="" class="badge text-bg-light border text-primary">
+                                    <field name="teaching_weeks"/> wks
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_university_department_term_form" model="ir.ui.view">
         <field name="name">university.department.term.form</field>
         <field name="model">university.department.term</field>
@@ -114,7 +169,7 @@
     <record id="action_university_department_term" model="ir.actions.act_window">
         <field name="name">Department Terms</field>
         <field name="res_model">university.department.term</field>
-        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="view_mode">kanban,list,form,pivot,graph</field>
         <field name="search_view_id" ref="view_university_department_term_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No department schedules found.</p>

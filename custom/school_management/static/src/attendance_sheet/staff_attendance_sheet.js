@@ -64,7 +64,7 @@ function localTimeToUtc(dateStr, timeStr) {
     const localDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], parts[0], parts[1], 0);
     if (isNaN(localDate.getTime())) return false;
     const pad = (n) => String(n).padStart(2, "0");
-    return `${localDate.getUTCFullYear()}-${pad(localDate.getUTCMonth() + 1)}-${pad(localDate.getUTCDate())} ${pad(localDate.getUTCHours())}:${pad(localDate.getUTCMinutes())}:${pad(localDate.getUTCSeconds())}`;
+    return `${localDate.getUTCFullYear()}-${pad(localDate.getUTCMonth() + 1)}-${pad(localDate.getUTCDate())} ${pad(localDate.getUTCHours())}:${pad(localDate.getUTCMinutes())}:${pad(localDate.getUTCISeconds ? localDate.getUTCSeconds() : 0)}`;
 }
 
 function formatFloatTime(floatVal) {
@@ -89,7 +89,7 @@ function nameTone(name) {
 }
 
 function fmtHours(h) {
-    if (!h || h <= 0) return "—";
+    if (!h || h <= 0) return "-";
     const hrs = Math.floor(h);
     const mins = Math.round((h - hrs) * 60);
     if (hrs === 0) return `${mins}m`;
@@ -167,11 +167,11 @@ class StaffAttendanceSheet extends Component {
         onWillStart(async () => {
             // Check Admin authorization
             try {
-                const isSystem = await user.hasGroup("base.group_system");
+                const isSystem = Boolean(user.isAdmin || user.isSystem || (await user.hasGroup("base.group_system")));
                 const isSchoolAdmin = await user.hasGroup("school_management.group_school_admin");
                 this.state.isAdmin = Boolean(isSystem || isSchoolAdmin);
             } catch {
-                this.state.isAdmin = false;
+                this.state.isAdmin = Boolean(user.isAdmin || user.isSystem);
             }
 
             // Fetch active departments with faculty and head
@@ -228,7 +228,7 @@ class StaffAttendanceSheet extends Component {
         });
     }
 
-    // ── Monthly Attendance Matrix Methods (Matching Screenshot) ─────────
+    // --- Monthly Attendance Matrix Methods ---
     async loadMatrixData() {
         this.state.matrixLoading = true;
         try {
@@ -322,7 +322,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Derived Properties ─────────────────────────────────────────────
+    // --- Derived Properties ---
     get counts() {
         const c = { present: 0, absent: 0, late: 0, leave: 0, official_duty: 0, half_day: 0, total: this.state.lines.length };
         for (const l of this.state.lines) {
@@ -586,7 +586,7 @@ class StaffAttendanceSheet extends Component {
     teacherTone(line)    { return nameTone(line.name); }
     fmtHours(h)          { return fmtHours(h); }
 
-    // ── Data Loading ───────────────────────────────────────────────────
+    // --- Data Loading ---
     async loadSheet() {
         if (!this.state.departmentId || !this.state.date) {
             this.state.lines       = [];
@@ -688,7 +688,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Header Controls ────────────────────────────────────────────────
+    // --- Header Controls ---
     async onDepartmentChange(ev) {
         const val = ev.target.value;
         this.state.departmentId = val === "all" ? "all" : (Number(val) || "");
@@ -705,7 +705,7 @@ class StaffAttendanceSheet extends Component {
     clearFilters() { this.state.query = ""; this.state.filter = "all"; }
     setActive(line) { this.state.activeId = line.teacher_id; }
 
-    // ── Status Controls ────────────────────────────────────────────────
+    // --- Status Controls ---
     setStatus(line, status) {
         if (!this.state.isAdmin) return;
         this.state.activeId = line.teacher_id;
@@ -725,7 +725,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Time & Hours ───────────────────────────────────────────────────
+    // --- Time & Hours ---
     onCheckInChange(line, ev) {
         if (!this.state.isAdmin) return;
         line.check_in = ev.target.value;
@@ -749,7 +749,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Notes ──────────────────────────────────────────────────────────
+    // --- Notes ---
     toggleNote(line) {
         const isOpen = this.state.openNoteId === line.teacher_id;
         this.state.activeId   = line.teacher_id;
@@ -761,7 +761,7 @@ class StaffAttendanceSheet extends Component {
     updateNote(line, ev) { if (this.state.isAdmin) line.remark = ev.target.value; }
     clearNote(line)  { if (this.state.isAdmin) line.remark = ""; }
 
-    // ── Keyboard Navigation ────────────────────────────────────────────
+    // --- Keyboard Navigation ---
     onGlobalKeydown(ev) {
         const tag = (ev.target.tagName || "").toLowerCase();
         if (["input", "textarea", "select"].includes(tag) || ev.target.isContentEditable) return;
@@ -797,7 +797,7 @@ class StaffAttendanceSheet extends Component {
         }
     }
 
-    // ── Save Attendance ────────────────────────────────────────────────
+    // --- Save Attendance ---
     async saveAttendance() {
         if (!this.state.isAdmin) {
             this.notification.add(_t("Only administrators can record staff attendance."), { type: "danger" });
@@ -874,7 +874,7 @@ class StaffAttendanceSheet extends Component {
                 deptLabel ? _t("Attendance saved for %(dept)s", { dept: deptLabel }) : _t("Staff attendance saved"),
                 {
                     type: "success",
-                    message: summaryParts.join(" · "),
+                    message: summaryParts.join(" • "),
                 }
             );
         } catch (e) {
