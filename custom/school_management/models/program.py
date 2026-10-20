@@ -74,6 +74,10 @@ class UniversityProgram(models.Model):
         compute="_compute_counts",
         store=True,
     )
+    exam_score_count = fields.Integer(
+        string="Exam & Quiz Results",
+        compute="_compute_exam_score_count",
+    )
     active = fields.Boolean(string="Active", default=True, tracking=True)
     color = fields.Integer(string="Color Index", default=0)
 
@@ -86,6 +90,12 @@ class UniversityProgram(models.Model):
                 program.student_ids.filtered(lambda s: s.status == "active")
             )
             program.section_count = len(program.section_ids)
+
+    def _compute_exam_score_count(self):
+        for program in self:
+            program.exam_score_count = self.env["university.exam.score"].search_count([
+                ("exam_id.program_id", "=", program.id)
+            ])
 
     def action_view_students(self):
         self.ensure_one()
@@ -106,6 +116,14 @@ class UniversityProgram(models.Model):
         action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_class_section")
         action["domain"] = [("program_id", "=", self.id)]
         action["context"] = {"default_program_id": self.id}
+        return action
+
+    def action_view_exam_scores(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_exam_score")
+        action["domain"] = [("exam_id.program_id", "=", self.id)]
+        action["context"] = {"search_default_group_by_exam": 1}
+        action["name"] = _("Exam & Quiz Results - %s") % self.name
         return action
 
     def action_link_department_subjects(self):

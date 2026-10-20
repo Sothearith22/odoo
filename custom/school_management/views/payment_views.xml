@@ -141,7 +141,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
                                 <span t-if="record.date.value" class="small text-muted">
-                                    <i class="fa fa-calendar me-1"/> <field name="date"/>
+                                    <i class="fa fa-calendar me-1" title="Payment Date"/> <field name="date"/>
                                 </span>
                                 <span t-if="record.state.raw_value == 'posted'" class="badge text-bg-success ms-auto">Posted</span>
                                 <span t-elif="record.state.raw_value == 'draft'" class="badge text-bg-info ms-auto">Draft</span>

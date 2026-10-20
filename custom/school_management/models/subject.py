@@ -46,7 +46,7 @@ class UniversitySubject(models.Model):
     enrollment_ids = fields.One2many(
         "university.enrollment",
         "subject_id",
-        string="Enrolled Students",
+        string="Enrollments",
     )
     active = fields.Boolean(string="Active", default=True)
     auto_quiz_per_session = fields.Boolean(
@@ -66,7 +66,7 @@ class UniversitySubject(models.Model):
         store=True,
     )
     student_count = fields.Integer(
-        string="Enrolled Students",
+        string="Enrolled Students Count",
         compute="_compute_student_count",
     )
 
@@ -132,10 +132,23 @@ class UniversitySubject(models.Model):
             },
         }
 
+    @api.onchange("department_id")
+    def _onchange_department_id(self):
+        if self.department_id and self.program_ids:
+            matching_programs = self.program_ids.filtered(lambda p: p.department_id == self.department_id)
+            if matching_programs != self.program_ids:
+                self.program_ids = matching_programs
+
     @api.onchange("program_ids")
     def _onchange_program_ids(self):
         if self.program_ids and not self.department_id:
             self.department_id = self.program_ids[0].department_id
+
+    @api.constrains("department_id", "program_ids")
+    def _check_department_program_consistency(self):
+        for record in self:
+            if not record.department_id and record.program_ids:
+                record.department_id = record.program_ids[0].department_id
 
     def unlink(self):
         if not can_maintain_closed_year_records(self.env):

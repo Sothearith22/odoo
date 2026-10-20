@@ -25,6 +25,12 @@
                         <i class="fa fa-th me-1" aria-hidden="true"/> Monthly Matrix
                     </button>
                     <button type="button"
+                            t-att-class="'btn ' + (state.viewMode === 'kanban' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => this.setViewMode('kanban')"
+                            title="Kanban Cards / Grid View">
+                        <i class="fa fa-th-large me-1" aria-hidden="true"/> Kanban
+                    </button>
+                    <button type="button"
                             t-att-class="'btn ' + (state.viewMode === 'timeline' ? 'btn-primary' : 'btn-outline-secondary')"
                             t-on-click="() => this.setViewMode('timeline')"
                             title="Day Schedule Timeline View">
@@ -401,6 +407,176 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- View Switcher (Kanban vs List/Table vs Timeline) -->
+                        <div class="o_att_toolbar_right ms-auto d-flex align-items-center gap-2">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Layout View Switcher">
+                                <button type="button"
+                                        t-att-class="'btn ' + (state.viewMode === 'kanban' ? 'btn-primary' : 'btn-outline-secondary')"
+                                        t-on-click="() => this.setViewMode('kanban')"
+                                        title="Kanban Cards View" aria-label="Kanban View">
+                                    <i class="fa fa-th-large me-1" aria-hidden="true"/>Kanban
+                                </button>
+                                <button type="button"
+                                        t-att-class="'btn ' + (state.viewMode === 'table' ? 'btn-primary' : 'btn-outline-secondary')"
+                                        t-on-click="() => this.setViewMode('table')"
+                                        title="List Table View" aria-label="List View">
+                                    <i class="fa fa-th-list me-1" aria-hidden="true"/>List
+                                </button>
+                                <button type="button"
+                                        t-att-class="'btn ' + (state.viewMode === 'timeline' ? 'btn-primary' : 'btn-outline-secondary')"
+                                        t-on-click="() => this.setViewMode('timeline')"
+                                        title="Timeline Schedule View" aria-label="Timeline View">
+                                    <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/>Timeline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== KANBAN VIEW (Staff Cards) ==================== -->
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4" t-if="state.viewMode === 'kanban' and visibleRows.length">
+                        <t t-foreach="visibleRows" t-as="line" t-key="line.teacher_id">
+                            <div class="col">
+                                <div t-att-class="'card h-100 shadow-sm border rounded-3 o_att_staff_kanban_card bg-white o_att_staff_kanban--' + line.status + (line.teacher_id === state.activeId ? ' o_att_staff_kanban--active' : '')">
+                                    <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                        <!-- Card Top: Avatar, Name, Code, and Status Badge with Circle Dot -->
+                                        <div>
+                                            <div class="d-flex align-items-start gap-3 mb-3">
+                                                <!-- Avatar with live Status Dot -->
+                                                <div class="position-relative flex-shrink-0" style="width: 48px; height: 48px;">
+                                                    <t t-if="line.has_image">
+                                                        <img class="rounded-circle object-fit-cover w-100 h-100 border shadow-sm"
+                                                             t-att-src="'/web/image/university.teacher/' + line.teacher_id + '/image_1920'"
+                                                             alt="Staff Avatar"
+                                                             onerror="this.src='/web/static/img/placeholder.png'"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span t-att-class="'rounded-circle d-flex align-items-center justify-content-center w-100 h-100 fw-bold border shadow-sm text-white o_att_avatar--' + teacherTone(line)"
+                                                              t-esc="teacherInitial(line)"/>
+                                                    </t>
+                                                    <!-- Live status circle dot badge -->
+                                                    <span class="position-absolute bottom-0 end-0 bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                                          style="width: 16px; height: 16px; transform: translate(15%, 15%);">
+                                                        <i class="fa fa-circle"
+                                                           t-att-class="getStatusIconClass(line.status)"
+                                                           style="font-size: 10px;"
+                                                           role="img"
+                                                           t-att-aria-label="line.status"
+                                                           t-att-title="line.status"/>
+                                                    </span>
+                                                </div>
+
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                                                        <button type="button" class="btn btn-link p-0 text-start text-dark fw-bold text-truncate text-decoration-none fs-6"
+                                                                t-on-click="() =&gt; this.openTeacher(line.teacher_id)"
+                                                                t-att-title="line.name + ' - Click to view profile'">
+                                                            <t t-esc="line.name"/>
+                                                        </button>
+                                                        <span t-att-class="getStatusBadgeClass(line.status)">
+                                                            <i class="fa fa-circle me-1" t-att-class="getStatusIconClass(line.status)" aria-hidden="true"/>
+                                                            <span class="text-capitalize" t-esc="line.status.replace('_', ' ')"/>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="d-flex flex-wrap align-items-center gap-1">
+                                                        <span class="badge text-bg-light border text-muted small" t-if="line.code" t-esc="line.code"/>
+                                                        <span class="badge text-bg-light border text-muted small" t-if="line.department" t-esc="line.department"/>
+                                                        <span t-if="line.state === 'approved'" class="badge rounded-pill bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">Approved</span>
+                                                        <span t-elif="line.state === 'submitted'" class="badge rounded-pill bg-info-subtle text-info border border-info-subtle" style="font-size: 0.65rem;">Submitted</span>
+                                                        <span t-elif="line.state === 'rejected'" class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.65rem;">Rejected</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Attendance Quick Action Container -->
+                                            <div class="att_container p-2 rounded bg-light-subtle border mb-2">
+                                                <div class="d-flex align-items-center justify-content-between mb-2 px-1">
+                                                    <small class="text-muted fw-bold" style="font-size: 10px; letter-spacing: 0.5px;">MARK ATTENDANCE</small>
+                                                    <small class="text-muted" style="font-size: 11px;">
+                                                        <i class="fa fa-mouse-pointer me-1 text-primary" aria-hidden="true"/>1-Click
+                                                    </small>
+                                                </div>
+
+                                                <!-- 1-Click Status Buttons -->
+                                                <div class="btn-group w-100 shadow-xs" role="group" t-att-aria-label="'Set status for ' + line.name">
+                                                    <button t-foreach="statusOptions" t-as="opt" t-key="opt.value"
+                                                            type="button"
+                                                            t-att-class="'btn btn-sm py-1 px-1 ' + (line.status === opt.value ? 'btn-primary text-white fw-bold shadow-sm' : 'btn-outline-secondary bg-white')"
+                                                            t-att-title="opt.label"
+                                                            t-att-disabled="line.state === 'approved' || !state.isAdmin || state.loading || state.saving"
+                                                            t-on-click="() =&gt; this.setStatus(line, opt.value)">
+                                                        <i t-if="line.status === opt.value" class="fa fa-check me-1" aria-hidden="true"/>
+                                                        <span t-esc="opt.key"/>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Check-in / Check-out & Hours -->
+                                                <div class="row g-2 align-items-center mt-1 pt-1 border-top">
+                                                    <div class="col-5">
+                                                        <label class="form-label text-muted mb-0" style="font-size: 10px;">In</label>
+                                                        <input type="time"
+                                                               class="form-control form-control-sm text-center py-0 px-1"
+                                                               style="font-size: 11px;"
+                                                               t-att-value="line.check_in"
+                                                               t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
+                                                               t-on-change="(ev) =&gt; this.onCheckInChange(line, ev)"/>
+                                                    </div>
+                                                    <div class="col-5">
+                                                        <label class="form-label text-muted mb-0" style="font-size: 10px;">Out</label>
+                                                        <input type="time"
+                                                               class="form-control form-control-sm text-center py-0 px-1"
+                                                               style="font-size: 11px;"
+                                                               t-att-value="line.check_out"
+                                                               t-att-disabled="line.state === 'approved' || line.status === 'absent' || line.status === 'leave' || !state.isAdmin || state.loading || state.saving"
+                                                               t-on-change="(ev) =&gt; this.onCheckOutChange(line, ev)"/>
+                                                    </div>
+                                                    <div class="col-2 text-center">
+                                                        <label class="form-label text-muted mb-0" style="font-size: 10px;">Hours</label>
+                                                        <span t-att-class="'badge d-block px-1 py-1 ' + (line.worked_hours &gt; 0 ? 'bg-primary-subtle text-primary border' : 'bg-light text-muted border')"
+                                                              style="font-size: 10px;"
+                                                              t-esc="fmtHours(line.worked_hours)"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card Footer: Remark note display & editor -->
+                                        <div class="pt-2 mt-1 border-top">
+                                            <div t-if="state.openNoteId === line.teacher_id" class="d-flex align-items-center gap-1">
+                                                <input type="text" class="form-control form-control-sm flex-grow-1 o_att_note_input"
+                                                       t-att-value="line.remark"
+                                                       placeholder="Add note..."
+                                                       t-on-input="(ev) =&gt; this.updateNote(line, ev)"
+                                                       t-on-keydown="(ev) =&gt; this.onNoteKeydown(line, ev)"/>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                                        t-on-click="() =&gt; this.closeNote()">
+                                                    Done
+                                                </button>
+                                            </div>
+                                            <div t-else="" class="d-flex align-items-center justify-content-between">
+                                                <span t-if="line.remark" class="text-muted small text-truncate cursor-pointer"
+                                                      t-att-title="line.remark"
+                                                      t-on-click="() =&gt; this.toggleNote(line)">
+                                                    <i class="fa fa-commenting text-primary me-1" aria-hidden="true"/>
+                                                    <span t-esc="line.remark"/>
+                                                </span>
+                                                <button t-else="" type="button" class="btn btn-sm btn-link text-muted p-0 text-decoration-none"
+                                                        t-on-click="() =&gt; this.toggleNote(line)"
+                                                        t-att-disabled="line.state === 'approved' || !state.isAdmin"
+                                                        title="Add note">
+                                                    <i class="fa fa-comment-o me-1"/>Add note
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none"
+                                                        t-on-click="() =&gt; this.setActive(line)">
+                                                    <i class="fa fa-ellipsis-h"/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
                     </div>
 
                     <!-- ==================== TIMELINE VIEW ==================== -->

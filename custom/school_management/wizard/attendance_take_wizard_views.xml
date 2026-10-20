@@ -11,8 +11,8 @@
                     <button name="action_mark_all_absent" type="object" string="Mark All Absent" class="btn-danger text-white" icon="fa-times-circle"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
-                        <i class="fa fa-info-circle fa-2x me-3 text-info"/>
+                    <div class="alert alert-info d-flex align-items-center mb-3" role="status">
+                        <i class="fa fa-info-circle fa-2x me-3 text-info" title="Information"/>
                         <div>
                             Select a <strong>Class Section</strong> and <strong>Attendance Date</strong> to automatically load the enrolled student roster. Rapidly toggle student statuses using the bulk action buttons above.
                         </div>
@@ -27,7 +27,7 @@
                         </group>
                     </group>
                     <div class="mt-3">
-                        <h4 class="text-dark fw-bold mb-2">Student Attendance Roster</h4>
+                        <h4 class="text-dark fw-bold mb-2">Student Attendance</h4>
                         <field name="line_ids">
                             <list editable="bottom" create="0" delete="0">
                                 <field name="student_id" readonly="1" decoration-bf="1"/>

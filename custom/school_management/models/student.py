@@ -85,6 +85,7 @@ class Student(models.Model):
     current_semester_id = fields.Many2one(
         "university.semester",
         string="Current Semester",
+        domain="[('academic_year_id', '=?', academic_year_id)]",
     )
     curriculum_id = fields.Many2one(
         "university.curriculum",
@@ -103,11 +104,24 @@ class Student(models.Model):
         compute="_compute_curriculum_line_ids",
     )
 
-    @api.depends("program_id", "program_id.curriculum_line_ids")
+    @api.depends("program_id", "program_id.curriculum_line_ids", "curriculum_id", "curriculum_id.line_ids", "academic_year_id")
     def _compute_curriculum_line_ids(self):
         for student in self:
-            if student.program_id:
-                student.curriculum_line_ids = student.program_id.curriculum_line_ids
+            if student.curriculum_id and student.curriculum_id.line_ids:
+                student.curriculum_line_ids = student.curriculum_id.line_ids
+            elif student.program_id:
+                if student.academic_year_id:
+                    session_curriculum = self.env["university.curriculum"].search([
+                        ("program_id", "=", student.program_id.id),
+                        ("session_id", "=", student.academic_year_id.id),
+                    ], limit=1)
+                    if session_curriculum and session_curriculum.line_ids:
+                        student.curriculum_line_ids = session_curriculum.line_ids
+                        continue
+                if student.program_id.curriculum_line_ids:
+                    student.curriculum_line_ids = student.program_id.curriculum_line_ids
+                else:
+                    student.curriculum_line_ids = False
             else:
                 student.curriculum_line_ids = False
     advisor_id = fields.Many2one(
@@ -139,6 +153,20 @@ class Student(models.Model):
         string="Pending Follow-ups",
         compute="_compute_advising_counts",
     )
+    exam_score_ids = fields.One2many(
+        "university.exam.score",
+        "student_id",
+        string="Exam & Quiz Scores",
+    )
+    exam_score_count = fields.Integer(
+        string="Exams & Quizzes",
+        compute="_compute_exam_score_count",
+    )
+
+    @api.depends("exam_score_ids")
+    def _compute_exam_score_count(self):
+        for student in self:
+            student.exam_score_count = len(student.exam_score_ids)
 
     # Academic Performance & Risk Metrics
     gpa = fields.Float(
@@ -365,6 +393,14 @@ class Student(models.Model):
             "domain": [("student_id", "=", self.id)],
             "context": {"default_student_id": self.id},
         }
+
+    def action_view_exam_scores(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_exam_score")
+        action["domain"] = [("student_id", "=", self.id)]
+        action["context"] = {"default_student_id": self.id}
+        action["name"] = _("Exam & Quiz Results - %s") % self.name
+        return action
 
     def action_register_student_payment(self):
         self.ensure_one()

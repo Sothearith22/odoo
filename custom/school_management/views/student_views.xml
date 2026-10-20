@@ -178,6 +178,12 @@
                             class="btn-secondary"
                             icon="fa-graduation-cap"
                             groups="school_management.group_school_admin"/>
+                    <button name="action_view_exam_scores"
+                            string="Result of Exam and Quiz"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-list-alt"
+                            groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
                     <button name="action_continue_student"
                             string="Continue Student"
                             type="object"
@@ -194,6 +200,9 @@
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_enrollments" type="object" class="oe_stat_button" icon="fa-graduation-cap">
                             <field name="enrollment_count" widget="statinfo" string="Enrollments"/>
+                        </button>
+                        <button name="action_view_exam_scores" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="exam_score_count" widget="statinfo" string="Exams &amp; Quizzes"/>
                         </button>
                         <button name="action_view_fees" type="object" class="oe_stat_button" icon="fa-money" groups="school_management.group_school_admin,school_management.group_school_student">
                             <div class="o_stat_info">
@@ -223,10 +232,10 @@
 
                     <!-- CRITICAL OVERDUE TUITION ALERT BANNER -->
                     <div class="alert alert-danger d-flex align-items-center mb-3 shadow-sm rounded-3" role="alert" invisible="financial_status != 'overdue'">
-                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-danger"/>
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-danger" title="Critical Overdue Tuition Alert"/>
                         <div class="flex-grow-1">
-                            <h5 class="alert-heading text-danger mb-1 font-weight-bold">
-                                <i class="fa fa-bell me-1"/>URGENT FINANCIAL ALERT — OVERDUE PAYMENT REQUIRED
+                            <h5 class="alert-heading text-danger mb-1 font-weight-bold" role="status">
+                                <i class="fa fa-bell me-1" title="Alert"/>URGENT FINANCIAL ALERT — OVERDUE PAYMENT REQUIRED
                             </h5>
                             <div>
                                 This student has <strong><field name="overdue_fee_count"/> overdue invoice(s)</strong> totaling 
@@ -239,8 +248,8 @@
                     </div>
 
                     <!-- PENDING TUITION PAYMENT BANNER -->
-                    <div class="alert alert-warning d-flex align-items-center mb-3 shadow-sm rounded-3" role="alert" invisible="financial_status != 'pending'">
-                        <i class="fa fa-clock-o fa-2x me-3 text-warning"/>
+                    <div class="alert alert-warning d-flex align-items-center mb-3 shadow-sm rounded-3" role="status" invisible="financial_status != 'pending'">
+                        <i class="fa fa-clock-o fa-2x me-3 text-warning" title="Tuition Payment Pending"/>
                         <div class="flex-grow-1">
                             <strong class="text-dark">⚠️ TUITION PAYMENT PENDING:</strong>
                             <div>
@@ -337,13 +346,13 @@
                         </page>
 
                         <page string="My Curriculum" name="my_curriculum_tab">
-                            <field name="curriculum_line_ids" readonly="1">
+                            <field name="curriculum_line_ids" readonly="1" context="{'active_student_id': id}">
                                 <list default_order="year_level, semester_number, sequence, id"
                                       decoration-bf="year_level == parent.year_level"
                                       decoration-info="year_level == parent.year_level">
+                                    <field name="subject_id"/>
                                     <field name="year_level"/>
                                     <field name="semester_number"/>
-                                    <field name="subject_id"/>
                                     <field name="credits" sum="Total Credits"/>
                                     <field name="is_student_enrolled" column_invisible="1"/>
                                     <field name="enrollment_status" string="Status" widget="badge"
@@ -391,7 +400,34 @@
                         </page>
 
                         <page string="Academic Results" name="academic_results_tab" groups="school_management.group_school_admin,school_management.group_school_student">
-                            <separator string="Report Cards"/>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h4 class="mb-0 fw-bold text-dark"><i class="fa fa-graduation-cap me-2 text-primary"/>Exams &amp; Quizzes Results</h4>
+                                <button name="action_view_exam_scores" string="Result of Exam and Quiz" type="object" class="btn btn-sm btn-outline-primary" icon="fa-external-link"/>
+                            </div>
+                            <field name="exam_score_ids" readonly="1">
+                                <list default_order="exam_date desc, id desc">
+                                    <field name="exam_id" string="Exam / Quiz"/>
+                                    <field name="exam_type" widget="badge"
+                                           decoration-info="exam_type == 'quiz'"
+                                           decoration-warning="exam_type == 'midterm'"
+                                           decoration-danger="exam_type == 'final'"/>
+                                    <field name="subject_id"/>
+                                    <field name="exam_date"/>
+                                    <field name="score" string="Raw Score"/>
+                                    <field name="max_score" string="Max"/>
+                                    <field name="final_score" string="Final Score" decoration-bf="1"/>
+                                    <field name="percentage" string="%" decoration-bf="1"/>
+                                    <field name="is_passed" widget="boolean" string="Pass"/>
+                                    <field name="is_absent" string="Absent" widget="boolean"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'published'"
+                                           decoration-info="state == 'open'"
+                                           decoration-warning="state in ('scheduled', 'grading')"
+                                           decoration-muted="state in ('draft', 'closed')"/>
+                                    <field name="remark" optional="show"/>
+                                </list>
+                            </field>
+                            <separator string="Report Cards" class="mt-4"/>
                             <field name="report_card_ids" readonly="1">
                                 <list>
                                     <field name="name"/>

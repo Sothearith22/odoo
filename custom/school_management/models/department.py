@@ -92,3 +92,10 @@ class UniversityDepartment(models.Model):
             rec.class_section_count = len(
                 rec.with_context(active_test=False).class_section_ids
             )
+
+    def action_view_subjects(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_subject")
+        action["domain"] = [("department_id", "=", self.id)]
+        action["context"] = {"default_department_id": self.id}
+        return action

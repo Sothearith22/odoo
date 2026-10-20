@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1440, initial-scale=1.0">
+  <title>Faculty Timetable — Dean Overview</title>
+  <style>
+    /* =========================================================================
+       SHARED DESIGN SYSTEM TOKENS (All Roles)
+       ========================================================================= */
+    :root {
+      --bg-page: #F4F7F7;
+      --bg-surface: #FFFFFF;
+      --border-color: #E3EAEC;
+      --border-focus: #0E7C7B;
+      --text-main: #12232B;
+      --text-muted: #59717D;
+      --text-subtle: #879DA8;
+
+      --primary-teal: #0E7C7B;
+      --primary-teal-hover: #0B6665;
+      --primary-teal-light: #E6F7F5;
+      --primary-teal-border: #A3E0D8;
+
+      --color-red: #B42318;
+      --color-red-light: #FEE4E2;
+      --color-red-border: #FDA29B;
+
+      --color-amber: #B45309;
+      --color-amber-light: #FEF0C7;
+      --color-amber-border: #FCD34D;
+
+      --color-blue: #2B6CB0;
+      --color-blue-light: #EBF8FF;
+      --color-blue-border: #BEE3F8;
+
+      --color-purple: #6B46C1;
+      --color-purple-light: #FAF5FF;
+      --color-purple-border: #E9D8FD;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --shadow-subtle: 0 1px 3px rgba(18, 35, 43, 0.04);
+      --shadow-elevated: 0 4px 14px rgba(18, 35, 43, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 13.5px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* 1440px Fixed Desktop Layout */
+    .app-viewport {
+      width: 1440px;
+      min-width: 1440px;
+      max-width: 1440px;
+      min-height: 100vh;
+      display: flex;
+      background-color: var(--bg-page);
+      overflow-x: hidden;
+    }
+
+    /* -------------------------------------------------------------------------
+       COLLAPSED ICON SIDEBAR (72px)
+       ------------------------------------------------------------------------- */
+    .app-sidebar {
+      width: 72px;
+      min-width: 72px;
+      max-width: 72px;
+      background-color: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0 16px 0;
+      z-index: 10;
+    }
+
+    .brand-logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background-color: var(--primary-teal);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .nav-icons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      flex-grow: 1;
+    }
+
+    .nav-icon-link {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    .nav-icon-link:hover {
+      background-color: #F8FAFA;
+      color: var(--text-main);
+    }
+
+    .nav-icon-link.active {
+      background-color: var(--primary-teal-light);
+      color: var(--primary-teal);
+      font-weight: 600;
+    }
+
+    .nav-icon-link.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      background-color: var(--primary-teal);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-avatar-wrap {
+      margin-top: auto;
+    }
+
+    .user-avatar-pill {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background-color: #0E7569;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #FFFFFF;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    /* -------------------------------------------------------------------------
+       MAIN CONTENT CONTAINER
+       ------------------------------------------------------------------------- */
+    .app-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 32px;
+      gap: 16px;
+    }
+
+    /* -------------------------------------------------------------------------
+       TOP HEADER BAR
+       ------------------------------------------------------------------------- */
+    .top-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title-box h1 {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .top-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .date-nav-cluster {
+      display: inline-flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .btn-nav-arrow {
+      background: transparent;
+      border: none;
+      padding: 7px 11px;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-nav-arrow:hover {
+      background: #F8FAFA;
+      color: var(--text-main);
+    }
+
+    .btn-nav-today {
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: background 0.15s ease;
+    }
+
+    .btn-nav-today:hover {
+      background: #F8FAFA;
+    }
+
+    .view-segmented-switch {
+      display: inline-flex;
+      background: #EAEFF0;
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      gap: 2px;
+    }
+
+    .view-segment-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .view-segment-btn.active {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .btn-primary-action {
+      background-color: var(--primary-teal);
+      border: 1px solid var(--primary-teal);
+      color: #FFFFFF;
+      padding: 7px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary-action:hover {
+      background-color: var(--primary-teal-hover);
+      border-color: var(--primary-teal-hover);
+    }
+
+    /* -------------------------------------------------------------------------
+       FILTER BAR
+       ------------------------------------------------------------------------- */
+    .filter-bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .filter-chips-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-chip-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 6px 13px;
+      font-size: 12.5px;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .filter-chip-btn:hover {
+      border-color: #CBD5E1;
+    }
+
+    .filter-chip-label {
+      color: var(--text-muted);
+    }
+
+    .search-input-wrap {
+      position: relative;
+      width: 270px;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-subtle);
+      pointer-events: none;
+    }
+
+    .search-input-field {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px 7px 34px;
+      font-size: 12.5px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .search-input-field:focus {
+      border-color: var(--primary-teal);
+    }
+
+    /* -------------------------------------------------------------------------
+       STAT CARDS ROW (4 Equal Cards)
+       ------------------------------------------------------------------------- */
+    .stat-cards-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 84px;
+    }
+
+    .stat-card-header {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
+
+    .stat-card-body {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .stat-big-number {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .stat-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      line-height: 1.2;
+    }
+
+    .stat-pill.teal {
+      background-color: var(--primary-teal-light);
+      color: var(--primary-teal);
+    }
+
+    .stat-pill.red {
+      background-color: var(--color-red-light);
+      color: var(--color-red);
+    }
+
+    .stat-pill.amber {
+      background-color: var(--color-amber-light);
+      color: var(--color-amber);
+    }
+
+    .stat-pill.green {
+      background-color: #E6F7EF;
+      color: #12824A;
+    }
+
+    /* -------------------------------------------------------------------------
+       MAIN WORKSPACE: DEAN'S SUMMARY MATRIX + 340PX RIGHT PANEL
+       ------------------------------------------------------------------------- */
+    .workspace-split-area {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      min-height: 560px;
+    }
+
+    /* Summary Matrix Box */
+    .matrix-container-card {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px 16px 22px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .matrix-title-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .matrix-title-text {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .matrix-sub-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Matrix Table Layout */
+    .matrix-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 6px;
+      flex: 1;
+    }
+
+    .matrix-table th {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    .matrix-table th.th-dept {
+      text-align: left;
+      width: 175px;
+      padding-left: 6px;
+    }
+
+    .matrix-table td {
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      vertical-align: middle;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .matrix-dept-cell {
+      cursor: default !important;
+      padding-left: 6px !important;
+    }
+
+    .matrix-dept-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.25;
+    }
+
+    .matrix-dept-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Intensity Shading (Darker for more classes) */
+    .cell-intensity-1 {
+      background-color: #F4F9F8;
+      border: 1px solid #E5EFEF;
+    }
+    .cell-intensity-2 {
+      background-color: #E6F3F1;
+      border: 1px solid #D2E7E4;
+    }
+    .cell-intensity-3 {
+      background-color: #D3ECE9;
+      border: 1px solid #B8DDD9;
+    }
+
+    .matrix-table td:hover:not(.matrix-holiday-cell):not(.matrix-dept-cell) {
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+    }
+
+    /* Selected Cell Outline (Tue Nursing) */
+    .matrix-table td.cell-selected {
+      border: 2px solid var(--primary-teal) !important;
+      box-shadow: 0 0 0 2px rgba(14, 124, 123, 0.25) !important;
+    }
+
+    .cell-content-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .cell-classes-count {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .cell-classes-label {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .cell-conflict-chip {
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: var(--radius-full);
+      background-color: var(--color-red-light);
+      color: var(--color-red);
+      line-height: 1.2;
+    }
+
+    /* Saturday Public Holiday Column in Matrix */
+    .matrix-holiday-cell {
+      background: repeating-linear-gradient(
+        -45deg,
+        #FAFCFC,
+        #FAFCFC 8px,
+        #EEF3F4 8px,
+        #EEF3F4 16px
+      );
+      border: 1px dashed var(--border-color);
+      text-align: center;
+      cursor: not-allowed !important;
+    }
+
+    .matrix-holiday-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-subtle);
+    }
+
+    /* Matrix Summary Totals Row */
+    .matrix-total-row td {
+      border-top: 2px solid var(--border-color);
+      background-color: #FAFCFC;
+      border-radius: 0;
+      cursor: default !important;
+      padding: 8px 12px;
+    }
+    .matrix-total-row .matrix-dept-cell {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .matrix-total-number {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-align: center;
+    }
+
+    /* Matrix Footer Legend */
+    .matrix-legend-footer {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .matrix-scale-guide {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .scale-box {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    .scale-box.low { background-color: #F4F9F8; border: 1px solid #E5EFEF; }
+    .scale-box.mid { background-color: #E6F3F1; border: 1px solid #D2E7E4; }
+    .scale-box.high { background-color: #D3ECE9; border: 1px solid #B8DDD9; }
+
+    /* -------------------------------------------------------------------------
+       RIGHT PANEL (340px)
+       ------------------------------------------------------------------------- */
+    .right-inspector-panel {
+      width: 340px;
+      min-width: 340px;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .inspector-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .inspector-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .class-status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      background-color: var(--primary-teal-light);
+      color: var(--primary-teal);
+    }
+
+    .btn-close-inspector {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-subtle);
+      font-size: 16px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-close-inspector:hover {
+      color: var(--text-main);
+      background: #F8FAFA;
+    }
+
+    .inspector-class-title {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .inspector-subtitle {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .inspector-details-table {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      padding-bottom: 2px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 12.5px;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .detail-value {
+      color: var(--text-main);
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* Warning Box for Conflicts */
+    .inspector-alert-box {
+      background-color: #FFF5F5;
+      border: 1px solid #FEDFDF;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .alert-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-red);
+      line-height: 1.25;
+    }
+
+    .alert-box-desc {
+      font-size: 11.5px;
+      color: #7A271A;
+      line-height: 1.35;
+    }
+
+    /* 4 Action Buttons Grid */
+    .inspector-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-inspector-action {
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .btn-inspector-action:hover {
+      background-color: #F8FAFA;
+      border-color: #CBD5E1;
+    }
+
+    .btn-inspector-action.primary {
+      background-color: var(--primary-teal);
+      border-color: var(--primary-teal);
+      color: #FFFFFF;
+    }
+
+    .btn-inspector-action.primary:hover {
+      background-color: var(--primary-teal-hover);
+      border-color: var(--primary-teal-hover);
+    }
+
+    /* Role-Specific List Card */
+    .role-list-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .list-card-title {
+      font-family: var(--font-heading);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .list-items-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #F2F5F6;
+    }
+
+    .list-item-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .list-item-info {
+      min-width: 0;
+    }
+
+    .list-item-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .list-item-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .list-item-chip {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+    }
+
+    .list-item-chip.red {
+      background-color: var(--color-red-light);
+      color: var(--color-red);
+    }
+
+    .list-item-chip.amber {
+      background-color: var(--color-amber-light);
+      color: var(--color-amber);
+    }
+
+    .list-item-chip.blue {
+      background-color: var(--color-blue-light);
+      color: var(--color-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    <!-- ==================== 1. COLLAPSED ICON SIDEBAR (72px) ==================== -->
+    <aside class="app-sidebar" aria-label="Sidebar navigation">
+      <div class="brand-logo-mark" title="University Portal">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+          <path d="M6 6h10"/>
+          <path d="M6 10h10"/>
+        </svg>
+      </div>
+
+      <!-- Icon Navigation List -->
+      <nav class="nav-icons-list">
+        <a href="#" class="nav-icon-link" title="Dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link" title="Executive Approvals">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link" title="Departments &amp; Programs">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+            <path d="M9 22v-4h6v4"/>
+            <line x1="8" y1="6" x2="8.01" y2="6"/>
+            <line x1="16" y1="6" x2="16.01" y2="6"/>
+            <line x1="8" y1="10" x2="8.01" y2="10"/>
+            <line x1="16" y1="10" x2="16.01" y2="10"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link active" title="Faculty Timetable (Active)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link" title="Faculty Staff">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link" title="Budget &amp; Planning">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </a>
+        <a href="#" class="nav-icon-link" title="Reports">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </a>
+      </nav>
+
+      <!-- Dean Initials Avatar Pill -->
+      <div class="sidebar-avatar-wrap">
+        <div class="user-avatar-pill" title="Prof. Anna Reyes · Dean">AR</div>
+      </div>
+    </aside>
+
+    <!-- ==================== 2. MAIN WORKSPACE ==================== -->
+    <main class="app-main">
+      <!-- TOP BAR -->
+      <header class="top-header-bar">
+        <div class="header-title-box">
+          <h1>Faculty timetable</h1>
+          <div class="header-subtitle">Week 43 · Oct 18–24, 2026 · Health Sciences</div>
+        </div>
+
+        <div class="top-controls-group">
+          <!-- Prev / Today / Next Cluster -->
+          <div class="date-nav-cluster">
+            <button type="button" class="btn-nav-arrow" title="Previous week">‹</button>
+            <button type="button" class="btn-nav-today">Today</button>
+            <button type="button" class="btn-nav-arrow" title="Next week">›</button>
+          </div>
+
+          <!-- View Switch (Week / Month / Departments) -->
+          <div class="view-segmented-switch" role="tablist">
+            <button type="button" class="view-segment-btn active" role="tab">Week</button>
+            <button type="button" class="view-segment-btn" role="tab">Month</button>
+            <button type="button" class="view-segment-btn" role="tab">Departments</button>
+          </div>
+
+          <!-- Primary Button -->
+          <button type="button" class="btn-primary-action">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Publish timetable
+          </button>
+        </div>
+      </header>
+
+      <!-- FILTER BAR -->
+      <section class="filter-bar-row">
+        <div class="filter-chips-group">
+          <button type="button" class="filter-chip-btn">
+            <span class="filter-chip-label">Faculty:</span>
+            <strong>Health Sciences</strong>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button type="button" class="filter-chip-btn">
+            <span class="filter-chip-label">Semester:</span>
+            <strong>Fall 2026</strong>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <button type="button" class="filter-chip-btn">
+            <span class="filter-chip-label">Show:</span>
+            <strong>All departments</strong>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+
+        <div class="search-input-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="search-input-field" placeholder="Search department, course, room">
+        </div>
+      </section>
+
+      <!-- FOUR STAT CARDS (Math strictly adds up with grid) -->
+      <section class="stat-cards-row">
+        <!-- Card 1: 559 Classes (136 + 100 + 114 + 115 + 94 = 559) -->
+        <div class="stat-card">
+          <div class="stat-card-header">CLASSES THIS WEEK</div>
+          <div class="stat-card-body">
+            <span class="stat-big-number">559</span>
+            <span class="stat-pill teal">5 departments</span>
+          </div>
+        </div>
+        <!-- Card 2: 7 Conflicts (3 + 1 + 1 + 2 + 0 = 7) -->
+        <div class="stat-card">
+          <div class="stat-card-header">CONFLICTS</div>
+          <div class="stat-card-body">
+            <span class="stat-big-number">7</span>
+            <span class="stat-pill red">Fix now</span>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="stat-card">
+          <div class="stat-card-header">UNASSIGNED CLASSES</div>
+          <div class="stat-card-body">
+            <span class="stat-big-number">19</span>
+            <span class="stat-pill amber">Needs room/staff</span>
+          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="stat-card">
+          <div class="stat-card-header">AVERAGE ROOM USE</div>
+          <div class="stat-card-body">
+            <span class="stat-big-number">69%</span>
+            <span class="stat-pill green">Optimal 65-75%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- MAIN AREA: DEAN'S SUMMARY MATRIX + 340PX RIGHT PANEL -->
+      <div class="workspace-split-area">
+        <!-- SUMMARY MATRIX TABLE -->
+        <div class="matrix-container-card">
+          <div class="matrix-title-bar">
+            <div>
+              <h2 class="matrix-title-text">Department Load &amp; Conflict Matrix</h2>
+              <div class="matrix-sub-text">Overview of weekly schedule volume and scheduling integrity across the faculty</div>
+            </div>
+            <span class="stat-pill teal">Fall 2026 Term</span>
+          </div>
+
+          <table class="matrix-table" aria-label="Faculty Department Schedule Grid">
+            <thead>
+              <tr>
+                <th class="th-dept">Department</th>
+                <th>Mon 19</th>
+                <th>Tue 20</th>
+                <th>Wed 21</th>
+                <th>Thu 22</th>
+                <th>Fri 23</th>
+                <th>Sat 24</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1: Nursing (136 classes, 3 conflicts) - Selected on Tue -->
+              <tr>
+                <td class="matrix-dept-cell">
+                  <div class="matrix-dept-name">Nursing</div>
+                  <div class="matrix-dept-meta">136 classes · 3 conflicts</div>
+                </td>
+                <td class="cell-intensity-3" onclick="selectDeptCell(this, 'Nursing', 'Mon 19', 28, 0, '136 classes', '74% (B-Block)', '3 conflicts', '18 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">28</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <!-- SELECTED CELL: TEAL OUTLINE -->
+                <td class="cell-intensity-3 cell-selected" onclick="selectDeptCell(this, 'Nursing', 'Tue 20', 31, 1, '136 classes', '74% (B-Block)', '3 conflicts', '18 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">31</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-3" onclick="selectDeptCell(this, 'Nursing', 'Wed 21', 27, 1, '136 classes', '74% (B-Block)', '3 conflicts', '18 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">27</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-3" onclick="selectDeptCell(this, 'Nursing', 'Thu 22', 26, 0, '136 classes', '74% (B-Block)', '3 conflicts', '18 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">26</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Nursing', 'Fri 23', 24, 1, '136 classes', '74% (B-Block)', '3 conflicts', '18 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">24</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <!-- Saturday Public Holiday -->
+                <td class="matrix-holiday-cell" rowspan="5">
+                  <span class="matrix-holiday-label">Public holiday<br><small style="font-size: 10px; opacity: 0.8;">No classes</small></span>
+                </td>
+              </tr>
+
+              <!-- Row 2: Midwifery (100 classes, 1 conflict) -->
+              <tr>
+                <td class="matrix-dept-cell">
+                  <div class="matrix-dept-name">Midwifery</div>
+                  <div class="matrix-dept-meta">100 classes · 1 conflict</div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Midwifery', 'Mon 19', 19, 0, '100 classes', '66%', '1 conflict', '14 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">19</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Midwifery', 'Tue 20', 22, 0, '100 classes', '66%', '1 conflict', '14 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">22</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Midwifery', 'Wed 21', 21, 0, '100 classes', '66%', '1 conflict', '14 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">21</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Midwifery', 'Thu 22', 20, 1, '100 classes', '66%', '1 conflict', '14 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">20</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Midwifery', 'Fri 23', 18, 0, '100 classes', '66%', '1 conflict', '14 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">18</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3: Public Health (114 classes, 1 conflict) -->
+              <tr>
+                <td class="matrix-dept-cell">
+                  <div class="matrix-dept-name">Public Health</div>
+                  <div class="matrix-dept-meta">114 classes · 1 conflict</div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Public Health', 'Mon 19', 22, 0, '114 classes', '70%', '1 conflict', '16 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">22</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Public Health', 'Tue 20', 24, 1, '114 classes', '70%', '1 conflict', '16 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">24</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Public Health', 'Wed 21', 25, 0, '114 classes', '70%', '1 conflict', '16 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">25</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Public Health', 'Thu 22', 23, 0, '114 classes', '70%', '1 conflict', '16 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">23</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Public Health', 'Fri 23', 20, 0, '114 classes', '70%', '1 conflict', '16 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">20</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 4: Pharmacy (115 classes, 2 conflicts) -->
+              <tr>
+                <td class="matrix-dept-cell">
+                  <div class="matrix-dept-name">Pharmacy</div>
+                  <div class="matrix-dept-meta">115 classes · 2 conflicts</div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Pharmacy', 'Mon 19', 23, 1, '115 classes', '72%', '2 conflicts', '17 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">23</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Pharmacy', 'Tue 20', 25, 0, '115 classes', '72%', '2 conflicts', '17 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">25</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Pharmacy', 'Wed 21', 24, 0, '115 classes', '72%', '2 conflicts', '17 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">24</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Pharmacy', 'Thu 22', 22, 1, '115 classes', '72%', '2 conflicts', '17 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">22</span>
+                    <span class="cell-classes-label">classes</span>
+                    <span class="cell-conflict-chip">1 conflict</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-2" onclick="selectDeptCell(this, 'Pharmacy', 'Fri 23', 21, 0, '115 classes', '72%', '2 conflicts', '17 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">21</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 5: Medical Lab Science (94 classes, 0 conflicts) -->
+              <tr>
+                <td class="matrix-dept-cell">
+                  <div class="matrix-dept-name">Medical Lab Science</div>
+                  <div class="matrix-dept-meta">94 classes · 0 conflicts</div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Medical Lab Science', 'Mon 19', 18, 0, '94 classes', '61%', '0 conflicts', '12 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">18</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Medical Lab Science', 'Tue 20', 20, 0, '94 classes', '61%', '0 conflicts', '12 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">20</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Medical Lab Science', 'Wed 21', 20, 0, '94 classes', '61%', '0 conflicts', '12 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">20</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Medical Lab Science', 'Thu 22', 19, 0, '94 classes', '61%', '0 conflicts', '12 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">19</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+                <td class="cell-intensity-1" onclick="selectDeptCell(this, 'Medical Lab Science', 'Fri 23', 17, 0, '94 classes', '61%', '0 conflicts', '12 active lecturers')">
+                  <div class="cell-content-box">
+                    <span class="cell-classes-count">17</span>
+                    <span class="cell-classes-label">classes</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Daily Totals Row: 110 + 122 + 117 + 110 + 100 = 559 TOTAL! -->
+              <tr class="matrix-total-row">
+                <td class="matrix-dept-cell">DAILY TOTALS</td>
+                <td><div class="matrix-total-number">110 <small style="display: block; font-size: 10px; font-weight: normal; color: var(--color-red);">1 conflict</small></div></td>
+                <td><div class="matrix-total-number">122 <small style="display: block; font-size: 10px; font-weight: normal; color: var(--color-red);">2 conflicts</small></div></td>
+                <td><div class="matrix-total-number">117 <small style="display: block; font-size: 10px; font-weight: normal; color: var(--color-red);">1 conflict</small></div></td>
+                <td><div class="matrix-total-number">110 <small style="display: block; font-size: 10px; font-weight: normal; color: var(--color-red);">2 conflicts</small></div></td>
+                <td><div class="matrix-total-number">100 <small style="display: block; font-size: 10px; font-weight: normal; color: var(--color-red);">1 conflict</small></div></td>
+                <td class="matrix-holiday-cell"><span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">0 classes</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Matrix Legend Guide -->
+          <footer class="matrix-legend-footer">
+            <div class="matrix-scale-guide">
+              <span>Class density:</span>
+              <div class="scale-box low" title="Low density"></div><span>15–20</span>
+              <div class="scale-box mid" title="Medium density"></div><span>21–25</span>
+              <div class="scale-box high" title="High density"></div><span>26–31</span>
+            </div>
+            <span style="font-size: 11px; color: var(--text-subtle);">Click a cell to review department status</span>
+          </footer>
+        </div>
+
+        <!-- RIGHT PANEL (340px) -->
+        <aside class="right-inspector-panel">
+          <!-- Department Details Card -->
+          <section class="inspector-card">
+            <div class="inspector-top-row">
+              <span class="class-status-pill" id="insp-badge">Department summary</span>
+              <button type="button" class="btn-close-inspector" title="Close details">×</button>
+            </div>
+
+            <div>
+              <h2 class="inspector-class-title" id="insp-title">Nursing Department</h2>
+              <div class="inspector-subtitle" id="insp-sub">Deanery overview · Fall 2026</div>
+            </div>
+
+            <div class="inspector-details-table">
+              <div class="detail-row">
+                <span class="detail-label">Classes this week</span>
+                <span class="detail-value" id="insp-classes">136 classes (24.3% of faculty)</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Room utilization</span>
+                <span class="detail-value" id="insp-room">74% (B-Block standard)</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Conflicts</span>
+                <span class="detail-value" id="insp-conflicts" style="color: var(--color-red);">3 unresolved (2 room, 1 staff)</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Teaching staff</span>
+                <span class="detail-value" id="insp-staff">18 active lecturers</span>
+              </div>
+            </div>
+
+            <!-- Red Double-Booking Warning Box -->
+            <div class="inspector-alert-box" id="insp-alert">
+              <div class="alert-box-title">3 scheduling conflicts in Nursing</div>
+              <div class="alert-box-desc">Includes Room B201 double-booking on Tue at 09:45 and 1 lecturer overload (Prof. Nightingale).</div>
+            </div>
+
+            <!-- 4 Action Buttons -->
+            <div class="inspector-actions-grid">
+              <button type="button" class="btn-inspector-action primary">Open department timetable</button>
+              <button type="button" class="btn-inspector-action">Ask HOD to fix conflicts</button>
+              <button type="button" class="btn-inspector-action">Export week report</button>
+              <button type="button" class="btn-inspector-action">Override schedule</button>
+            </div>
+          </section>
+
+          <!-- List Card: Needs Your Attention -->
+          <section class="role-list-card">
+            <h3 class="list-card-title">Needs your attention</h3>
+            <div class="list-items-container">
+              <div class="list-item-row">
+                <div class="list-item-info">
+                  <div class="list-item-name">Nursing: 3 conflicts pending HOD action</div>
+                  <div class="list-item-sub">2 room, 1 overload · Prof. Farmer notified</div>
+                </div>
+                <span class="list-item-chip red">3 conflicts</span>
+              </div>
+              <div class="list-item-row">
+                <div class="list-item-info">
+                  <div class="list-item-name">Pharmacy: Lab 304 ventilation maintenance</div>
+                  <div class="list-item-sub">Oct 22 · 4 classes affected</div>
+                </div>
+                <span class="list-item-chip amber">Maintenance</span>
+              </div>
+              <div class="list-item-row">
+                <div class="list-item-info">
+                  <div class="list-item-name">Medical Lab Science: Part-time accreditation</div>
+                  <div class="list-item-sub">Dr. Chen · awaiting signing</div>
+                </div>
+                <span class="list-item-chip blue">Accreditation</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function selectDeptCell(cellEl, deptName, dayName, cellClasses, cellConflicts, totalClasses, roomUse, conflictsSummary, staffCount) {
+      document.querySelectorAll('.matrix-table td').forEach(el => el.classList.remove('cell-selected'));
+      cellEl.classList.add('cell-selected');
+
+      document.getElementById('insp-title').innerText = deptName + ' Department';
+      document.getElementById('insp-sub').innerText = 'Selected: ' + dayName + ' (' + cellClasses + ' classes) · Fall 2026';
+      document.getElementById('insp-classes').innerText = totalClasses;
+      document.getElementById('insp-room').innerText = roomUse;
+      document.getElementById('insp-conflicts').innerText = conflictsSummary;
+      document.getElementById('insp-staff').innerText = staffCount;
+
+      const alertBox = document.getElementById('insp-alert');
+      if (cellConflicts > 0 || parseInt(conflictsSummary) > 0) {
+        alertBox.style.display = 'flex';
+      } else {
+        alertBox.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

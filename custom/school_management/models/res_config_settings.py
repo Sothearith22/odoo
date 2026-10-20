@@ -5,6 +5,18 @@ from odoo.exceptions import ValidationError
 class UniversityResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
+    university_name = fields.Char(
+        string="University Name",
+        related="company_id.name",
+        readonly=False,
+        help="Official name of the university.",
+    )
+    university_logo = fields.Binary(
+        string="University Logo",
+        related="company_id.logo",
+        readonly=False,
+        help="Official university logo displayed on dashboards, academic reports, and student portals.",
+    )
     current_academic_year_id = fields.Many2one(
         "university.academic.year",
         string="Current Academic Year",

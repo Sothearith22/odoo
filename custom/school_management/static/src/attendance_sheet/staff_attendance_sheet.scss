@@ -524,6 +524,53 @@
     }
 }
 
+// -- Staff Attendance Kanban Cards ---------------------------------
+.o_att_staff_kanban_card {
+    border-color: #e2e8f0 !important;
+    border-radius: 10px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    background: #ffffff;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    &.o_att_staff_kanban--active {
+        box-shadow: 0 0 0 2px var(--att-primary, #6366f1) !important;
+    }
+
+    &.o_att_staff_kanban--present {
+        border-left: 5px solid #10b981 !important;
+    }
+    &.o_att_staff_kanban--absent {
+        border-left: 5px solid #ef4444 !important;
+    }
+    &.o_att_staff_kanban--late {
+        border-left: 5px solid #f59e0b !important;
+    }
+    &.o_att_staff_kanban--leave {
+        border-left: 5px solid #3b82f6 !important;
+    }
+    &.o_att_staff_kanban--official_duty {
+        border-left: 5px solid #8b5cf6 !important;
+    }
+    &.o_att_staff_kanban--half_day {
+        border-left: 5px solid #14b8a6 !important;
+    }
+
+    .att_container {
+        font-variant-numeric: tabular-nums;
+        border-color: #e2e8f0 !important;
+    }
+
+    .btn-group .btn {
+        font-size: 11px;
+        font-weight: 500;
+        transition: all 0.12s ease-in-out;
+    }
+}
+
 // Print styles
 @media print {
     .o_att_breadcrumb,

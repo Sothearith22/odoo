@@ -225,4 +225,10 @@
         <field name="key">school_management.min_teaching_weeks</field>
         <field name="value">14</field>
     </record>
+
+    <!-- University / Company Default Branding Logo -->
+    <record id="base.main_company" model="res.company">
+        <field name="name">University Management</field>
+        <field name="logo" type="base64" file="school_management/static/src/img/university_logo.png"/>
+    </record>
 </odoo>

@@ -165,7 +165,11 @@ class UniversityCurriculumLine(models.Model):
     def _compute_student_view_flags(self):
         user = self.env.user
         student = self.env["university.student"].search([("user_id", "=", user.id)], limit=1)
-        active_student_id = self.env.context.get("active_student_id")
+        active_student_id = (
+            self.env.context.get("active_student_id")
+            or self.env.context.get("default_student_id")
+            or (self.env.context.get("active_model") == "university.student" and self.env.context.get("active_id"))
+        )
         if not student and active_student_id:
             student = self.env["university.student"].browse(active_student_id).exists()
 
@@ -173,18 +177,18 @@ class UniversityCurriculumLine(models.Model):
             if not student:
                 line.is_current_student_year = False
                 line.is_student_enrolled = False
-                line.enrollment_status = "Not enrolled"
+                line.enrollment_status = "Planned"
                 continue
 
             line.is_current_student_year = (line.year_level == student.year_level)
 
-            # Check if student completed results for this subject
-            completed_result = self.env["university.assessment.result"].search([
+            # Check if student completed results for this subject (via report card line or completed enrollment)
+            completed_rc_line = self.env["university.report.card.line"].search([
                 ("student_id", "=", student.id),
                 ("subject_id", "=", line.subject_id.id),
-                ("is_pass", "=", True),
+                ("is_passing", "=", True),
             ], limit=1)
-            if completed_result:
+            if completed_rc_line:
                 line.is_student_enrolled = True
                 line.enrollment_status = "Completed"
                 continue
@@ -200,4 +204,4 @@ class UniversityCurriculumLine(models.Model):
                 line.enrollment_status = "Completed" if enrollment.status == "completed" else "Enrolled"
             else:
                 line.is_student_enrolled = False
-                line.enrollment_status = "Not enrolled"
+                line.enrollment_status = "Planned"

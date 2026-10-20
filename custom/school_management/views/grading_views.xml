@@ -184,20 +184,20 @@
                             <!-- Interactive Metric Chips -->
                             <div class="d-flex flex-wrap gap-2 mt-2 pt-2 border-top">
                                 <button type="object" name="action_view_assignments" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1 shadow-sm" title="Assignments">
-                                    <i class="fa fa-file-text-o text-primary"/>
+                                    <i class="fa fa-file-text-o text-primary" title="Assignments"/>
                                     <span><field name="assignment_count"/> Assignments</span>
                                 </button>
                                 <button type="object" name="action_view_results" class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1 shadow-sm" title="Graded Records">
-                                    <i class="fa fa-check-circle text-success"/>
+                                    <i class="fa fa-check-circle text-success" title="Graded Records"/>
                                     <span><field name="result_count"/> Graded Records</span>
                                 </button>
-                                <div class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1 shadow-sm">
-                                    <i class="fa fa-line-chart text-info"/>
-                                    <span><field name="avg_score"/>% Avg Score</span>
+                                <div class="border rounded bg-light py-1 px-2 d-flex align-items-center gap-1 shadow-sm text-secondary small">
+                                    <i class="fa fa-line-chart text-info" title="Avg Score"/>
+                                    <span class="text-dark"><field name="avg_score"/>% Avg Score</span>
                                 </div>
-                                <div class="btn btn-sm btn-light border py-1 px-2 d-flex align-items-center gap-1 shadow-sm">
-                                    <i class="fa fa-trophy text-warning"/>
-                                    <span><field name="passing_rate"/>% Pass Rate</span>
+                                <div class="border rounded bg-light py-1 px-2 d-flex align-items-center gap-1 shadow-sm text-secondary small">
+                                    <i class="fa fa-trophy text-warning" title="Pass Rate"/>
+                                    <span class="text-dark"><field name="passing_rate"/>% Pass Rate</span>
                                 </div>
                             </div>
 
@@ -205,11 +205,11 @@
                             <div class="d-flex align-items-center justify-content-between mt-3 pt-2 border-top">
                                 <div class="d-flex align-items-center gap-2">
                                     <button type="object" name="action_view_assignments" class="btn btn-link btn-sm p-0 text-decoration-none">
-                                        <i class="fa fa-arrow-right me-1"/>View Work
+                                        <i class="fa fa-arrow-right me-1" title="View Work"/>View Work
                                     </button>
                                     <span class="text-muted">|</span>
                                     <button type="object" name="action_view_results" class="btn btn-link btn-sm p-0 text-decoration-none text-success">
-                                        <i class="fa fa-table me-1"/>Score Records
+                                        <i class="fa fa-table me-1" title="Score Records"/>Score Records
                                     </button>
                                 </div>
                                 <div>

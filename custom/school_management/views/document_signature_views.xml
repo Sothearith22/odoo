@@ -36,7 +36,7 @@
                         <main class="p-3">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge text-bg-light border fw-bold text-dark">
-                                    <i class="fa fa-file-text-o me-1 text-primary"/>
+                                    <i class="fa fa-file-text-o me-1 text-primary" title="Document Reference"/>
                                     <field name="name"/>
                                 </span>
                                 <span t-if="record.state.raw_value === 'signed'" class="badge text-bg-success">
@@ -61,7 +61,7 @@
 
                             <div class="d-flex align-items-center justify-content-between pt-2 border-top text-muted small">
                                 <span>
-                                    <i class="fa fa-receipt text-secondary me-1"/>
+                                    <i class="fa fa-receipt text-secondary me-1" title="Fee Invoice"/>
                                     <field name="fee_id"/>
                                 </span>
                                 <span class="very-small" t-if="record.signed_on.value">
@@ -93,7 +93,7 @@
                 <sheet>
                     <!-- Success Banner -->
                     <div class="alert alert-success d-flex align-items-center gap-2 mb-3 py-2 px-3" role="status" invisible="state != 'signed'">
-                        <i class="fa fa-check-circle fa-lg text-success"/>
+                        <i class="fa fa-check-circle fa-lg text-success" title="Digitally Certified"/>
                         <div>
                             <strong>Document Digitally Signed &amp; Certified</strong>
                             <div class="small text-muted">Legal signature captured and recorded with verifiable timestamp.</div>

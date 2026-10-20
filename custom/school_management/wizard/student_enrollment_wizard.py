@@ -57,22 +57,41 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         values = super().default_get(fields_list)
-        student = self.env["university.student"].browse(
-            values.get("student_id")
-        ).exists()
-        if not student:
-            return values
+        student_id = values.get("student_id") or self.env.context.get("default_student_id")
+        student = self.env["university.student"].browse(student_id).exists() if student_id else False
 
-        if student.program_id:
-            values.setdefault("program_id", student.program_id.id)
-        if student.academic_year_id:
-            values.setdefault("academic_year_id", student.academic_year_id.id)
-        if student.current_semester_id:
-            semester = student.current_semester_id
-            academic_year_id = values.get("academic_year_id")
-            if not academic_year_id or semester.academic_year_id.id == academic_year_id:
-                values.setdefault("semester_id", semester.id)
-                values.setdefault("academic_year_id", semester.academic_year_id.id)
+        if student:
+            values.setdefault("student_id", student.id)
+            if student.program_id:
+                values.setdefault("program_id", student.program_id.id)
+            if student.academic_year_id:
+                values.setdefault("academic_year_id", student.academic_year_id.id)
+            if student.current_semester_id:
+                semester = student.current_semester_id
+                academic_year_id = values.get("academic_year_id")
+                if not academic_year_id or semester.academic_year_id.id == academic_year_id:
+                    values.setdefault("semester_id", semester.id)
+                    values.setdefault("academic_year_id", semester.academic_year_id.id)
+
+        # Robust fallbacks for required academic_year_id and semester_id
+        if not values.get("academic_year_id"):
+            active_year = self.env["university.academic.year"].search([("active", "=", True)], limit=1, order="date_start desc")
+            if not active_year:
+                active_year = self.env["university.academic.year"].search([], limit=1, order="date_start desc")
+            if active_year:
+                values["academic_year_id"] = active_year.id
+
+        if not values.get("semester_id"):
+            year_id = values.get("academic_year_id")
+            sem_domain = [("active", "=", True)]
+            if year_id:
+                sem_domain.append(("academic_year_id", "=", year_id))
+            active_sem = self.env["university.semester"].search(sem_domain, limit=1, order="date_start desc")
+            if not active_sem:
+                active_sem = self.env["university.semester"].search([], limit=1, order="date_start desc")
+            if active_sem:
+                values["semester_id"] = active_sem.id
+
         return values
 
     @api.onchange("student_id")
@@ -85,53 +104,48 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
         self.semester_id = self.student_id.current_semester_id
         if self.semester_id:
             self.academic_year_id = self.semester_id.academic_year_id
+        if not self.academic_year_id:
+            active_year = self.env["university.academic.year"].search([("active", "=", True)], limit=1, order="date_start desc")
+            if active_year:
+                self.academic_year_id = active_year.id
+        if not self.semester_id and self.academic_year_id:
+            active_sem = self.env["university.semester"].search([
+                ("active", "=", True),
+                ("academic_year_id", "=", self.academic_year_id.id),
+            ], limit=1, order="date_start desc")
+            if active_sem:
+                self.semester_id = active_sem.id
+
         self.section_ids = False
         return self._section_domain_result()
-
-    @api.onchange("semester_id")
-    def _onchange_semester_id(self):
-        if self.semester_id and not self.academic_year_id:
-            self.academic_year_id = self.semester_id.academic_year_id
-        self.section_ids = False
 
     @api.onchange("academic_year_id")
     def _onchange_academic_year_id(self):
-        if (
-            self.semester_id
-            and self.academic_year_id
-            and self.semester_id.academic_year_id != self.academic_year_id
-        ):
+        if self.semester_id and self.semester_id.academic_year_id != self.academic_year_id:
             self.semester_id = False
-        self.section_ids = False
-
-    @api.onchange("program_id", "academic_year_id", "semester_id")
-    def _onchange_section_filters(self):
         self.section_ids = False
         return self._section_domain_result()
 
-    def _section_domain(self):
+    @api.onchange("semester_id", "program_id")
+    def _onchange_semester_or_program(self):
+        self.section_ids = False
+        return self._section_domain_result()
+
+    def _section_domain_result(self):
         domain = [("active", "=", True)]
         if self.semester_id:
             domain.append(("semester_id", "=", self.semester_id.id))
         if self.program_id:
-            domain += [
+            domain.extend([
                 "|",
                 ("program_id", "=", self.program_id.id),
                 ("subject_id.program_ids", "in", [self.program_id.id]),
-            ]
-        return domain
+            ])
+        return {"domain": {"section_ids": domain}}
 
-    def _section_domain_result(self):
-        return {"domain": {"section_ids": self._section_domain()}}
-
-    def action_register_enrollments(self):
+    def action_register_enrollment(self):
         self.ensure_one()
-        if not self.program_id:
-            raise ValidationError("Please select a major/program.")
-        if not self.academic_year_id:
-            raise ValidationError("Please select an academic year.")
-        if not self.semester_id:
-            raise ValidationError("Please select a semester.")
+
         if self.semester_id.academic_year_id != self.academic_year_id:
             raise ValidationError(
                 "The selected semester does not belong to the selected academic year."
@@ -147,7 +161,6 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
         if not self.section_ids:
             return self._register_major_enrollment()
 
-        # The enrollment model has one record per student and section, regardless of status.
         existing_enrollments = self.env["university.enrollment"].search([
             ("student_id", "=", self.student_id.id),
             ("section_id", "in", self.section_ids.ids),
@@ -162,7 +175,6 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
         if not sections_to_enroll and not enrollments_to_reopen:
             raise ValidationError("The student is already enrolled in all selected sections.")
 
-        # Capacity check with row-level locking to prevent race conditions
         sections_to_process = sections_to_enroll | enrollments_to_reopen.mapped("section_id")
         if sections_to_process:
             self.env.cr.execute(
@@ -203,7 +215,6 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
                 "status": "enrolled",
             })
 
-        # Create enrollments
         enrollments = self.env["university.enrollment"].create([
             {
                 "student_id": self.student_id.id,
@@ -241,6 +252,9 @@ class UniversityStudentEnrollmentWizard(models.TransientModel):
                 "next": {"type": "ir.actions.act_window_close"},
             },
         }
+
+    # Alias to match student_enrollment_wizard_views.xml
+    action_register_enrollments = action_register_enrollment
 
     def _register_major_enrollment(self):
         enrollment_model = self.env["university.enrollment"]

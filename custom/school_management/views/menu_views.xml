@@ -12,36 +12,42 @@
     />
 
     <!-- ==================== TOP-LEVEL: DASHBOARDS ==================== -->
-    <!--
-        Dashboard is the single role-aware home for the University app.
-        For Students -> opens Student Dashboard.
-        For Teachers -> opens Teacher Dashboard.
-        For Admins   -> opens Academic Overview Dashboard.
-    -->
-    <menuitem
-        id="menu_school_dashboard"
-        name="Dashboard"
-        parent="menu_school_root"
-        action="action_school_dashboard_shell"
-        sequence="10"
-        groups="base.group_system,school_management.group_school_student,school_management.group_school_teacher,school_management.group_school_registrar,school_management.group_school_admin"
-    />
+    <!-- Admin / Leadership Overview Dashboard -->
+    <record id="menu_school_dashboard" model="ir.ui.menu">
+        <field name="name">Dashboard</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="action" ref="action_school_dashboard_shell"/>
+        <field name="sequence">10</field>
+        <field name="group_ids" eval="[(6, 0, [
+            ref('school_management.group_school_admin'),
+            ref('school_management.group_school_registrar'),
+            ref('school_management.group_school_dean'),
+            ref('school_management.group_school_hod'),
+            ref('school_management.group_school_teacher'),
+            ref('base.group_system')
+        ])]"/>
+    </record>
 
-    <!-- Deactivated legacy duplicate: Student Portal -->
+    <!-- Student Academic Portal Dashboard (Single Click Home for Students) -->
     <record id="menu_student_dashboard" model="ir.ui.menu">
-        <field name="active" eval="False"/>
+        <field name="name">Dashboard</field>
+        <field name="parent_id" ref="menu_school_root"/>
+        <field name="action" ref="action_student_dashboard_shell"/>
+        <field name="sequence">10</field>
+        <field name="active" eval="True"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
     </record>
 
     <!-- Teacher Dashboard for Admins / Academic Managers to inspect faculty view -->
     <record id="menu_school_teacher_dashboard" model="ir.ui.menu">
         <field name="name">Teacher Dashboard</field>
         <field name="parent_id" ref="menu_school_root"/>
-        <field name="action" ref="action_teacher_dashboard_shell"/>
+        <field name="action" ref="action_school_dashboard_shell"/>
         <field name="sequence">15</field>
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher')])]"/>
     </record>
 
-    <!-- ==================== STUDENT TOP BAR (MATCHING TEACHER) ==================== -->
+    <!-- ==================== STUDENT TOP BAR (STREAMLINED LMS EXPERIENCE) ==================== -->
     <!-- 1. Schedule (Direct Action for Student) -->
     <record id="menu_student_nav_schedule" model="ir.ui.menu">
         <field name="name">Schedule</field>
@@ -51,10 +57,10 @@
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
     </record>
 
-    <!-- 2. My Learning Dropdown -->
+    <!-- 2. Academics Dropdown -->
     <menuitem
         id="menu_student_my_learning"
-        name="My Learning"
+        name="Academics"
         parent="menu_school_root"
         sequence="30"
         groups="school_management.group_school_student"
@@ -93,32 +99,27 @@
     />
     <menuitem
         id="menu_student_nav_attendance"
-        name="Attendance"
+        name="Attendance History"
         parent="menu_student_my_learning"
         action="action_university_attendance_student"
         sequence="40"
         groups="school_management.group_school_student"
     />
-    <menuitem
-        id="menu_student_nav_classrooms"
-        name="Classrooms"
-        parent="menu_student_my_learning"
-        action="action_university_classroom"
-        sequence="50"
-        groups="school_management.group_school_student"
-    />
+    <record id="menu_student_nav_classrooms" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
 
-    <!-- 3. My Records Dropdown -->
+    <!-- 3. Records & Finance Dropdown -->
     <menuitem
         id="menu_student_nav_transcripts"
-        name="My Records"
+        name="Records &amp; Finance"
         parent="menu_school_root"
         sequence="40"
         groups="school_management.group_school_student"
     />
     <menuitem
         id="menu_student_nav_my_transcript"
-        name="My Transcript"
+        name="My Academic Transcript"
         parent="menu_student_nav_transcripts"
         action="action_university_transcript_student"
         sequence="10"
@@ -126,7 +127,7 @@
     />
     <menuitem
         id="menu_student_nav_report_cards"
-        name="Report Cards"
+        name="Semester Report Cards"
         parent="menu_student_nav_transcripts"
         action="action_university_report_card_student"
         sequence="20"
@@ -140,26 +141,20 @@
         sequence="30"
         groups="school_management.group_school_student"
     />
-
-    <!-- 4. My Fees -->
-    <menuitem
-        id="menu_student_nav_fees"
-        name="My Fees"
-        parent="menu_school_root"
-        action="action_university_fee_student"
-        sequence="50"
-        groups="school_management.group_school_student"
-    />
-
-    <!-- 5. My Profile (Student) -->
-    <menuitem
-        id="menu_student_nav_profile"
-        name="My Profile"
-        parent="menu_school_root"
-        action="action_university_student_profile"
-        sequence="60"
-        groups="school_management.group_school_student"
-    />
+    <record id="menu_student_nav_fees" model="ir.ui.menu">
+        <field name="name">Tuition &amp; Fees</field>
+        <field name="parent_id" ref="menu_student_nav_transcripts"/>
+        <field name="action" ref="action_university_fee_student"/>
+        <field name="sequence">40</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
+    </record>
+    <record id="menu_student_nav_profile" model="ir.ui.menu">
+        <field name="name">Student Profile Details</field>
+        <field name="parent_id" ref="menu_student_nav_transcripts"/>
+        <field name="action" ref="action_university_student_profile"/>
+        <field name="sequence">50</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
+    </record>
 
     <!-- ==================== 1. SCHEDULE DROPDOWN ==================== -->
     <menuitem
@@ -684,6 +679,14 @@
             ref('base.group_system')
         ])]"/>
     </record>
+    <menuitem
+        id="menu_university_results_exam_quiz"
+        name="Results of Exam &amp; Quiz"
+        parent="menu_university_results"
+        action="action_university_exam_score"
+        sequence="5"
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
+    />
     <menuitem
         id="menu_university_report_card"
         name="Report Cards"

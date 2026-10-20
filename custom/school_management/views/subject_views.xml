@@ -114,7 +114,9 @@
                     <group>
                         <group string="Academic Information">
                             <field name="department_id" required="1" options="{'no_create': True}"/>
-                            <field name="program_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create': True}"/>
+                            <field name="program_ids" widget="many2many_tags"
+                                   domain="department_id and [('department_id', '=', department_id)] or []"
+                                   options="{'color_field': 'color', 'no_create': True}"/>
                             <field name="credits"/>
                         </group>
                         <group string="Configuration &amp; Controls">

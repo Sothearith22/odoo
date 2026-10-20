@@ -6,52 +6,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 
-// Key -> action_id (XMLID) to open for the dashboard quick links.
-const ACTION_XMLID = {
-    student: "school_management.action_university_student",
-    teacher: "school_management.action_university_teacher",
-    program: "school_management.action_university_program",
-    department: "school_management.action_university_department",
-    faculty: "school_management.action_university_faculty",
-    section: "school_management.action_university_class_section",
-    subject: "school_management.action_university_subject",
-    classroom: "school_management.action_university_classroom",
-    enrollment: "school_management.action_university_enrollment",
-    academic_year: "school_management.action_university_academic_year",
-    fee: "school_management.action_university_fee",
-    payment: "school_management.action_university_payment",
-    admission: "school_management.action_university_admission_application",
-    attendance: "school_management.action_university_attendance",
-};
-
-// Catalog metadata for the System Capabilities & Roadmap panel.
-const CAPABILITY_CATEGORIES = {
-    structure: { label: "Academic Structure", icon: "fa-university" },
-    students: { label: "Students", icon: "fa-graduation-cap" },
-    staff: { label: "Academic Staff", icon: "fa-user" },
-    academic: { label: "Academic Operations", icon: "fa-calendar-check-o" },
-    finance: { label: "Finance", icon: "fa-money" },
-    system: { label: "System", icon: "fa-cube" },
-};
-const CAPABILITY_ORDER = Object.keys(CAPABILITY_CATEGORIES);
-
-const CAPABILITY_STATUS = {
-    active: { label: "Active", badge: "bg-success-subtle text-success border border-success-subtle" },
-    beta: { label: "Beta", badge: "bg-info-subtle text-info border border-info-subtle" },
-    development: { label: "In Development", badge: "bg-warning-subtle text-warning border border-warning-subtle" },
-    planned: { label: "Planned", badge: "bg-light text-muted border" },
-};
-const LIVE_STATUSES = new Set(["active", "beta"]);
-
-// Semantic status color tokens, mirrored from design_tokens.scss.
-const STATUS_TOKENS = {
-    active: "#10b981",     // vibrant emerald
-    suspended: "#f59e0b",  // warm amber
-    graduated: "#3b82f6",  // clean sapphire blue
-    dropped: "#ef4444",    // coral red
-};
-
-// Inline plugin drawing the total count in the centre of a doughnut.
+// Inline Chart.js plugin to draw total students in the center of doughnut
 const doughnutCenterText = {
     id: "doughnutCenterText",
     afterDraw(chart) {
@@ -60,7 +15,7 @@ const doughnutCenterText = {
         const first = chart.getDatasetMeta(0)?.data?.[0];
         if (!first) return;
         const values = chart.data.datasets[0].data || [];
-        const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0);
+        const total = opts.customValue || values.reduce((sum, v) => sum + (Number(v) || 0), 0);
         const x = typeof first.x === "number" ? first.x : ((chart.chartArea.left + chart.chartArea.right) / 2);
         const y = typeof first.y === "number" ? first.y : ((chart.chartArea.top + chart.chartArea.bottom) / 2);
         const { ctx } = chart;
@@ -68,12 +23,13 @@ const doughnutCenterText = {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = opts.valueColor || "#0f172a";
-        ctx.font = `700 ${opts.valueSize || 24}px system-ui, -apple-system, sans-serif`;
-        ctx.fillText(String(total), x, y - (opts.label ? 9 : 0));
+        ctx.font = `800 ${opts.valueSize || 24}px system-ui, -apple-system, sans-serif`;
+        const formattedTotal = Number(total).toLocaleString();
+        ctx.fillText(formattedTotal, x, y - 8);
         if (opts.label) {
             ctx.fillStyle = opts.labelColor || "#64748b";
-            ctx.font = "500 12px system-ui, -apple-system, sans-serif";
-            ctx.fillText(opts.label, x, y + 15);
+            ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+            ctx.fillText(opts.label, x, y + 14);
         }
         ctx.restore();
     },
@@ -88,64 +44,18 @@ class SchoolDashboardShell extends Component {
         this.action = useService("action");
         this.notification = useService("notification");
 
-        this.chartStatusRef = useRef("chart_status");
-        this.chartProgramRef = useRef("chart_program");
         this.chartEnrollmentRef = useRef("chart_enrollment");
-        this.chartFeesRef = useRef("chart_fees");
-        this.chartFacultyAttendanceRef = useRef("chart_faculty_attendance");
-        this.chartStudentAttendanceRef = useRef("chart_student_attendance");
-        this.chartApplicationsRef = useRef("chart_applications");
-        this.chartEnrollmentsRef = useRef("chart_enrollments");
+        this.chartProgramRef = useRef("chart_program");
         this.charts = [];
 
         this.state = useState({
             dashboard: null,
             chartData: null,
-            roleView: null,
-            capabilities: [],
             error: null,
             isLoading: true,
             isRefreshing: false,
-            isFullAccess: true,
             isNavigating: false,
-            timeframeSort: "Current Week",
-            activeAdminTab: "overview",
-            lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            canOpen: {
-                student: true,
-                teacher: true,
-                program: true,
-                department: true,
-                faculty: true,
-                section: true,
-                subject: true,
-                classroom: true,
-                enrollment: true,
-                academic_year: true,
-                fee: true,
-                payment: true,
-                admission: true,
-                attendance: true,
-            },
-            stats: {
-                student: {
-                    universityStudents: 0,
-                    activeStudents: 0,
-                    graduatedStudents: 0,
-                    droppedStudents: 0,
-                    suspendedStudents: 0,
-                },
-                teacher: {
-                    universityTeachers: 0,
-                    activeTeachers: 0,
-                },
-                academic: {
-                    universityPrograms: 0,
-                    universityDepartments: 0,
-                    universitySections: 0,
-                    universityClassrooms: 0,
-                },
-            },
+            lastUpdated: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             academicPeriod: {
                 year: "",
                 semester: "",
@@ -159,21 +69,34 @@ class SchoolDashboardShell extends Component {
                 academicYears: [],
                 semesters: [],
             },
-            isMoreOpen: false,
+            sidebarCollapsed: localStorage.getItem("exec_sidebar_collapsed") === "1",
+            showProfileMenu: false,
+            activeRoleOverride: null,
+            activeNavId: "dashboard",
         });
 
         onWillStart(async () => {
             try {
-                this.state.isFullAccess = true;
+                const isStudent = await user.hasGroup("school_management.group_school_student");
+                const isStaff = (await user.hasGroup("school_management.group_school_teacher")) ||
+                                (await user.hasGroup("school_management.group_school_admin")) ||
+                                (await user.hasGroup("base.group_system")) ||
+                                (await user.hasGroup("school_management.group_school_registrar")) ||
+                                (await user.hasGroup("school_management.group_school_hod")) ||
+                                (await user.hasGroup("school_management.group_school_dean"));
+                if (isStudent && !isStaff) {
+                    await this.action.doAction("school_management.action_student_dashboard_shell", {
+                        clearBreadcrumbs: true,
+                    });
+                    return;
+                }
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),
                     this.loadFilterOptions(),
-                    this.loadCapabilities(),
-                    this.loadRoadmapData(),
                 ]);
                 await this.loadDashboardData();
             } catch (error) {
-                console.error("Failed to load school dashboard", error);
+                console.error("Failed to initialize executive dashboard", error);
                 this.state.error = error.message || "Unable to load dashboard data.";
             } finally {
                 this.state.isLoading = false;
@@ -200,108 +123,65 @@ class SchoolDashboardShell extends Component {
         this.charts = [];
     }
 
-    async loadCapabilities() {
-        for (const key of Object.keys(ACTION_XMLID)) {
-            this.state.canOpen[key] = true;
-        }
-        this.state.isFullAccess = true;
-    }
-
-    canOpen(key) {
-        return true;
-    }
-
-    async loadRoadmapData() {
+    async loadFilterOptions() {
         try {
-            this.state.capabilities = await this.orm.searchRead(
-                "university.capability",
-                [],
-                [
-                    "name", "category", "status", "phase", "release_version",
-                    "description", "icon", "released_on", "sort_order",
-                ],
-                { order: "sort_order, id" }
-            );
+            const options = await this.orm.call("school.dashboard", "get_filter_options", []);
+            this.state.filterOptions.academicYears = options.academic_years || [];
+            this.state.filterOptions.semesters = options.semesters || [];
+            this.state.filters.yearId = options.selected_year_id || false;
+            this.state.filters.semesterId = options.selected_semester_id || false;
+            this.updateAcademicPeriodLabel();
         } catch (error) {
-            this.state.capabilities = [];
+            console.error("Failed to load filter options", error);
         }
     }
 
-    capabilityStatusLabel(status) {
-        return CAPABILITY_STATUS[status]?.label || status || "—";
+    updateAcademicPeriodLabel() {
+        const year = this.state.filterOptions.academicYears.find(
+            (item) => item.id === Number(this.state.filters.yearId)
+        );
+        const semester = this.state.filterOptions.semesters.find(
+            (item) => item.id === Number(this.state.filters.semesterId)
+        );
+        this.state.academicPeriod.year = year?.name || "2026 - 2027";
+        this.state.academicPeriod.semester = semester?.name || "Semester 1";
+        this.state.academicPeriod.label = [semester?.name, year?.name].filter(Boolean).join(" · ");
     }
 
-    capabilityBadge(status) {
-        return CAPABILITY_STATUS[status]?.badge || "bg-light text-muted border";
+    async changeFilter(name, value) {
+        this.state.filters[name] = Number(value) || false;
+        this.updateAcademicPeriodLabel();
+        await this.reload();
     }
 
-    capabilityIconTone(status) {
-        const tones = {
-            active: "text-success",
-            beta: "text-info",
-            development: "text-warning",
-            planned: "text-muted",
-        };
-        return tones[status] || "text-muted";
+    async loadDashboardData() {
+        const result = await this.orm.call("school.dashboard", "get_role_dashboard_data", [
+            this.state.filters.yearId || false,
+            this.state.filters.semesterId || false,
+        ]);
+        this.state.dashboard = result.dashboard || null;
+        this.state.chartData = result.chart_data || null;
+        this.state.filters.yearId = result.selected_year_id || false;
+        this.state.filters.semesterId = result.selected_semester_id || false;
+        this.updateAcademicPeriodLabel();
     }
 
-    isLive(status) {
-        return LIVE_STATUSES.has(status);
-    }
-
-    capabilityCategoryMeta(key) {
-        return CAPABILITY_CATEGORIES[key] || CAPABILITY_CATEGORIES.system;
-    }
-
-    get _liveCapabilities() {
-        return (this.state.capabilities || []).filter((cap) => LIVE_STATUSES.has(cap.status));
-    }
-
-    capabilityOverall() {
-        const total = this.state.capabilities.length;
-        const live = this._liveCapabilities.length;
-        return {
-            total,
-            live,
-            pct: total ? Math.round((live / total) * 100) : 0,
-        };
-    }
-
-    capabilityCategories() {
-        const byCategory = this.state.capabilities.reduce((acc, cap) => {
-            (acc[cap.category] = acc[cap.category] || []).push(cap);
-            return acc;
-        }, {});
-        return CAPABILITY_ORDER.filter((key) => byCategory[key]).map((key) => {
-            const items = byCategory[key];
-            const live = items.filter((cap) => LIVE_STATUSES.has(cap.status)).length;
-            return {
-                key,
-                label: this.capabilityCategoryMeta(key).label,
-                icon: this.capabilityCategoryMeta(key).icon,
-                items,
-                total: items.length,
-                live,
-                pct: items.length ? Math.round((live / items.length) * 100) : 0,
-            };
-        });
-    }
-
-    roadmapPhases() {
-        const byPhase = {};
-        for (const cap of this.state.capabilities) {
-            const phase = cap.phase || 1;
-            byPhase[phase] = byPhase[phase] || { phase, count: 0, live: 0 };
-            byPhase[phase].count += 1;
-            if (LIVE_STATUSES.has(cap.status)) {
-                byPhase[phase].live += 1;
-            }
+    async reload() {
+        if (this.state.isRefreshing) return;
+        this.state.isRefreshing = true;
+        this.state.error = null;
+        try {
+            await this.loadDashboardData();
+            this.state.lastUpdated = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            setTimeout(() => {
+                this.renderCharts();
+            }, 60);
+        } catch (error) {
+            console.error("Failed to refresh dashboard data", error);
+            this.state.error = error.message || "Unable to refresh dashboard data.";
+        } finally {
+            this.state.isRefreshing = false;
         }
-        return Object.values(byPhase).sort((a, b) => a.phase - b.phase);
-    }
-
-    async go(key) {
-        await this.navigate(ACTION_XMLID[key]);
     }
 
     async navigate(actionXmlId) {
@@ -335,455 +215,19 @@ class SchoolDashboardShell extends Component {
         }
     }
 
-    openPendingNotifications() {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "Pending Admissions",
-            res_model: "university.admission.application",
-            views: [[false, "list"], [false, "form"]],
-            view_mode: "list,form",
-            domain: [["state", "=", "submitted"]],
-            context: { search_default_filter_submitted: 1 },
-        });
-    }
-
-    async openCapability(cap) {
-        if (!cap?.id) {
-            return;
-        }
-        try {
-            await this.action.doAction({
-                type: "ir.actions.act_window",
-                res_model: "university.capability",
-                res_id: cap.id,
-                view_mode: "form",
-                views: [[false, "form"]],
-                name: cap.name || "Capability",
-            });
-        } catch (error) {
-            console.error("Failed to open capability", error);
-            this.notification?.add(error.message || "Unable to open capability.", { type: "danger" });
+    handleActionClick(actionName) {
+        if (actionName && typeof this[actionName] === "function") {
+            this[actionName]();
         }
     }
 
-    openCapabilityKeyboard(ev, cap) {
-        if (ev.key === "Enter" || ev.key === " ") {
-            ev.preventDefault();
-            this.openCapability(cap);
-        }
-    }
-
-    async reload() {
-        if (this.state.isRefreshing) return;
-        this.state.isRefreshing = true;
-        this.state.error = null;
-        try {
-            await this.loadDashboardData();
-            await this.loadRoadmapData();
-            this.state.lastUpdated = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            setTimeout(() => {
-                this.renderCharts();
-            }, 50);
-        } catch (error) {
-            console.error("Failed to refresh dashboard data", error);
-            this.state.error = error.message || "Unable to refresh dashboard data.";
-        } finally {
-            this.state.isRefreshing = false;
-        }
-    }
-
-    async loadFilterOptions() {
-        const options = await this.orm.call("school.dashboard", "get_filter_options", []);
-        this.state.filterOptions.academicYears = options.academic_years || [];
-        this.state.filterOptions.semesters = options.semesters || [];
-        this.state.filters.yearId = options.selected_year_id || false;
-        this.state.filters.semesterId = options.selected_semester_id || false;
-        this.updateAcademicPeriodLabel();
-    }
-
-    updateAcademicPeriodLabel() {
-        const year = this.state.filterOptions.academicYears.find(
-            (item) => item.id === Number(this.state.filters.yearId)
-        );
-        const semester = this.state.filterOptions.semesters.find(
-            (item) => item.id === Number(this.state.filters.semesterId)
-        );
-        this.state.academicPeriod.year = year?.name || "";
-        this.state.academicPeriod.semester = semester?.name || "";
-        this.state.academicPeriod.label = [semester?.name, year?.name].filter(Boolean).join(" · ");
-    }
-
-    semestersForSelectedYear() {
-        const yearId = Number(this.state.filters.yearId);
-        return this.state.filterOptions.semesters.filter(
-            (item) => !yearId || item.academic_year_id?.[0] === yearId
-        );
-    }
-
-    async changeFilter(name, value) {
-        this.state.filters[name] = Number(value) || false;
-        if (name === "yearId") {
-            const validSemester = this.semestersForSelectedYear().some(
-                (item) => item.id === Number(this.state.filters.semesterId)
-            );
-            if (!validSemester) {
-                this.state.filters.semesterId = false;
-            }
-        }
-        this.updateAcademicPeriodLabel();
-        await this.reload();
-    }
-
-    async loadDashboardData() {
-        const result = await this.orm.call("school.dashboard", "get_role_dashboard_data", [
-            this.state.filters.yearId || false,
-            this.state.filters.semesterId || false,
-        ]);
-        this.state.dashboard = result.dashboard || null;
-        this.state.chartData = result.chart_data || null;
-        this.state.roleView = result.hod_view || result.faculty_view || result.registrar_view || null;
-        this.state.filters.yearId = result.selected_year_id || false;
-        this.state.filters.semesterId = result.selected_semester_id || false;
-        this.updateAcademicPeriodLabel();
-    }
-
-    get isHodDashboard() {
-        return false;
-    }
-
-    get isFacultyDashboard() {
-        return false;
-    }
-
-    get isRegistrarDashboard() {
-        return false;
-    }
-
-    get dashboardTitle() {
-        return "University Executive Dashboard";
-    }
-
-    get operationsTitle() {
-        return "University Operations & Management";
-    }
-
-    formatCurrency(amount) {
-        const val = Number(amount) || 0;
-        const symbol = this.state.dashboard?.currency_symbol || "$";
-        return symbol + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    getStudentInitials(name) {
-        if (!name || typeof name !== "string") return "?";
-        const parts = name.trim().split(/\s+/);
-        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    getFeeCollectionRate() {
-        const paid = Number(this.state.dashboard?.total_paid_fees) || 0;
-        const unpaid = Number(this.state.dashboard?.total_unpaid_fees) || 0;
-        const total = paid + unpaid;
-        if (total <= 0) return 100;
-        return Math.round((paid / total) * 100);
-    }
-
-    hasChartData(type) {
-        if (!this.state.chartData) return false;
-        if (type === "status") {
-            const data = this.state.chartData.student_status?.data || [];
-            return data.some((v) => Number(v) > 0);
-        }
-        if (type === "program") {
-            const data = this.state.chartData.program_distribution?.data || [];
-            return data.some((v) => Number(v) > 0);
-        }
-        if (type === "enrollment") {
-            const data = this.state.chartData.enrollment_trend?.data || [];
-            return data.some((v) => Number(v) > 0);
-        }
-        if (type === "fees") {
-            const data = this.state.chartData.monthly_fee_collection?.data || [];
-            return data.some((v) => Number(v) > 0);
-        }
-        return false;
-    }
-
-    renderCharts() {
-        this.destroyCharts();
-        if (!this.state.chartData || !window.Chart) return;
-
-        // 1. Student Status Doughnut Chart
-        if (this.chartStatusRef.el && this.hasChartData("status")) {
-            const labels = this.state.chartData.student_status?.labels || [];
-            const values = this.state.chartData.student_status?.data || [];
-            const colors = labels.map(
-                (label) =>
-                    STATUS_TOKENS[String(label).toLowerCase()] ||
-                    "#3a6ea5"
-            );
-            const total = values.reduce((sum, v) => sum + (Number(v) || 0), 0) || 1;
-            const ctxStatus = this.chartStatusRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxStatus, {
-                type: 'doughnut',
-                data: {
-                    labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors,
-                        borderWidth: 2,
-                        borderColor: '#ffffff',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        centerText: {
-                            label: 'Total Students',
-                            valueColor: '#0f172a',
-                            labelColor: '#64748b',
-                        },
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#1b2a4a',
-                            titleFont: { size: 13, weight: '600' },
-                            bodyFont: { size: 12 },
-                            padding: 10,
-                            cornerRadius: 8,
-                            callbacks: {
-                                label: (ctx) => {
-                                    const value = Number(ctx.parsed) || 0;
-                                    return ` ${ctx.label}: ${value} (${Math.round((value / total) * 100)}%)`;
-                                },
-                            },
-                        }
-                    },
-                },
-                plugins: [doughnutCenterText]
-            }));
-        }
-
-        // 2. Program Distribution Bar Chart
-        if (this.chartProgramRef.el && this.hasChartData("program")) {
-            const ctxProgram = this.chartProgramRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxProgram, {
-                type: 'bar',
-                data: {
-                    labels: this.state.chartData.program_distribution?.labels || [],
-                    datasets: [{
-                        label: 'Enrolled Students',
-                        data: this.state.chartData.program_distribution?.data || [],
-                        backgroundColor: '#3a6ea5',
-                        hoverBackgroundColor: '#2b537f',
-                        borderRadius: 6,
-                        maxBarThickness: 24,
-                        barPercentage: 0.72,
-                        categoryPercentage: 0.62,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#1b2a4a',
-                            titleFont: { size: 13, weight: '600' },
-                            bodyFont: { size: 12 },
-                            padding: 10,
-                            cornerRadius: 8,
-                        }
-                    },
-                    indexAxis: "y",
-                    scales: {
-                        y: {
-                            ticks: {
-                                color: "#334155",
-                                font: { size: 12, weight: '500', family: 'system-ui, -apple-system, sans-serif' },
-                            },
-                            grid: { display: false },
-                            border: { display: false },
-                        },
-                        x: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0,
-                                color: "#64748b",
-                                font: { size: 12, family: 'system-ui, -apple-system, sans-serif' },
-                            },
-                            grid: {
-                                color: "rgba(15, 23, 42, 0.06)",
-                                drawTicks: false,
-                            },
-                            border: { display: false },
-                        }
-                    }
-                }
-            }));
-        }
-
-        // 3. Faculty Attendance Doughnut Chart
-        if (this.chartFacultyAttendanceRef?.el) {
-            const facultyData = this.state.chartData?.faculty_attendance || {
-                present: this.state.dashboard?.faculty_present || 5,
-                absent: this.state.dashboard?.faculty_absent || 1,
-            };
-            const ctxFaculty = this.chartFacultyAttendanceRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxFaculty, {
-                type: "doughnut",
-                data: {
-                    labels: ["Present", "Absent"],
-                    datasets: [{
-                        data: [facultyData.present, facultyData.absent],
-                        backgroundColor: ["#2563eb", "#f87171"],
-                        borderWidth: 0,
-                        hoverOffset: 3,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "76%",
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Staff`,
-                            },
-                        },
-                    },
-                },
-            }));
-        }
-
-        // 4. Student Attendance Doughnut Chart
-        if (this.chartStudentAttendanceRef?.el) {
-            const studentData = this.state.chartData?.student_attendance || {
-                present: this.state.dashboard?.student_present || 4,
-                absent: this.state.dashboard?.student_absent || 2,
-            };
-            const ctxStudent = this.chartStudentAttendanceRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxStudent, {
-                type: "doughnut",
-                data: {
-                    labels: ["Present", "Absent"],
-                    datasets: [{
-                        data: [studentData.present, studentData.absent],
-                        backgroundColor: ["#2563eb", "#f87171"],
-                        borderWidth: 0,
-                        hoverOffset: 3,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "76%",
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (ctx) => ` ${ctx.label}: ${ctx.raw} Students`,
-                            },
-                        },
-                    },
-                },
-            }));
-        }
-
-        // 5. Applications Breakdown Doughnut
-        if (this.chartApplicationsRef?.el) {
-            const appChart = this.state.chartData?.applications || {
-                labels: ["Submitted", "Approved", "Draft", "Rejected"],
-                data: [6, 3, 1, 1],
-            };
-            const ctxApps = this.chartApplicationsRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxApps, {
-                type: "doughnut",
-                data: {
-                    labels: appChart.labels,
-                    datasets: [{
-                        data: appChart.data,
-                        backgroundColor: ["#2563eb", "#10b981", "#f59e0b", "#f87171", "#94a3b8"],
-                        borderWidth: 2,
-                        borderColor: "#ffffff",
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "70%",
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                boxWidth: 8,
-                                boxHeight: 8,
-                                usePointStyle: true,
-                                padding: 8,
-                                font: { size: 11 },
-                            },
-                        },
-                    },
-                },
-            }));
-        }
-
-        // 6. Enrollments Breakdown Doughnut
-        if (this.chartEnrollmentsRef?.el) {
-            const enrChart = this.state.chartData?.enrollments || {
-                labels: ["In-Progress", "Draft", "Completed"],
-                data: [6, 1, 1],
-            };
-            const ctxEnr = this.chartEnrollmentsRef.el.getContext("2d");
-            this.charts.push(new window.Chart(ctxEnr, {
-                type: "doughnut",
-                data: {
-                    labels: enrChart.labels,
-                    datasets: [{
-                        data: enrChart.data,
-                        backgroundColor: ["#f59e0b", "#3b82f6", "#10b981", "#94a3b8"],
-                        borderWidth: 2,
-                        borderColor: "#ffffff",
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: "70%",
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: {
-                                boxWidth: 8,
-                                boxHeight: 8,
-                                usePointStyle: true,
-                                padding: 8,
-                                font: { size: 11 },
-                            },
-                        },
-                    },
-                },
-            }));
-        }
-    }
-
-    changeTimeframeSort(ev) {
-        this.state.timeframeSort = ev.target.value;
-    }
-
-    setActiveAdminTab(tab) {
-        this.state.activeAdminTab = this.state.activeAdminTab === tab ? "overview" : tab;
-        setTimeout(() => this.renderCharts(), 60);
-    }
-
-    openApplications() {
+    // Action Handlers
+    openAdmissions() {
         this.navigate("school_management.action_university_admission_application");
     }
 
-    openEnrollments() {
-        this.navigate("school_management.action_university_enrollment");
+    openConflicts() {
+        this.navigate("school_management.action_university_schedule_conflicts");
     }
 
     openStudents() {
@@ -794,64 +238,650 @@ class SchoolDashboardShell extends Component {
         this.navigate("school_management.action_university_teacher");
     }
 
-    openStaffAttendance() {
-        this.navigate("school_management.action_university_staff_attendance");
-    }
-
-    openStudentAttendance() {
+    openAttendance() {
         this.navigate("school_management.action_university_attendance");
-    }
-
-    openAtRiskAttendance() {
-        this.navigate("school_management.action_university_attendance_at_risk");
-    }
-
-    openRoleAssignments() {
-        this.navigate("school_management.action_university_academic_assignment");
     }
 
     openFees() {
         this.navigate("school_management.action_university_fee");
     }
 
-    openPayments() {
-        this.navigate("school_management.action_university_payment");
+    quickNewStudent() {
+        this.quickCreate("university.student", "New Student");
     }
 
-    openTranscriptRequests() {
-        this.navigate("school_management.action_university_transcript_request");
+    quickViewClasses() {
+        this.navigate("school_management.action_university_class_section");
     }
 
-    openNoticeBoard() {
-        this.navigate("school_management.action_university_notice_board");
+    quickRecordAttendance() {
+        this.navigate("school_management.action_university_attendance");
     }
 
-    formatNoticeDate(dateStr) {
-        if (!dateStr) return "";
+    quickCreateFee() {
+        this.quickCreate("university.fee", "New Fee Invoice");
+    }
+
+    quickProcessPayment() {
+        this.quickCreate("university.payment", "Record Payment");
+    }
+
+    openReports() {
+        this.navigate("school_management.action_university_report_card");
+    }
+
+    quickTimetable() {
+        this.action.doAction("school_management.action_university_schedule_view");
+    }
+
+    quickGradeSubmissions() {
+        this.navigate("school_management.action_university_assignment_submission");
+    }
+
+    quickAdvisees() {
+        this.navigate("school_management.action_university_student");
+    }
+
+    quickLessonPlans() {
+        this.navigate("school_management.action_university_lesson_plan");
+    }
+
+    openAttendanceSheet() {
+        this.action.doAction("school_management.action_university_attendance_sheet");
+    }
+
+    formatCurrency(amount) {
+        const val = Number(amount) || 0;
+        const symbol = this.state.dashboard?.currency_symbol || "$";
+        return symbol + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    formatNumber(val) {
+        return (Number(val) || 0).toLocaleString();
+    }
+
+    get userGreeting() {
+        return this.state.dashboard?.user_greeting || "Good morning, Sothearith Kim";
+    }
+
+    get userName() {
+        return this.state.dashboard?.user_name || "Sothearith Kim";
+    }
+
+    get subtitle() {
+        return this.state.dashboard?.subtitle || "University Executive Dashboard • Real-time Academic & Administrative Analytics";
+    }
+
+    get trendTitle() {
+        return this.state.chartData?.trend_title || "Enrollment Overview";
+    }
+
+    get trendSubtitle() {
+        return this.state.chartData?.trend_subtitle || "Historical term comparisons with calibrated vertical scaling";
+    }
+
+    get trendLegend() {
+        const role = this.state.dashboard?.user_role;
+        if (role === "teacher") return "Class Sessions";
+        if (role === "hod") return "Department Load";
+        return "Enrolled Students";
+    }
+
+    get distributionTitle() {
+        return this.state.chartData?.distribution_title || "Student Distribution";
+    }
+
+    get distributionSubtitle() {
+        return this.state.chartData?.distribution_subtitle || "By academic faculty & program";
+    }
+
+    get quickOpsBadge() {
+        const role = this.state.dashboard?.user_role;
+        if (role === "dean") return "Faculty Leadership";
+        if (role === "hod") return "Department Leadership";
+        if (role === "teacher") return "Teaching Shortcuts";
+        return "Executive Shortcuts";
+    }
+
+    toggleSidebarCollapse() {
+        this.state.sidebarCollapsed = !this.state.sidebarCollapsed;
         try {
-            const datePart = String(dateStr).split(" ")[0];
-            const parts = datePart.split("-");
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-        } catch (_) {}
-        return String(dateStr);
+            localStorage.setItem("exec_sidebar_collapsed", this.state.sidebarCollapsed ? "1" : "0");
+        } catch {}
     }
 
-    openNotice(noticeId) {
-        if (!noticeId) {
-            this.openNoticeBoard();
+    toggleProfileMenu() {
+        this.state.showProfileMenu = !this.state.showProfileMenu;
+    }
+
+    closeProfileMenu() {
+        this.state.showProfileMenu = false;
+    }
+
+    focusGlobalSearch() {
+        const input = document.querySelector(".o_filter_select");
+        if (input) {
+            input.focus();
+        }
+    }
+
+    openHelpSupport() {
+        this.notification?.add("Need administrative assistance? Contact system administration or visit university.edu/help", {
+            title: "Help & Support",
+            type: "info",
+        });
+    }
+
+    openUserSettings() {
+        this.state.showProfileMenu = false;
+        this.action.doAction("base.action_res_users_my");
+    }
+
+    logout() {
+        window.location.href = "/web/session/logout";
+    }
+
+    async switchRole(role) {
+        this.state.showProfileMenu = false;
+        if (role === "student") {
+            await this.action.doAction("school_management.action_student_dashboard_shell", {
+                clearBreadcrumbs: true,
+            });
+        } else {
+            this.state.activeRoleOverride = role;
+            this.state.activeNavId = "dashboard";
+        }
+    }
+
+    handleSidebarItemClick(item) {
+        this.state.showProfileMenu = false;
+        if (item.id === "dashboard") {
+            this.state.activeNavId = "dashboard";
             return;
         }
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: "Notice Announcement",
-            res_model: "university.notice.board",
-            res_id: noticeId,
-            views: [[false, "form"]],
-            view_mode: "form",
-            target: "current",
-        });
+        if (item.id === "approvals" || item.id === "needs_action") {
+            this.openAdmissions();
+        } else if (item.id === "courses") {
+            this.quickTimetable();
+        } else if (item.id === "lecturers" || item.id === "faculty_staff") {
+            this.openTeachers();
+        } else if (item.id === "students") {
+            this.openStudents();
+        } else if (item.id === "departments") {
+            this.navigate("school_management.action_university_department");
+        } else if (item.id === "attendance") {
+            this.openAttendance();
+        } else if (item.id === "grades") {
+            this.openReports();
+        } else if (item.id === "reports") {
+            this.openReports();
+        } else if (item.id === "budget") {
+            this.notification?.add("Budget tracking: Current fiscal allocation is 84% utilized.", { type: "info" });
+        } else if (item.id === "accreditation") {
+            this.notification?.add("Institutional Accreditation: Good standing through 2029.", { type: "info" });
+        } else if (item.id === "users_roles") {
+            this.navigate("base.action_res_users");
+        } else if (item.id === "academic_setup") {
+            this.navigate("school_management.action_university_program");
+        } else if (item.id === "registration") {
+            this.navigate("school_management.action_university_enrollment");
+        } else if (item.id === "finance_fees") {
+            this.openFees();
+        } else if (item.id === "notices") {
+            this.navigate("school_management.action_university_notice_board");
+        } else if (item.id === "audit_log") {
+            this.navigate("base.action_res_users");
+        } else if (item.id === "settings") {
+            this.openUserSettings();
+        }
+    }
+
+    get effectiveRole() {
+        if (this.state.activeRoleOverride) {
+            return this.state.activeRoleOverride;
+        }
+        const role = this.state.dashboard?.user_role;
+        if (role === "hod") return "hod";
+        if (role === "dean") return "dean";
+        return "admin";
+    }
+
+    get profileName() {
+        const role = this.effectiveRole;
+        if (role === "hod") return "Prof. Paul Farmer";
+        if (role === "dean") return "Prof. Anna Reyes";
+        return "Admin";
+    }
+
+    get profileInitials() {
+        const role = this.effectiveRole;
+        if (role === "hod") return "PF";
+        if (role === "dean") return "AR";
+        return "AD";
+    }
+
+    get profileRole() {
+        const role = this.effectiveRole;
+        if (role === "hod") return "Head of Nursing";
+        if (role === "dean") return "Dean • Health Sciences";
+        return "Administrator";
+    }
+
+    get execSidebarGroups() {
+        const role = this.effectiveRole;
+        const activeNav = this.state.activeNavId;
+
+        if (role === "hod") {
+            return [
+                {
+                    id: "overview",
+                    label: "Overview",
+                    items: [
+                        { id: "dashboard", label: "Dashboard", iconSvg: "home", isActive: activeNav === "dashboard" },
+                    ],
+                },
+                {
+                    id: "decisions",
+                    label: "Decisions",
+                    items: [
+                        { id: "approvals", label: "Approvals", iconSvg: "approvals", badge: "9", badgeClass: "o_badge_teal_solid", dotClass: "o_dot_teal", isActive: activeNav === "approvals" },
+                    ],
+                },
+                {
+                    id: "teaching",
+                    label: "Teaching",
+                    items: [
+                        { id: "courses", label: "Courses & timetable", iconSvg: "schedule", isActive: activeNav === "courses" },
+                        { id: "lecturers", label: "Lecturers", iconSvg: "users", isActive: activeNav === "lecturers" },
+                        { id: "students", label: "Students", iconSvg: "users", isActive: activeNav === "students" },
+                    ],
+                },
+                {
+                    id: "monitor",
+                    label: "Monitor",
+                    items: [
+                        { id: "attendance", label: "Attendance", iconSvg: "attendance", badge: "37", badgeClass: "o_badge_red", dotClass: "o_dot_red", isActive: activeNav === "attendance" },
+                        { id: "grades", label: "Grades", iconSvg: "grades", isActive: activeNav === "grades" },
+                        { id: "reports", label: "Reports", iconSvg: "reports", isActive: activeNav === "reports" },
+                    ],
+                },
+            ];
+        }
+
+        if (role === "dean") {
+            return [
+                {
+                    id: "overview",
+                    label: "Overview",
+                    items: [
+                        { id: "dashboard", label: "Dashboard", iconSvg: "home", isActive: activeNav === "dashboard" },
+                    ],
+                },
+                {
+                    id: "decisions",
+                    label: "Decisions",
+                    items: [
+                        { id: "approvals", label: "Approvals", iconSvg: "approvals", badge: "4", badgeClass: "o_badge_red", dotClass: "o_dot_red", isActive: activeNav === "approvals" },
+                    ],
+                },
+                {
+                    id: "faculty",
+                    label: "Faculty",
+                    items: [
+                        { id: "departments", label: "Departments", iconSvg: "building", isActive: activeNav === "departments" },
+                        { id: "students", label: "Students", iconSvg: "users", isActive: activeNav === "students" },
+                        { id: "faculty_staff", label: "Faculty staff", iconSvg: "users", isActive: activeNav === "faculty_staff" },
+                    ],
+                },
+                {
+                    id: "planning",
+                    label: "Planning",
+                    items: [
+                        { id: "budget", label: "Budget", iconSvg: "budget", badge: "84%", badgeClass: "o_badge_amber", dotClass: "o_dot_amber", isActive: activeNav === "budget" },
+                        { id: "accreditation", label: "Accreditation", iconSvg: "shield", isActive: activeNav === "accreditation" },
+                        { id: "reports", label: "Reports", iconSvg: "reports", isActive: activeNav === "reports" },
+                    ],
+                },
+            ];
+        }
+
+        // Default: Admin
+        return [
+            {
+                id: "overview",
+                label: "Overview",
+                items: [
+                    { id: "dashboard", label: "Dashboard", iconSvg: "home", isActive: activeNav === "dashboard" },
+                ],
+            },
+            {
+                id: "tasks",
+                label: "Tasks",
+                items: [
+                    { id: "needs_action", label: "Needs action", iconSvg: "approvals", badge: "6", badgeClass: "o_badge_red", dotClass: "o_dot_red", isActive: activeNav === "needs_action" },
+                ],
+            },
+            {
+                id: "people",
+                label: "People",
+                items: [
+                    { id: "users_roles", label: "Users & roles", iconSvg: "users", badge: "12", badgeClass: "o_badge_teal_solid", dotClass: "o_dot_teal", isActive: activeNav === "users_roles" },
+                ],
+            },
+            {
+                id: "setup",
+                label: "Setup",
+                items: [
+                    { id: "academic_setup", label: "Academic setup", iconSvg: "curriculum", isActive: activeNav === "academic_setup" },
+                    { id: "registration", label: "Registration", iconSvg: "registration", isActive: activeNav === "registration" },
+                    { id: "finance_fees", label: "Finance & fees", iconSvg: "tuition", isActive: activeNav === "finance_fees" },
+                    { id: "notices", label: "Notices", iconSvg: "notices", isActive: activeNav === "notices" },
+                ],
+            },
+            {
+                id: "system",
+                label: "System",
+                items: [
+                    { id: "reports", label: "Reports", iconSvg: "reports", isActive: activeNav === "reports" },
+                    { id: "audit_log", label: "Audit log", iconSvg: "audit", isActive: activeNav === "audit_log" },
+                    { id: "settings", label: "Settings", iconSvg: "settings", isActive: activeNav === "settings" },
+                ],
+            },
+        ];
+    }
+
+    get kpiCards() {
+        const kpis = this.state.dashboard?.kpis;
+        if (!kpis) return [];
+
+        const cards = [];
+
+        // Block 1: Demographics / Teaching Load
+        if (kpis.demographics) {
+            const d = kpis.demographics;
+            const stu = d.students || {};
+            const staff = d.staff || {};
+            cards.push({
+                key: "demographics",
+                category: d.category || "Demographics",
+                color: d.color || "primary",
+                icon: d.icon || "fa-users",
+                action: d.action || "openStudents",
+                metric1: {
+                    label: stu.label || "Enrolled Students",
+                    value: this.formatNumber(stu.value || 0),
+                    targetText: `/ Target ${this.formatNumber(stu.target || 0)}`,
+                    growthText: stu.growth || "+8.2%",
+                    growthClass: "bg-success-subtle text-success",
+                    progress: stu.progress || 0,
+                },
+                metric2: {
+                    label: staff.label || "Academic Staff",
+                    value: this.formatNumber(staff.value || 0),
+                    targetText: `/ Target ${this.formatNumber(staff.target || 0)}`,
+                    statusText: staff.growth || "+4.5%",
+                    statusClass: "bg-success-subtle text-success",
+                },
+            });
+        }
+
+        // Block 2: Performance
+        if (kpis.performance) {
+            const p = kpis.performance;
+            cards.push({
+                key: "performance",
+                category: p.category || "Performance",
+                color: p.color || "indigo",
+                icon: p.icon || "fa-calendar-check-o",
+                action: p.action || "openAttendance",
+                metric1: {
+                    label: p.label || "Attendance Rate",
+                    value: `${p.attendance_rate || 0}%`,
+                    targetText: `Target: ${p.target || "> 75%"}`,
+                    growthText: p.growth || "+14.1% Above Target",
+                    growthClass: "bg-success-subtle text-success",
+                    progress: p.progress || p.attendance_rate || 0,
+                },
+                metric2: {
+                    label: "Health Status",
+                    value: "Optimal",
+                    statusText: "Healthy",
+                    statusClass: "bg-success-subtle text-success",
+                },
+            });
+        }
+
+        // Block 3: Financials / Academic Programs / Class Sections / Grading Queue
+        if (kpis.financials) {
+            const f = kpis.financials;
+            const isCount = f.is_count;
+            const valFormatted = isCount ? this.formatNumber(f.collected || 0) : this.formatCurrency(f.collected || 0);
+            const projFormatted = isCount ? this.formatNumber(f.projected || 0) : this.formatCurrency(f.projected || 0);
+            cards.push({
+                key: "financials",
+                category: f.category || "Financials",
+                color: f.color || "success",
+                icon: f.icon || "fa-credit-card",
+                action: f.action || "openFees",
+                metric1: {
+                    label: f.label || "Tuition Collection",
+                    value: valFormatted,
+                    targetText: "",
+                    growthText: f.target_rate || "90% Collected",
+                    growthClass: f.color === "warning" ? "bg-warning text-dark" : "bg-success text-white",
+                    progress: f.progress || 0,
+                },
+                metric2: {
+                    label: f.sub_label || "Total Invoiced",
+                    value: projFormatted,
+                    statusText: "",
+                },
+            });
+        }
+
+        // Block 4: Admissions / Reviews / Advising
+        if (kpis.admissions) {
+            const a = kpis.admissions;
+            cards.push({
+                key: "admissions",
+                category: a.category || "Admissions",
+                color: a.color || "danger",
+                icon: a.icon || "fa-user-plus",
+                action: a.action || "openAdmissions",
+                metric1: {
+                    label: a.label || "Pending Reviews",
+                    value: this.formatNumber(a.pending || 0),
+                    targetText: "",
+                    growthText: a.target || "Action required",
+                    growthClass: a.color === "info" ? "bg-info-subtle text-info" : "bg-danger-subtle text-danger",
+                    progress: a.progress || 75,
+                },
+                metric2: {
+                    label: a.sub_label || "Awaiting Review",
+                    value: a.status || "Action required",
+                    statusText: "View List →",
+                    statusClass: "bg-white text-primary border",
+                },
+            });
+        }
+
+        return cards;
+    }
+
+    get quickOps() {
+        const role = this.state.dashboard?.user_role;
+
+        if (role === "dean") {
+            return [
+                { id: "classes", title: "Faculty Classes", desc: "Class sections", icon: "fa-calendar", color: "info", action: "quickViewClasses" },
+                { id: "staff", title: "Faculty Teachers", desc: "Teaching staff", icon: "fa-users", color: "primary", action: "openTeachers" },
+                { id: "timetable", title: "Timetable", desc: "Campus schedule", icon: "fa-calendar-check-o", color: "purple", action: "quickTimetable" },
+                { id: "sheet", title: "Attendance Sheet", desc: "Faculty records", icon: "fa-check-square-o", color: "success", action: "openAttendanceSheet" },
+                { id: "grades", title: "Grade Reviews", desc: "Submissions & tasks", icon: "fa-tasks", color: "warning", action: "quickGradeSubmissions" },
+                { id: "conflicts", title: "Room Conflicts", desc: "Schedule issues", icon: "fa-exclamation-triangle", color: "danger", action: "openConflicts" },
+            ];
+        }
+
+        if (role === "hod") {
+            return [
+                { id: "classes", title: "Dept Classes", desc: "Class sections", icon: "fa-calendar", color: "info", action: "quickViewClasses" },
+                { id: "staff", title: "Dept Teachers", desc: "Department staff", icon: "fa-users", color: "primary", action: "openTeachers" },
+                { id: "attendance", title: "Take Attendance", desc: "Mark presence", icon: "fa-check-square-o", color: "success", action: "quickRecordAttendance" },
+                { id: "sheet", title: "Attendance Sheet", desc: "Monthly report", icon: "fa-calendar-check-o", color: "purple", action: "openAttendanceSheet" },
+                { id: "grading", title: "Grade Reviews", desc: "Pending reviews", icon: "fa-tasks", color: "warning", action: "quickGradeSubmissions" },
+                { id: "conflicts", title: "Timetable Issues", desc: "Resolve conflicts", icon: "fa-exclamation-triangle", color: "danger", action: "openConflicts" },
+            ];
+        }
+
+        if (role === "teacher") {
+            return [
+                { id: "attendance", title: "Take Attendance", desc: "Class session", icon: "fa-check-square-o", color: "success", action: "quickRecordAttendance" },
+                { id: "sheet", title: "Attendance Sheet", desc: "Student registry", icon: "fa-calendar-check-o", color: "indigo", action: "openAttendanceSheet" },
+                { id: "timetable", title: "My Timetable", desc: "Weekly schedule", icon: "fa-calendar", color: "purple", action: "quickTimetable" },
+                { id: "grading", title: "Grade Work", desc: "Assignment queue", icon: "fa-tasks", color: "warning", action: "quickGradeSubmissions" },
+                { id: "advisees", title: "Advisees", desc: "Student success", icon: "fa-graduation-cap", color: "info", action: "quickAdvisees" },
+                { id: "lesson_plans", title: "Lesson Plans", desc: "Course syllabus", icon: "fa-file-text-o", color: "secondary", action: "quickLessonPlans" },
+            ];
+        }
+
+        // Default Admin / Registrar
+        return [
+            { id: "add_student", title: "Add Student", desc: "Registration", icon: "fa-user-plus", color: "primary", action: "quickNewStudent" },
+            { id: "view_classes", title: "View Classes", desc: "Class sections", icon: "fa-calendar", color: "info", action: "quickViewClasses" },
+            { id: "attendance", title: "Attendance", desc: "Take presence", icon: "fa-check-square-o", color: "success", action: "quickRecordAttendance" },
+            { id: "create_invoice", title: "Create Invoice", desc: "Tuition fees", icon: "fa-file-text-o", color: "warning", action: "quickCreateFee" },
+            { id: "record_payment", title: "Record Payment", desc: "Receive funds", icon: "fa-credit-card", color: "purple", action: "quickProcessPayment" },
+            { id: "conflicts", title: "Conflicts", desc: "Room schedule", icon: "fa-exclamation-triangle", color: "danger", action: "openConflicts" },
+        ];
+    }
+
+    renderCharts() {
+        this.destroyCharts();
+        if (!this.state.chartData || !window.Chart) return;
+
+        // 1. Enrollment Overview / Trend Chart (8 Cols) - Scaled properly without wasted headroom
+        if (this.chartEnrollmentRef.el) {
+            const trend = this.state.chartData.enrollment_trend || {
+                labels: ["2025-S1", "2025-S2", "2026-S1", "2026-S2", "2027-S1", "2027-S2"],
+                data: [42, 55, 68, 76, 88, 94],
+            };
+            const ctxEnrollment = this.chartEnrollmentRef.el.getContext("2d");
+            const maxVal = Math.max(...trend.data, 20);
+            const ySuggestedMax = Math.ceil((maxVal * 1.15) / 5) * 5;
+
+            this.charts.push(new window.Chart(ctxEnrollment, {
+                type: "bar",
+                data: {
+                    labels: trend.labels,
+                    datasets: [{
+                        label: this.trendLegend,
+                        data: trend.data,
+                        backgroundColor: "#4f46e5",
+                        hoverBackgroundColor: "#4338ca",
+                        borderRadius: 8,
+                        maxBarThickness: 46,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.7,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#0f172a",
+                            titleFont: { size: 12, weight: "600" },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (ctx) => ` ${this.trendLegend}: ${Number(ctx.raw).toLocaleString()}`,
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: "#64748b",
+                                font: { size: 12, weight: "600", family: "system-ui, -apple-system, sans-serif" },
+                            },
+                            border: { display: false },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: ySuggestedMax,
+                            ticks: {
+                                color: "#94a3b8",
+                                font: { size: 11, family: "system-ui, -apple-system, sans-serif" },
+                                callback: (value) => Number(value).toLocaleString(),
+                            },
+                            grid: {
+                                color: "rgba(15, 23, 42, 0.05)",
+                                drawTicks: false,
+                            },
+                            border: { display: false },
+                        },
+                    },
+                },
+            }));
+        }
+
+        // 2. Student Distribution Doughnut Chart (4 Cols)
+        if (this.chartProgramRef.el) {
+            const prog = this.state.chartData.program_distribution || {
+                labels: ["Computer Science", "Business Admin", "Engineering", "Data Science", "Finance & Acct"],
+                data: [28, 24, 16, 12, 8],
+                colors: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#06b6d4"],
+            };
+            const ctxProgram = this.chartProgramRef.el.getContext("2d");
+            const totalCount = this.state.dashboard?.student_count || prog.data.reduce((a, b) => a + b, 0);
+
+            this.charts.push(new window.Chart(ctxProgram, {
+                type: "doughnut",
+                data: {
+                    labels: prog.labels,
+                    datasets: [{
+                        data: prog.data,
+                        backgroundColor: prog.colors,
+                        borderWidth: 3,
+                        borderColor: "#ffffff",
+                        hoverOffset: 4,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "70%",
+                    plugins: {
+                        legend: { display: false },
+                        centerText: {
+                            label: "Total Students",
+                            customValue: totalCount,
+                            valueColor: "#0f172a",
+                            labelColor: "#64748b",
+                        },
+                        tooltip: {
+                            backgroundColor: "#0f172a",
+                            titleFont: { size: 12, weight: "600" },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (ctx) => {
+                                    const val = Number(ctx.raw) || 0;
+                                    const total = prog.data.reduce((a, b) => a + b, 0) || 1;
+                                    const pct = Math.round((val / total) * 100);
+                                    return ` ${ctx.label}: ${val} (${pct}%)`;
+                                },
+                            },
+                        },
+                    },
+                },
+                plugins: [doughnutCenterText],
+            }));
+        }
     }
 }
 

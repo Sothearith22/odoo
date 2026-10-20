@@ -10,6 +10,7 @@
                 <field name="subject_id"/>
                 <field name="section_id"/>
                 <field name="teacher_id"/>
+                <field name="student_id"/>
                 <field name="assignment_type"/>
                 <field name="due_date"/>
                 <field name="submission_count"/>
@@ -24,6 +25,10 @@
                                       t-attf-class="#{record.state.raw_value == 'approved' ? 'text-bg-success' : 'text-bg-secondary'}">
                                     <field name="state"/>
                                 </span>
+                            </div>
+                            <div class="text-dark fw-bold small mt-1" t-if="record.student_id.value">
+                                <i class="fa fa-graduation-cap text-primary me-1" title="Assigned Student"/>
+                                <field name="student_id"/>
                             </div>
                             <div class="text-muted small mt-1" t-if="record.subject_id.value">
                                 <i class="fa fa-book text-secondary me-1" title="Subject"/>
@@ -68,6 +73,7 @@
             <list string="Assignments" sample="1">
                 <field name="name"/>
                 <field name="assignment_type"/>
+                <field name="student_id" optional="show"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
                 <field name="teacher_id"/>
@@ -171,6 +177,7 @@
         <field name="arch" type="xml">
             <search string="Search Assignments">
                 <field name="name"/>
+                <field name="student_id"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
                 <field name="teacher_id"/>
@@ -178,6 +185,7 @@
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
                 <group>
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
+                    <filter string="Student" name="group_by_student" context="{'group_by': 'student_id'}"/>
                     <filter string="Subject" name="group_by_subject" context="{'group_by': 'subject_id'}"/>
                     <filter string="Teacher" name="group_by_teacher" context="{'group_by': 'teacher_id'}"/>
                     <filter string="Grade/Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
@@ -199,7 +207,7 @@
     </record>
     
     <record id="action_university_grade_assignment" model="ir.actions.act_window">
-        <field name="name">Grade Assignments</field>
+        <field name="name">Class Assignments</field>
         <field name="res_model">university.assignment</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('assignment_type', '=', 'class')]</field>

@@ -133,6 +133,9 @@ const STUDENT_SAFE_MODELS = new Set([
     "university.classroom",
     "university.program",
     "university.subject",
+    "university.curriculum",
+    "university.curriculum.line",
+    "university.exam",
 ]);
 
 function debugNavigation(...args) {
@@ -244,6 +247,17 @@ patch(WebClient.prototype, {
 
         // A real loaded action or an explicit dashboard action owns the route.
         if (isDashboardAction || actionLoaded) {
+            const isStudent = await user.hasGroup(STUDENT_GROUP_XMLID);
+            const isStaff = (await user.hasGroup(STAFF_GROUP_XMLID)) ||
+                            (await user.hasGroup("school_management.group_school_admin")) ||
+                            (await user.hasGroup("base.group_system")) ||
+                            (await user.hasGroup("school_management.group_school_registrar"));
+            if (isStudent && !isStaff) {
+                if (currentAction.tag === SCHOOL_DASHBOARD_TAG || currentAction.xml_id === SCHOOL_DASHBOARD_XMLID) {
+                    await this.actionService.doAction(STUDENT_ACTION_XMLID, { clearBreadcrumbs: true });
+                    return;
+                }
+            }
             return;
         }
 
@@ -294,6 +308,23 @@ patch(WebClient.prototype, {
             (!actionLoaded && !routeAction && currentApp?.xmlid === SCHOOL_APP_XMLID);
 
         if (!inSchoolRoute) {
+            return;
+        }
+
+        if (currentAction.type === "ir.actions.report" || currentAction.type === "ir.actions.act_url") {
+            return;
+        }
+
+        // Students must never view the executive university dashboard
+        if (currentAction.tag === SCHOOL_DASHBOARD_TAG || currentAction.xml_id === SCHOOL_DASHBOARD_XMLID) {
+            this.studentRedirecting = true;
+            try {
+                await this.actionService.doAction(STUDENT_ACTION_XMLID, {
+                    clearBreadcrumbs: true,
+                });
+            } finally {
+                this.studentRedirecting = false;
+            }
             return;
         }
 

@@ -586,6 +586,44 @@ class StaffAttendanceSheet extends Component {
     teacherTone(line)    { return nameTone(line.name); }
     fmtHours(h)          { return fmtHours(h); }
 
+    getStatusBadgeClass(status) {
+        if (status === "present") return "badge bg-success-subtle text-success border border-success-subtle";
+        if (status === "absent") return "badge bg-danger-subtle text-danger border border-danger-subtle";
+        if (status === "late") return "badge bg-warning-subtle text-warning border border-warning-subtle";
+        if (status === "leave") return "badge bg-info-subtle text-info border border-info-subtle";
+        if (status === "official_duty") return "badge bg-primary-subtle text-primary border border-primary-subtle";
+        if (status === "half_day") return "badge bg-teal-subtle text-teal border border-teal-subtle";
+        return "badge bg-secondary-subtle text-secondary border";
+    }
+
+    getStatusIconClass(status) {
+        if (status === "present") return "text-success";
+        if (status === "absent") return "text-danger";
+        if (status === "late") return "text-warning";
+        if (status === "leave") return "text-info";
+        if (status === "official_duty") return "text-primary";
+        if (status === "half_day") return "text-teal";
+        return "text-secondary";
+    }
+
+    openTeacher(teacherId) {
+        if (!teacherId) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.teacher",
+            res_id: teacherId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    onNoteKeydown(line, ev) {
+        if (ev.key === "Enter" || ev.key === "Escape") {
+            ev.preventDefault();
+            this.closeNote();
+        }
+    }
+
     // --- Data Loading ---
     async loadSheet() {
         if (!this.state.departmentId || !this.state.date) {

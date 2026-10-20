@@ -108,6 +108,12 @@
                             class="btn-secondary"
                             icon="fa-print"
                             help="Download the Semester Curriculum PDF for this program"/>
+                    <button name="action_view_exam_scores"
+                            string="Result of Exam and Quiz"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-bar-chart"
+                            help="View Exam and Quiz performance for this program"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
@@ -132,6 +138,12 @@
                                 class="oe_stat_button"
                                 icon="fa-users">
                             <field name="section_count" widget="statinfo" string="Sections"/>
+                        </button>
+                        <button name="action_view_exam_scores"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-check-square-o">
+                            <field name="exam_score_count" widget="statinfo" string="Results"/>
                         </button>
                     </div>
 

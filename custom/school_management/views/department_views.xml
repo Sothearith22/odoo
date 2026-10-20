@@ -82,19 +82,19 @@
 
                             <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top">
                                 <span class="badge text-bg-light border text-secondary px-2 py-1">
-                                    <i class="fa fa-graduation-cap text-primary me-1"/>
+                                    <i class="fa fa-graduation-cap text-primary me-1" title="Programs"/>
                                     <strong><field name="program_count"/></strong> Programs
                                 </span>
                                 <span class="badge text-bg-light border text-secondary px-2 py-1">
-                                    <i class="fa fa-id-badge text-info me-1"/>
+                                    <i class="fa fa-id-badge text-info me-1" title="Faculty"/>
                                     <strong><field name="teacher_count"/></strong> Faculty
                                 </span>
                                 <span class="badge text-bg-light border text-secondary px-2 py-1">
-                                    <i class="fa fa-book text-success me-1"/>
+                                    <i class="fa fa-book text-success me-1" title="Subjects"/>
                                     <strong><field name="subject_count"/></strong> Subjects
                                 </span>
                                 <span class="badge text-bg-light border text-secondary px-2 py-1">
-                                    <i class="fa fa-users text-warning me-1"/>
+                                    <i class="fa fa-users text-warning me-1" title="Students"/>
                                     <strong><field name="student_count"/></strong> Students
                                 </span>
                             </div>
@@ -127,9 +127,8 @@
                                 context="{'search_default_department_id': id}">
                             <field name="teacher_count" widget="statinfo" string="Teachers"/>
                         </button>
-                        <button name="%(school_management.action_university_subject)d"
-                                type="action" class="oe_stat_button" icon="fa-book"
-                                context="{'search_default_department_id': id}">
+                        <button name="action_view_subjects"
+                                type="object" class="oe_stat_button" icon="fa-book">
                             <field name="subject_count" widget="statinfo" string="Subjects"/>
                         </button>
                         <button name="%(school_management.action_university_class_section)d"
@@ -187,12 +186,12 @@
                             </field>
                         </page>
                         <page string="Subjects" name="subjects_tab">
-                            <field name="subject_ids">
+                            <field name="subject_ids" context="{'default_department_id': id}">
                                 <list>
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="credits"/>
-                                    <field name="program_ids" widget="many2many_tags"/>
+                                    <field name="program_ids" widget="many2many_tags" domain="[('department_id', '=', parent.id)]" options="{'no_create': True}"/>
                                 </list>
                             </field>
                         </page>

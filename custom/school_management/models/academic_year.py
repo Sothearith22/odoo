@@ -31,6 +31,12 @@ class UniversityAcademicYear(models.Model):
     holiday_ids = fields.One2many(
         "university.holiday", "academic_year_id", string="Holidays"
     )
+    curriculum_ids = fields.One2many(
+        "university.curriculum", "session_id", string="Curriculums"
+    )
+    curriculum_count = fields.Integer(
+        string="Curriculum Count", compute="_compute_curriculum_count"
+    )
     semester_count = fields.Integer(
         string="Semester Count", compute="_compute_semester_count"
     )
@@ -84,6 +90,11 @@ class UniversityAcademicYear(models.Model):
         "(current) WHERE current",
         "Only one academic year can be marked as current.",
     )
+
+    @api.depends("curriculum_ids")
+    def _compute_curriculum_count(self):
+        for year in self:
+            year.curriculum_count = len(year.curriculum_ids)
 
     @api.depends("semester_ids", "semester_ids.active")
     def _compute_semester_count(self):
@@ -372,6 +383,19 @@ class UniversityAcademicYear(models.Model):
             "domain": [("academic_year_id", "=", self.id)],
             "context": {
                 "default_academic_year_id": self.id,
+            },
+        }
+
+    def action_view_curriculums(self):
+        self.ensure_one()
+        return {
+            "name": _("Curriculums - %s") % self.name,
+            "type": "ir.actions.act_window",
+            "res_model": "university.curriculum",
+            "view_mode": "list,form",
+            "domain": [("session_id", "=", self.id)],
+            "context": {
+                "default_session_id": self.id,
             },
         }
 

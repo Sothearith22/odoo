@@ -44,7 +44,7 @@ class UniversityClassSection(models.Model):
     subject_id = fields.Many2one(
         "university.subject",
         string="Subject",
-        domain="[('program_ids', 'in', [program_id])]\" if \"program_id\" else \"[]",
+        domain="[('program_ids', 'in', [program_id])] if program_id else []",
         help="Set for subject-based class sections.",
     )
     teacher_id = fields.Many2one(

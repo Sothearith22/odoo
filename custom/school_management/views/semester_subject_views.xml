@@ -138,16 +138,16 @@
                                 </strong>
                             </div>
                             <div class="text-muted small mb-1" t-if="record.department_id.value">
-                                <i class="fa fa-building-o text-secondary me-1"/>
+                                <i class="fa fa-building-o text-secondary me-1" title="Department"/>
                                 <field name="department_id"/>
                             </div>
                             <div class="text-muted small mb-2" t-if="record.semester_id.value">
-                                <i class="fa fa-calendar-check-o text-primary me-1"/>
+                                <i class="fa fa-calendar-check-o text-primary me-1" title="Semester"/>
                                 <field name="semester_id"/>
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
                                 <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                    <i class="fa fa-users me-1"/> <t t-esc="record.section_count.raw_value"/> Sections
+                                    <i class="fa fa-users me-1" title="Sections"/> <t t-esc="record.section_count.raw_value"/> Sections
                                 </span>
                                 <span class="badge bg-info-subtle text-info border border-info-subtle" t-if="record.enrollment_count.raw_value &gt; 0">
                                     <t t-esc="record.enrollment_count.raw_value"/> Enrolled

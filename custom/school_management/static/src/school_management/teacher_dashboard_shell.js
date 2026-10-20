@@ -55,7 +55,9 @@ export class TeacherDashboardShell extends Component {
             selectedPreviewTeacherId: null,
             activeTab: "schedule", // 'schedule' | 'attendance' | 'advising' | 'assignments' | 'lesson_plans'
             scheduleViewMode: "calendar", // 'calendar' | 'list'
+            sidebarViewMode: (localStorage.getItem("teacher_sidebar_view_mode") === "week") ? "week" : "agenda",
             currentWeekOffset: 0,
+            selectedDayDateStr: null,
             stats: {
                 totalClasses: 0,
                 totalAssignments: 0,
@@ -239,6 +241,7 @@ export class TeacherDashboardShell extends Component {
 
                 this.state.scheduleSlots = rawSlots.map((s) => {
                     const timeInfo = this.parseSlotTimes(s.start || s.start_time, s.end || s.end_time);
+                    const statusMeta = this.getSlotStatusMeta(s);
                     return {
                         id: s.id,
                         name: s.name,
@@ -246,12 +249,16 @@ export class TeacherDashboardShell extends Component {
                         section_name: s.section_code || s.section_name || "Section",
                         subject_id: s.subject_id,
                         subject_name: s.subject || s.subject_name || "Subject",
+                        subject_code: s.subject_code || s.code || "",
                         classroom_id: s.classroom_id,
                         classroom_name: s.room || s.classroom_name || "Room TBA",
                         start_time: s.start || s.start_time,
                         end_time: s.end || s.end_time,
                         state: s.state || "scheduled",
-                        status: s.status || "upcoming",
+                        status: s.status || statusMeta.status,
+                        statusLabel: statusMeta.label,
+                        statusClass: statusMeta.cardClass,
+                        statusBadgeClass: statusMeta.badgeClass,
                         student_count: s.student_count || 0,
                         enrolled_student_count: s.student_count || 0,
                         conflict: s.conflict || false,
@@ -317,10 +324,29 @@ export class TeacherDashboardShell extends Component {
                             const nd = new Date(n.date);
                             isNew = nd >= sevenDaysAgo;
                         }
+                        const nameLower = (n.name || "").toLowerCase();
+                        const contentLower = (n.content || "").toLowerCase();
+                        let category = "Notice";
+                        let categoryClass = "badge bg-primary-subtle text-primary";
+                        if (isNew) {
+                            category = "NEW";
+                            categoryClass = "badge bg-danger text-white";
+                        } else if (nameLower.includes("exam") || contentLower.includes("exam") || nameLower.includes("midterm") || nameLower.includes("final") || nameLower.includes("quiz")) {
+                            category = "Exam";
+                            categoryClass = "badge bg-purple-subtle text-purple";
+                        } else if (nameLower.includes("holiday") || nameLower.includes("break") || contentLower.includes("holiday")) {
+                            category = "Holiday";
+                            categoryClass = "badge bg-info-subtle text-info";
+                        } else if (nameLower.includes("urgent") || nameLower.includes("important")) {
+                            category = "Alert";
+                            categoryClass = "badge bg-warning-subtle text-warning";
+                        }
                         return {
                             ...n,
                             dateFormatted: timeInfo.dateFormatted || n.date,
                             isNew,
+                            category,
+                            categoryClass,
                         };
                     });
                 } catch {
@@ -456,7 +482,7 @@ export class TeacherDashboardShell extends Component {
         });
     }
 
-    // Weekly Calendar Computed Days
+    // Weekly Calendar Computed Days (7 Days: Mon - Sun matching Student Portal)
     get currentWeekDays() {
         const today = new Date();
         const currentDay = today.getDay(); // 0 (Sun) to 6 (Sat)
@@ -465,13 +491,13 @@ export class TeacherDashboardShell extends Component {
         monday.setDate(today.getDate() + distanceToMonday + (this.state.currentWeekOffset * 7));
 
         const days = [];
-        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
         const pad = (n) => n.toString().padStart(2, "0");
         const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 7; i++) {
             const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
             d.setDate(monday.getDate() + i);
             const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -483,20 +509,117 @@ export class TeacherDashboardShell extends Component {
             days.push({
                 dayName: dayNames[i],
                 shortName: shortNames[i],
+                dayLetter: shortNames[i].slice(0, 1),
+                dayNum: d.getDate(),
                 dateStr: dateStr,
                 formattedDate: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
                 isToday: dateStr === todayStr,
                 slots: daySlots,
                 hasSlots: daySlots.length > 0,
+                slotCount: daySlots.length,
             });
         }
         return days;
     }
 
+    get calendarHeaderLabel() {
+        const days = this.currentWeekDays;
+        if (!days.length) return "Weekly Schedule";
+        try {
+            const [y, m, d] = days[0].dateStr.split("-").map((v) => parseInt(v, 10));
+            const dateObj = new Date(y, m - 1, d);
+            return dateObj.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        } catch {
+            return "Weekly Schedule";
+        }
+    }
+
+    get displayedDays() {
+        const days = this.currentWeekDays;
+        if (this.state.selectedDayDateStr) {
+            const match = days.filter((d) => d.dateStr === this.state.selectedDayDateStr);
+            if (match.length) {
+                return match;
+            }
+        }
+        return days;
+    }
+
+    selectCalendarDay(dateStr) {
+        if (this.state.selectedDayDateStr === dateStr) {
+            this.state.selectedDayDateStr = null;
+        } else {
+            this.state.selectedDayDateStr = dateStr;
+        }
+    }
+
+    get selectedDayLabel() {
+        if (!this.state.selectedDayDateStr) return "";
+        const match = this.currentWeekDays.find((d) => d.dateStr === this.state.selectedDayDateStr);
+        return match ? `${match.dayName}, ${match.formattedDate}` : "";
+    }
+
     get weekRangeLabel() {
         const days = this.currentWeekDays;
         if (!days.length) return "";
-        return `${days[0].dayName}, ${days[0].formattedDate} — ${days[days.length - 1].dayName}, ${days[days.length - 1].formattedDate}`;
+        return `${days[0].shortName}, ${days[0].formattedDate} – ${days[days.length - 1].shortName}, ${days[days.length - 1].formattedDate}`;
+    }
+
+    get weekClassesSummary() {
+        const count = this.currentWeekTotalSlots;
+        if (count === 0) return "No sessions this week";
+        if (count === 1) return "1 session this week";
+        return `${count} sessions this week`;
+    }
+
+    get nextClassThisWeek() {
+        const days = this.currentWeekDays;
+        const now = new Date();
+        const allSlots = [];
+        for (const day of days) {
+            for (const slot of day.slots) {
+                allSlots.push(slot);
+            }
+        }
+        if (!allSlots.length) return null;
+
+        const ongoing = allSlots.find((s) => s.status === "ongoing");
+        if (ongoing) {
+            return {
+                ...ongoing,
+                countdown: "In progress",
+            };
+        }
+
+        const upcomingSlots = allSlots.filter((s) => s.status === "upcoming" && s.state !== "cancelled");
+        if (!upcomingSlots.length) return null;
+
+        upcomingSlots.sort((a, b) => (a.start_time > b.start_time ? 1 : -1));
+        const nextSlot = upcomingSlots[0];
+
+        let countdown = "Upcoming";
+        if (nextSlot.start_time) {
+            const startDt = new Date(nextSlot.start_time.replace(" ", "T"));
+            const diffMs = startDt.getTime() - now.getTime();
+            if (diffMs <= 0) {
+                countdown = "In progress";
+            } else {
+                const diffMin = Math.round(diffMs / 60000);
+                const diffHour = Math.floor(diffMin / 60);
+                const diffDay = Math.floor(diffHour / 24);
+                if (diffDay > 0) {
+                    countdown = `In ${diffDay}d ${diffHour % 24}h`;
+                } else if (diffHour > 0) {
+                    countdown = `Starts in ${diffHour}h ${diffMin % 60}m`;
+                } else {
+                    countdown = `Starts in ${diffMin}m`;
+                }
+            }
+        }
+        return {
+            ...nextSlot,
+            countdown,
+        };
     }
 
     get currentWeekSlots() {
@@ -531,10 +654,93 @@ export class TeacherDashboardShell extends Component {
 
     resetWeekToToday() {
         this.state.currentWeekOffset = 0;
+        this.state.selectedDayDateStr = null;
     }
 
     setScheduleViewMode(mode) {
         this.state.scheduleViewMode = mode;
+    }
+
+    setSidebarViewMode(mode) {
+        this.state.sidebarViewMode = mode;
+        try {
+            localStorage.setItem("teacher_sidebar_view_mode", mode);
+        } catch {}
+    }
+
+    scrollToSchedule() {
+        const el = document.getElementById("teacher-schedule-sidebar");
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+            el.classList.add("o_sidebar_highlight_pulse");
+            setTimeout(() => el.classList.remove("o_sidebar_highlight_pulse"), 1200);
+        }
+    }
+
+    openSlot(slotId) {
+        if (!slotId) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Timetable Class Session",
+            res_model: "university.timetable.slot",
+            res_id: slotId,
+            views: [[false, "form"]],
+            view_mode: "form",
+            context: { create: false, delete: false },
+        });
+    }
+
+    getSlotStatusMeta(slot) {
+        if (slot.state === "cancelled" || slot.status === "cancelled") {
+            return {
+                status: "cancelled",
+                label: "Cancelled",
+                cardClass: "status-cancelled",
+                badgeClass: "badge bg-danger-subtle text-danger very-small",
+            };
+        }
+        const now = new Date();
+        let startTime = null;
+        let endTime = null;
+        if (slot.start_time) {
+            startTime = new Date(slot.start_time.replace(" ", "T"));
+        }
+        if (slot.end_time) {
+            endTime = new Date(slot.end_time.replace(" ", "T"));
+        }
+
+        if (startTime && endTime) {
+            if (now < startTime) {
+                return {
+                    status: "upcoming",
+                    label: "Upcoming",
+                    cardClass: "status-upcoming",
+                    badgeClass: "badge bg-primary-subtle text-primary very-small",
+                };
+            } else if (now >= startTime && now <= endTime) {
+                return {
+                    status: "ongoing",
+                    label: "In Progress",
+                    cardClass: "slot-ongoing",
+                    badgeClass: "badge bg-warning text-dark very-small",
+                };
+            } else {
+                return {
+                    status: "completed",
+                    label: "Completed",
+                    cardClass: "status-completed",
+                    badgeClass: "badge bg-success-subtle text-success very-small",
+                };
+            }
+        }
+
+        const fallback = slot.status || "upcoming";
+        return {
+            status: fallback,
+            label: fallback.charAt(0).toUpperCase() + fallback.slice(1),
+            cardClass: `status-${fallback}`,
+            badgeClass: "badge bg-secondary-subtle text-secondary very-small",
+        };
     }
 
     setActiveTab(tab) {
@@ -581,6 +787,33 @@ export class TeacherDashboardShell extends Component {
                 date: todayStr,
             }
         });
+    }
+
+
+    get timetableWeekDays() {
+        const days = this.currentWeekDays;
+        if (!days.length) return [];
+        const sunday = days[6];
+        if (sunday && sunday.hasSlots) {
+            return days;
+        }
+        return days.slice(0, 6);
+    }
+
+    get hasScheduleConflict() {
+        return (this.state.scheduleSlots || []).some((s) => s.conflict || s.conflict_flag);
+    }
+
+    get conflictCount() {
+        return (this.state.scheduleSlots || []).filter((s) => s.conflict || s.conflict_flag).length;
+    }
+
+    openTakeAttendanceWizard() {
+        this.action.doAction("school_management.action_university_attendance_take_wizard");
+    }
+
+    openScheduleConflicts() {
+        this.action.doAction("school_management.action_university_schedule_conflicts");
     }
 
     openAttendanceSheet() {

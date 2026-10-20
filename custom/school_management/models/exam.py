@@ -382,6 +382,14 @@ class UniversityExam(models.Model):
 
         return True
 
+    def action_view_exam_scores(self):
+        self.ensure_one()
+        action = self.env["ir.actions.act_window"]._for_xml_id("school_management.action_university_exam_score")
+        action["domain"] = [("exam_id", "=", self.id)]
+        action["context"] = {"default_exam_id": self.id}
+        action["name"] = _("Results: %s") % self.name
+        return action
+
     def action_mark_all_present(self):
         for exam in self:
             exam.score_ids.write({"is_absent": False})
@@ -557,6 +565,52 @@ class UniversityExamScore(models.Model):
     student_code = fields.Char(
         string="Student ID",
         related="student_id.student_id",
+        store=True,
+        readonly=True,
+    )
+    exam_type = fields.Selection(
+        related="exam_id.exam_type",
+        string="Exam Type",
+        store=True,
+        readonly=True,
+    )
+    subject_id = fields.Many2one(
+        "university.subject",
+        related="exam_id.subject_id",
+        string="Subject",
+        store=True,
+        readonly=True,
+    )
+    section_id = fields.Many2one(
+        "university.class.section",
+        related="exam_id.section_id",
+        string="Class Section",
+        store=True,
+        readonly=True,
+    )
+    department_id = fields.Many2one(
+        "university.department",
+        related="exam_id.department_id",
+        string="Department",
+        store=True,
+        readonly=True,
+    )
+    program_id = fields.Many2one(
+        "university.program",
+        related="exam_id.program_id",
+        string="Program",
+        store=True,
+        readonly=True,
+    )
+    exam_date = fields.Date(
+        related="exam_id.exam_date",
+        string="Exam Date",
+        store=True,
+        readonly=True,
+    )
+    max_score = fields.Float(
+        related="exam_id.max_score",
+        string="Max Score",
         store=True,
         readonly=True,
     )

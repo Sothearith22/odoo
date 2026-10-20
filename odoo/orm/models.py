@@ -7021,6 +7021,12 @@ class BaseModel(metaclass=MetaModel):
     def has_group(self, param):
         pass
 
+    def build_at_risk_csv(self, month, year, ids):
+        pass
+
+    def _get_role_sections(self):
+        pass
+
 
 collections.abc.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have index or count

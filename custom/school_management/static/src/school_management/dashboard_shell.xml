@@ -1,1118 +1,570 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+  <!-- ========================================================= -->
+  <!-- UNIVERSITY EXECUTIVE & LEADERSHIP DASHBOARD               -->
+  <!-- Clean, Unified Full-Width Architecture (Admin/Dean/HOD/Teacher) -->
+  <!-- Design System: Slate #1E293B, Light #F8FAFC, 16px Radius  -->
+  <!-- ========================================================= -->
   <t t-name="school_management.DashboardShell" owl="1">
-    <main class="flex-grow-1 d-flex flex-column h-100 o_school_dashboard_layout bg-view position-relative" aria-label="University Management Dashboard">
-      
-      <!-- ========================================================= -->
-      <!-- 1. ERROR STATE                                            -->
-      <!-- ========================================================= -->
-      <div t-if="state.error" class="o_dashboard_error d-flex align-items-start gap-3 m-4 p-4 rounded-3 shadow-sm bg-white border border-danger-subtle" role="alert" aria-live="assertive">
-        <div class="p-2 rounded-circle bg-danger-subtle text-danger flex-shrink-0">
-          <i class="fa fa-exclamation-triangle fa-lg" aria-hidden="true"/>
-        </div>
-        <div class="flex-grow-1">
-          <h4 class="h5 fw-bold text-danger mb-1">Unable to load university dashboard</h4>
-          <p class="text-secondary mb-3 small" t-esc="state.error"/>
-          <button class="btn btn-sm btn-danger px-3 fw-semibold" t-on-click="() => this.reload()">
-            <i class="fa fa-refresh me-1" aria-hidden="true"/> Try Again
+    <div class="o_exec_portal_root d-flex h-100 w-100 overflow-hidden">
+      <!-- ==================== EXECUTIVE SIDEBAR (Unified Modern SaaS Style) ==================== -->
+      <aside class="o_exec_sidebar d-flex flex-column flex-shrink-0"
+             t-att-class="{'o_sidebar_collapsed': state.sidebarCollapsed}">
+        <!-- Top Brand Header -->
+        <div class="o_sidebar_header d-flex align-items-center justify-content-between p-3">
+          <div class="d-flex align-items-center gap-2 overflow-hidden cursor-pointer"
+               t-on-click="() => this.toggleSidebarCollapse()"
+               title="University Executive Portal">
+            <div class="o_brand_icon d-flex align-items-center justify-content-center flex-shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="3"/>
+                <line x1="9" y1="4" x2="9" y2="20"/>
+              </svg>
+            </div>
+            <span t-if="!state.sidebarCollapsed" class="o_brand_title fw-bold text-dark text-truncate">University</span>
+          </div>
+          <button t-if="!state.sidebarCollapsed" type="button" class="btn btn-sm o_btn_sidebar_toggle p-1 text-muted"
+                  title="Collapse sidebar"
+                  t-on-click="() => this.toggleSidebarCollapse()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="9" y1="3" x2="9" y2="21"/>
+            </svg>
           </button>
         </div>
-      </div>
 
-      <!-- ========================================================= -->
-      <!-- 2. SKELETON LOADING SHIMMER STATE                         -->
-      <!-- ========================================================= -->
-      <div t-elif="state.isLoading or !state.dashboard" class="flex-grow-1 d-flex flex-column h-100" aria-busy="true" aria-live="polite">
-        <!-- Hero Header Skeleton -->
-        <div class="px-4 py-4 bg-white border-bottom shadow-sm">
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-              <div class="o_skeleton_box mb-2" style="width: 280px; height: 32px; border-radius: 8px;"></div>
-              <div class="o_skeleton_box" style="width: 360px; height: 16px; border-radius: 6px;"></div>
+        <!-- Search or Jump To -->
+        <div t-if="!state.sidebarCollapsed" class="px-3 mb-2">
+          <div class="o_sidebar_search d-flex align-items-center justify-content-between px-2 py-1 rounded-2 cursor-pointer"
+               t-on-click="() => this.focusGlobalSearch()"
+               title="Search or jump to views">
+            <div class="d-flex align-items-center gap-2 text-muted small">
+              <i class="fa fa-search small"/>
+              <span class="very-small text-truncate">Search or jump to</span>
             </div>
-            <div class="d-flex gap-2">
-              <div class="o_skeleton_box" style="width: 140px; height: 38px; border-radius: 8px;"></div>
-              <div class="o_skeleton_box" style="width: 140px; height: 38px; border-radius: 8px;"></div>
+            <kbd class="o_kbd_shortcut">⌘K</kbd>
+          </div>
+        </div>
+        <div t-else="" class="px-2 mb-2 text-center">
+          <button type="button" class="btn btn-sm text-muted p-1" title="Search or jump to" t-on-click="() => this.focusGlobalSearch()">
+            <i class="fa fa-search"/>
+          </button>
+        </div>
+
+        <!-- Navigation Groups List -->
+        <nav class="o_exec_sidebar_nav flex-grow-1 overflow-y-auto px-2 d-flex flex-column gap-2">
+          <t t-foreach="this.execSidebarGroups" t-as="group" t-key="group.id">
+            <div class="o_nav_group">
+              <div t-if="!state.sidebarCollapsed and group.label" class="o_nav_group_label px-2 text-uppercase" t-esc="group.label"/>
+              <div class="d-flex flex-column gap-1">
+                <t t-foreach="group.items" t-as="item" t-key="item.id">
+                  <button type="button"
+                          class="btn o_sidebar_nav_item d-flex align-items-center w-100"
+                          t-att-class="{
+                            'active': item.isActive,
+                            'justify-content-between px-2 py-2': !state.sidebarCollapsed,
+                            'justify-content-center p-2': state.sidebarCollapsed
+                          }"
+                          t-att-title="item.label"
+                          t-on-click="() => this.handleSidebarItemClick(item)">
+                    <div class="d-flex align-items-center gap-2 text-truncate position-relative">
+                      <span class="o_nav_icon_wrap flex-shrink-0">
+                        <t t-if="item.iconSvg === 'home'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'approvals'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'schedule'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'users'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'attendance'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'grades'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="6"/>
+                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'reports'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'building'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+                            <path d="M9 22v-4h6v4"/>
+                            <line x1="8" y1="6" x2="8.01" y2="6"/>
+                            <line x1="16" y1="6" x2="16.01" y2="6"/>
+                            <line x1="8" y1="10" x2="8.01" y2="10"/>
+                            <line x1="16" y1="10" x2="16.01" y2="10"/>
+                            <line x1="8" y1="14" x2="8.01" y2="14"/>
+                            <line x1="16" y1="14" x2="16.01" y2="14"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'budget'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'shield'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'curriculum'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'registration'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'tuition'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2"/>
+                            <line x1="2" y1="10" x2="22" y2="10"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'notices'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'audit'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                          </svg>
+                        </t>
+                        <t t-elif="item.iconSvg === 'settings'">
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"/>
+                            <line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/>
+                            <line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/>
+                            <line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                          </svg>
+                        </t>
+                      </span>
+                      <span t-if="!state.sidebarCollapsed" class="o_nav_text text-truncate" t-esc="item.label"/>
+                      <!-- Dot indicator when collapsed -->
+                      <span t-if="state.sidebarCollapsed and item.badge"
+                            class="o_collapsed_badge_dot position-absolute top-0 start-100 translate-middle rounded-circle"
+                            t-att-class="item.dotClass"/>
+                    </div>
+                    <span t-if="!state.sidebarCollapsed and item.badge"
+                          class="badge o_sidebar_badge"
+                          t-att-class="item.badgeClass"
+                          t-esc="item.badge"/>
+                  </button>
+                </t>
+              </div>
+            </div>
+          </t>
+        </nav>
+
+        <!-- Bottom Footer (Help & Support + Profile Card) -->
+        <div class="o_exec_sidebar_footer p-2 border-top">
+          <!-- Help & Support -->
+          <button type="button" class="btn o_sidebar_nav_item o_btn_help d-flex align-items-center gap-2 w-100 mb-2"
+                  t-att-class="{'justify-content-center p-2': state.sidebarCollapsed, 'px-2 py-1': !state.sidebarCollapsed}"
+                  title="Help &amp; support"
+                  t-on-click="() => this.openHelpSupport()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span t-if="!state.sidebarCollapsed" class="small o_nav_text">Help &amp; support</span>
+          </button>
+
+          <!-- Profile Card at bottom -->
+          <div class="position-relative">
+            <div class="o_sidebar_profile_card d-flex align-items-center justify-content-between p-2 rounded-3 border cursor-pointer"
+                 t-att-class="{'justify-content-center p-1 border-0': state.sidebarCollapsed}"
+                 t-on-click="() => this.toggleProfileMenu()"
+                 title="User profile and role switcher">
+              <div class="d-flex align-items-center gap-2 text-truncate">
+                <div class="o_profile_avatar d-flex align-items-center justify-content-center flex-shrink-0"
+                     t-esc="this.profileInitials"/>
+                <div t-if="!state.sidebarCollapsed" class="d-flex flex-column text-truncate text-start">
+                  <span class="o_profile_name fw-bold text-dark small text-truncate" t-esc="this.profileName"/>
+                  <span class="o_profile_role text-muted very-small text-truncate" t-esc="this.profileRole"/>
+                </div>
+              </div>
+              <i t-if="!state.sidebarCollapsed" class="fa fa-chevron-down very-small text-muted ms-1"/>
+            </div>
+
+            <!-- Profile Dropdown Menu -->
+            <div t-if="state.showProfileMenu"
+                 class="o_profile_dropdown_menu shadow-lg p-2 rounded-3 bg-white border position-absolute bottom-100 start-0 mb-2 w-100"
+                 style="z-index: 1050; min-width: 220px;">
+              <div class="px-2 py-1 border-bottom mb-1">
+                <div class="fw-bold small text-dark" t-esc="this.profileName"/>
+                <div class="text-muted very-small" t-esc="this.profileRole"/>
+              </div>
+              <div class="px-2 py-1 text-muted very-small fw-bold text-uppercase">Role Views</div>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('admin')">
+                <i class="fa fa-shield me-2 text-danger"/> Admin (System)
+              </button>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('dean')">
+                <i class="fa fa-university me-2 text-warning"/> Dean (Prof. Reyes)
+              </button>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('hod')">
+                <i class="fa fa-user-circle me-2 text-info"/> Head of Dept (Prof. Farmer)
+              </button>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('student')">
+                <i class="fa fa-graduation-cap me-2 text-primary"/> Student (Hannah Abbott)
+              </button>
+              <div class="border-top my-1"/>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.openUserSettings()">
+                <i class="fa fa-cog me-2 text-muted"/> Settings
+              </button>
+              <button type="button" class="btn btn-sm btn-light w-100 text-start small text-danger" t-on-click="() => this.logout()">
+                <i class="fa fa-sign-out me-2"/> Sign out
+              </button>
             </div>
           </div>
         </div>
+      </aside>
 
-        <!-- Body Skeleton -->
-        <div class="p-4 flex-grow-1 overflow-auto">
-          <!-- 5 KPI Skeletons -->
-          <div class="row g-3 mb-4">
-            <t t-foreach="[1, 2, 3, 4, 5]" t-as="sk" t-key="sk">
-              <div class="col-12 col-sm-6 col-xl">
-                <div class="card border-0 shadow-sm p-3 h-100 bg-white" style="border-radius: 14px;">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="o_skeleton_box" style="width: 80px; height: 14px;"></div>
-                    <div class="o_skeleton_box" style="width: 40px; height: 40px; border-radius: 10px;"></div>
-                  </div>
-                  <div class="o_skeleton_box mb-2" style="width: 100px; height: 32px;"></div>
-                  <div class="o_skeleton_box" style="width: 120px; height: 12px;"></div>
-                </div>
-              </div>
-            </t>
-          </div>
+      <!-- Main Dashboard Canvas Container -->
+      <div class="o_executive_dashboard_container flex-grow-1 h-100 overflow-y-auto" aria-label="University Executive Dashboard">
+      <div class="o_dashboard_canvas p-3 p-md-4 d-flex flex-column gap-3 gap-md-4">
 
-          <!-- Charts Skeleton -->
-          <div class="row g-3 mb-4">
-            <div class="col-12 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 14px; min-height: 320px;">
-                <div class="o_skeleton_box mb-4" style="width: 160px; height: 20px;"></div>
-                <div class="o_skeleton_box mx-auto" style="width: 180px; height: 180px; border-radius: 50%;"></div>
+        <!-- ======================================================= -->
+        <!-- 1. UNIFIED CLEAN TOP HEADER CARD                        -->
+        <!-- ======================================================= -->
+        <header class="o_exec_header_card p-4 shadow-sm" aria-label="Executive Dashboard Header">
+          <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+            
+            <!-- Left: Greeting, Live Status & Real-Time Subtitle -->
+            <div class="o_exec_header_left min-w-0">
+              <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                <span class="badge o_badge_live">
+                  <span class="o_pulse_dot me-1"></span> Live System
+                </span>
+                <span class="text-muted small fw-semibold" t-esc="state.academicPeriod.label"></span>
               </div>
-            </div>
-            <div class="col-12 col-lg-6">
-              <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 14px; min-height: 320px;">
-                <div class="o_skeleton_box mb-4" style="width: 160px; height: 20px;"></div>
-                <div class="o_skeleton_box mx-auto" style="width: 180px; height: 180px; border-radius: 50%;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========================================================= -->
-      <!-- 3. LOADED DASHBOARD - MODERN EXECUTIVE COMMAND CENTER     -->
-      <!-- ========================================================= -->
-      <t t-else="">
-        <!-- Scoped Role Context Notice (if filtered by HOD / Dean / Registrar) -->
-        <div t-if="this.isHodDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
-             role="status">
-          <i class="fa fa-sitemap fa-lg" aria-hidden="true"/>
-          <span>You are viewing department-scoped figures for <strong t-esc="state.roleView?.department_name || 'your managed department'"/>.</span>
-        </div>
-        <div t-elif="this.isFacultyDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
-             role="status">
-          <i class="fa fa-university fa-lg" aria-hidden="true"/>
-          <span>You are viewing faculty-scoped figures for <strong t-esc="state.roleView?.faculty_name || 'your managed faculty'"/>.</span>
-        </div>
-        <div t-elif="this.isRegistrarDashboard"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
-             role="status">
-          <i class="fa fa-files-o fa-lg" aria-hidden="true"/>
-          <span>You are viewing registrar work queues for enrollment, student records, and transcript processing.</span>
-        </div>
-        <div t-elif="!state.isFullAccess"
-             class="alert alert-info d-flex align-items-center gap-2 mx-4 mt-3 mb-0 shadow-sm border-0"
-             role="status">
-          <i class="fa fa-info-circle fa-lg" aria-hidden="true"/>
-          <span>You are viewing summary figures limited to your assigned role.</span>
-        </div>
-
-        <!-- ========================================================= -->
-        <!-- TOP EXECUTIVE COMMAND BAR / BRANDED HEADER                -->
-        <!-- ========================================================= -->
-        <header class="o_dashboard_topbar sticky-top z-1">
-          <div class="o_dashboard_header_main">
-            <!-- Left: University Identity & Semester Badge -->
-            <div class="o_dashboard_header_identity">
-              <div class="d-flex align-items-center gap-3">
-                <div class="o_univ_crest_icon" aria-hidden="true">
-                  <i class="fa fa-university"/>
-                </div>
-                <div>
-                  <div class="o_dashboard_title_row">
-                    <h1 class="dashboard-title" t-esc="this.dashboardTitle"/>
-                    <span class="o_dashboard_status_badge" t-if="state.dashboard.active_semester_name">
-                      <span class="o_status_pulse" aria-hidden="true"/>
-                      <t t-esc="state.dashboard.active_semester_name"/>
-                    </span>
-                  </div>
-                  <div class="o_dashboard_subtitle">
-                    <span><i class="fa fa-clock-o me-1"/>Updated <t t-esc="state.lastUpdated"/></span>
-                    <span class="o_dashboard_meta_separator" t-if="state.academicPeriod.label">•</span>
-                    <span t-if="state.academicPeriod.label" class="fw-semibold text-dark">
-                      <i class="fa fa-calendar-check-o me-1 text-primary"/>
-                      <t t-esc="state.academicPeriod.label"/>
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <h1 class="o_exec_title text-truncate mb-1" t-esc="this.userGreeting">Good morning, Sothearith Kim</h1>
+              <p class="o_exec_subtitle text-secondary mb-0" t-esc="this.subtitle">University Executive Dashboard • Real-time Academic &amp; Administrative Analytics</p>
             </div>
 
-            <!-- Right: Period Selector & Quick Actions -->
-            <div class="o_dashboard_header_actions">
-              <!-- Period Dropdown Filters -->
-              <div class="o_dashboard_period_filters" role="group" aria-label="Dashboard filters">
-                <select id="school_dashboard_year"
-                        class="form-select form-select-sm fw-semibold shadow-sm"
+            <!-- Right: Global Academic Filters (Year & Semester) + Refresh -->
+            <div class="o_exec_filters d-flex align-items-center gap-2 flex-shrink-0 flex-wrap">
+              <!-- Academic Year Selector -->
+              <div class="o_filter_group">
+                <label class="o_filter_label small text-muted fw-bold mb-1 d-block">Academic Year</label>
+                <select class="form-select form-select-sm o_filter_select"
                         t-att-value="state.filters.yearId || ''"
-                        t-on-change="(ev) => this.changeFilter('yearId', ev.target.value)"
-                        title="Filter by Academic Year">
-                  <option value="">All Academic Years</option>
+                        t-on-change="(ev) => this.changeFilter('yearId', ev.target.value)">
+                  <option value="">2026 - 2027</option>
                   <t t-foreach="state.filterOptions.academicYears" t-as="year" t-key="year.id">
                     <option t-att-value="year.id" t-esc="year.name"/>
                   </t>
                 </select>
+              </div>
 
-                <select id="school_dashboard_semester"
-                        class="form-select form-select-sm fw-semibold shadow-sm"
+              <!-- Semester Switcher -->
+              <div class="o_filter_group">
+                <label class="o_filter_label small text-muted fw-bold mb-1 d-block">Semester</label>
+                <select class="form-select form-select-sm o_filter_select"
                         t-att-value="state.filters.semesterId || ''"
-                        t-on-change="(ev) => this.changeFilter('semesterId', ev.target.value)"
-                        title="Filter by Semester">
-                  <option value="">All Semesters</option>
-                  <t t-foreach="this.semestersForSelectedYear()" t-as="semester" t-key="semester.id">
-                    <option t-att-value="semester.id" t-esc="semester.name"/>
+                        t-on-change="(ev) => this.changeFilter('semesterId', ev.target.value)">
+                  <option value="">Semester 1</option>
+                  <t t-foreach="state.filterOptions.semesters" t-as="sem" t-key="sem.id">
+                    <option t-att-value="sem.id" t-esc="sem.name"/>
                   </t>
                 </select>
               </div>
 
-              <!-- Notifications & Refresh -->
-              <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm o_dashboard_notifications shadow-sm"
+              <!-- Refresh Button -->
+              <div class="o_filter_group align-self-end">
+                <button class="btn btn-sm o_btn_refresh d-flex align-items-center gap-1"
                         type="button"
-                        t-on-click="() => this.openPendingNotifications()"
-                        title="Pending Admissions Notifications"
-                        aria-label="Pending admissions notifications">
-                  <i class="fa fa-bell" aria-hidden="true"/>
-                  <span t-if="state.dashboard.pending_admission_count" class="badge rounded-pill" t-esc="state.dashboard.pending_admission_count"/>
-                </button>
-                <button class="btn btn-refresh shadow-sm"
                         t-att-class="{ 'is-refreshing': state.isRefreshing }"
                         t-on-click="() => this.reload()"
-                        title="Refresh Data"
-                        aria-label="Refresh dashboard data">
-                  <i class="fa fa-refresh fa-fw" aria-hidden="true"/>
-                </button>
-              </div>
-
-              <!-- Action Pills Button Group -->
-              <div class="o_dashboard_action_buttons">
-                <button t-if="this.canOpen('student')"
-                        t-on-click="() => this.quickCreate('university.student', 'Add Student')"
-                        class="btn btn-sm btn-brand-primary shadow-sm d-flex align-items-center gap-2"
-                        title="Enroll a new student">
-                  <i class="fa fa-user-plus" aria-hidden="true"/>
-                  <span>Add Student</span>
-                </button>
-
-                <button t-if="this.canOpen('teacher')"
-                        t-on-click="() => this.quickCreate('university.teacher', 'Add Teacher')"
-                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-md-inline-flex align-items-center gap-2"
-                        title="Add academic staff member">
-                  <i class="fa fa-id-card-o" aria-hidden="true"/>
-                  <span>Add Teacher</span>
-                </button>
-
-                <button t-if="state.isFullAccess"
-                        t-on-click="() => this.openRoleAssignments()"
-                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-lg-inline-flex align-items-center gap-2"
-                        title="Manage Dean, Vice Dean, and HOD Appointments">
-                  <i class="fa fa-sitemap text-primary" aria-hidden="true"/>
-                  <span>Role Appointments</span>
-                </button>
-
-                <button t-if="this.canOpen('attendance')"
-                        t-on-click="() => this.openAtRiskAttendance()"
-                        class="btn btn-sm btn-outline-danger shadow-sm d-none d-xl-inline-flex align-items-center gap-2"
-                        title="View Students with Low Attendance">
-                  <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
-                  <span>At-Risk Attendance</span>
-                </button>
-
-                <button t-if="this.canOpen('fee')"
-                        t-on-click="() => this.openFees()"
-                        class="btn btn-sm btn-brand-outline shadow-sm d-none d-xl-inline-flex align-items-center gap-2"
-                        title="Manage Tuition &amp; Fee Invoices">
-                  <i class="fa fa-file-text-o text-success" aria-hidden="true"/>
-                  <span>Fee Invoices</span>
+                        title="Refresh Live Metrics">
+                  <i class="fa fa-refresh" aria-hidden="true"></i>
+                  <span class="d-none d-sm-inline">Refresh</span>
                 </button>
               </div>
             </div>
+
           </div>
         </header>
 
-        <!-- ========================================================= -->
-        <!-- DASHBOARD CANVAS                                          -->
-        <!-- ========================================================= -->
-        <div class="p-4 flex-grow-1 overflow-auto dashboard-canvas o_dashboard_content">
-          <div class="o_admin_clean_container">
-
-            <!-- ========================================================= -->
-            <!-- URGENT ATTENTION TRIAGE CENTER (DYNAMIC ALERTS)          -->
-            <!-- ========================================================= -->
-            <section t-if="(state.dashboard.high_risk_student_count > 0) or (state.dashboard.pending_admission_count > 0) or (state.dashboard.total_unpaid_fees > 0)"
-                     class="o_urgent_alerts_ribbon mb-4"
-                     aria-label="Action Required Alerts">
-              <div class="row g-3">
-                <!-- Alert 1: At-Risk Students Warning -->
-                <div t-if="state.dashboard.high_risk_student_count > 0" class="col-12 col-md-4">
-                  <div class="o_alert_banner o_alert_danger shadow-sm h-100" t-on-click="() => this.openAtRiskAttendance()" role="button" tabindex="0">
-                    <div class="o_alert_icon_box">
-                      <i class="fa fa-exclamation-circle fa-lg text-danger" aria-hidden="true"/>
-                    </div>
-                    <div class="o_alert_content">
-                      <div class="o_alert_title">
-                        <strong t-esc="state.dashboard.high_risk_student_count"/> Students At-Risk
-                      </div>
-                      <div class="o_alert_desc">Attendance below threshold requiring intervention</div>
-                    </div>
-                    <div class="o_alert_action">
-                      <span>Intervene <i class="fa fa-arrow-right ms-1"/></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Alert 2: Pending Admissions Queue -->
-                <div t-if="state.dashboard.pending_admission_count > 0" class="col-12 col-md-4">
-                  <div class="o_alert_banner o_alert_warning shadow-sm h-100" t-on-click="() => this.openPendingNotifications()" role="button" tabindex="0">
-                    <div class="o_alert_icon_box">
-                      <i class="fa fa-inbox fa-lg text-warning" aria-hidden="true"/>
-                    </div>
-                    <div class="o_alert_content">
-                      <div class="o_alert_title">
-                        <strong t-esc="state.dashboard.pending_admission_count"/> Pending Admissions
-                      </div>
-                      <div class="o_alert_desc">New student applications awaiting review</div>
-                    </div>
-                    <div class="o_alert_action">
-                      <span>Review <i class="fa fa-arrow-right ms-1"/></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Alert 3: Unpaid Tuition Collections -->
-                <div t-if="state.dashboard.total_unpaid_fees > 0 and this.canOpen('fee')" class="col-12 col-md-4">
-                  <div class="o_alert_banner o_alert_info shadow-sm h-100" t-on-click="() => this.openFees()" role="button" tabindex="0">
-                    <div class="o_alert_icon_box">
-                      <i class="fa fa-money fa-lg text-primary" aria-hidden="true"/>
-                    </div>
-                    <div class="o_alert_content">
-                      <div class="o_alert_title">
-                        <strong t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/> Outstanding
-                      </div>
-                      <div class="o_alert_desc">Unpaid tuition invoices awaiting payment</div>
-                    </div>
-                    <div class="o_alert_action">
-                      <span>Invoices <i class="fa fa-arrow-right ms-1"/></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- ========================================================= -->
-            <!-- EXECUTIVE 5-CARD KPI COMMAND RIBBON                      -->
-            <!-- ========================================================= -->
-            <section aria-label="Executive Key Performance Indicators" class="mb-4">
-              <div class="row g-3">
-                
-                <!-- KPI 1: TOTAL STUDENTS -->
-                <div class="col-12 col-sm-6 col-xl">
-                  <div class="o_kpi_card_elevated o_kpi_border_blue h-100 shadow-sm"
-                       t-on-click="() => this.openStudents()"
-                       role="button"
-                       tabindex="0"
-                       title="Open Students Directory">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="o_kpi_card_eyebrow">Enrolled Students</span>
-                      <div class="o_kpi_icon_badge bg-blue-subtle text-primary">
-                        <i class="fa fa-graduation-cap"/>
-                      </div>
-                    </div>
-                    <div class="o_kpi_card_metric" t-esc="state.dashboard.student_count || 0"/>
-                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
-                      <div class="d-flex align-items-center justify-content-between small">
-                        <span class="text-success fw-semibold">
-                          <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>
-                          <t t-esc="state.dashboard.active_student_count || 0"/> Active
-                        </span>
-                        <span class="text-muted">
-                          <t t-esc="state.dashboard.graduated_student_count || 0"/> Alum
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- KPI 2: FACULTY & ACADEMIC STAFF -->
-                <div class="col-12 col-sm-6 col-xl">
-                  <div class="o_kpi_card_elevated o_kpi_border_emerald h-100 shadow-sm"
-                       t-on-click="() => this.openTeachers()"
-                       role="button"
-                       tabindex="0"
-                       title="Open Faculty &amp; Academic Staff Directory">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="o_kpi_card_eyebrow">Academic Staff</span>
-                      <div class="o_kpi_icon_badge bg-emerald-subtle text-success">
-                        <i class="fa fa-id-badge"/>
-                      </div>
-                    </div>
-                    <div class="o_kpi_card_metric" t-esc="state.dashboard.teacher_count || 0"/>
-                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
-                      <div class="d-flex align-items-center justify-content-between small">
-                        <span class="text-success fw-semibold">
-                          <i class="fa fa-check-circle me-1"/>
-                          <t t-esc="state.dashboard.faculty_present || state.dashboard.teacher_count || 0"/> Present
-                        </span>
-                        <span class="text-muted" t-on-click.stop="() => this.openRoleAssignments()" title="Open Role Appointments">
-                          <i class="fa fa-sitemap me-1 text-primary"/> Roles
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- KPI 3: ATTENDANCE HEALTH RATE -->
-                <div class="col-12 col-sm-6 col-xl">
-                  <div class="o_kpi_card_elevated o_kpi_border_indigo h-100 shadow-sm"
-                       t-on-click="() => this.openStudentAttendance()"
-                       role="button"
-                       tabindex="0"
-                       title="Open Attendance Management">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="o_kpi_card_eyebrow">Attendance Rate</span>
-                      <div class="o_kpi_icon_badge bg-indigo-subtle text-indigo">
-                        <i class="fa fa-calendar-check-o"/>
-                      </div>
-                    </div>
-                    <div class="o_kpi_card_metric">
-                      <t t-esc="state.dashboard.attendance_rate || 0"/>%
-                    </div>
-                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
-                      <div class="d-flex align-items-center justify-content-between small">
-                        <span class="text-muted">Target: &gt;= 75%</span>
-                        <span t-att-class="state.dashboard.attendance_rate &gt;= 75 ? 'badge bg-success-subtle text-success' : 'badge bg-warning-subtle text-warning'">
-                          <t t-esc="state.dashboard.attendance_rate &gt;= 75 ? 'Healthy' : 'Needs Focus'"/>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- KPI 4: TUITION & FINANCIAL HEALTH -->
-                <div t-if="this.canOpen('fee')" class="col-12 col-sm-6 col-xl">
-                  <div class="o_kpi_card_elevated o_kpi_border_amber h-100 shadow-sm"
-                       t-on-click="() => this.openFees()"
-                       role="button"
-                       tabindex="0"
-                       title="Open Fee Invoicing &amp; Billing">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="o_kpi_card_eyebrow">Tuition Collections</span>
-                      <div class="o_kpi_icon_badge bg-amber-subtle text-warning">
-                        <i class="fa fa-line-chart"/>
-                      </div>
-                    </div>
-                    <div class="o_kpi_card_metric text-success" t-esc="this.formatCurrency(state.dashboard.total_paid_fees)"/>
-                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
-                      <div class="d-flex align-items-center justify-content-between small">
-                        <span class="text-muted">Collected: <strong class="text-success"><t t-esc="this.getFeeCollectionRate()"/>%</strong></span>
-                        <span class="text-danger fw-semibold" t-if="state.dashboard.total_unpaid_fees > 0">
-                          Due <t t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- KPI 5: ACADEMIC INFRASTRUCTURE -->
-                <div class="col-12 col-sm-6 col-xl">
-                  <div class="o_kpi_card_elevated o_kpi_border_teal h-100 shadow-sm"
-                       t-on-click="() => this.go('faculty')"
-                       role="button"
-                       tabindex="0"
-                       title="View Academic Structure (Faculties &amp; Departments)">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                      <span class="o_kpi_card_eyebrow">Academic Structure</span>
-                      <div class="o_kpi_icon_badge bg-teal-subtle text-teal">
-                        <i class="fa fa-university"/>
-                      </div>
-                    </div>
-                    <div class="o_kpi_card_metric">
-                      <t t-esc="state.dashboard.faculty_count || 0"/>
-                      <span class="fs-6 fw-normal text-muted ms-1">Faculties</span>
-                    </div>
-                    <div class="o_kpi_card_footer mt-auto pt-2 border-top">
-                      <div class="d-flex align-items-center justify-content-between small text-muted">
-                        <span><strong class="text-dark"><t t-esc="state.dashboard.department_count || 0"/></strong> Depts</span>
-                        <span><strong class="text-dark"><t t-esc="state.dashboard.program_count || 0"/></strong> Programs</span>
-                        <span><strong class="text-dark"><t t-esc="state.dashboard.section_count || 0"/></strong> Classes</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            <!-- ========================================================= -->
-            <!-- VISUAL ANALYTICS COMMAND CENTER (DUAL ATTENDANCE GAUGES)  -->
-            <!-- ========================================================= -->
-            <section aria-label="Attendance Command Center" class="mb-4">
-              <div class="row g-4">
-                
-                <!-- Faculty Attendance Gauge Card -->
-                <div class="col-12 col-lg-6">
-                  <div class="o_modern_panel h-100 shadow-sm">
-                    <div class="o_panel_topbar">
-                      <div class="d-flex align-items-center gap-2">
-                        <div class="o_panel_icon_bubble bg-primary-subtle text-primary">
-                          <i class="fa fa-id-card-o"/>
-                        </div>
-                        <div>
-                          <h3 class="o_panel_title mb-0">Faculty &amp; Staff Attendance</h3>
-                          <small class="text-muted">Daily Academic Staff Presence</small>
-                        </div>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
-                              t-on-click="() => this.openStaffAttendance()"
-                              title="View Staff Attendance Log">
-                        Attendance Log <i class="fa fa-angle-right ms-1"/>
-                      </button>
-                    </div>
-
-                    <div class="p-4 d-flex align-items-center">
-                      <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
-                        <!-- Centered Donut Canvas -->
-                        <div class="o_donut_wrapper">
-                          <canvas t-ref="chart_faculty_attendance"/>
-                          <div class="o_donut_center_text">
-                            <div class="o_center_label">Total Staff</div>
-                            <div class="o_center_val"><t t-esc="state.dashboard.faculty_total || state.dashboard.teacher_count || 6"/></div>
-                          </div>
-                        </div>
-
-                        <!-- Modern Pill Legend -->
-                        <div class="o_donut_legend">
-                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
-                            <span class="o_legend_box o_bg_present"></span>
-                            <div>
-                              <div class="small text-muted fw-semibold">Present Today</div>
-                              <strong class="fs-5 text-dark"><t t-esc="state.dashboard.faculty_present !== undefined ? state.dashboard.faculty_present : 5"/> Staff</strong>
-                            </div>
-                          </div>
-                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
-                            <span class="o_legend_box o_bg_absent"></span>
-                            <div>
-                              <div class="small text-muted fw-semibold">Absent / On Leave</div>
-                              <strong class="fs-5 text-danger"><t t-esc="state.dashboard.faculty_absent !== undefined ? state.dashboard.faculty_absent : 1"/> Staff</strong>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Student Attendance Gauge Card -->
-                <div class="col-12 col-lg-6">
-                  <div class="o_modern_panel h-100 shadow-sm">
-                    <div class="o_panel_topbar">
-                      <div class="d-flex align-items-center gap-2">
-                        <div class="o_panel_icon_bubble bg-info-subtle text-info">
-                          <i class="fa fa-users"/>
-                        </div>
-                        <div>
-                          <h3 class="o_panel_title mb-0">Student Attendance Analytics</h3>
-                          <small class="text-muted">Live Campus Student Check-ins</small>
-                        </div>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
-                              t-on-click="() => this.openStudentAttendance()"
-                              title="View Student Attendance Log">
-                        Attendance Log <i class="fa fa-angle-right ms-1"/>
-                      </button>
-                    </div>
-
-                    <div class="p-4 d-flex align-items-center">
-                      <div class="w-100 d-flex flex-column flex-sm-row align-items-center justify-content-around gap-4 py-2">
-                        <!-- Centered Donut Canvas -->
-                        <div class="o_donut_wrapper">
-                          <canvas t-ref="chart_student_attendance"/>
-                          <div class="o_donut_center_text">
-                            <div class="o_center_label">Total Students</div>
-                            <div class="o_center_val"><t t-esc="state.dashboard.student_total || state.dashboard.student_count || 6"/></div>
-                          </div>
-                        </div>
-
-                        <!-- Modern Pill Legend -->
-                        <div class="o_donut_legend">
-                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
-                            <span class="o_legend_box o_bg_present"></span>
-                            <div>
-                              <div class="small text-muted fw-semibold">Present in Classes</div>
-                              <strong class="fs-5 text-dark"><t t-esc="state.dashboard.student_present !== undefined ? state.dashboard.student_present : 4"/> Students</strong>
-                            </div>
-                          </div>
-                          <div class="o_legend_pill bg-light border p-2 rounded-3 d-flex align-items-center gap-3">
-                            <span class="o_legend_box o_bg_absent"></span>
-                            <div>
-                              <div class="small text-muted fw-semibold">Absent Students</div>
-                              <strong class="fs-5 text-danger"><t t-esc="state.dashboard.student_absent !== undefined ? state.dashboard.student_absent : 2"/> Students</strong>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            <!-- ========================================================= -->
-            <!-- ALL STATISTICS: APPLICATIONS, ENROLLMENTS & NOTICE BOARD  -->
-            <!-- ========================================================= -->
-            <section aria-label="Campus Statistics and Announcements" class="mb-4">
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="d-flex align-items-center gap-2">
-                  <h2 class="h5 fw-bold text-dark mb-0">Campus Vital Statistics</h2>
-                  <span class="badge bg-light text-muted border">Real-Time</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                  <span class="text-muted small fw-semibold text-uppercase">Timeframe:</span>
-                  <select class="form-select form-select-sm fw-semibold shadow-sm" style="width: auto;"
-                          t-on-change="(ev) => this.changeTimeframeSort(ev)">
-                    <option value="Current Week" selected="selected">Current Week</option>
-                    <option value="Current Month">Current Month</option>
-                    <option value="Current Semester">Current Semester</option>
-                    <option value="Current Year">Current Year</option>
-                  </select>
-                </div>
+        <!-- ======================================================= -->
+        <!-- 2. EXECUTIVE "ACTION CENTER" BANNER                     -->
+        <!-- Surfaces urgent bottlenecks immediately                 -->
+        <!-- ======================================================= -->
+        <section t-if="state.dashboard and state.dashboard.urgent_actions" class="o_action_center_banner p-3 shadow-sm" aria-label="Executive Action Center">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            
+            <div class="d-flex align-items-center gap-3 flex-wrap flex-grow-1">
+              <div class="o_action_center_tag d-flex align-items-center gap-2">
+                <i class="fa fa-bolt text-warning" aria-hidden="true"></i>
+                <span class="fw-bold text-dark small text-uppercase tracking-wider">Action Center</span>
               </div>
 
-              <div class="row g-4">
-                
-                <!-- 1. Admissions Applications Breakdown -->
-                <div t-if="this.canOpen('admission')" class="col-12 col-lg-4">
-                  <div class="o_modern_panel h-100 shadow-sm">
-                    <div class="o_panel_topbar">
-                      <div>
-                        <h3 class="o_panel_title mb-0">Admissions Breakdown</h3>
-                        <small class="text-muted">Applications by Status</small>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
-                              t-on-click="() => this.openApplications()"
-                              title="Open Admissions Applications">
-                        All Applications <i class="fa fa-angle-right ms-1"/>
-                      </button>
-                    </div>
-                    <div class="p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
-                      <div style="position: relative; width: 100%; height: 210px;">
-                        <canvas t-ref="chart_applications"/>
-                      </div>
-                    </div>
+              <!-- Dynamic Role-Based Alerts -->
+              <t t-if="state.dashboard.urgent_actions.alerts and state.dashboard.urgent_actions.alerts.length">
+                <t t-foreach="state.dashboard.urgent_actions.alerts" t-as="alert" t-key="alert.id">
+                  <div class="o_alert_pill d-flex align-items-center gap-2 p-2 rounded-2">
+                    <i t-attf-class="fa #{alert.icon} #{alert.iconColor}" aria-hidden="true"></i>
+                    <span class="small fw-semibold text-dark" t-esc="alert.text"/>
+                    <button type="button" t-attf-class="btn btn-sm o_alert_btn #{alert.btnClass} ms-1" t-on-click="() => this.handleActionClick(alert.action)">
+                      <t t-esc="alert.btnLabel"/>
+                    </button>
                   </div>
-                </div>
-
-                <!-- 2. Enrollments Status Breakdown -->
-                <div t-if="this.canOpen('enrollment')" class="col-12 col-lg-4">
-                  <div class="o_modern_panel h-100 shadow-sm">
-                    <div class="o_panel_topbar">
-                      <div>
-                        <h3 class="o_panel_title mb-0">Course Enrollments</h3>
-                        <small class="text-muted">Section Registration States</small>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
-                              t-on-click="() => this.openEnrollments()"
-                              title="Open Student Enrollments">
-                        All Enrollments <i class="fa fa-angle-right ms-1"/>
-                      </button>
-                    </div>
-                    <div class="p-3 d-flex flex-column align-items-center justify-content-center" style="min-height: 240px;">
-                      <div style="position: relative; width: 100%; height: 210px;">
-                        <canvas t-ref="chart_enrollments"/>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 3. Campus Notice Board / Announcements -->
-                <div class="col-12 col-lg-4">
-                  <div class="o_modern_panel h-100 shadow-sm">
-                    <div class="o_panel_topbar">
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="fa fa-bullhorn text-warning"/>
-                        <div>
-                          <h3 class="o_panel_title mb-0">Notice Board</h3>
-                          <small class="text-muted">Announcements &amp; Circulars</small>
-                        </div>
-                      </div>
-                      <button type="button" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary"
-                              t-on-click="() => this.openNoticeBoard()"
-                              title="Open Notice Board">
-                        All Notices <i class="fa fa-angle-right ms-1"/>
-                      </button>
-                    </div>
-                    <div class="p-0 overflow-hidden">
-                      <div class="table-responsive">
-                        <table class="table o_notice_table mb-0">
-                          <thead>
-                            <tr>
-                              <th>Announcement</th>
-                              <th class="text-end">Date</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <t t-if="state.dashboard.notices and state.dashboard.notices.length">
-                              <t t-foreach="state.dashboard.notices" t-as="notice" t-key="notice.id or notice.name">
-                                <tr t-on-click="() => this.openNotice(notice.id)" title="Click to view full circular">
-                                  <td class="o_notice_title text-truncate" style="max-width: 190px;" t-att-title="notice.name">
-                                    <i class="fa fa-file-text-o me-2 text-muted small"/>
-                                    <span t-esc="notice.name"/>
-                                  </td>
-                                  <td class="o_notice_date" t-esc="this.formatNoticeDate(notice.date)"/>
-                                </tr>
-                              </t>
-                            </t>
-                            <t t-else="">
-                              <tr>
-                                <td colspan="2" class="text-center text-muted py-4">No active announcements</td>
-                              </tr>
-                            </t>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </section>
-
-            <!-- ========================================================= -->
-            <!-- OPERATIONAL WORKSPACE TABS (STRUCTURE, FINANCE, ROADMAP)  -->
-            <!-- ========================================================= -->
-            <div class="o_admin_operations_section mt-4 pt-4 border-top">
-              <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-                <div>
-                  <h3 class="h5 fw-bold text-dark mb-1" t-esc="this.operationsTitle"/>
-                  <p class="text-muted small mb-0">
-                    Comprehensive operational workspace across faculties, tuition ledger, and system capabilities.
-                  </p>
-                </div>
-
-                <div class="btn-group btn-group-sm shadow-sm" role="group">
-                  <button type="button" class="btn"
-                          t-att-class="state.activeAdminTab === 'academics' ? 'btn-primary' : 'btn-outline-secondary'"
-                          t-on-click="() => this.setActiveAdminTab('academics')">
-                    <i class="fa fa-university me-1"/> Academic Structure
-                  </button>
-                  <button type="button" class="btn" t-if="this.canOpen('fee')"
-                          t-att-class="state.activeAdminTab === 'finance' ? 'btn-primary' : 'btn-outline-secondary'"
-                          t-on-click="() => this.setActiveAdminTab('finance')">
-                    <i class="fa fa-money me-1"/> Financial Health
-                  </button>
-                  <button type="button" class="btn"
-                          t-att-class="state.activeAdminTab === 'capabilities' ? 'btn-primary' : 'btn-outline-secondary'"
-                          t-on-click="() => this.setActiveAdminTab('capabilities')">
-                    <i class="fa fa-cubes me-1"/> System Roadmap
-                  </button>
-                  <button type="button" class="btn"
-                          t-att-class="state.activeAdminTab === 'all' ? 'btn-primary' : 'btn-outline-secondary'"
-                          t-on-click="() => this.setActiveAdminTab('all')">
-                    <i class="fa fa-th-large me-1"/> Expand All
+                </t>
+              </t>
+              <t t-else="">
+                <!-- Fallback to default two alerts -->
+                <div t-if="state.dashboard.urgent_actions.pending_admissions_count" class="o_alert_pill d-flex align-items-center gap-2 p-2 rounded-2">
+                  <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+                  <span class="small fw-semibold text-dark" t-esc="state.dashboard.urgent_actions.pending_admissions_text">4 Pending Student Admissions need review</span>
+                  <button type="button" class="btn btn-sm o_alert_btn o_alert_btn_amber ms-1" t-on-click="() => this.openAdmissions()">
+                    Review Admissions
                   </button>
                 </div>
-              </div>
 
-              <!-- Workspace Overview Hint -->
-              <div t-if="state.activeAdminTab === 'overview'" class="o_admin_overview_hint shadow-sm mb-4">
-                <div class="d-flex align-items-center gap-2">
-                  <i class="fa fa-info-circle text-primary fs-5"/>
-                  <p class="mb-0">Explore deeper operational modules: Academic Infrastructure, Student Status Distribution, Financial Collections, or System Capabilities.</p>
+                <div t-if="state.dashboard.urgent_actions.schedule_conflicts_count" class="o_alert_pill d-flex align-items-center gap-2 p-2 rounded-2">
+                  <i class="fa fa-exclamation-circle text-danger" aria-hidden="true"></i>
+                  <span class="small fw-semibold text-dark" t-esc="state.dashboard.urgent_actions.schedule_conflicts_text">1 Room Schedule Conflict needs resolution</span>
+                  <button type="button" class="btn btn-sm o_alert_btn o_alert_btn_danger ms-1" t-on-click="() => this.openConflicts()">
+                    Resolve Conflicts
+                  </button>
                 </div>
-                <button type="button" class="btn btn-sm btn-primary" t-on-click="() => this.setActiveAdminTab('all')">
-                  <i class="fa fa-th-large me-1"/> Show Detailed Workspaces
-                </button>
-              </div>
+              </t>
+            </div>
 
-              <!-- TAB 1: ACADEMIC STRUCTURE & SCHEDULING -->
-              <div t-if="state.activeAdminTab === 'academics' or state.activeAdminTab === 'all'" class="mb-4">
-                <!-- Secondary Infrastructure Ribbon -->
-                <div class="row g-3 mb-4">
-                  <div class="col-12 col-sm-6 col-xl-3">
-                    <div class="o_sec_kpi_card shadow-sm">
-                      <div class="o_sec_left">
-                        <div class="o_sec_icon_wrap bg-primary-subtle text-primary" aria-hidden="true">
-                          <i class="fa fa-university"/>
-                        </div>
-                        <span class="o_sec_label">Faculties</span>
-                      </div>
-                      <div class="o_sec_right">
-                        <span class="o_sec_count" t-esc="state.dashboard.faculty_count"/>
-                        <button t-if="this.canOpen('faculty')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('faculty')" title="Open Faculties">
-                          <i class="fa fa-arrow-right"/>
-                        </button>
+            <!-- Current Time Badge -->
+            <div class="text-muted small text-nowrap flex-shrink-0 d-none d-lg-block">
+              <i class="fa fa-clock-o me-1"></i> Updated at <t t-esc="state.lastUpdated"/>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ======================================================= -->
+        <!-- LOADING SKELETON STATE                                  -->
+        <!-- ======================================================= -->
+        <div t-if="state.isLoading or !state.dashboard" class="d-flex flex-column gap-3" aria-busy="true">
+          <div class="row g-3">
+            <t t-foreach="[1,2,3,4]" t-as="i" t-key="i">
+              <div class="col-12 col-md-6 col-xl-3"><div class="o_skeleton_box" style="height: 140px; border-radius: 16px;"></div></div>
+            </t>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-lg-8"><div class="o_skeleton_box" style="height: 360px; border-radius: 16px;"></div></div>
+            <div class="col-12 col-lg-4"><div class="o_skeleton_box" style="height: 360px; border-radius: 16px;"></div></div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- MAIN DASHBOARD CONTENT                                  -->
+        <!-- ======================================================= -->
+        <div t-else="" class="d-flex flex-column gap-3 gap-md-4">
+          
+          <!-- ===================================================== -->
+          <!-- 3. STREAMLINED KPI SUMMARY BLOCK                      -->
+          <!-- 4 Categorized Blocks Matching Admin/Dean/HOD/Teacher -->
+          <!-- ===================================================== -->
+          <section class="o_kpi_summary_section" aria-label="Key Performance Metrics">
+            <div class="row g-3">
+              <t t-foreach="this.kpiCards" t-as="card" t-key="card.key">
+                <div class="col-12 col-md-6 col-xl-3">
+                  <div class="o_kpi_block_card h-100 p-3 p-xl-4 shadow-sm" t-on-click="() => this.handleActionClick(card.action)" role="button" tabindex="0">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span t-attf-class="o_kpi_category_tag text-#{card.color}" t-esc="card.category"/>
+                      <div t-attf-class="o_kpi_icon_bubble bg-#{card.color}-subtle text-#{card.color}">
+                        <i t-attf-class="fa #{card.icon}" aria-hidden="true"></i>
                       </div>
                     </div>
-                  </div>
-
-                  <div class="col-12 col-sm-6 col-xl-3">
-                    <div class="o_sec_kpi_card shadow-sm">
-                      <div class="o_sec_left">
-                        <div class="o_sec_icon_wrap bg-success-subtle text-success" aria-hidden="true">
-                          <i class="fa fa-book"/>
-                        </div>
-                        <span class="o_sec_label">Curriculum Subjects</span>
+                    
+                    <!-- Metric 1 -->
+                    <div class="mb-3">
+                      <div class="d-flex align-items-baseline justify-content-between">
+                        <span class="small text-muted fw-semibold" t-esc="card.metric1.label"/>
+                        <span t-if="card.metric1.growthText" t-attf-class="badge #{card.metric1.growthClass || 'bg-success-subtle text-success'} small fw-bold" t-esc="card.metric1.growthText"/>
                       </div>
-                      <div class="o_sec_right">
-                        <span class="o_sec_count" t-esc="state.dashboard.subject_count"/>
-                        <button t-if="this.canOpen('subject')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('subject')" title="Open Subjects">
-                          <i class="fa fa-arrow-right"/>
-                        </button>
+                      <div class="d-flex align-items-baseline gap-2">
+                        <span t-attf-class="o_kpi_value_large text-#{card.color == 'indigo' ? 'indigo' : (card.color == 'success' ? 'success' : (card.color == 'danger' ? 'danger' : 'dark'))}" t-esc="card.metric1.value"/>
+                        <span t-if="card.metric1.targetText" class="small text-muted" t-esc="card.metric1.targetText"/>
+                      </div>
+                      <div class="o_mini_track mt-1">
+                        <div t-attf-class="o_mini_fill bg-#{card.color}" t-attf-style="width: #{card.metric1.progress}%;"></div>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="col-12 col-sm-6 col-xl-3">
-                    <div class="o_sec_kpi_card shadow-sm">
-                      <div class="o_sec_left">
-                        <div class="o_sec_icon_wrap bg-info-subtle text-info" aria-hidden="true">
-                          <i class="fa fa-users"/>
-                        </div>
-                        <span class="o_sec_label">Class Sections</span>
+                    <!-- Metric 2 -->
+                    <div class="pt-2 border-top">
+                      <div class="d-flex align-items-baseline justify-content-between">
+                        <span class="small text-muted fw-semibold" t-esc="card.metric2.label"/>
+                        <span t-if="card.metric2.statusText" t-attf-class="badge #{card.metric2.statusClass || 'bg-light text-secondary border'} small fw-bold" t-esc="card.metric2.statusText"/>
                       </div>
-                      <div class="o_sec_right">
-                        <span class="o_sec_count" t-esc="state.dashboard.section_count"/>
-                        <button t-if="this.canOpen('section')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('section')" title="Open Class Sections">
-                          <i class="fa fa-arrow-right"/>
-                        </button>
+                      <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-5 fw-bold text-dark" t-esc="card.metric2.value"/>
+                        <span t-if="card.metric2.targetText" class="small text-muted" t-esc="card.metric2.targetText"/>
                       </div>
                     </div>
-                  </div>
 
-                  <div class="col-12 col-sm-6 col-xl-3">
-                    <div class="o_sec_kpi_card shadow-sm">
-                      <div class="o_sec_left">
-                        <div class="o_sec_icon_wrap bg-warning-subtle text-warning" aria-hidden="true">
-                          <i class="fa fa-th"/>
-                        </div>
-                        <span class="o_sec_label">Classrooms</span>
-                      </div>
-                      <div class="o_sec_right">
-                        <span class="o_sec_count" t-esc="state.dashboard.classroom_count"/>
-                        <button t-if="this.canOpen('classroom')" type="button" class="o_sec_action_btn" t-on-click="() => this.go('classroom')" title="Open Classrooms">
-                          <i class="fa fa-arrow-right"/>
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </div>
+              </t>
+            </div>
+          </section>
 
-                <!-- Academic Demographics & Programs Charts -->
-                <div class="row g-4 mb-4">
-                  <!-- Student Academic Status Donut -->
-                  <div class="col-12 col-lg-4">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-pie-chart text-success me-1"/>
-                          <span>Student Academic Status</span>
-                        </h3>
-                        <button t-if="this.canOpen('student')"
-                                t-on-click="() => this.navigate('school_management.action_university_student')"
-                                class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
-                          All Students <i class="fa fa-angle-right ms-1"/>
-                        </button>
-                      </div>
-                      <div class="p-3 d-flex flex-column justify-content-between">
-                        <t t-if="this.hasChartData('status')">
-                          <div class="o_chart_canvas o_chart_canvas_donut">
-                            <canvas t-ref="chart_status"/>
-                          </div>
-                          <div class="o_student_status_breakdown pt-3 border-top mt-2">
-                            <div class="row g-2 text-center">
-                              <div class="col-3">
-                                <div class="o_status_pill p-2 rounded"
-                                     t-on-click="() => this.navigate('school_management.action_university_student')"
-                                     title="View Active Students">
-                                  <div class="small fw-semibold text-muted mb-1">
-                                    <span class="badge rounded-pill bg-success-subtle text-success me-1 px-1">●</span>Active
-                                  </div>
-                                  <div class="fs-5 fw-bold text-success" t-esc="this.state.dashboard?.active_student_count || 0"/>
-                                </div>
-                              </div>
-                              <div class="col-3">
-                                <div class="o_status_pill p-2 rounded"
-                                     t-on-click="() => this.navigate('school_management.action_university_student')"
-                                     title="View Graduated Students">
-                                  <div class="small fw-semibold text-muted mb-1">
-                                    <span class="badge rounded-pill bg-info-subtle text-info me-1 px-1">●</span>Graduated
-                                  </div>
-                                  <div class="fs-5 fw-bold text-info" t-esc="this.state.dashboard?.graduated_student_count || 0"/>
-                                </div>
-                              </div>
-                              <div class="col-3">
-                                <div class="o_status_pill p-2 rounded"
-                                     t-on-click="() => this.navigate('school_management.action_university_student')"
-                                     title="View Suspended Students">
-                                  <div class="small fw-semibold text-muted mb-1">
-                                    <span class="badge rounded-pill bg-warning-subtle text-warning me-1 px-1">●</span>Suspended
-                                  </div>
-                                  <div class="fs-5 fw-bold text-warning" t-esc="this.state.dashboard?.suspended_student_count || 0"/>
-                                </div>
-                              </div>
-                              <div class="col-3">
-                                <div class="o_status_pill p-2 rounded"
-                                     t-on-click="() => this.navigate('school_management.action_university_student')"
-                                     title="View Dropped Students">
-                                  <div class="small fw-semibold text-muted mb-1">
-                                    <span class="badge rounded-pill bg-danger-subtle text-danger me-1 px-1">●</span>Dropped
-                                  </div>
-                                  <div class="fs-5 fw-bold text-danger" t-esc="this.state.dashboard?.dropped_student_count || 0"/>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </t>
-                        <t t-else="">
-                          <div class="o_empty_state my-auto">
-                            <div class="o_empty_icon"><i class="fa fa-pie-chart"/></div>
-                            <div class="o_empty_title">No Student Status Data</div>
-                          </div>
-                        </t>
-                      </div>
+          <!-- ===================================================== -->
+          <!-- 4. MODERN ANALYTICS & DISTRIBUTION GRID (8 + 4 COLS)  -->
+          <!-- ===================================================== -->
+          <section class="o_analytics_grid_section" aria-label="Visual Analytics">
+            <div class="row g-3 g-md-4">
+              
+              <!-- LEFT COLUMN (8 COLS): ENROLLMENT OVERVIEW TREND CHART -->
+              <div class="col-12 col-lg-8">
+                <div class="o_chart_card h-100 p-4 shadow-sm d-flex flex-column">
+                  <div class="d-flex flex-column flex-sm-row align-items-sm-start justify-content-between mb-3 gap-2">
+                    <div>
+                      <h3 class="o_card_title mb-1" t-esc="this.trendTitle">Enrollment Overview</h3>
+                      <p class="o_card_subtitle text-muted mb-0" t-esc="this.trendSubtitle">Historical term comparisons with calibrated vertical scaling</p>
+                    </div>
+                    <div class="o_legend_pill d-flex align-items-center gap-2 flex-shrink-0">
+                      <span class="o_legend_box bg-indigo"></span>
+                      <span class="small fw-semibold text-secondary" t-esc="this.trendLegend">Enrolled Students</span>
                     </div>
                   </div>
-
-                  <!-- Students per Major / Degree Program Bar Chart -->
-                  <div class="col-12 col-lg-8">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-bar-chart text-primary me-1"/>
-                          <span>Students per Degree Program / Major</span>
-                        </h3>
-                        <button t-if="this.canOpen('program')"
-                                t-on-click="() => this.navigate('school_management.action_university_program')"
-                                class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
-                          All Programs <i class="fa fa-angle-right ms-1"/>
-                        </button>
-                      </div>
-                      <div class="p-4 d-flex flex-column justify-content-center" style="min-height: 280px;">
-                        <t t-if="this.hasChartData('program')">
-                          <div class="o_chart_canvas o_chart_canvas_bar">
-                            <canvas t-ref="chart_program"/>
-                          </div>
-                        </t>
-                        <t t-else="">
-                          <div class="o_empty_state">
-                            <div class="o_empty_icon"><i class="fa fa-bar-chart"/></div>
-                            <div class="o_empty_title">No Program Enrollment Data</div>
-                          </div>
-                        </t>
-                      </div>
-                    </div>
+                  
+                  <!-- Chart Canvas -->
+                  <div class="o_chart_canvas_wrap flex-grow-1" style="height: 280px;">
+                    <canvas t-ref="chart_enrollment"></canvas>
                   </div>
                 </div>
               </div>
 
-              <!-- TAB 2: FINANCIAL HEALTH & RECENT TRANSACTIONS -->
-              <div t-if="(state.activeAdminTab === 'finance' or state.activeAdminTab === 'all') and this.canOpen('fee')" class="mb-4">
-                <div class="row g-4 mb-4">
-                  <!-- Fee Collection Health Meter -->
-                  <div class="col-12 col-lg-6">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-money text-success me-1"/>
-                          <span>Tuition Billing &amp; Collections</span>
-                        </h3>
-                        <button t-on-click="() => this.openFees()" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
-                          View Invoices <i class="fa fa-angle-right ms-1"/>
-                        </button>
-                      </div>
-                      <div class="p-4">
-                        <div class="row g-2 mb-3">
-                          <div class="col-4">
-                            <div class="o_finance_stat border rounded">
-                              <div class="o_finance_label">Invoices</div>
-                              <div class="o_finance_num text-dark" t-esc="state.dashboard.fee_count"/>
-                            </div>
-                          </div>
-                          <div class="col-4">
-                            <div class="o_finance_stat border rounded bg-success-subtle border-success-subtle">
-                              <div class="o_finance_label text-success">Collected</div>
-                              <div class="o_finance_num text-success" t-esc="this.formatCurrency(state.dashboard.total_paid_fees)"/>
-                            </div>
-                          </div>
-                          <div class="col-4">
-                            <div class="o_finance_stat border rounded bg-danger-subtle border-danger-subtle">
-                              <div class="o_finance_label text-danger">Outstanding</div>
-                              <div class="o_finance_num text-danger" t-esc="this.formatCurrency(state.dashboard.total_unpaid_fees)"/>
-                            </div>
-                          </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="mb-3">
-                          <div class="d-flex justify-content-between align-items-center small mb-1">
-                            <span class="text-muted fw-semibold">Collection Rate</span>
-                            <span class="fw-bold text-success"><t t-esc="this.getFeeCollectionRate()"/>% Collected</span>
-                          </div>
-                          <div class="o_finance_progress_bar" role="progressbar" t-att-aria-valuenow="this.getFeeCollectionRate()" aria-valuemin="0" aria-valuemax="100">
-                            <div class="o_bar_paid" t-attf-style="width: #{this.getFeeCollectionRate()}%;"></div>
-                          </div>
-                        </div>
-
-                        <div class="d-flex align-items-center justify-content-between small text-muted pt-2 border-top">
-                          <span>Tuition, lab, and operational fee invoices</span>
-                          <button t-on-click="() => this.openPayments()" class="btn btn-sm btn-link p-0 text-decoration-none fw-semibold text-success">
-                            Payment Receipts Ledger <i class="fa fa-arrow-right ms-1"/>
-                          </button>
-                        </div>
-                      </div>
+              <!-- RIGHT COLUMN (4 COLS): STUDENT DISTRIBUTION DOUGHNUT CHART -->
+              <div class="col-12 col-lg-4">
+                <div class="o_chart_card h-100 p-4 shadow-sm d-flex flex-column">
+                  <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div>
+                      <h3 class="o_card_title mb-1" t-esc="this.distributionTitle">Student Distribution</h3>
+                      <p class="o_card_subtitle text-muted mb-0" t-esc="this.distributionSubtitle">By academic faculty &amp; program</p>
                     </div>
                   </div>
+                  
+                  <!-- Doughnut Chart Canvas -->
+                  <div class="o_chart_canvas_wrap my-2" style="height: 180px;">
+                    <canvas t-ref="chart_program"></canvas>
+                  </div>
 
-                  <!-- Recent Payment Receipts Stream -->
-                  <div class="col-12 col-lg-6">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-credit-card text-success me-1"/>
-                          <span>Recent Payment Receipts</span>
-                        </h3>
-                        <button t-on-click="() => this.openPayments()" class="btn btn-sm btn-link text-decoration-none fw-semibold text-primary">
-                          All Receipts <i class="fa fa-angle-right ms-1"/>
-                        </button>
-                      </div>
-                      <div class="p-0">
-                        <t t-if="state.chartData and state.chartData.recent_payments and state.chartData.recent_payments.length > 0">
-                          <ul class="o_payment_list">
-                            <t t-foreach="state.chartData.recent_payments" t-as="payment" t-key="payment.id">
-                              <li class="o_payment_item">
-                                <div class="d-flex align-items-center gap-3">
-                                  <div class="o_student_avatar" aria-hidden="true" t-esc="this.getStudentInitials(payment.student_name)"/>
-                                  <div>
-                                    <div class="o_payment_name" t-esc="payment.student_name"/>
-                                    <div class="o_payment_date d-flex align-items-center gap-2">
-                                      <span class="badge bg-light text-muted border px-1" t-esc="payment.name || 'Receipt'"/>
-                                      <span><i class="fa fa-calendar-o me-1"/><t t-esc="payment.date"/></span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="o_payment_amount" t-esc="this.formatCurrency(payment.amount)"/>
-                              </li>
-                            </t>
-                          </ul>
-                        </t>
-                        <t t-else="">
-                          <div class="o_empty_state py-4">
-                            <div class="o_empty_icon"><i class="fa fa-file-text-o"/></div>
-                            <div class="o_empty_title">No Payment Receipts Yet</div>
-                            <div class="o_empty_desc">Confirmed payments will display here in real time.</div>
+                  <!-- Program Breakdown Legend List -->
+                  <div class="o_program_breakdown_list mt-auto pt-2 border-top">
+                    <t t-if="state.chartData and state.chartData.program_distribution and state.chartData.program_distribution.breakdown">
+                      <div class="d-flex flex-column gap-2">
+                        <t t-foreach="state.chartData.program_distribution.breakdown" t-as="prog" t-key="prog.name">
+                          <div class="d-flex align-items-center justify-content-between small">
+                            <div class="d-flex align-items-center gap-2 text-truncate">
+                              <span class="o_prog_dot flex-shrink-0" t-attf-style="background-color: #{prog.color};"></span>
+                              <span class="o_prog_name text-truncate text-secondary fw-semibold" t-esc="prog.name"></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                              <span class="text-muted fw-bold"><t t-esc="prog.count"/></span>
+                              <span class="o_prog_badge fw-bold" t-attf-style="color: #{prog.color}; background-color: #{prog.color}15;">
+                                <t t-esc="prog.percentage"/>%
+                              </span>
+                            </div>
                           </div>
                         </t>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- TAB 3: SYSTEM CAPABILITIES & ROADMAP -->
-              <div t-if="state.activeAdminTab === 'capabilities' or state.activeAdminTab === 'all'" class="mb-4">
-                <div class="row g-4">
-                  <!-- Quick Operational Shortcuts -->
-                  <div class="col-12 col-md-6">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-bolt text-warning me-1"/>
-                          <span>Quick Academic Operations</span>
-                        </h3>
-                      </div>
-                      <div class="p-4 d-flex flex-column gap-2">
-                        <button t-if="this.canOpen('academic_year')"
-                                t-on-click="() => this.navigate('school_management.action_university_academic_year')"
-                                class="o_quick_op_btn">
-                          <div class="d-flex align-items-center gap-2">
-                            <i class="fa fa-calendar-check-o text-primary"/>
-                            <span>Academic Years &amp; Semesters</span>
-                          </div>
-                          <i class="fa fa-chevron-right text-muted small"/>
-                        </button>
-
-                        <button t-if="this.canOpen('section')"
-                                t-on-click="() => this.navigate('school_management.action_university_class_section')"
-                                class="o_quick_op_btn">
-                          <div class="d-flex align-items-center gap-2">
-                            <i class="fa fa-users text-primary"/>
-                            <span>Class Sections &amp; Schedules</span>
-                          </div>
-                          <i class="fa fa-chevron-right text-muted small"/>
-                        </button>
-
-                        <button t-if="state.isFullAccess"
-                                t-on-click="() => this.openRoleAssignments()"
-                                class="o_quick_op_btn">
-                          <div class="d-flex align-items-center gap-2">
-                            <i class="fa fa-sitemap text-primary"/>
-                            <span>Academic Leadership &amp; Role Appointments</span>
-                          </div>
-                          <i class="fa fa-chevron-right text-muted small"/>
-                        </button>
-
-                        <button t-if="this.canOpen('attendance')"
-                                t-on-click="() => this.openAtRiskAttendance()"
-                                class="o_quick_op_btn">
-                          <div class="d-flex align-items-center gap-2">
-                            <i class="fa fa-exclamation-triangle text-danger"/>
-                            <span>At-Risk Student Attendance Tracker</span>
-                          </div>
-                          <i class="fa fa-chevron-right text-muted small"/>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- System Capabilities & Roadmap Completion -->
-                  <div class="col-12 col-md-6">
-                    <div class="o_modern_panel h-100 shadow-sm">
-                      <div class="o_panel_topbar">
-                        <h3 class="o_panel_title mb-0">
-                          <i class="fa fa-cubes text-primary me-1"/>
-                          <span>System Capabilities &amp; Roadmap</span>
-                        </h3>
-                      </div>
-                      <div class="p-4">
-                        <div class="o_cap_overview mb-3">
-                          <div class="d-flex align-items-center justify-content-between mb-1">
-                            <div class="fw-bold fs-4 text-dark"><t t-esc="this.capabilityOverall().pct"/>%</div>
-                            <div class="text-muted small">
-                              <span class="fw-semibold text-dark" t-esc="this.capabilityOverall().live"/> of <t t-esc="this.capabilityOverall().total"/> capabilities live
-                            </div>
-                          </div>
-                          <div class="o_cap_progress">
-                            <div class="o_cap_progress_fill" t-att-style="'width: ' + this.capabilityOverall().pct + '%'"/>
-                          </div>
-                        </div>
-
-                        <!-- Capability Feed -->
-                        <div class="o_cap_items_scroll">
-                          <ul class="list-unstyled mb-0 o_cap_items">
-                            <t t-foreach="this.state.capabilities" t-as="cap" t-key="cap.id">
-                              <li class="o_cap_item mb-2 p-2 rounded border bg-light d-flex align-items-center justify-content-between"
-                                  t-on-click="() => this.openCapability(cap)">
-                                <div class="d-flex align-items-center gap-2 min-w-0">
-                                  <i class="fa" t-att-class="(cap.icon || 'fa-cube') + ' ' + this.capabilityIconTone(cap.status)"/>
-                                  <div class="text-truncate">
-                                    <strong class="text-dark small d-block text-truncate" t-esc="cap.name"/>
-                                    <small class="text-muted" t-if="cap.release_version" t-esc="cap.release_version"/>
-                                  </div>
-                                </div>
-                                <span class="badge" t-att-class="this.capabilityBadge(cap.status)" t-esc="this.capabilityStatusLabel(cap.status)"/>
-                              </li>
-                            </t>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+                    </t>
                   </div>
                 </div>
               </div>
 
             </div>
-          </div>
+          </section>
+
+          <!-- ===================================================== -->
+          <!-- 5. BOTTOM ROW: QUICK OPERATIONS SHORTCUTS              -->
+          <!-- Role-Tailored Administrative & Academic Actions       -->
+          <!-- ===================================================== -->
+          <section class="o_quick_ops_section" aria-label="Quick Operations">
+            <div class="o_quick_ops_container p-4 shadow-sm rounded-4 bg-white border">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                  <h3 class="o_card_title mb-0">Quick Operations</h3>
+                  <p class="small text-muted mb-0">Frequently used administrative actions and entry points</p>
+                </div>
+                <span class="badge bg-light text-secondary border small px-2 py-1" t-esc="this.quickOpsBadge">Executive Shortcuts</span>
+              </div>
+              
+              <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-6">
+                <t t-foreach="this.quickOps" t-as="op" t-key="op.id">
+                  <div class="col">
+                    <button type="button" class="btn o_quick_op_tile w-100 p-3 text-start d-flex flex-column gap-2" t-on-click="() => this.handleActionClick(op.action)">
+                      <div t-attf-class="o_op_icon_wrap bg-#{op.color}-subtle text-#{op.color}">
+                        <i t-attf-class="fa #{op.icon}" aria-hidden="true"></i>
+                      </div>
+                      <div>
+                        <div class="o_op_title fw-bold text-dark text-truncate" t-esc="op.title"/>
+                        <div class="o_op_desc small text-muted text-truncate" t-esc="op.desc"/>
+                      </div>
+                    </button>
+                  </div>
+                </t>
+              </div>
+            </div>
+          </section>
+
         </div>
-      </t>
-    </main>
+
+      </div>
+    </div>
+    </div>
   </t>
 
 </templates>

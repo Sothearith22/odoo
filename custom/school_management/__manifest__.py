@@ -157,6 +157,9 @@
             "school_management/static/src/views/calendar/timetable_calendar_renderer.xml",
             "school_management/static/src/views/calendar/timetable_calendar.scss",
         ],
+        "web.assets_frontend": [
+            "school_management/static/src/scss/student_portal.scss",
+        ],
     },
     "installable": True,
     "application": True,
