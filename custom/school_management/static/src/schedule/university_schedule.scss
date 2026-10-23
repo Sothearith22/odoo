@@ -89,6 +89,51 @@ $uni-teal-subtle: #f0fdfa;
     // Top Header & Brand
     .o_schedule_top_bar {
         flex-shrink: 0;
+        position: relative;
+        background:
+            linear-gradient(112deg, rgba(111, 66, 193, 0.07), transparent 34%),
+            #ffffff;
+
+        .o_schedule_workspace_icon {
+            width: 2.35rem;
+            height: 2.35rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border-radius: 0.72rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, $uni-purple, #3b2a70);
+            box-shadow: 0 5px 13px rgba(111, 66, 193, 0.22);
+        }
+
+        .o_schedule_eyebrow {
+            color: #64748b;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        .o_schedule_workspace_title {
+            color: #172033;
+            font-size: 1.12rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            line-height: 1.25;
+        }
+
+        .o_schedule_btn_new {
+            border-radius: 0.55rem;
+        }
+
+        .o_schedule_date_navigator {
+            padding: 0.28rem 0.38rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.7rem;
+            background: rgba(255, 255, 255, 0.82);
+        }
 
         .o_schedule_brand_icon {
             width: 38px;
@@ -126,6 +171,72 @@ $uni-teal-subtle: #f0fdfa;
         flex: 1 1 0;
         min-height: 520px;
         height: calc(100vh - 126px);
+    }
+
+    .o_schedule_all_sections_empty {
+        min-width: 0;
+
+        .o_all_sections_message {
+            max-width: 31rem;
+            padding: 2rem;
+            border: 1px solid #dbe2ee;
+            border-radius: 1rem;
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(30, 41, 59, 0.06);
+
+            .o_all_sections_icon {
+                display: inline-flex;
+                width: 3rem;
+                height: 3rem;
+                margin-bottom: 0.8rem;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.85rem;
+                color: $uni-purple;
+                background: $uni-purple-subtle;
+                font-size: 1.25rem;
+            }
+
+            h2 {
+                margin: 0 0 0.45rem;
+                color: #172033;
+                font-size: 1rem;
+                font-weight: 800;
+            }
+
+            p {
+                margin: 0 0 1rem;
+                color: #64748b;
+                font-size: 0.82rem;
+                line-height: 1.55;
+            }
+        }
+    }
+
+    .o_schedule_admin_hero {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #dbe2ee;
+        background: linear-gradient(105deg, #fbfaff 0%, #f8fafc 52%, #eef6ff 100%);
+
+        .o_schedule_admin_greeting {
+            color: $uni-purple;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .o_schedule_admin_heading {
+            color: #111827;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.035em;
+        }
+
+        .o_schedule_admin_subtitle {
+            color: #64748b;
+            font-size: 0.81rem;
+        }
     }
 
     // Left Grid Pane
@@ -282,6 +393,68 @@ $uni-teal-subtle: #f0fdfa;
     // Right Table Pane (Available Spaces)
     .o_schedule_table_pane {
         flex-shrink: 0;
+
+        .o_schedule_resource_sidebar {
+            background: #f8fafc;
+        }
+
+        .o_resource_panel_title {
+            color: #1e293b;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+        }
+
+        .o_resource_panel {
+            overflow: hidden;
+            border: 1px solid #dbe2ee;
+            border-radius: 0.6rem;
+            background: #ffffff;
+
+            h3 {
+                margin: 0;
+                padding: 0.55rem 0.65rem;
+                border-bottom: 1px solid #e8edf5;
+                color: #1e293b;
+                font-size: 0.76rem;
+                font-weight: 800;
+            }
+        }
+
+        .o_resource_item {
+            padding: 0.48rem 0.65rem;
+            border-bottom: 1px solid #f0f3f8;
+            color: #334155;
+            font-size: 0.75rem;
+
+            &:last-child {
+                border-bottom: 0;
+            }
+        }
+
+        .o_availability_dot {
+            width: 0.55rem;
+            height: 0.55rem;
+            margin-top: 0.24rem;
+            border-radius: 999px;
+
+            &.is-free { background: #22a06b; box-shadow: 0 0 0 3px #dcfce7; }
+            &.is-busy { background: #e5484d; box-shadow: 0 0 0 3px #ffe4e6; }
+        }
+
+        .o_conflict_summary {
+            &.has-conflicts { border-color: #fecaca; background: #fffafa; }
+            &.is-clear { border-color: #bbf7d0; background: #f7fef9; }
+
+            > div, > button {
+                margin-left: 0.65rem;
+                margin-right: 0.65rem;
+            }
+
+            > div { padding-top: 0.55rem; }
+            > button { margin-bottom: 0.65rem; }
+        }
 
         .o_classes_table {
             font-size: 0.81rem;

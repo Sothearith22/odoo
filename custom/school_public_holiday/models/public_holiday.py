@@ -69,6 +69,18 @@ class PublicHoliday(models.Model):
     )
     active = fields.Boolean(string="Active", default=True, tracking=True)
     note = fields.Text(string="Note")
+    notice_id = fields.Many2one(
+        "university.notice.board",
+        string="Linked Notice",
+        ondelete="set null",
+        index=True,
+        copy=False,
+        readonly=True,
+    )
+    auto_publish_notice = fields.Boolean(
+        string="Auto-publish Notice",
+        help="Create or update the linked Notice Board announcement when this holiday is saved.",
+    )
 
     session_count = fields.Integer(
         string="Session Count",
@@ -364,6 +376,8 @@ class PublicHoliday(models.Model):
             for h in holidays:
                 if h.session_count > 0:
                     _logger.warning("Created holiday '%s' affects %d sessions.", h.name, h.session_count)
+        for holiday in holidays.filtered("auto_publish_notice"):
+            holiday._sync_notice()
         return holidays
 
     def write(self, vals):
@@ -379,11 +393,80 @@ class PublicHoliday(models.Model):
                 if not rec.date_to or rec.date_to < fields.Date.to_date(vals["date_from"]):
                     vals["date_to"] = vals["date_from"]
         res = super().write(vals)
+        if not self.env.context.get("skip_notice_sync"):
+            notice_fields_changed = bool(
+                {"name", "date_from", "date_to", "active", "auto_publish_notice"} & set(vals)
+            )
+            if notice_fields_changed:
+                for holiday in self:
+                    if holiday.notice_id or holiday.auto_publish_notice:
+                        holiday._sync_notice()
         if len(self) <= 20:
             for h in self:
                 if h.session_count > 0:
                     _logger.warning("Holiday '%s' affects %d sessions.", h.name, h.session_count)
         return res
+
+    def unlink(self):
+        self.mapped("notice_id").sudo().write({"active": False})
+        return super().unlink()
+
+    def _next_working_day(self, value):
+        """Return the next weekday which is not another active holiday."""
+        candidate = fields.Date.to_date(value) + timedelta(days=1)
+        while candidate.weekday() >= 5 or self.is_holiday(candidate):
+            candidate += timedelta(days=1)
+        return candidate
+
+    def _notice_values(self):
+        self.ensure_one()
+        start = fields.Date.to_string(self.date_from)
+        end = fields.Date.to_string(self.date_to or self.date_from)
+        next_working_day = fields.Date.to_string(self._next_working_day(self.date_to or self.date_from))
+        return {
+            "name": _("%s Holiday") % self.name,
+            "date": fields.Date.context_today(self),
+            "notice_type": "holiday",
+            "target_audience": "all",
+            "academic_year_id": self.academic_year_id.id or False,
+            "content": _(
+                "<p>Classes are closed from %(start)s to %(end)s. "
+                "Classes resume on %(next_working_day)s.</p>"
+            ) % {
+                "start": start,
+                "end": end,
+                "next_working_day": next_working_day,
+            },
+            "holiday_id": self.id,
+            "active": bool(self.active),
+        }
+
+    def _sync_notice(self):
+        """Create or update exactly one Notice Board record for this holiday."""
+        Notice = self.env["university.notice.board"].sudo()
+        for holiday in self:
+            notice = holiday.notice_id.sudo()
+            if not notice:
+                notice = Notice.search([("holiday_id", "=", holiday.id)], limit=1)
+            if notice:
+                notice.write(holiday._notice_values())
+            else:
+                notice = Notice.create(holiday._notice_values())
+            if holiday.notice_id != notice:
+                holiday.with_context(skip_notice_sync=True).write({"notice_id": notice.id})
+        return self.mapped("notice_id")
+
+    def action_publish_as_notice(self):
+        self.ensure_one()
+        self._sync_notice()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Holiday Notice"),
+            "res_model": "university.notice.board",
+            "view_mode": "form",
+            "res_id": self.notice_id.id,
+            "target": "current",
+        }
 
     # -------------------------------------------------------------------------
     # ACTIONS

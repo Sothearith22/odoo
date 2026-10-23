@@ -1,4 +1,6 @@
 from . import public_holiday
+from . import notice_board
+from . import dashboard
 from . import holiday_import_log
 from . import timetable_slot
 from . import timetable_generation

@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 
 class UniversityPopulateClassWizard(models.TransientModel):
@@ -86,6 +86,8 @@ class UniversityPopulateClassWizard(models.TransientModel):
         )
 
     def action_select_all_eligible(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can populate a class."))
         self.ensure_one()
         enrollments = self._eligible_enrollments()
         if not enrollments:
@@ -101,6 +103,8 @@ class UniversityPopulateClassWizard(models.TransientModel):
         }
 
     def action_populate_class(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can populate a class."))
         self.ensure_one()
         if not self.enrollment_ids:
             raise UserError("Select at least one enrollment to assign.")

@@ -19,6 +19,7 @@ from . import test_teacher_managed_scopes
 from . import test_semester_subject
 from . import test_staff_attendance
 from . import test_role_dashboard_access
+from . import test_class_section_access
 from . import test_transcript_request
 from . import test_timetable_attendance_flow
 from . import test_timetable_generation

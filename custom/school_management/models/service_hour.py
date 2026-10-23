@@ -6,6 +6,7 @@ class UniversityServiceHour(models.Model):
     _name = "university.service.hour"
     _description = "Service Hour"
     _order = "create_date desc"
+    # _inherit = ['mail.theard','mail.activity.mixin']
 
     name = fields.Char(
         string="Title",

@@ -9,7 +9,7 @@ function localToday() {
     return new Date().getFullYear();
 }
 
-class AttendanceComparison extends Component {
+export class AttendanceComparison extends Component {
     static template = "school_management.AttendanceComparison";
     static props = ["*"];
 
@@ -104,7 +104,7 @@ class AttendanceComparison extends Component {
     }
 
     openSectionSheet(sectionId) {
-        this.action.doAction("school_management.action_university_attendance_sheet", {
+        this.action.doAction("school_management.action_university_attendance_session", {
             additionalContext: {
                 default_section_id: sectionId,
                 section_id: sectionId,

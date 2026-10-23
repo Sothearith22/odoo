@@ -3,7 +3,7 @@ from datetime import datetime, time, timedelta
 import pytz
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -156,6 +156,8 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
             return Slot, exc.args[0], []
 
     def action_generate_timetable(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can schedule a timetable."))
         self.ensure_one()
         if self.semester_id.academic_year_id != self.academic_year_id:
             raise UserError(_("The semester must belong to the selected academic year."))

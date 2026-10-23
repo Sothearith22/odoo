@@ -40,3 +40,8 @@ from . import exam
 from . import advising
 from . import transcript_request
 from . import curriculum
+from . import course_evaluation
+from . import course_registration
+from . import service_request
+from . import student_change_request
+from . import fee_payment_wizard

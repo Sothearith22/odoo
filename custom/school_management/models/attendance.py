@@ -34,36 +34,245 @@ class UniversityAttendanceSession(models.Model):
     _order = "date desc, id desc"
 
     section_id = fields.Many2one(
-        "university.class.section", string="Class Section", required=True, ondelete="cascade",
+        "university.class.section",
+        string="Class Section",
+        required=True,
+        ondelete="cascade",
+        tracking=True,
     )
-    date = fields.Date(required=True)
+    date = fields.Date(
+        required=True,
+        default=fields.Date.context_today,
+        tracking=True,
+    )
     state = fields.Selection(
         [("draft", "Not recorded"), ("recorded", "Recorded")],
-        default="draft", required=True, tracking=True,
+        default="draft",
+        required=True,
+        tracking=True,
     )
     notes = fields.Text(string="Session Notes", tracking=True)
     recorded_by_id = fields.Many2one("res.users", string="Last Recorded By", readonly=True)
     recorded_at = fields.Datetime(string="Last Recorded At", readonly=True)
 
+    attendance_ids = fields.One2many(
+        "university.attendance",
+        "session_id",
+        string="Students",
+    )
+    subject_id = fields.Many2one(
+        related="section_id.subject_id", string="Subject", readonly=True, store=False,
+    )
+    teacher_id = fields.Many2one(
+        related="section_id.teacher_id", string="Teacher", readonly=True, store=False,
+    )
+    department_id = fields.Many2one(
+        related="section_id.department_id", string="Department", readonly=True, store=False,
+    )
+    semester_id = fields.Many2one(
+        related="section_id.semester_id", string="Semester", readonly=True, store=False,
+    )
+    academic_year_id = fields.Many2one(
+        related="section_id.semester_id.academic_year_id",
+        string="Academic Year",
+        readonly=True,
+        store=False,
+    )
+    classroom_id = fields.Many2one(
+        related="section_id.classroom_id", string="Classroom", readonly=True, store=False,
+    )
+
+    present_count = fields.Integer(compute="_compute_status_counts")
+    late_count = fields.Integer(compute="_compute_status_counts")
+    absent_count = fields.Integer(compute="_compute_status_counts")
+    excused_count = fields.Integer(compute="_compute_status_counts")
+    total_count = fields.Integer(compute="_compute_status_counts")
+    attendance_rate = fields.Float(
+        string="Attendance Rate",
+        compute="_compute_status_counts",
+        digits=(16, 1),
+    )
+
     _section_date_unique = models.Constraint(
-        "unique (section_id, date)", "An attendance session already exists for this section and date.",
+        "unique (section_id, date)",
+        "An attendance session already exists for this section and date.",
     )
 
     @api.depends("section_id.name", "date")
     def _compute_display_name(self):
         for session in self:
             session.display_name = _("%(section)s - %(date)s") % {
-                "section": session.section_id.name,
+                "section": session.section_id.name or _("Section"),
                 "date": format_date(self.env, session.date) if session.date else _("No date"),
             }
 
+    @api.depends("attendance_ids.status")
+    def _compute_status_counts(self):
+        Attendance = self.env["university.attendance"]
+        for session in self:
+            counts = {"present": 0, "late": 0, "absent": 0, "excused": 0}
+            for line in session.attendance_ids:
+                if line.status in counts:
+                    counts[line.status] += 1
+            session.present_count = counts["present"]
+            session.late_count = counts["late"]
+            session.absent_count = counts["absent"]
+            session.excused_count = counts["excused"]
+            session.total_count = sum(counts.values())
+            session.attendance_rate = Attendance._attendance_percentage(counts)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        sessions = super().create(vals_list)
+        sessions._sync_attendance_lines()
+        return sessions
+
+    def write(self, vals):
+        res = super().write(vals)
+        if {"section_id", "date"} & set(vals):
+            self._sync_attendance_lines()
+        return res
+
+    def _sync_attendance_lines(self):
+        """Ensure one attendance line per enrolled student for this session."""
+        Attendance = self.env["university.attendance"]
+        for session in self:
+            if not session.section_id or not session.date:
+                continue
+            # Attach orphan lines for the same section/date
+            orphans = Attendance.search([
+                ("section_id", "=", session.section_id.id),
+                ("date", "=", session.date),
+                ("session_id", "=", False),
+            ])
+            if orphans:
+                orphans.write({"session_id": session.id})
+
+            students = Attendance._attendance_sheet_students(session.section_id)
+            existing = {
+                line.student_id.id: line
+                for line in session.attendance_ids
+            }
+            to_create = []
+            for student in students:
+                if student.id in existing:
+                    continue
+                to_create.append({
+                    "session_id": session.id,
+                    "student_id": student.id,
+                    "section_id": session.section_id.id,
+                    "date": session.date,
+                    "status": "present",
+                })
+            if to_create:
+                Attendance.create(to_create)
+
+    def action_load_students(self):
+        self.ensure_one()
+        self._sync_attendance_lines()
+        return True
+
+    def action_mark_all_present(self):
+        return self._mark_all("present")
+
+    def action_mark_all_late(self):
+        return self._mark_all("late")
+
+    def action_mark_all_absent(self):
+        return self._mark_all("absent")
+
+    def action_mark_all_excused(self):
+        return self._mark_all("excused")
+
+    def _mark_all(self, status):
+        self.ensure_one()
+        self._sync_attendance_lines()
+        self.attendance_ids.write({"status": status})
+        return True
+
+    def action_save_attendance(self):
+        """Confirm the roster and post a log note on the session chatter."""
+        self.ensure_one()
+        Attendance = self.env["university.attendance"]
+        if not Attendance._allowed_edit(self.section_id):
+            raise AccessError(
+                _("You are not allowed to record attendance for this class section.")
+            )
+        self._sync_attendance_lines()
+        if not self.attendance_ids:
+            raise ValidationError(_("No student attendance lines are available to save."))
+
+        today = fields.Date.context_today(self)
+        if self.date > today:
+            raise ValidationError(_("Attendance cannot be recorded for a future date."))
+
+        labels = dict(Attendance._fields["status"].selection)
+        changes = [
+            _("%(student)s: %(status)s") % {
+                "student": line.student_id.display_name,
+                "status": labels.get(line.status, line.status),
+            }
+            for line in self.attendance_ids
+        ]
+        self.write({
+            "state": "recorded",
+            "recorded_by_id": self.env.uid,
+            "recorded_at": fields.Datetime.now(),
+        })
+        body = Markup("<p>%s</p>") % _("Attendance recorded")
+        if changes:
+            body += Markup("<ul>%s</ul>") % Markup("").join(
+                Markup("<li>%s</li>") % change for change in changes[:40]
+            )
+            if len(changes) > 40:
+                body += Markup("<p>%s</p>") % _(
+                    "…and %(count)s more", count=len(changes) - 40
+                )
+        self.message_post(body=body, subtype_xmlid="mail.mt_note")
+        return True
+
     def action_open_sheet(self):
+        """Open this session form (native kanban / list / chatter UI)."""
         self.ensure_one()
         self.check_access("read")
-        action = self.env.ref("school_management.action_university_attendance_sheet").read()[0]
+        self._sync_attendance_lines()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Student Attendance Management"),
+            "res_model": self._name,
+            "res_id": self.id,
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "current",
+            "context": dict(self.env.context),
+        }
+
+    @api.model
+    def action_open_or_create(self, section_id=None, date=None):
+        """Open or create a session for section/date (used by menus and schedule)."""
+        section_id = int(section_id or self.env.context.get("default_section_id") or 0)
+        att_date = date or self.env.context.get("default_date") or fields.Date.context_today(self)
+        if isinstance(att_date, str):
+            att_date = fields.Date.to_date(att_date)
+        domain = []
+        if section_id:
+            domain.append(("section_id", "=", section_id))
+        if att_date:
+            domain.append(("date", "=", att_date))
+        session = self.search(domain, limit=1) if domain else self.browse()
+        if not session and section_id and att_date:
+            session = self.create({"section_id": section_id, "date": att_date})
+        elif session:
+            session._sync_attendance_lines()
+        action = self.env.ref("school_management.action_university_attendance_session").read()[0]
+        if session:
+            action["res_id"] = session.id
+            action["view_mode"] = "form"
+            action["views"] = [(False, "form")]
         action["context"] = {
-            "default_section_id": self.section_id.id,
-            "default_date": fields.Date.to_string(self.date),
+            **dict(self.env.context),
+            "default_section_id": section_id or False,
+            "default_date": fields.Date.to_string(att_date) if att_date else False,
         }
         return action
 
@@ -73,10 +282,16 @@ class UniversityAttendance(models.Model):
     _description = "Student Attendance"
     _order = "date desc, id desc"
 
+    session_id = fields.Many2one(
+        "university.attendance.session",
+        string="Attendance Session",
+        ondelete="cascade",
+        index=True,
+    )
     student_id = fields.Many2one("university.student", string="Student", required=True)
     section_id = fields.Many2one("university.class.section", string="Grade/Section", required=True)
     teacher_id = fields.Many2one(
-        "university.teacher", 
+        "university.teacher",
         string="Teacher",
         related="section_id.teacher_id",
         store=True,
@@ -91,9 +306,12 @@ class UniversityAttendance(models.Model):
         ],
         string="Status",
         required=True,
-        default="present"
+        default="present",
     )
     remark = fields.Char(string="Remarks")
+    student_code = fields.Char(
+        related="student_id.student_id", string="Student ID", readonly=True,
+    )
     department_id = fields.Many2one(
         "university.department",
         string="Department",
@@ -475,6 +693,17 @@ class UniversityAttendance(models.Model):
                 "remark": (line.get("remark") or "").strip(),
             }
 
+        Session = self.env["university.attendance.session"]
+        session = Session.search([
+            ("section_id", "=", section.id), ("date", "=", attendance_date),
+        ], limit=1)
+        first_save = not session
+        if not session and normalized_lines:
+            # create() auto-syncs enrolled students onto attendance_ids
+            session = Session.create({"section_id": section.id, "date": attendance_date})
+        elif session:
+            session._sync_attendance_lines()
+
         existing = self.search([
             ("section_id", "=", section.id),
             ("date", "=", attendance_date),
@@ -491,6 +720,7 @@ class UniversityAttendance(models.Model):
                 "date": attendance_date,
                 "status": values["status"],
                 "remark": values["remark"],
+                "session_id": session.id if session else False,
             }
             attendance = existing_by_student.get(student_id)
             if attendance:
@@ -503,7 +733,11 @@ class UniversityAttendance(models.Model):
                     changes.append(_("%(student)s: attendance note updated") % {
                         "student": attendance.student_id.display_name,
                     })
-                if attendance.status != values["status"] or (attendance.remark or "") != values["remark"]:
+                if (
+                    attendance.status != values["status"]
+                    or (attendance.remark or "") != values["remark"]
+                    or attendance.session_id != session
+                ):
                     attendance.write(vals)
             else:
                 attendance = self.create(vals)
@@ -511,16 +745,10 @@ class UniversityAttendance(models.Model):
                     "student": attendance.student_id.display_name, "status": labels[attendance.status],
                 })
 
-        if normalized_lines:
-            Session = self.env["university.attendance.session"]
-            session = Session.search([
-                ("section_id", "=", section.id), ("date", "=", attendance_date),
-            ], limit=1)
-            first_save = not session
-            if not session:
-                session = Session.create({"section_id": section.id, "date": attendance_date})
+        if session and normalized_lines:
             session_values = {
-                "state": "recorded", "recorded_by_id": self.env.uid,
+                "state": "recorded",
+                "recorded_by_id": self.env.uid,
                 "recorded_at": fields.Datetime.now(),
             }
             if notes is not None:

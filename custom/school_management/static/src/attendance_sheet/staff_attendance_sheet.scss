@@ -1,598 +1,102 @@
-// Extensions and refinements for Staff Attendance matching Student Attendance page & Monthly Matrix Dashboard
-
 .o_att_sheet {
-    .o_att_listhead--staff, .o_att_row--staff {
-        display: grid;
-        grid-template-columns: minmax(0, 1.4fr) 350px 85px 85px 65px 36px;
-        align-items: center;
-        gap: 12px;
-    }
+    min-height: 100%;
+    padding: 28px 56px;
+    background: #fff;
+    color: #243044;
+    font-size: 14px;
 
-    .o_att_seg--staff {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        min-height: 36px;
-    }
-
-    .o_att_seg__btn--leave.o_att_seg__btn--on {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .o_att_seg__btn--official_duty.o_att_seg__btn--on {
-        background: #f5f3ff;
-        color: #7c3aed;
-    }
-
-    .o_att_seg__btn--half_day.o_att_seg__btn--on {
-        background: #f0fdfa;
-        color: #0d9488;
-    }
-
-    // -- Time Input Cells -----------------------------------------------
-    .o_att_timecell {
+    .o_att_header {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 22px;
     }
 
-    .o_att_time_wrap {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 3px 6px;
-        border: 1px solid var(--att-border, #cbd5e1);
-        border-radius: 4px;
-        background: #fff;
-        transition: border-color 0.15s ease-in-out;
-
-        &:focus-within {
-            border-color: var(--att-primary, #6366f1);
-        }
-
-        &--disabled {
-            background: var(--att-sunken, #f8fafc);
-            opacity: 0.6;
-        }
+    .o_att_title_line { display: flex; align-items: center; gap: 10px; }
+    h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+    .o_att_subtitle { margin: 5px 0 0; color: #778196; font-size: 12px; }
+    .o_att_date_input {
+        border: 0; padding: 0; color: #778196; background: transparent; font: inherit;
+        &:focus { outline: 0; color: #4f46a5; }
     }
-
-    .o_att_time_icon {
-        font-size: 11px;
+    .o_att_state {
+        display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px;
+        border: 1px solid #ddd9f8; border-radius: 999px; background: #f4f2ff;
+        color: #6355b5; font-size: 12px; font-weight: 600;
+        &.is-recorded { border-color: #bce5cc; background: #effaf2; color: #21864a; }
     }
-
-    .o_att_time_input {
-        width: 52px;
-        padding: 0;
-        border: 0;
-        background: transparent;
-        font-size: 12px;
-        color: var(--att-text, #1e293b);
-        outline: none;
-        font-variant-numeric: tabular-nums;
+    .o_att_dot, .o_att_stat_dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .o_att_header_actions { display: flex; align-items: center; gap: 8px; }
+    .o_att_department {
+        min-width: 180px; padding: 7px 10px; border: 1px solid #e3e6ef; border-radius: 8px;
+        background: #fff; color: #4b5568; font-size: 13px;
     }
+    .o_att_error { margin-bottom: 16px; padding: 10px 13px; border: 1px solid #f3c2c2; border-radius: 10px; background: #fff4f4; color: #b42318; }
 
-    // -- Worked Hours Badge ---------------------------------------------
-    .o_att_hourscell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .o_att_stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .o_att_stat {
+        display: flex; align-items: center; gap: 8px; padding: 10px 13px; border: 1px solid #e8ebf2;
+        border-radius: 10px; background: #fafbfc; color: #778196; font-size: 12px;
+        strong { color: #263247; font-size: 17px; line-height: 1; }
     }
+    .o_att_stat--present { color: #2e9b5d; background: #f2fbf5; border-color: #d6f0df; }
+    .o_att_stat--absent { color: #d05252; background: #fff5f5; border-color: #f3dddd; }
+    .o_att_stat--late { color: #c88a22; background: #fffaf0; border-color: #f3e6c7; }
+    .o_att_stat--total { color: #6e62bc; background: #f7f5ff; border-color: #e4e0fa; }
 
-    .o_att_hours_badge {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 999px;
-        background: var(--att-sunken, #f8fafc);
-        color: var(--att-muted, #64748b);
-        font-size: 11px;
-        font-weight: 500;
-        font-variant-numeric: tabular-nums;
-        text-align: center;
-
-        &--filled {
-            background: var(--att-primary-soft, #ede9fe);
-            color: var(--att-primary, #6366f1);
-            font-weight: 600;
-        }
+    .o_att_panel { border: 1px solid #e4e7ef; border-radius: 12px; background: #fff; padding: 16px; }
+    .o_att_toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .o_att_search {
+        display: flex; align-items: center; gap: 8px; width: 360px; max-width: 100%; padding: 8px 11px;
+        border: 1px solid #e3e6ef; border-radius: 8px; color: #98a1b2;
+        input { width: 100%; border: 0; outline: 0; color: #263247; background: transparent; font-size: 13px; }
     }
-
-    // -- Timeline Schedule View -----------------------------------------
-    .o_att_tl_wrapper {
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        background: #fff;
+    .o_att_rows { display: grid; gap: 9px; }
+    .o_att_row {
+        display: grid; grid-template-columns: minmax(220px, 1fr) auto minmax(210px, .7fr); align-items: center;
+        gap: 18px; padding: 11px 14px 11px 12px; border: 1px solid #dcefe2; border-left: 4px solid #39a968;
+        border-radius: 12px; background: #f4fcf6;
+        &--absent { border-color: #f2dada; border-left-color: #d05252; background: #fff7f7; }
+        &--late { border-color: #f1e2bf; border-left-color: #d79a2b; background: #fffaf0; }
+        &--leave { border-color: #d8e7f8; border-left-color: #5898d2; background: #f5f9ff; }
+        &--official_duty { border-color: #ccebe4; border-left-color: #299b88; background: #f1fbf8; }
+        &--half_day { border-color: #e1e4ea; border-left-color: #8993a3; background: #f8f9fb; }
     }
-
-    .o_att_tl_topbar {
-        background-color: #f8fafc;
-        border-color: #e2e8f0 !important;
+    .o_att_person { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .o_att_avatar { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; object-fit: cover; }
+    .o_att_avatar--fallback { display: inline-flex; align-items: center; justify-content: center; background: #eeeafd; color: #665bb4; font-size: 12px; font-weight: 700; }
+    .o_att_person_text { display: flex; min-width: 0; flex-direction: column; }
+    .o_att_person_text strong { overflow: hidden; color: #263247; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+    .o_att_person_text small { color: #8b95a7; font-size: 12px; }
+    .o_att_statuses { display: inline-flex; gap: 4px; }
+    .o_att_status_btn {
+        width: 25px; height: 25px; padding: 0; border: 1px solid #cfd5e1; border-radius: 6px; background: #fff;
+        color: #7e8798; font-size: 11px; font-weight: 700;
+        &:hover, &.is-active { border-color: #6659b8; background: #6659b8; color: #fff; }
+        &:disabled { cursor: not-allowed; opacity: .55; }
     }
+    .o_att_time_group { display: flex; justify-content: flex-end; gap: 8px; }
+    .o_att_time_group label { display: flex; align-items: center; gap: 5px; color: #8b95a7; font-size: 11px; }
+    .o_att_time_group input { width: 92px; padding: 6px 7px; border: 1px solid #dfe3eb; border-radius: 7px; background: #fff; color: #263247; font-size: 12px; }
+    .o_att_empty { padding: 36px 10px; color: #8b95a7; text-align: center; }
+    .o_att_footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; }
+    .btn-primary { border-color: #6659b8; background: #6659b8; &:hover { border-color: #574ba5; background: #574ba5; } }
 
-    .o_att_tl_container {
-        border-color: #e2e8f0 !important;
-        background: #fff;
+    @media (max-width: 900px) {
+        padding: 24px 20px;
+        .o_att_header { flex-direction: column; }
+        .o_att_header_actions { width: 100%; }
+        .o_att_department { flex: 1; }
+        .o_att_row { grid-template-columns: 1fr; gap: 10px; }
+        .o_att_statuses, .o_att_time_group { justify-content: flex-start; }
     }
-
-    .o_att_tl_table {
-        border-collapse: collapse;
-        min-width: 820px;
-    }
-
-    .o_att_tl_col_days {
-        background-color: #f8fafc;
-        color: #334155;
-        border-color: #e2e8f0 !important;
-    }
-
-    .o_att_tl_col_h {
-        border-color: #f1f5f9 !important;
-        background-color: #f8fafc;
-        font-weight: 500;
-        font-size: 11px;
-    }
-
-    .o_att_tl_col--current {
-        background-color: #fefce8 !important;
-        border-left: 1px solid #fef08a !important;
-        border-right: 1px solid #fef08a !important;
-    }
-
-    .o_att_tl_cell_staff {
-        background: #fff;
-        border-color: #e2e8f0 !important;
-        transition: background-color 0.15s ease-in-out;
-        cursor: pointer;
-
-        &:hover {
-            background-color: #f8fafc;
-        }
-
-        &.o_att_tl_staff--present {
-            background-color: #dcfce7 !important;
-            border-left: 3px solid #22c55e !important;
-        }
-    }
-
-    .o_att_tl_staff_name {
-        font-size: 12px;
-        color: #1e293b;
-    }
-
-    .o_att_tl_cell_track {
-        height: 48px;
-        border-color: #f1f5f9 !important;
-        background: #fff;
-    }
-
-    .o_att_tl_grid_bg {
-        pointer-events: none;
-        z-index: 1;
-
-        div {
-            border-color: #f1f5f9 !important;
-        }
-    }
-
-    .o_att_pill {
-        top: 8px;
-        height: 32px;
-        border-radius: 6px;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        padding: 0 8px;
-        font-size: 11px;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
-        white-space: nowrap;
-        overflow: hidden;
-
-        &:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
-        }
-
-        &--completed {
-            background-color: #94a3b8;
-            color: #ffffff;
-        }
-
-        &--ongoing {
-            background-color: #86efac;
-            color: #14532d;
-            font-weight: 600;
-            border: 1px solid #4ade80;
-        }
-
-        &_label {
-            font-size: 11px;
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // MONTHLY MATRIX DASHBOARD (Matching User Screenshot)
-    // ---------------------------------------------------------------------
-    .o_att_matrix_container {
-        max-width: 100%;
-        margin: 0 auto;
-
-        .card {
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0 !important;
-        }
-
-        .o_att_matrix_greeting {
-            font-size: 1.25rem;
-            letter-spacing: -0.2px;
-            color: #0f172a;
-        }
-
-        .o_att_matrix_time {
-            font-size: 0.95rem;
-            color: #475569;
-        }
-
-        .o_att_matrix_print_btn {
-            border-color: #cbd5e1;
-            color: #334155;
-            background: #fff;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: #f1f5f9;
-                border-color: #94a3b8;
-                color: #0f172a;
-            }
-        }
-
-        .o_att_filter_group {
-            min-width: 130px;
-        }
-
-        .o_att_matrix_select {
-            border-color: #cbd5e1;
-            background-color: #ffffff;
-            color: #1e293b;
-            font-size: 0.85rem;
-            border-radius: 6px;
-            cursor: pointer;
-
-            &:focus {
-                border-color: #6366f1;
-                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
-            }
-        }
-
-        // Legend Badges Matching Screenshot
-        .o_att_legend_pill {
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 0.38rem 0.85rem;
-            border-radius: 4px;
-            letter-spacing: 0.2px;
-            display: inline-flex;
-            align-items: center;
-            line-height: 1.2;
-        }
-
-        .o_att_legend--present {
-            background-color: #10b981 !important;
-            color: #ffffff !important;
-        }
-
-        .o_att_legend--absent {
-            background-color: #ef4444 !important;
-            color: #ffffff !important;
-        }
-
-        .o_att_legend--leave {
-            background-color: #f59e0b !important;
-            color: #ffffff !important;
-        }
-
-        .o_att_legend--weekend {
-            background-color: #64748b !important;
-            color: #ffffff !important;
-        }
-
-        .o_att_legend--holiday {
-            background-color: #8b5cf6 !important;
-            color: #ffffff !important;
-        }
-
-        // Table & Sticky Column
-        .o_att_matrix_table_wrap {
-            max-height: calc(100vh - 280px);
-            min-height: 420px;
-            overflow: auto;
-            position: relative;
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f8fafc;
-
-            &::-webkit-scrollbar {
-                width: 8px;
-                height: 8px;
-            }
-            &::-webkit-scrollbar-track {
-                background: #f8fafc;
-            }
-            &::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 4px;
-                &:hover {
-                    background: #94a3b8;
-                }
-            }
-        }
-
-        .o_att_matrix_table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: max-content;
-            min-width: 100%;
-            table-layout: fixed;
-
-            // Sticky Employee Column
-            .o_matrix_col_emp {
-                position: sticky;
-                left: 0;
-                z-index: 4;
-                width: 250px;
-                min-width: 250px;
-                max-width: 250px;
-                background-color: #ffffff;
-                border-right: 2px solid #cbd5e1 !important;
-                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-            }
-
-            thead {
-                position: sticky;
-                top: 0;
-                z-index: 6;
-
-                th {
-                    position: sticky;
-                    top: 0;
-                    background-color: #f8fafc;
-                    border-bottom: 2px solid #cbd5e1 !important;
-                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-                }
-
-                .o_matrix_col_emp {
-                    top: 0;
-                    left: 0;
-                    z-index: 10 !important;
-                    background-color: #f8fafc !important;
-                    border-right: 2px solid #cbd5e1 !important;
-                    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.06);
-                }
-
-                .o_matrix_th_day {
-                    width: 44px;
-                    min-width: 44px;
-                    max-width: 44px;
-                    padding: 8px 2px;
-                    vertical-align: middle;
-
-                    .o_matrix_day_name {
-                        font-size: 10px;
-                        font-weight: 700;
-                        color: #64748b;
-                        letter-spacing: 0.3px;
-                        display: block;
-                        line-height: 1;
-                    }
-
-                    .o_matrix_day_num {
-                        font-size: 13px;
-                        font-weight: 700;
-                        color: #0f172a;
-                        display: block;
-                        line-height: 1.2;
-                        margin-top: 4px;
-                    }
-
-                    &.is_weekend {
-                        background-color: #f1f5f9 !important;
-                        .o_matrix_day_name, .o_matrix_day_num {
-                            color: #94a3b8 !important;
-                        }
-                    }
-
-                    &.is_today {
-                        background-color: #e0e7ff !important;
-                        border-left: 2px solid #6366f1 !important;
-                        border-right: 2px solid #6366f1 !important;
-                        .o_matrix_day_name, .o_matrix_day_num {
-                            color: #4338ca !important;
-                        }
-                    }
-                }
-            }
-
-            tbody {
-                .o_matrix_data_row {
-                    &:hover {
-                        td {
-                            background-color: #f8fafc;
-                        }
-                        .o_matrix_col_emp {
-                            background-color: #f1f5f9 !important;
-                        }
-                    }
-                }
-
-                .o_matrix_cell {
-                    height: 48px;
-                    width: 44px;
-                    min-width: 44px;
-                    max-width: 44px;
-                    vertical-align: middle;
-                    text-align: center;
-                    cursor: pointer;
-                    user-select: none;
-                    transition: background-color 0.12s ease;
-                    border-color: #e2e8f0 !important;
-
-                    &:hover:not(.is_weekend) {
-                        background-color: #f8fafc;
-                    }
-
-                    &.is_weekend {
-                        background-color: #f8fafc !important;
-                        cursor: default;
-                    }
-
-                    &.is_today {
-                        background-color: #eef2ff !important;
-                        border-left: 2px solid #818cf8 !important;
-                        border-right: 2px solid #818cf8 !important;
-                    }
-
-                    &.o_matrix_cell--worked {
-                        background-color: #f0fdf4;
-                        &:hover {
-                            background-color: #dcfce7 !important;
-                        }
-                    }
-
-                    &.o_matrix_cell--absent {
-                        background-color: #fef2f2;
-                        &:hover {
-                            background-color: #fee2e2 !important;
-                        }
-                    }
-
-                    &.o_matrix_cell--leave {
-                        background-color: #fffbeb;
-                        &:hover {
-                            background-color: #fef3c7 !important;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Cell Elements
-        .o_matrix_badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #ffffff;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-
-            &--absent {
-                background-color: #ef4444;
-            }
-
-            &--leave {
-                background-color: #f59e0b;
-            }
-
-            &--holiday {
-                background-color: #8b5cf6;
-            }
-
-            &--worked {
-                background-color: #10b981;
-                font-size: 10px;
-                letter-spacing: -0.2px;
-                padding: 0 2px;
-            }
-        }
-
-        .o_matrix_text_weekend {
-            font-size: 11px;
-            font-weight: 600;
-            color: #94a3b8;
-        }
-
-        .o_matrix_hours_text {
-            font-size: 12px;
-            font-weight: 600;
-            color: #166534;
-            font-variant-numeric: tabular-nums;
-        }
-    }
-}
-
-// -- Staff Attendance Kanban Cards ---------------------------------
-.o_att_staff_kanban_card {
-    border-color: #e2e8f0 !important;
-    border-radius: 10px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    background: #ffffff;
-
-    &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    &.o_att_staff_kanban--active {
-        box-shadow: 0 0 0 2px var(--att-primary, #6366f1) !important;
-    }
-
-    &.o_att_staff_kanban--present {
-        border-left: 5px solid #10b981 !important;
-    }
-    &.o_att_staff_kanban--absent {
-        border-left: 5px solid #ef4444 !important;
-    }
-    &.o_att_staff_kanban--late {
-        border-left: 5px solid #f59e0b !important;
-    }
-    &.o_att_staff_kanban--leave {
-        border-left: 5px solid #3b82f6 !important;
-    }
-    &.o_att_staff_kanban--official_duty {
-        border-left: 5px solid #8b5cf6 !important;
-    }
-    &.o_att_staff_kanban--half_day {
-        border-left: 5px solid #14b8a6 !important;
-    }
-
-    .att_container {
-        font-variant-numeric: tabular-nums;
-        border-color: #e2e8f0 !important;
-    }
-
-    .btn-group .btn {
-        font-size: 11px;
-        font-weight: 500;
-        transition: all 0.12s ease-in-out;
-    }
-}
-
-// Print styles
-@media print {
-    .o_att_breadcrumb,
-    .o_att_matrix_print_btn,
-    .o_att_filter_group,
-    .o_att_actionbar,
-    .o_att_chatter,
-    .btn-group {
-        display: none !important;
-    }
-
-    .o_att_matrix_container {
-        padding: 0 !important;
-
-        .card {
-            border: none !important;
-            box-shadow: none !important;
-        }
-
-        .o_att_matrix_table_wrap {
-            max-height: none !important;
-            overflow: visible !important;
-        }
+    @media (max-width: 560px) {
+        padding: 18px 12px;
+        .o_att_stats { gap: 6px; }
+        .o_att_stat { flex-direction: column; align-items: flex-start; gap: 5px; padding: 9px; }
+        .o_att_toolbar { align-items: stretch; }
+        .o_att_search { width: 100%; }
+        .o_att_footer { position: sticky; bottom: 0; padding: 12px 0 2px; background: #fff; }
     }
 }

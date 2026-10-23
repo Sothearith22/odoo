@@ -41,55 +41,91 @@
     </record>
 
     <!-- ==================== KANBAN VIEW ==================== -->
-    <record id="view_university_classroom_kanban" model="ir.ui.view">
+ <record id="view_university_classroom_kanban" model="ir.ui.view">
         <field name="name">university.classroom.kanban</field>
         <field name="model">university.classroom</field>
         <field name="arch" type="xml">
             <kanban sample="1" class="o_university_classroom_kanban" highlight_color="color" records_draggable="0">
+                <!-- Only fields used via record.xxx need to be declared here.
+                     Fields rendered with <field/> inside templates load automatically. -->
                 <field name="id"/>
-                <field name="name"/>
-                <field name="building"/>
                 <field name="floor"/>
-                <field name="room_type"/>
-                <field name="capacity"/>
-                <field name="status"/>
-                <field name="slot_count"/>
+                <field name="image_128"/>
                 <field name="today_slot_count"/>
-                <field name="image_1920"/>
                 <field name="has_projector"/>
                 <field name="has_computers"/>
                 <field name="has_wifi"/>
                 <field name="has_air_conditioning"/>
                 <field name="has_sound_system"/>
-                <field name="color"/>
+
                 <templates>
+                    <!-- Odoo 18: three-dots menu lives in its own template -->
+                    <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item">View Details</a>
+                        <a role="menuitem" type="edit" class="dropdown-item"
+                           groups="school_management.group_school_admin,base.group_system">Edit</a>
+                        <div role="separator" class="dropdown-divider"
+                             groups="school_management.group_school_admin,base.group_system"/>
+                        <a role="menuitem" type="object" name="action_set_available"
+                           groups="school_management.group_school_admin,base.group_system"
+                           invisible="status == 'available'"
+                           class="dropdown-item text-success">
+                            <i class="fa fa-check-circle me-1" title="Set Available"/>Set Available
+                        </a>
+                        <a role="menuitem" type="object" name="action_set_occupied"
+                           groups="school_management.group_school_admin,base.group_system"
+                           invisible="status == 'occupied'"
+                           class="dropdown-item text-warning">
+                            <i class="fa fa-clock-o me-1" title="Mark Occupied"/>Mark Occupied
+                        </a>
+                        <a role="menuitem" type="object" name="action_set_maintenance"
+                           groups="school_management.group_school_admin,base.group_system"
+                           invisible="status == 'maintenance'"
+                           class="dropdown-item text-danger">
+                            <i class="fa fa-wrench me-1" title="Mark Maintenance"/>Mark Maintenance
+                        </a>
+                        <div role="separator" class="dropdown-divider"
+                             groups="school_management.group_school_admin,base.group_system"/>
+                        <field name="color" widget="kanban_color_picker"
+                               groups="school_management.group_school_admin,base.group_system"/>
+                    </t>
+
                     <t t-name="card" class="o_classroom_kanban_card p-3 d-flex flex-column justify-content-between h-100">
                         <main class="d-flex flex-column gap-2">
-                            <!-- Top row: Image/Type Icon + Title & Location + Status Badge + Action Menu -->
+
+                            <!-- Top row: image/type icon + title/location + status badge -->
                             <div class="d-flex align-items-start justify-content-between gap-2">
                                 <div class="d-flex align-items-center gap-2 min-w-0">
-                                    <t t-if="record.image_1920.raw_value">
-                                        <img t-attf-src="/web/image/university.classroom/#{record.id.raw_value}/image_1920"
+                                    <t t-if="record.image_128.raw_value">
+                                        <img t-att-src="kanban_image('university.classroom', 'image_128', record.id.raw_value)"
                                              alt="Room"
-                                             class="rounded object-fit-cover shadow-sm flex-shrink-0"
-                                             style="width: 52px; height: 52px;"/>
+                                             class="o_classroom_thumb rounded object-fit-cover shadow-sm flex-shrink-0"/>
                                     </t>
                                     <t t-else="">
-                                        <span t-if="record.room_type.raw_value == 'lab'" class="o_room_type_icon badge rounded-3 bg-info-subtle text-info flex-shrink-0" style="padding: 14px;" title="Laboratory">
+                                        <span t-if="record.room_type.raw_value == 'lab'"
+                                              class="o_room_type_icon badge rounded-3 bg-info-subtle text-info flex-shrink-0"
+                                              title="Laboratory">
                                             <i class="fa fa-flask fa-fw fs-5" title="Laboratory"/>
                                         </span>
-                                        <span t-elif="record.room_type.raw_value == 'lecture_hall'" class="o_room_type_icon badge rounded-3 bg-primary-subtle text-primary flex-shrink-0" style="padding: 14px;" title="Lecture Hall">
+                                        <span t-elif="record.room_type.raw_value == 'lecture_hall'"
+                                              class="o_room_type_icon badge rounded-3 bg-primary-subtle text-primary flex-shrink-0"
+                                              title="Lecture Hall">
                                             <i class="fa fa-university fa-fw fs-5" title="Lecture Hall"/>
                                         </span>
-                                        <span t-elif="record.room_type.raw_value == 'auditorium'" class="o_room_type_icon badge rounded-3 bg-warning-subtle text-warning flex-shrink-0" style="padding: 14px;" title="Auditorium">
+                                        <span t-elif="record.room_type.raw_value == 'auditorium'"
+                                              class="o_room_type_icon badge rounded-3 bg-warning-subtle text-warning flex-shrink-0"
+                                              title="Auditorium">
                                             <i class="fa fa-users fa-fw fs-5" title="Auditorium"/>
                                         </span>
-                                        <span t-else="" class="o_room_type_icon badge rounded-3 bg-success-subtle text-success flex-shrink-0" style="padding: 14px;" title="Standard Classroom">
+                                        <span t-else=""
+                                              class="o_room_type_icon badge rounded-3 bg-success-subtle text-success flex-shrink-0"
+                                              title="Standard Classroom">
                                             <i class="fa fa-desktop fa-fw fs-5" title="Standard Classroom"/>
                                         </span>
                                     </t>
                                     <div class="min-w-0">
-                                        <strong class="fs-5 o_kanban_record_title text-truncate text-dark d-block" t-att-title="record.name.value">
+                                        <strong class="fs-5 o_kanban_record_title text-truncate text-body d-block"
+                                                t-att-title="record.name.value">
                                             <field name="name"/>
                                         </strong>
                                         <div class="d-flex align-items-center gap-1 text-muted small">
@@ -102,39 +138,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                <div class="flex-shrink-0">
                                     <field name="status" widget="badge"
                                            decoration-success="status == 'available'"
                                            decoration-warning="status == 'occupied'"
                                            decoration-danger="status == 'maintenance'"
                                            decoration-muted="status == 'inactive'"/>
-                                    <div class="o_dropdown_kanban dropdown">
-                                        <a class="dropdown-toggle btn p-0 text-muted" role="button" data-bs-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
-                                            <i class="fa fa-ellipsis-v" title="Options"/>
-                                        </a>
-                                        <div class="dropdown-menu" role="menu">
-                                            <a role="menuitem" type="open" class="dropdown-item">View Details</a>
-                                            <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
-                                            <div role="separator" class="dropdown-divider"/>
-                                            <a role="menuitem" type="object" name="action_set_available" invisible="status == 'available'" class="dropdown-item text-success">
-                                                <i class="fa fa-check-circle me-1" title="Set Available"/>Set Available
-                                            </a>
-                                            <a role="menuitem" type="object" name="action_set_occupied" invisible="status == 'occupied'" class="dropdown-item text-warning">
-                                                <i class="fa fa-clock-o me-1" title="Mark Occupied"/>Mark Occupied
-                                            </a>
-                                            <a role="menuitem" type="object" name="action_set_maintenance" invisible="status == 'maintenance'" class="dropdown-item text-danger">
-                                                <i class="fa fa-wrench me-1" title="Mark Maintenance"/>Mark Maintenance
-                                            </a>
-                                            <div role="separator" class="dropdown-divider"/>
-                                            <field name="color" widget="kanban_color_picker"/>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Meta Chips: Capacity + Room Type -->
+                            <!-- Meta: capacity + room type -->
                             <div class="d-flex align-items-center justify-content-between mt-1 pt-2 border-top">
-                                <span class="badge text-bg-light border text-secondary px-2 py-1" title="Seating Capacity">
+                                <span class="badge border text-secondary bg-light-subtle px-2 py-1" title="Seating Capacity">
                                     <i class="fa fa-users text-primary me-1" title="Capacity"/>
                                     <strong><field name="capacity"/></strong> Seats
                                 </span>
@@ -145,7 +160,7 @@
                                        decoration-success="room_type == 'classroom'"/>
                             </div>
 
-                            <!-- Facilities Quick Badges -->
+                            <!-- Facilities -->
                             <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
                                 <span t-if="record.has_projector.raw_value" class="o_facility_badge" title="Projector Available">
                                     <i class="fa fa-video-camera text-info me-1" title="Projector Available"/>Projector
@@ -165,39 +180,21 @@
                             </div>
                         </main>
 
-                        <!-- Footer: Scheduled Sessions Quick Action + Readiness Pill -->
+                        <!-- Footer: sessions button (staff only) + today badge -->
                         <footer class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                            <button name="action_view_sessions" type="object" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 py-1 px-2" title="Scheduled Sessions">
+                            <button name="action_view_sessions" type="object"
+                                    groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
+                                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 py-1 px-2"
+                                    title="Scheduled Sessions">
                                 <i class="fa fa-calendar me-1" title="Sessions"/>
                                 <span><field name="slot_count"/> Sessions</span>
                             </button>
-                            <div class="d-flex align-items-center gap-1">
-                                <t t-if="record.today_slot_count.raw_value &gt; 0">
-                                    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle py-1 px-2" title="Scheduled sessions today">
-                                        <i class="fa fa-clock-o me-1" title="Today"/> <t t-out="record.today_slot_count.value"/> Today
-                                    </span>
-                                </t>
-                                <t t-elif="record.status.raw_value == 'available'">
-                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle py-1 px-2">
-                                        <i class="fa fa-check-circle me-1" title="Free Today"/>Free Today
-                                    </span>
-                                </t>
-                                <t t-elif="record.status.raw_value == 'occupied'">
-                                    <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle py-1 px-2">
-                                        <i class="fa fa-circle text-warning me-1" title="In Use"/>In Use
-                                    </span>
-                                </t>
-                                <t t-elif="record.status.raw_value == 'maintenance'">
-                                    <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle py-1 px-2">
-                                        <i class="fa fa-wrench me-1" title="Service"/>Service
-                                    </span>
-                                </t>
-                                <t t-else="">
-                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2">
-                                        <i class="fa fa-ban me-1" title="Inactive"/>Inactive
-                                    </span>
-                                </t>
-                            </div>
+                            <span t-if="record.today_slot_count.raw_value &gt; 0"
+                                  class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle py-1 px-2 ms-auto"
+                                  title="Scheduled sessions today">
+                                <i class="fa fa-clock-o me-1" title="Today"/>
+                                <t t-out="record.today_slot_count.value"/> Today
+                            </span>
                         </footer>
                     </t>
                 </templates>

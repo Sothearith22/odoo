@@ -20,7 +20,10 @@ export class UniversitySchedule extends Component {
         const initialAcademicYearId = actionContext.default_academic_year_id || actionContext.filters?.academic_year_id || "";
         const initialSemesterId = actionContext.default_semester_id || actionContext.filters?.semester_id || "";
         const initialResourceType = actionContext.default_resource_type || (initialSectionId ? "section" : "teacher");
-        const initialViewMode = actionContext.default_view_mode || "resource";
+        // Scheduled Sessions is an operational workspace, not the legacy
+        // resource-planning matrix.  Start staff in the session canvas; the
+        // workload matrix remains available when it is useful for planning.
+        const initialViewMode = actionContext.default_view_mode || "week";
         const initialDate = actionContext.default_date ? new Date(actionContext.default_date + "T00:00:00") : new Date();
 
         this.state = useState({
@@ -43,6 +46,7 @@ export class UniversitySchedule extends Component {
             teacherInfo: null,
             weeklyTeachingHours: 0,
             hasExplicitlyClearedYear: false,
+            hasExplicitlyClearedSection: false,
             filtersData: {
                 academic_years: [],
                 subjects: [],
@@ -262,7 +266,7 @@ export class UniversitySchedule extends Component {
         if (scale === "day") {
             this.state.viewMode = "day";
         } else if (this.state.viewMode === "day") {
-            this.state.viewMode = "resource";
+            this.state.viewMode = "week";
         }
         await this.loadScheduleData();
     }
@@ -317,8 +321,8 @@ export class UniversitySchedule extends Component {
 
             this.state.role = res.role || "student";
             if (!this.state.hasUserChangedViewMode) {
-                this.state.viewMode = this.actionContext.default_view_mode || (this.state.role === "student" ? "week" : "resource");
-                this.state.showSideTable = false;
+                this.state.viewMode = this.actionContext.default_view_mode || "week";
+                this.state.showSideTable = this.state.viewMode === "week" || this.state.viewMode === "day";
             }
             this.state.slots = res.slots || [];
             this.state.holidays = res.holidays || [];
@@ -353,6 +357,24 @@ export class UniversitySchedule extends Component {
                 }
             }
 
+            // A calendar column represents one class schedule.  Rendering an
+            // entire university in that column produces hundreds of concurrent
+            // cards, so give administrators a useful initial section scope.
+            // They can still explicitly clear it to use the all-class agenda.
+            if (
+                this.state.role === "admin" &&
+                !this.state.filters.section_id &&
+                !this.state.hasExplicitlyClearedSection &&
+                this.state.filtersData.sections?.length
+            ) {
+                const section = this.state.filtersData.sections.find((item) => item.is_active) ||
+                    this.state.filtersData.sections[0];
+                if (section) {
+                    this.state.filters.section_id = String(section.id);
+                    return await this.loadScheduleData();
+                }
+            }
+
             if (this.state.selectedSlot) {
                 const refreshed = this.state.slots.find((s) => s.id === this.state.selectedSlot.id);
                 if (refreshed) {
@@ -372,6 +394,9 @@ export class UniversitySchedule extends Component {
 
     async onFilterChange(field, ev) {
         this.state.filters[field] = ev.target.value;
+        if (field === "section_id") {
+            this.state.hasExplicitlyClearedSection = !ev.target.value;
+        }
         await this.loadScheduleData();
     }
 
@@ -443,6 +468,10 @@ export class UniversitySchedule extends Component {
             session_type: "",
         };
         this.state.searchTerm = "";
+        this.state.hasExplicitlyClearedSection = true;
+        if (this.state.role === "admin" && (this.state.viewMode === "week" || this.state.viewMode === "day")) {
+            this.state.viewMode = "kanban";
+        }
         await this.loadScheduleData();
     }
 
@@ -1104,6 +1133,25 @@ export class UniversitySchedule extends Component {
                 await this.loadScheduleData();
             },
         });
+    }
+
+    async openTimetableGenerator() {
+        if (this.state.role !== "admin") return;
+        this.action.doAction("school_management.action_university_timetable_generation_wizard", {
+            additionalContext: {
+                default_academic_year_id: this.state.filters.academic_year_id
+                    ? parseInt(this.state.filters.academic_year_id)
+                    : false,
+                default_semester_id: this.state.filters.semester_id
+                    ? parseInt(this.state.filters.semester_id)
+                    : false,
+            },
+            onClose: async () => this.loadScheduleData(),
+        });
+    }
+
+    openScheduleConflicts() {
+        this.action.doAction("school_management.action_university_schedule_conflicts");
     }
 
     async editSlot(slot) {

@@ -1,7 +1,7 @@
 import pytz
 import math
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class UniversityClassSection(models.Model):
@@ -597,6 +597,8 @@ class UniversityClassSection(models.Model):
         }
 
     def action_open_bulk_enroll_wizard(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         self.ensure_one()
         program = self.program_id
         if not program and self.subject_id.program_ids:
@@ -617,6 +619,8 @@ class UniversityClassSection(models.Model):
         }
 
     def action_open_populate_class_wizard(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can populate a class."))
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
@@ -628,6 +632,8 @@ class UniversityClassSection(models.Model):
         }
 
     def action_open_timetable_generation_wizard(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can schedule a timetable."))
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
@@ -680,3 +686,51 @@ class UniversityClassSection(models.Model):
                     })
         self._compute_schedule_summary()
         return True
+
+    def action_enroll_self(self):
+        self.ensure_one()
+        student = self.env["university.student"].search([("user_id", "=", self.env.uid)], limit=1)
+        if not student:
+            return self.action_open_bulk_enroll_wizard()
+
+        if self.is_full:
+            raise ValidationError(_("This class section is full. No available seats."))
+
+        existing = self.env["university.enrollment"].search([
+            ("student_id", "=", student.id),
+            ("section_id", "=", self.id),
+            ("status", "=", "enrolled"),
+        ], limit=1)
+        if existing:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Already Enrolled"),
+                    "message": _("You are already enrolled in %s.") % self.name,
+                    "type": "info",
+                    "sticky": False,
+                },
+            }
+
+        program = self.program_id or (self.subject_id.program_ids[:1] if self.subject_id and self.subject_id.program_ids else student.program_id)
+        self.env["university.enrollment"].create({
+            "student_id": student.id,
+            "section_id": self.id,
+            "program_id": program.id if program else False,
+            "academic_year_id": self.academic_year_id.id if self.academic_year_id else False,
+            "semester_id": self.semester_id.id if self.semester_id else False,
+            "enrollment_date": fields.Date.context_today(self),
+            "status": "enrolled",
+        })
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Enrolled Successfully"),
+                "message": _("You have been successfully enrolled in %s.") % self.name,
+                "type": "success",
+                "sticky": False,
+            },
+        }

@@ -1,23 +1,29 @@
-// Form-style layout scoped to the student attendance sheet.
+// Student Attendance Management — aligned with Scheduled Sessions UI
+// (university_schedule purple theme + agenda kanban columns).
+$uni-purple: #6f42c1;
+$uni-purple-dark: #59359a;
+$uni-purple-subtle: #f3e8ff;
+$uni-purple-border: #e9d5ff;
+
 .o_att_sheet {
-    --att-primary: #6f5f9e;
-    --att-primary-hover: #5a4b85;
-    --att-primary-soft: #ede9f5;
-    --att-border: #e5e7eb;
-    --att-text: #1f2937;
-    --att-muted: #6b7280;
-    --att-faint: #9ca3af;
-    --att-sunken: #f7f8fa;
-    --att-green: #287a48;
-    --att-green-soft: #eaf4ed;
-    --att-red: #b42318;
-    --att-red-soft: #fef3f2;
-    --att-amber: #a66b16;
-    --att-amber-soft: #fff6e5;
+    --att-primary: #{$uni-purple};
+    --att-primary-hover: #{$uni-purple-dark};
+    --att-primary-soft: #{$uni-purple-subtle};
+    --att-border: #e2e8f0;
+    --att-text: #1e293b;
+    --att-muted: #64748b;
+    --att-faint: #94a3b8;
+    --att-sunken: #f8fafc;
+    --att-green: #14803c;
+    --att-green-soft: #ecfdf5;
+    --att-red: #dc2626;
+    --att-red-soft: #fef2f2;
+    --att-amber: #d97706;
+    --att-amber-soft: #fffbeb;
 
     height: 100%;
     overflow: auto;
-    background: #fff;
+    background: #f8fafc;
     color: var(--att-text);
     font-family: inherit;
     font-size: 14px;
@@ -28,6 +34,22 @@
     :focus-visible { outline: 2px solid var(--att-primary); outline-offset: 2px; }
     button, input, select, textarea { font: inherit; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    // Shared schedule utilities so Agenda / List switchers match sessions UI
+    .text-purple { color: $uni-purple !important; }
+    .btn-purple {
+        background-color: $uni-purple !important;
+        color: #fff !important;
+        border-color: $uni-purple !important;
+        &:hover, &:focus {
+            background-color: $uni-purple-dark !important;
+            border-color: $uni-purple-dark !important;
+            color: #fff !important;
+        }
+    }
+    .shadow-xs { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+    .very-small { font-size: 0.72rem !important; line-height: 1.25; }
+    .cursor-pointer { cursor: pointer; }
 
     .o_att_breadcrumb {
         display: flex;
@@ -58,10 +80,21 @@
         min-width: 0;
         padding: 24px 28px 0;
         container: attendance-body / inline-size;
+        background:
+            linear-gradient(112deg, rgba(111, 66, 193, 0.05), transparent 40%),
+            #ffffff;
+        border-radius: 0 0 0 0;
     }
     .o_att_hdr { margin-bottom: 24px; }
     .o_att_title_row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .o_att_h1 { margin: 0; font-size: 28px; font-weight: 600; line-height: 1.25; }
+    .o_att_h1 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.25;
+        color: #172033;
+    }
     .o_att_badge {
         display: inline-flex;
         align-items: center;
@@ -179,8 +212,148 @@
         cursor: pointer;
         font-size: 12px;
     }
-    .o_att_filter_btn--active { background: var(--att-primary-soft); color: var(--att-primary-hover); border-color: #dcd6ec; }
+    .o_att_filter_btn--active { background: var(--att-primary-soft); color: var(--att-primary-hover); border-color: $uni-purple-border; }
     .o_att_filter_count { font-size: 11px; font-variant-numeric: tabular-nums; }
+
+    // Schedule-style KPI strip (progress bars like timeslot session load)
+    .o_att_kpi_row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .o_att_kpi_card {
+        min-width: 118px;
+        padding: 0.65rem 0.85rem;
+        background: #ffffff;
+        border: 1px solid var(--att-border);
+        border-radius: 0.625rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        }
+
+        &--rate {
+            border-color: $uni-purple-border;
+            background: linear-gradient(135deg, #fbfaff 0%, #ffffff 70%);
+        }
+    }
+    .o_att_kpi_label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.25rem;
+        color: var(--att-muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .o_att_kpi_value_row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    .o_att_kpi_value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_att_kpi_pct {
+        color: var(--att-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_att_kpi_track {
+        height: 5px;
+        margin-top: 0.45rem;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .o_att_kpi_bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+        &--present { background: #22c55e; }
+        &--late { background: #f59e0b; }
+        &--absent { background: #ef4444; }
+        &--excused { background: #94a3b8; }
+        &--rate { background: $uni-purple; }
+    }
+
+    // Agenda kanban pane — mirrors .o_schedule_kanban_pane
+    .o_att_kanban_pane {
+        background: transparent;
+    }
+    .o_att_kanban_column {
+        overflow: hidden;
+    }
+    .o_att_kanban_column_body {
+        max-height: calc(100vh - 320px);
+        min-height: 180px;
+        overflow: auto;
+    }
+    .o_att_column_pct {
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .o_att_kanban_empty {
+        border: 1px dashed #e2e8f0;
+        border-radius: 0.5rem;
+        background: #f8fafc;
+    }
+
+    // Session-style student cards — mirrors .o_kanban_slot_card
+    .o_att_session_card {
+        border-radius: 8px !important;
+        border-left-width: 4px !important;
+        border-left-color: #cbd5e1 !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        outline: none;
+        user-select: none;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1) !important;
+        }
+        &:focus-visible {
+            border-color: $uni-purple !important;
+            box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.35) !important;
+        }
+        &--active {
+            box-shadow: 0 0 0 2px rgba(111, 66, 193, 0.4) !important;
+        }
+        &--present { border-left-color: #14803c !important; }
+        &--late { border-left-color: #d97706 !important; }
+        &--absent { border-left-color: #dc2626 !important; }
+        &--excused { border-left-color: #6b7280 !important; }
+    }
+    .o_att_session_avatar {
+        width: 36px;
+        height: 36px;
+    }
+    .o_att_status_dot {
+        width: 12px;
+        height: 12px;
+        transform: translate(15%, 15%);
+        .fa { font-size: 8px; }
+    }
+    .o_att_status_chips {
+        .btn {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 0.2rem 0.35rem;
+        }
+    }
     .o_att_listhead, .o_att_row { display: grid; grid-template-columns: minmax(0, 1fr) 336px 36px; align-items: center; gap: 12px; }
     .o_att_listhead { min-height: 36px; padding: 8px 12px; border-bottom: 1px solid var(--att-border); background: var(--att-sunken); }
     .o_att_listhead_label { color: var(--att-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
@@ -249,49 +422,15 @@
     .o_att_chatter_empty { display: flex; align-items: center; gap: 12px; padding: 24px 8px; color: var(--att-muted); font-size: 13px; }
     .o_att_chatter_empty i { color: var(--att-faint); font-size: 24px; }
 
-    /* hr_attendance Style KPI Container Cards */
-    .att_container {
-        font-variant-numeric: tabular-nums;
-        border-color: #e2e8f0 !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+    // List roster polish — keep tabular view cohesive with agenda cards
+    .o_att_tabular_list {
+        thead th {
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
-    }
-
-    /* Odoo Kanban View for Students */
-    .o_att_student_kanban_card {
-        border-color: #e2e8f0 !important;
-        border-radius: 8px !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-        background: #ffffff;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        &.o_att_student_kanban--active {
-            box-shadow: 0 0 0 2px var(--att-primary, #6f5f9e) !important;
-        }
-
-        &.o_att_student_kanban--present {
-            border-left: 5px solid #14803c !important;
-        }
-        &.o_att_student_kanban--absent {
-            border-left: 5px solid #dc2626 !important;
-        }
-        &.o_att_student_kanban--late {
-            border-left: 5px solid #d97706 !important;
-        }
-        &.o_att_student_kanban--excused {
-            border-left: 5px solid #6b7280 !important;
-        }
-
-        .att_container {
-            font-variant-numeric: tabular-nums;
-            border-color: #e2e8f0 !important;
+        tbody tr {
+            transition: background-color 0.12s ease;
         }
     }
 
@@ -360,3 +499,30 @@
 }
 
 @keyframes o_att_session_spin { to { transform: rotate(360deg); } }
+
+// Standard Odoo attendance history kanban — match Scheduled Sessions cards
+.o_attendance_history_kanban {
+    background: #f8fafc;
+
+    .o_kanban_group {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.625rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .o_att_history_card {
+        border-left: 4px solid #cbd5e1;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+        &.o_att_history_card--present { border-left-color: #14803c; }
+        &.o_att_history_card--late { border-left-color: #d97706; }
+        &.o_att_history_card--absent { border-left-color: #dc2626; }
+        &.o_att_history_card--excused { border-left-color: #6b7280; }
+    }
+
+    .o_kanban_record:hover .o_att_history_card {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+}

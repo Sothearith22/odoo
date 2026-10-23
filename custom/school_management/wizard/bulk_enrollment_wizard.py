@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 
 class BulkMajorEnrollmentWizard(models.TransientModel):
@@ -92,6 +92,8 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields_list):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         values = super().default_get(fields_list)
 
         if (
@@ -294,6 +296,8 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         return self.env["university.student"].search(self._student_domain_list(), order="name")
 
     def action_load_eligible_students(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         self.ensure_one()
         if not self.program_id:
             raise UserError("Please select a Major / Program.")
@@ -331,6 +335,8 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         }
 
     def action_select_all_eligible_students(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         self.ensure_one()
         if not self.line_ids:
             raise UserError("Load eligible students first.")
@@ -338,11 +344,15 @@ class BulkMajorEnrollmentWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_clear_students(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         self.ensure_one()
         self.line_ids.write({"selected": False})
         return self._reopen_wizard()
 
     def action_enroll_students(self):
+        if not self.env.user.has_group("school_management.group_school_admin"):
+            raise AccessError(_("Only University Administrators can enroll multiple students."))
         self.ensure_one()
         if not self.program_id:
             raise UserError("Please select a Major / Program.")

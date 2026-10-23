@@ -38,7 +38,7 @@
         <field name="model">university.timetable.slot</field>
         <field name="inherit_id" ref="school_management.view_university_timetable_slot_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='state']" position="before">
+            <xpath expr="//field[@name='status']" position="before">
                 <field name="holiday_name" string="Public Holiday" optional="show"/>
                 <field name="on_holiday" widget="boolean_toggle" optional="hide" string="Holiday?"/>
                 <field name="cancel_reason" optional="hide"/>
@@ -72,7 +72,7 @@
             <xpath expr="//main" position="attributes">
                 <attribute name="t-attf-class">p-3 #{record.on_holiday.raw_value or record.is_holiday_conflict.raw_value ? 'o_slot_holiday_card' : ''}</attribute>
             </xpath>
-            <xpath expr="//span[@t-if='record.is_holiday_conflict.raw_value']" position="replace">
+            <xpath expr="//span[@t-if='record.is_holiday.raw_value']" position="replace">
                 <span t-if="record.on_holiday.raw_value or record.is_holiday_conflict.raw_value" class="badge text-bg-danger" t-att-title="record.holiday_name.value ? 'Public Holiday: ' + record.holiday_name.value : 'Public Holiday'">
                     <i class="fa fa-sun-o me-1" title="Public Holiday" aria-label="Public Holiday"/><t t-if="record.holiday_name.value"><t t-esc="record.holiday_name.value"/></t><t t-else="">Holiday</t>
                 </span>

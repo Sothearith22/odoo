@@ -10,7 +10,7 @@ function localToday() {
     return { year: today.getFullYear(), month: today.getMonth() + 1 };
 }
 
-class AttendanceAtRisk extends Component {
+export class AttendanceAtRisk extends Component {
     static template = "school_management.AttendanceAtRisk";
     static props = ["*"];
 

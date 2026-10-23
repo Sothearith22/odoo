@@ -23,7 +23,7 @@ class UniversityAssignment(models.Model):
         default="class"
     )
     description = fields.Html(string="Description")
-    due_date = fields.Date(string="Due Date")
+    due_date = fields.Date(string="Due Date", index=True)
     category_id = fields.Many2one(
         "university.assessment.category",
         string="Assessment Category",

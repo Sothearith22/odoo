@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class UniversityClassroom(models.Model):
@@ -13,6 +13,13 @@ class UniversityClassroom(models.Model):
     floor = fields.Char(string="Floor", default="1st Floor", tracking=True)
     capacity = fields.Integer(string="Capacity", default=40, tracking=True)
     image_1920 = fields.Image(string="Room Photo", max_width=1024, max_height=1024)
+    image_128 = fields.Image(
+        string="Room Thumbnail",
+        related="image_1920",
+        max_width=128,
+        max_height=128,
+        store=True,
+    )
     room_type = fields.Selection(
         [
             ("lecture_hall", "Lecture Hall"),
@@ -84,15 +91,16 @@ class UniversityClassroom(models.Model):
 
     def _compute_slot_count(self):
         today = fields.Date.context_today(self)
+        Slot = self.env["university.timetable.slot"].sudo()
         slot_data = dict(
-            self.env["university.timetable.slot"]._read_group(
+            Slot._read_group(
                 [("classroom_id", "in", self.ids), ("state", "!=", "cancelled")],
                 groupby=["classroom_id"],
                 aggregates=["__count"],
             )
         )
         today_data = dict(
-            self.env["university.timetable.slot"]._read_group(
+            Slot._read_group(
                 [
                     ("classroom_id", "in", self.ids),
                     ("date", "=", today),
@@ -106,16 +114,24 @@ class UniversityClassroom(models.Model):
             room.slot_count = slot_data.get(room, 0)
             room.today_slot_count = today_data.get(room, 0)
 
+    def _check_status_rights(self):
+        if not (self.env.user.has_group("school_management.group_school_admin") or self.env.is_superuser()):
+            raise AccessError(_("Only University Administrators can change the room status."))
+
     def action_set_available(self):
+        self._check_status_rights()
         self.write({"status": "available"})
 
     def action_set_maintenance(self):
+        self._check_status_rights()
         self.write({"status": "maintenance"})
 
     def action_set_occupied(self):
+        self._check_status_rights()
         self.write({"status": "occupied"})
 
     def action_set_inactive(self):
+        self._check_status_rights()
         self.write({"status": "inactive"})
 
     def action_view_sessions(self):

@@ -71,6 +71,7 @@ class UniversitySemester(models.Model):
     is_active = fields.Boolean(
         string="Active Period",
         compute="_compute_is_active",
+        search='search_is_active',
         help="True when today's date falls within the semester start and end dates.",
     )
     semester_subject_ids = fields.One2many(
@@ -191,6 +192,20 @@ class UniversitySemester(models.Model):
                 semester.is_active = today <= semester.date_end
             else:
                 semester.is_active = True
+
+    def search_is_active(self, operator, value):
+        today = fields.Date.today()
+        if operator not in ["=", "!="] or not isinstance(value, bool):
+            raise NotImplementedError("Unsupported search operation")
+        positive = (operator == "=") == value
+        if positive:
+            return [("date_start", "<=", today), ("date_end", ">=", today)]
+        return ["|", ("date_start", ">", today), ("date_end", "<", today)]
+
+
+
+
+
 
     @api.constrains("date_start", "date_end")
     def _check_duration(self):

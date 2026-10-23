@@ -1,5 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from datetime import datetime, time
 
 
 class UniversityStaffAttendance(models.Model):
@@ -13,7 +14,28 @@ class UniversityStaffAttendance(models.Model):
         string="Staff",
         required=True,
         ondelete="cascade",
+        index=True,
         tracking=True,
+    )
+    employee_id = fields.Many2one(
+        "university.teacher",
+        string="Employee",
+        related="staff_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
+    employee_code = fields.Char(
+        string="Code",
+        related="staff_id.teacher_id",
+        store=True,
+        readonly=True,
+    )
+    employee_avatar_128 = fields.Image(
+        string="Avatar",
+        related="staff_id.avatar_128",
+        store=True,
+        readonly=True,
     )
     date = fields.Date(
         string="Date",
@@ -36,6 +58,7 @@ class UniversityStaffAttendance(models.Model):
         string="Status",
         required=True,
         default="present",
+        index=True,
         tracking=True,
     )
     state = fields.Selection(
@@ -74,6 +97,7 @@ class UniversityStaffAttendance(models.Model):
         store=True,
         readonly=True,
     )
+    ot_hours = fields.Float(string="OT (h)", default=0.0, tracking=True)
     is_holiday = fields.Boolean(
         string="Is Holiday",
         compute="_compute_is_holiday",
@@ -137,16 +161,47 @@ class UniversityStaffAttendance(models.Model):
                 "date": date,
             }
 
-    @api.depends("check_in", "check_out")
+    @api.depends("status", "check_in", "check_out")
     def _compute_worked_hours(self):
         for attendance in self:
-            if attendance.check_in and attendance.check_out:
+            if attendance.status in ("absent", "leave"):
+                attendance.worked_hours = 0.0
+            elif attendance.check_in and attendance.check_out:
                 delta = fields.Datetime.to_datetime(attendance.check_out) - fields.Datetime.to_datetime(
                     attendance.check_in
                 )
                 attendance.worked_hours = delta.total_seconds() / 3600.0
             else:
                 attendance.worked_hours = 0.0
+
+    @api.onchange("check_out")
+    def _onchange_check_out_set_ot(self):
+        for attendance in self:
+            if attendance.status in ("absent", "leave"):
+                attendance.ot_hours = 0.0
+                continue
+            if not attendance.check_out:
+                continue
+            check_out = fields.Datetime.to_datetime(attendance.check_out)
+            cutoff = datetime.combine(check_out.date(), time(17, 0))
+            overtime = max(0.0, (check_out - cutoff).total_seconds() / 3600.0)
+            attendance.ot_hours = round(overtime * 2) / 2
+
+    @api.constrains("ot_hours")
+    def _check_ot_hours(self):
+        for attendance in self:
+            if attendance.ot_hours < 0 or attendance.ot_hours > 8:
+                raise ValidationError(_("Overtime must be between 0 and 8 hours."))
+
+    @api.constrains("status", "check_in", "check_out")
+    def _check_attendance_times(self):
+        for attendance in self:
+            if attendance.status in ("present", "late") and (
+                not attendance.check_in or not attendance.check_out
+            ):
+                raise ValidationError(_("Present or late attendance requires check-in and check-out."))
+            if attendance.check_in and attendance.check_out and attendance.check_out <= attendance.check_in:
+                raise ValidationError(_("Check-out must be after check-in."))
 
     @api.depends("date", "check_in", "check_out", "worked_hours")
     def _compute_calendar_dates(self):
@@ -215,8 +270,12 @@ class UniversityStaffAttendance(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         is_admin = self.env.su or self.env.user.has_group("school_management.group_school_admin")
+        is_attendance_manager = is_admin or self.env.user.has_group("base.group_system")
         teacher_group = self.env.user.has_group("school_management.group_school_teacher")
+        today = fields.Date.context_today(self)
         for vals in vals_list:
+            if vals.get("date") and fields.Date.to_date(vals["date"]) < today and not is_attendance_manager:
+                raise AccessError(_("Only attendance managers can create records for past dates."))
             if not is_admin:
                 if vals.get("state") and vals.get("state") != "draft":
                     raise AccessError(_("Only university administrators can set approval status directly."))
@@ -228,9 +287,46 @@ class UniversityStaffAttendance(models.Model):
                         raise AccessError(_("You are only authorized to record your own staff attendance."))
         return super().create(vals_list)
 
+    @api.model
+    def action_generate_today_sheet(self):
+        """Create missing attendance rows for all active staff in one batch."""
+        today = fields.Date.context_today(self)
+        teachers = self.env["university.teacher"].search([("active", "=", True)], order="name")
+        existing = self.search([("staff_id", "in", teachers.ids), ("date", "=", today)])
+        existing_ids = set(existing.mapped("staff_id").ids)
+        vals_list = [
+            {
+                "staff_id": teacher.id,
+                "date": today,
+                "status": "present",
+                "check_in": f"{today} 09:00:00",
+                "check_out": f"{today} 17:00:00",
+                "state": "draft",
+            }
+            for teacher in teachers
+            if teacher.id not in existing_ids
+        ]
+        if vals_list:
+            self.create(vals_list)
+        return True
+
+    def action_mark_all_present(self):
+        """Mark the selected sheet rows present in one write."""
+        if not self:
+            return True
+        today = fields.Date.context_today(self)
+        self.write({
+            "status": "present",
+            "check_in": f"{today} 09:00:00",
+            "check_out": f"{today} 17:00:00",
+            "ot_hours": 0.0,
+        })
+        return True
+
     def write(self, vals):
         is_admin = self.env.su or self.env.user.has_group("school_management.group_school_admin")
-        business_fields = {"staff_id", "date", "status", "check_in", "check_out", "remark"}
+        is_attendance_manager = is_admin or self.env.user.has_group("base.group_system")
+        business_fields = {"staff_id", "date", "status", "check_in", "check_out", "ot_hours", "remark"}
         has_business_changes = bool(business_fields.intersection(vals.keys()))
 
         allowed_transitions = {
@@ -241,6 +337,13 @@ class UniversityStaffAttendance(models.Model):
         }
 
         for record in self:
+            if (
+                has_business_changes
+                and record.date
+                and record.date < fields.Date.context_today(self)
+                and not is_attendance_manager
+            ):
+                raise AccessError(_("Only attendance managers can edit past dates."))
             # 1. Approved record locking
             if record.state == "approved" and has_business_changes:
                 raise UserError(

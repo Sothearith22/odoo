@@ -5,203 +5,9 @@
 
 
     <t t-name="school_management.StudentDashboardShell" owl="1">
-        <div class="o_student_portal_root d-flex h-100 w-100 overflow-hidden">
-            <!-- ==================== LEFT SIDEBAR ==================== -->
-            <!-- ==================== LEFT SIDEBAR (Unified Modern SaaS Style) ==================== -->
-            <aside class="o_student_sidebar d-flex flex-column flex-shrink-0"
-                   t-att-class="{'o_sidebar_collapsed': state.sidebarCollapsed}">
-                <!-- Top Brand Header -->
-                <div class="o_sidebar_header d-flex align-items-center justify-content-between p-3">
-                    <div class="d-flex align-items-center gap-2 overflow-hidden cursor-pointer"
-                         t-on-click="() => this.toggleSidebarCollapse()"
-                         title="University Portal">
-                        <div class="o_brand_icon d-flex align-items-center justify-content-center flex-shrink-0">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="16" rx="3"/>
-                                <line x1="9" y1="4" x2="9" y2="20"/>
-                            </svg>
-                        </div>
-                        <span t-if="!state.sidebarCollapsed" class="o_brand_title fw-bold text-dark text-truncate">University</span>
-                    </div>
-                    <button t-if="!state.sidebarCollapsed" type="button" class="btn btn-sm o_btn_sidebar_toggle p-1 text-muted"
-                            title="Collapse sidebar"
-                            t-on-click="() => this.toggleSidebarCollapse()">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                            <line x1="9" y1="3" x2="9" y2="21"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Search or Jump To -->
-                <div t-if="!state.sidebarCollapsed" class="px-3 mb-2">
-                    <div class="o_sidebar_search d-flex align-items-center justify-content-between px-2 py-1 rounded-2 cursor-pointer"
-                         t-on-click="() => this.focusGlobalSearch()"
-                         title="Search or jump to courses">
-                        <div class="d-flex align-items-center gap-2 text-muted small">
-                            <i class="fa fa-search small"/>
-                            <span class="very-small text-truncate">Search or jump to</span>
-                        </div>
-                        <kbd class="o_kbd_shortcut">⌘K</kbd>
-                    </div>
-                </div>
-                <div t-else="" class="px-2 mb-2 text-center">
-                    <button type="button" class="btn btn-sm text-muted p-1" title="Search or jump to" t-on-click="() => this.focusGlobalSearch()">
-                        <i class="fa fa-search"/>
-                    </button>
-                </div>
-
-                <!-- Navigation Groups List -->
-                <nav class="o_student_sidebar_nav flex-grow-1 overflow-y-auto px-2 d-flex flex-column gap-2">
-                    <t t-foreach="this.studentSidebarGroups" t-as="group" t-key="group.id">
-                        <div class="o_nav_group">
-                            <div t-if="!state.sidebarCollapsed and group.label" class="o_nav_group_label px-2 text-uppercase" t-esc="group.label"/>
-                            <div class="d-flex flex-column gap-1">
-                                <t t-foreach="group.items" t-as="item" t-key="item.id">
-                                    <button type="button"
-                                            class="btn o_sidebar_nav_item d-flex align-items-center w-100"
-                                            t-att-class="{
-                                                'active': item.isActive,
-                                                'justify-content-between px-2 py-2': !state.sidebarCollapsed,
-                                                'justify-content-center p-2': state.sidebarCollapsed
-                                            }"
-                                            t-att-title="item.label"
-                                            t-on-click="() => this.setSidebarNav(item.id)">
-                                        <div class="d-flex align-items-center gap-2 text-truncate position-relative">
-                                            <span class="o_nav_icon_wrap flex-shrink-0">
-                                                <t t-if="item.iconSvg === 'home'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                                        <polyline points="9 22 9 12 15 12 15 22"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'classes'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <rect x="2" y="4" width="20" height="15" rx="2"/>
-                                                        <line x1="8" y1="21" x2="16" y2="21"/>
-                                                        <line x1="12" y1="19" x2="12" y2="21"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'schedule'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                                        <line x1="16" y1="2" x2="16" y2="6"/>
-                                                        <line x1="8" y1="2" x2="8" y2="6"/>
-                                                        <line x1="3" y1="10" x2="21" y2="10"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'attendance'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <polyline points="9 11 12 14 22 4"/>
-                                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'grades'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="12" cy="8" r="6"/>
-                                                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'curriculum'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                                                        <polyline points="2 17 12 22 22 17"/>
-                                                        <polyline points="2 12 12 17 22 12"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'tuition'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <rect x="2" y="5" width="20" height="14" rx="2"/>
-                                                        <line x1="2" y1="10" x2="22" y2="10"/>
-                                                    </svg>
-                                                </t>
-                                                <t t-elif="item.iconSvg === 'notices'">
-                                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                                                    </svg>
-                                                </t>
-                                            </span>
-                                            <span t-if="!state.sidebarCollapsed" class="o_nav_text text-truncate" t-esc="item.label"/>
-                                            <!-- Dot indicator when collapsed -->
-                                            <span t-if="state.sidebarCollapsed and item.badge"
-                                                  class="o_collapsed_badge_dot position-absolute top-0 start-100 translate-middle rounded-circle"
-                                                  t-att-class="item.dotClass"/>
-                                        </div>
-                                        <span t-if="!state.sidebarCollapsed and item.badge"
-                                              class="badge o_sidebar_badge"
-                                              t-att-class="item.badgeClass"
-                                              t-esc="item.badge"/>
-                                    </button>
-                                </t>
-                            </div>
-                        </div>
-                    </t>
-                </nav>
-
-                <!-- Bottom Footer (Help & Support + Profile Card) -->
-                <div class="o_student_sidebar_footer p-2 border-top">
-                    <!-- Help & Support -->
-                    <button type="button" class="btn o_sidebar_nav_item o_btn_help d-flex align-items-center gap-2 w-100 mb-2"
-                            t-att-class="{'justify-content-center p-2': state.sidebarCollapsed, 'px-2 py-1': !state.sidebarCollapsed}"
-                            title="Help &amp; support"
-                            t-on-click="() => this.openHelpSupport()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        <span t-if="!state.sidebarCollapsed" class="small o_nav_text">Help &amp; support</span>
-                    </button>
-
-                    <!-- Profile Card at bottom -->
-                    <div class="position-relative">
-                        <div class="o_sidebar_profile_card d-flex align-items-center justify-content-between p-2 rounded-3 border cursor-pointer"
-                             t-att-class="{'justify-content-center p-1 border-0': state.sidebarCollapsed}"
-                             t-on-click="() => this.toggleProfileMenu()"
-                             title="User profile and options">
-                            <div class="d-flex align-items-center gap-2 text-truncate">
-                                <div class="o_profile_avatar d-flex align-items-center justify-content-center flex-shrink-0"
-                                     t-esc="this.profileInitials"/>
-                                <div t-if="!state.sidebarCollapsed" class="d-flex flex-column text-truncate text-start">
-                                    <span class="o_profile_name fw-bold text-dark small text-truncate" t-esc="this.profileName"/>
-                                    <span class="o_profile_role text-muted very-small text-truncate" t-esc="this.profileRole"/>
-                                </div>
-                            </div>
-                            <i t-if="!state.sidebarCollapsed" class="fa fa-chevron-down very-small text-muted ms-1"/>
-                        </div>
-
-                        <!-- Profile Dropdown Menu -->
-                        <div t-if="state.showProfileMenu"
-                             class="o_profile_dropdown_menu shadow-lg p-2 rounded-3 bg-white border position-absolute bottom-100 start-0 mb-2 w-100"
-                             style="z-index: 1050; min-width: 220px;">
-                            <div class="px-2 py-1 border-bottom mb-1">
-                                <div class="fw-bold small text-dark" t-esc="this.profileName"/>
-                                <div class="text-muted very-small" t-esc="this.profileRole"/>
-                            </div>
-                            <t t-if="state.canSwitchRoles || state.isPreviewMode">
-                                <div class="px-2 py-1 text-muted very-small fw-bold text-uppercase">Role Views</div>
-                                <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('student')">
-                                    <i class="fa fa-graduation-cap me-2 text-primary"/> Student View
-                                </button>
-                                <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.switchRole('staff')">
-                                    <i class="fa fa-shield me-2 text-danger"/> Executive / Staff View
-                                </button>
-                                <div class="border-top my-1"/>
-                            </t>
-                            <button type="button" class="btn btn-sm btn-light w-100 text-start small mb-1" t-on-click="() => this.openUserSettings()">
-                                <i class="fa fa-cog me-2 text-muted"/> Settings
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light w-100 text-start small text-danger" t-on-click="() => this.logout()">
-                                <i class="fa fa-sign-out me-2"/> Sign out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- ==================== MAIN SCROLLABLE CONTENT ==================== -->
-            <main class="o_student_main_area flex-grow-1 overflow-auto bg-light">
+        <div t-att-class="'o_student_portal_root o_exec_portal_root d-flex h-100 w-100 overflow-hidden ' + (state.activeTab === 'dashboard' ? 'o_student_admin_dashboard' : '')">
+            <!-- ==================== MAIN SCROLLABLE CONTENT (Full Width, No Sidebar) ==================== -->
+            <main class="o_student_main_area o_executive_dashboard_container flex-grow-1 overflow-auto bg-light">
 
             <!-- Staff / Admin Preview Mode Notice Banner -->
 
@@ -286,143 +92,301 @@
             </t>
 
             <t t-else="">
-
-                                <!-- ==================== DASHBOARD VIEW (when activeTab === 'dashboard') ==================== -->
-                <t t-if="state.activeTab === 'dashboard'">
-                    <div class="o_student_mockup_dashboard p-4">
-                        <!-- Top Header Greeting -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <!-- ==================== TOP NAVIGATION & IDENTITY BAR ==================== -->
+                <header class="o_student_navbar bg-white border-bottom sticky-top z-3 px-3 px-lg-4 py-2 shadow-xs">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2">
+                        <!-- Left: Student Info & Avatar -->
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="o_student_header_avatar_wrap flex-shrink-0">
+                                <t t-if="state.student.image_1920">
+                                    <img t-att-src="'/web/image/university.student/' + state.student.id + '/image_1920'"
+                                         class="o_student_header_avatar rounded-circle shadow-xs"
+                                         alt="Student photo"/>
+                                </t>
+                                <t t-else="">
+                                    <div class="o_student_avatar_placeholder rounded-circle bg-teal-subtle text-teal fw-bold d-flex align-items-center justify-content-center shadow-xs">
+                                        <t t-esc="this.profileInitials"/>
+                                    </div>
+                                </t>
+                            </div>
                             <div>
-                                <h1 class="h3 fw-bold text-dark mb-1" t-esc="this.greeting"/>
-                                <div class="d-flex align-items-center gap-2 text-muted small">
-                                    <span>ID <t t-esc="this.studentIdDisplay"/></span>
-                                    <span>&#8226;</span>
-                                    <span t-esc="this.programDisplay"/>
-                                    <span>&#8226;</span>
-                                    <span class="badge o_badge_active_status text-capitalize" t-esc="state.student.status || 'Active'"/>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h1 class="h5 fw-bold text-dark mb-0" t-esc="state.student.name"/>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace" t-esc="this.studentIdDisplay"/>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle text-capitalize" t-esc="state.student.status || 'Active'"/>
+                                </div>
+                                <div class="text-muted small d-flex align-items-center gap-2 flex-wrap mt-1">
+                                    <span class="fw-semibold text-secondary" t-esc="this.programDisplay"/>
+                                    <t t-if="state.student.department_id">
+                                        <span>&#8226;</span>
+                                        <span><i class="fa fa-building-o me-1 text-muted"/> <t t-esc="state.student.department_id[1]"/></span>
+                                    </t>
+                                    <t t-if="state.student.advisor_id">
+                                        <span>&#8226;</span>
+                                        <span><i class="fa fa-user-circle-o me-1 text-muted"/> Advisor: <strong class="text-dark"><t t-esc="this.advisorDisplay"/></strong></span>
+                                    </t>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold o_btn_curriculum_pdf shadow-sm"
-                                        t-on-click="() => this.printCurriculum()">
-                                    Curriculum PDF
-                                </button>
-                                <button type="button" class="btn btn-primary btn-sm fw-semibold o_btn_request_transcript shadow-sm"
-                                        t-on-click="() => this.openNewTranscriptRequest()">
-                                    Request transcript
-                                </button>
+                        </div>
+
+                        <!-- Right: Action Buttons (Curriculum PDF, Request Transcript, Refresh) -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold rounded-2 shadow-xs d-flex align-items-center gap-2"
+                                    t-on-click="() => this.printCurriculum()"
+                                    title="Export Degree Curriculum PDF">
+                                <i class="fa fa-file-pdf-o text-danger"/>
+                                <span class="d-none d-sm-inline">Curriculum PDF</span>
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm fw-semibold rounded-2 shadow-xs d-flex align-items-center gap-2"
+                                    t-on-click="() => this.openNewTranscriptRequest()"
+                                    title="Request Official Sealed Transcript">
+                                <i class="fa fa-file-text-o"/>
+                                <span>Request Transcript</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-2 shadow-xs"
+                                    t-on-click="() => this.loadStudentData()"
+                                    title="Reload Student Academic Records">
+                                <i class="fa fa-refresh" t-att-class="{'fa-spin': state.loading}"/>
+                            </button>
+                        </div>
+                    </div>
+
+                </header>
+
+                <!-- ==================== DASHBOARD VIEW (when activeTab === 'dashboard') ==================== -->
+                <t t-if="state.activeTab === 'dashboard'">
+                    <div class="o_student_mockup_dashboard o_student_exec_canvas o_dashboard_canvas p-3 p-lg-4">
+                        <!-- Top Header Welcome Hero Card -->
+                        <div class="card border-0 shadow-sm p-4 rounded-3 bg-white mb-4 o_student_welcome_hero o_student_exec_header_card">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                        <span class="badge bg-teal-subtle text-teal fw-bold">Academic Session: <t t-esc="this.academicYearDisplay"/></span>
+                                        <span class="text-muted small">&#8226; <t t-esc="this.academicSemesterDisplay"/></span>
+                                        <span t-att-class="'badge rounded-pill ' + this.studentStandingBadge.class" t-esc="this.studentStandingBadge.label"/>
+                                    </div>
+                                    <h2 class="h3 fw-bold text-dark mb-1" t-esc="this.greeting"/>
+                                    <p class="text-secondary small mb-0">
+                                        Here is your real-time academic progress, daily timetable schedule, and coursework standing.
+                                    </p>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold shadow-xs"
+                                            t-on-click="() => this.setActiveTab('schedule')">
+                                        <i class="fa fa-calendar me-1"/> View Full Timetable
+                                    </button>
+                                    <button type="button" class="btn btn-teal btn-sm fw-semibold shadow-xs text-white"
+                                            t-on-click="() => this.setActiveTab('classes')">
+                                        <i class="fa fa-graduation-cap me-1"/> Enrolled Classes (<t t-esc="state.enrolledClasses.length"/>)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm fw-semibold shadow-xs"
+                                            t-on-click="() => this.openCourseRegistration()">
+                                        <i class="fa fa-pencil-square-o me-1"/> Course Registration
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold shadow-xs"
+                                            t-on-click="() => this.openServiceRequest()">
+                                        <i class="fa fa-life-ring me-1"/> Requests
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm fw-semibold shadow-xs"
+                                            t-on-click="() => this.openCourseEvaluation()">
+                                        <i class="fa fa-star me-1"/> Evaluation
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Alert Banners Row (Side-by-side 2 Columns) -->
-                        <div class="row g-3 mb-4">
-                            <!-- Banner 1: Attendance Warning -->
+                        <div class="row g-3 mb-4 o_student_action_center o_action_center_banner">
+                            <!-- Banner 1: Attendance Warning / Good Standing -->
                             <div class="col-12 col-lg-6">
-                                <div class="o_alert_card o_alert_attendance_card d-flex align-items-center justify-content-between p-3 rounded-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="o_alert_icon_circle o_alert_icon_red d-flex align-items-center justify-content-center">
-                                            <i class="fa fa-exclamation"/>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark o_alert_title">
-                                                Attendance is <t t-esc="state.attendanceStats.rate || 62"/>%, below the 75% minimum
+                                <t t-if="state.attendanceStats.rate &lt; 80">
+                                    <div class="o_alert_card o_alert_attendance_card d-flex align-items-center justify-content-between p-3 rounded-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="o_alert_icon_circle o_alert_icon_red d-flex align-items-center justify-content-center">
+                                                <i class="fa fa-exclamation"/>
                                             </div>
-                                            <div class="text-muted small">You're at risk of losing exam eligibility.</div>
+                                            <div>
+                                                <div class="fw-bold text-dark o_alert_title">
+                                                    Attendance is <t t-esc="state.attendanceStats.rate || 0"/>%, below the 80% exam requirement
+                                                </div>
+                                                <div class="text-muted small">Missing additional classes risks exam disqualification.</div>
+                                            </div>
                                         </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm bg-white fw-semibold o_alert_btn"
+                                                t-on-click="() => this.setActiveTab('attendance')">
+                                            Submit excuse
+                                        </button>
                                     </div>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm bg-white fw-semibold o_alert_btn"
-                                            t-on-click="() => this.setActiveTab('attendance')">
-                                        Submit excuse
-                                    </button>
-                                </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="card p-3 rounded-3 border-0 shadow-sm bg-white d-flex flex-row align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="o_alert_icon_circle bg-success text-white d-flex align-items-center justify-content-center">
+                                                <i class="fa fa-check"/>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">
+                                                    Attendance in Good Standing (<t t-esc="state.attendanceStats.rate || 0"/>%)
+                                                </div>
+                                                <div class="text-muted small">You are fully eligible for all semester final examinations.</div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                t-on-click="() => this.setActiveTab('attendance')">
+                                            View record
+                                        </button>
+                                    </div>
+                                </t>
                             </div>
 
-                            <!-- Banner 2: Tuition Overdue -->
+                            <!-- Banner 2: Tuition Overdue / Settled -->
                             <div class="col-12 col-lg-6">
-                                <div class="o_alert_card o_alert_tuition_card d-flex align-items-center justify-content-between p-3 rounded-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="o_alert_icon_circle o_alert_icon_amber d-flex align-items-center justify-content-center">
-                                            <i class="fa fa-dollar"/>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark o_alert_title">
-                                                <t t-esc="this.formatCurrency(state.student.fee_balance || 250)"/> tuition balance is overdue
+                                <t t-if="state.student.fee_balance &gt; 0">
+                                    <div class="o_alert_card o_alert_tuition_card d-flex align-items-center justify-content-between p-3 rounded-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="o_alert_icon_circle o_alert_icon_amber d-flex align-items-center justify-content-center">
+                                                <i class="fa fa-dollar"/>
                                             </div>
-                                            <div class="text-muted small">Pay now to keep your registration active.</div>
+                                            <div>
+                                                <div class="fw-bold text-dark o_alert_title">
+                                                    <t t-esc="this.formatCurrency(state.student.fee_balance)"/> tuition balance is overdue
+                                                </div>
+                                                <div class="text-muted small">Pay now to keep your registration and course access active.</div>
+                                            </div>
                                         </div>
+                                        <button type="button" class="btn btn-primary btn-sm fw-semibold o_btn_pay_now"
+                                                t-on-click="() => this.openMyInvoices()">
+                                            Pay now
+                                        </button>
                                     </div>
-                                    <button type="button" class="btn btn-primary btn-sm fw-semibold o_btn_pay_now"
-                                            t-on-click="() => this.openMyInvoices()">
-                                        Pay now
-                                    </button>
-                                </div>
+                                </t>
+                                <t t-else="">
+                                    <div class="card p-3 rounded-3 border-0 shadow-sm bg-white d-flex flex-row align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="o_alert_icon_circle bg-success text-white d-flex align-items-center justify-content-center">
+                                                <i class="fa fa-shield"/>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">Tuition Account Settled</div>
+                                                <div class="text-muted small">All tuition and registration fees are paid in full for this term.</div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                t-on-click="() => this.setActiveTab('financial')">
+                                            Fee Ledger
+                                        </button>
+                                    </div>
+                                </t>
                             </div>
                         </div>
 
-                        <!-- 4 KPI Cards Row -->
-                        <div class="row g-3 mb-4">
+                        <!-- 5 Key Academic Metric KPI Cards Row -->
+                        <div class="row g-3 mb-4 o_student_kpi_summary o_kpi_summary_section">
                             <!-- Card 1: Cumulative GPA -->
-                            <div class="col-12 col-sm-6 col-xl-3">
-                                <div class="o_kpi_card_white p-3 rounded-3 bg-white border">
-                                    <div class="text-muted small mb-1">Cumulative GPA</div>
-                                    <div class="h3 fw-bold text-dark mb-2" t-esc="this.studentGpaDisplay"/>
-                                    <div>
-                                        <span class="badge o_kpi_pill_track">On track &#8226; min 2.00</span>
+                            <div class="col-12 col-sm-6 col-xl">
+                                <div class="o_kpi_card_white o_kpi_block_card p-3 rounded-3 bg-white border h-100 cursor-pointer"
+                                     t-on-click="() => this.setActiveTab('transcript')">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small fw-semibold">Cumulative GPA</span>
+                                        <i class="fa fa-graduation-cap text-primary small"/>
+                                    </div>
+                                    <div class="h3 fw-bold text-dark mb-1" t-esc="this.studentGpaDisplay"/>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span t-att-class="'badge ' + this.studentStandingBadge.class" t-esc="this.studentStandingBadge.label"/>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Card 2: Overall Attendance -->
-                            <div class="col-12 col-sm-6 col-xl-3">
-                                <div class="o_kpi_card_white p-3 rounded-3 bg-white border cursor-pointer"
+                            <div class="col-12 col-sm-6 col-xl">
+                                <div class="o_kpi_card_white o_kpi_block_card p-3 rounded-3 bg-white border h-100 cursor-pointer"
                                      t-on-click="() => this.setActiveTab('attendance')">
-                                    <div class="text-muted small mb-1">Overall attendance</div>
-                                    <div class="h3 fw-bold text-dark mb-2" t-esc="(state.attendanceStats.rate || 62) + '%'"/>
-                                    <div class="progress o_kpi_progress" style="height: 6px;">
-                                        <div class="progress-bar bg-danger" role="progressbar"
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small fw-semibold">Overall Attendance</span>
+                                        <i class="fa fa-check-circle text-success small"/>
+                                    </div>
+                                    <div class="h3 fw-bold text-dark mb-1" t-esc="(state.attendanceStats.rate || 0) + '%'"/>
+                                    <div class="progress o_kpi_progress mb-1" style="height: 5px;">
+                                        <div class="progress-bar" role="progressbar"
+                                             t-att-class="state.attendanceStats.rate &gt;= 80 ? 'bg-success' : 'bg-danger'"
                                              t-att-style="'width: ' + this.attendanceProgressWidth"/>
+                                    </div>
+                                    <div class="text-muted very-small d-flex justify-content-between">
+                                        <span>Present: <t t-esc="state.attendanceStats.present || 0"/></span>
+                                        <span>Absent: <t t-esc="state.attendanceStats.absent || 0"/></span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Card 3: Credits Completed -->
-                            <div class="col-12 col-sm-6 col-xl-3">
-                                <div class="o_kpi_card_white p-3 rounded-3 bg-white border cursor-pointer"
+                            <div class="col-12 col-sm-6 col-xl">
+                                <div class="o_kpi_card_white o_kpi_block_card p-3 rounded-3 bg-white border h-100 cursor-pointer"
                                      t-on-click="() => this.setActiveTab('curriculum')">
-                                    <div class="text-muted small mb-1">Credits completed</div>
-                                    <div class="h3 fw-bold text-dark mb-2">
-                                        <t t-esc="state.student.completed_credits || 13"/>
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small fw-semibold">Completed Credits</span>
+                                        <i class="fa fa-book text-info small"/>
+                                    </div>
+                                    <div class="h3 fw-bold text-dark mb-1">
+                                        <t t-esc="state.student.completed_credits || 0"/>
                                         <span class="fs-6 fw-normal text-muted"> / 130</span>
                                     </div>
-                                    <div class="progress o_kpi_progress" style="height: 6px;">
+                                    <div class="progress o_kpi_progress mb-1" style="height: 5px;">
                                         <div class="progress-bar o_progress_bar_teal" role="progressbar"
                                              t-att-style="'width: ' + this.creditsProgressWidth"/>
+                                    </div>
+                                    <div class="text-muted very-small" t-esc="this.creditsCompletionPercent + '% of degree completed'"/>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Enrolled Course Load -->
+                            <div class="col-12 col-sm-6 col-xl">
+                                <div class="o_kpi_card_white o_kpi_block_card p-3 rounded-3 bg-white border h-100 cursor-pointer"
+                                     t-on-click="() => this.setActiveTab('classes')">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small fw-semibold">Term Enrolled Load</span>
+                                        <i class="fa fa-th-list text-warning small"/>
+                                    </div>
+                                    <div class="h3 fw-bold text-dark mb-1">
+                                        <t t-esc="state.enrolledClasses.length"/>
+                                        <span class="fs-6 fw-normal text-muted"> Courses</span>
+                                    </div>
+                                    <div class="text-muted very-small">
+                                        <span class="badge bg-light text-dark border"><t t-esc="this.totalEnrolledCredits"/> Total Credits</span>
+                                        <span class="ms-1" t-esc="this.academicSemesterDisplay"/>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Card 4: Tuition Balance -->
-                            <div class="col-12 col-sm-6 col-xl-3">
-                                <div class="o_kpi_card_white p-3 rounded-3 bg-white border cursor-pointer"
-                                     t-on-click="() => this.openMyInvoices()">
-                                    <div class="text-muted small mb-1">Tuition balance</div>
-                                    <div class="h3 fw-bold text-dark mb-2" t-esc="this.formatCurrency(state.student.fee_balance || 250)"/>
+                            <!-- Card 5: Tuition Balance -->
+                            <div class="col-12 col-sm-6 col-xl">
+                                <div class="o_kpi_card_white o_kpi_block_card p-3 rounded-3 bg-white border h-100 cursor-pointer"
+                                     t-on-click="() => this.setActiveTab('financial')">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <span class="text-muted small fw-semibold">Tuition Status</span>
+                                        <i class="fa fa-credit-card text-success small"/>
+                                    </div>
+                                    <div class="h3 fw-bold text-dark mb-1" t-esc="this.formatCurrency(state.student.fee_balance || 0)"/>
                                     <div>
-                                        <span class="badge o_kpi_pill_due">Payment due</span>
+                                        <t t-if="state.student.fee_balance &gt; 0">
+                                            <span class="badge o_kpi_pill_due">Payment Due</span>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Account Settled</span>
+                                        </t>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Two-Column Main Workspace -->
-                        <div class="row g-4">
+                        <div class="row g-4 o_student_dashboard_workspace">
                             <!-- Left Column: Enrolled Classes (68%) -->
                             <div class="col-12 col-xl-8">
                                 <div class="card border bg-white rounded-3 p-4 o_enrolled_classes_card">
                                     <!-- Card Header -->
                                     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 pb-2">
                                         <h3 class="h5 fw-bold text-dark mb-0">Enrolled classes</h3>
-                                        <span class="text-muted small">Fall 2026 &#8226; <t t-esc="state.enrolledClasses.length || 36"/> courses</span>
+                                        <span class="text-muted small"><t t-esc="this.academicSemesterDisplay"/> &#8226; <t t-esc="state.enrolledClasses.length"/> courses</span>
                                     </div>
 
                                     <!-- Filter & Search Toolbar -->
@@ -432,7 +396,7 @@
                                             <button type="button" class="btn btn-sm o_filter_pill"
                                                     t-att-class="{'active': state.courseFilter === 'all'}"
                                                     t-on-click="() => this.setCourseFilter('all')">
-                                                All <t t-esc="state.enrolledClasses.length || 36"/>
+                                                All <t t-esc="state.enrolledClasses.length"/>
                                             </button>
                                             <button type="button" class="btn btn-sm o_filter_pill"
                                                     t-att-class="{'active': state.courseFilter === 'attention'}"
@@ -472,7 +436,7 @@
                                                     <div>
                                                         <div class="fw-bold text-dark o_course_title" t-esc="cls.subject_name"/>
                                                         <div class="text-muted small o_course_instructor_room">
-                                                            <t t-esc="cls.instructor_name"/> &#8226; <t t-esc="cls.classroom ? (cls.classroom.name + ', ' + this.formatRoomType(cls.classroom.room_type)) : 'B201, Standard Classroom'"/>
+                                                            <t t-esc="cls.instructor_name"/> &#8226; <t t-esc="cls.classroom ? (cls.classroom.name + ', ' + this.formatRoomType(cls.classroom.room_type)) : 'Room not assigned'"/>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -638,11 +602,11 @@
                                         </div>
                                         <div>
                                             <div class="o_banner_tag text-teal fw-bold" t-esc="this.upNextTagText"/>
-                                            <div class="o_banner_title fw-bold text-dark" t-esc="this.upNextClass ? this.upNextClass.subject_name : 'Anatomy &amp; Human Physiology I'"/>
+                                            <div class="o_banner_title fw-bold text-dark" t-esc="this.upNextClass ? this.upNextClass.subject_name : 'No upcoming session'"/>
                                             <div class="o_banner_sub text-muted small" t-esc="this.upNextClassSummary"/>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-teal btn-sm rounded-2 px-3 fw-semibold text-white shadow-xs"
+                                    <button t-if="this.upNextClass" type="button" class="btn btn-teal btn-sm rounded-2 px-3 fw-semibold text-white shadow-xs"
                                             t-on-click="() => this.openUpNextClass()">
                                         Open class
                                     </button>
@@ -936,21 +900,12 @@
                 <!-- ==================== SUBTAB DETAILED VIEW (when activeTab !== 'dashboard' and activeTab !== 'classes') ==================== -->
                 <t t-else="">
                     <div class="o_student_subtab_view p-3 p-lg-4">
-                        <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 rounded-3 border shadow-sm">
-                            <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold"
-                                    t-on-click="() => this.setActiveTab('dashboard')">
-                                <i class="fa fa-arrow-left me-1"/> Back to Dashboard
-                            </button>
-                            <h2 class="h5 mb-0 fw-bold text-dark" t-esc="this.activeTabTitle"/>
-                            <div style="width: 120px;"/>
-                        </div>
-
-                        <div class="o_student_dashboard_grid">
+                        <div class="o_student_dashboard_grid o_student_legacy_grid">
                             <div class="o_student_dashboard_main_content">
                     <!-- Academic Hub: Tabbed Sections -->
                     <div class="card border-0 shadow-sm mb-4 o_student_hub_card">
                         <div class="card-header bg-white border-bottom p-0">
-                            <ul class="nav nav-tabs card-header-tabs mx-3 mt-2 border-bottom-0 flex-nowrap overflow-auto">
+                            <ul class="nav nav-tabs card-header-tabs o_student_hub_tabs mx-3 mt-2 border-bottom-0 flex-nowrap">
                                 <li class="nav-item">
                                     <button type="button"
                                             t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'classes' ? 'active' : '')"
@@ -1464,44 +1419,126 @@
 
                             <!-- TAB 3: INTERACTIVE SCHEDULE & TIMETABLE -->
 
-                            <div t-if="state.activeTab === 'schedule'" class="o_dashboard_schedule_tab_content">
-
-                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2 pb-2 border-bottom">
-
+                            <div t-if="state.activeTab === 'schedule'" class="o_dashboard_schedule_tab_content o_student_schedule_page">
+                                <div class="o_student_timetable_header">
                                     <div>
-
-                                        <h3 class="h5 mb-1 text-dark fw-bold">
-
-                                            <i class="fa fa-calendar text-purple me-2" aria-hidden="true"/>Interactive Academic Schedule
-
-                                        </h3>
-
-                                        <p class="text-muted small mb-0">
-
-                                            Full weekly timetable grid with class capacity, enrolled spaces, and room allocations.
-
+                                        <div class="o_student_section_eyebrow">STUDENT SCHEDULE</div>
+                                        <h3 class="o_student_timetable_greeting">Good morning, <t t-esc="state.student?.name || 'Student'"/></h3>
+                                        <p class="o_student_timetable_identity mb-0">
+                                            <t t-esc="state.student?.student_id || 'Student ID unavailable'"/> ·
+                                            <t t-esc="this.programDisplay || 'Program not assigned'"/> ·
+                                            <t t-esc="state.student?.academic_year_id?.[1] || 'Year not assigned'"/> ·
+                                            <t t-esc="this.state.enrolledClasses[0]?.section_name || 'Section not assigned'"/>
                                         </p>
+                                    </div>
+                                    <div class="o_student_timetable_filters">
+                                        <label>Academic Year<select class="form-select form-select-sm" t-on-change="onScheduleAcademicYearChange">
+                                            <option t-foreach="state.academicYears" t-as="year" t-key="year.id" t-att-value="year.id" t-att-selected="year.id === state.selectedAcademicYearId"><t t-esc="year.name"/></option>
+                                        </select></label>
+                                        <label>Semester<select class="form-select form-select-sm" t-on-change="onScheduleSemesterChange">
+                                            <option t-foreach="state.semesters" t-as="semester" t-key="semester.id" t-att-value="semester.id" t-att-selected="semester.id === state.selectedSemesterId"><t t-esc="semester.name"/></option>
+                                        </select></label>
+                                        <button type="button" class="btn btn-primary btn-sm align-self-end" t-on-click="refreshStudentSchedule"><i class="fa fa-refresh me-1"/>Refresh</button>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom o_student_schedule_controls">
+                                    <div>
+                                        <h3 class="h5 mb-1 fw-bold text-dark">Weekly timetable</h3>
+                                        <p class="small text-muted mb-0"><t t-esc="this.weekRangeLabel"/> · <t t-esc="this.weekClassesSummary"/></p>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="btn-group btn-group-sm" role="group" aria-label="Change schedule week">
+                                            <button type="button" class="btn btn-outline-secondary" title="Previous week" t-on-click="() => this.prevWeek()"><i class="fa fa-chevron-left" aria-hidden="true"/></button>
+                                            <button type="button" class="btn btn-outline-secondary fw-semibold" t-on-click="() => this.resetWeekToToday()">Today</button>
+                                            <button type="button" class="btn btn-outline-secondary" title="Next week" t-on-click="() => this.nextWeek()"><i class="fa fa-chevron-right" aria-hidden="true"/></button>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" t-on-click="() => this.openMyTimetableCalendar()">
+                                            <i class="fa fa-external-link me-1" aria-hidden="true"/>Full Calendar
+                                        </button>
+                                    </div>
+                                </div>
 
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-12 col-xl-9">
+                                        <section class="o_student_week_board card border-0 shadow-sm rounded-3 overflow-hidden" aria-label="Weekly timetable">
+                                            <div class="o_student_week_board_header d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+                                                <span class="small text-uppercase fw-bold text-secondary"><i class="fa fa-calendar-o me-2 text-primary" aria-hidden="true"/>Weekly timetable</span>
+                                                <span class="small text-muted">Select a session for details</span>
+                                            </div>
+                                            <div class="o_student_timetable_grid">
+                                                <div class="o_student_timetable_corner">WEEKLY TIMETABLE</div>
+                                                <t t-foreach="this.currentWeekDays" t-as="day" t-key="day.dateStr">
+                                                    <button type="button" t-att-class="'o_student_timetable_day_header ' + (day.isToday ? 'is_today' : '')" t-on-click="() => this.selectCalendarDay(day.dateStr)">
+                                                        <span t-esc="day.formattedDate"/>
+                                                        <small t-if="day.isToday">TODAY - HIGHLIGHTED WEEK SLOT</small>
+                                                    </button>
+                                                </t>
+                                                <t t-foreach="this.scheduleTimeRows" t-as="row" t-key="row.key">
+                                                    <div class="o_student_timetable_time" t-esc="row.label"/>
+                                                    <t t-foreach="this.currentWeekDays" t-as="day" t-key="day.dateStr">
+                                                        <div t-att-class="'o_student_timetable_cell ' + (day.isToday ? 'is_today' : '')">
+                                                            <t t-foreach="this.getSlotsForDayAndRow(day, row)" t-as="slot" t-key="slot.id">
+                                                                <button type="button" t-att-class="'o_student_week_session o_student_session_card ' + (slot.color_class || '')" t-on-click="() => this.openSlot(slot.id)" t-att-title="'Open ' + slot.subject_name">
+                                                                    <span class="o_student_session_icon"><i class="fa fa-book" aria-hidden="true"/></span>
+                                                                    <span t-if="slot.status === 'completed' || slot.state === 'done'" class="o_student_session_completed" title="Completed"><i class="fa fa-check" aria-hidden="true"/></span>
+                                                                    <span class="o_student_session_code">[<t t-esc="slot.subject_code"/>]</span>
+                                                                    <span class="o_student_session_code_label">Course Code</span>
+                                                                    <strong class="o_student_week_session_title" t-esc="slot.subject_name"/>
+                                                                    <span class="o_student_week_session_meta"><i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-esc="slot.classroom_name"/></span>
+                                                                    <span class="o_student_week_session_meta"><i class="fa fa-user me-1" aria-hidden="true"/><t t-esc="slot.teacher_name"/></span>
+                                                                </button>
+                                                            </t>
+                                                            <div t-if="day.isToday and !this.getSlotsForDayAndRow(day, row).length" class="o_student_week_empty">FREE SLOT</div>
+                                                        </div>
+                                                    </t>
+                                                </t>
+                                            </div>
+                                        </section>
                                     </div>
 
-                                    <button type="button" class="btn btn-outline-primary btn-sm"
-
-                                            t-on-click="() => this.openMyTimetableCalendar()"
-
-                                            title="Open full timetable in standalone view">
-
-                                        <i class="fa fa-external-link me-1" aria-hidden="true"/>Open Full Calendar
-
-                                    </button>
-
+                                    <aside class="col-12 col-xl-3">
+                                        <div class="o_student_schedule_brief card border-0 shadow-sm rounded-3 mb-3">
+                                            <div class="card-header bg-white border-bottom px-3 py-3">
+                                                <div class="o_student_section_eyebrow">DAILY BRIEF &amp; REMINDERS</div>
+                                                <h4 class="h6 mb-0 fw-bold text-dark">Next Class Today</h4>
+                                            </div>
+                                            <div class="card-body p-3">
+                                                <t t-if="this.nextClassThisWeek">
+                                                    <div class="o_student_next_class_badge mb-2"><i class="fa fa-clock-o me-1" aria-hidden="true"/>NEXT UP</div>
+                                                    <div class="fw-bold text-dark mb-1" t-esc="this.nextClassThisWeek.subject_name"/>
+                                                    <div class="small text-muted mb-1"><strong t-esc="this.nextClassThisWeek.subject_code"/> · <t t-esc="this.nextClassThisWeek.subject_name"/></div>
+                                                    <div class="small text-muted mb-1"><i class="fa fa-clock-o me-1" aria-hidden="true"/><t t-esc="this.nextClassThisWeek.time_formatted"/></div>
+                                                    <div class="small text-muted mb-1"><i class="fa fa-map-marker me-1 text-danger" aria-hidden="true"/><t t-esc="this.nextClassThisWeek.classroom_name"/></div>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" t-on-click="() => this.openSlot(this.nextClassThisWeek.id)">View class details</button>
+                                                </t>
+                                                <t t-else="">
+                                                    <div class="text-center text-muted small py-3"><i class="fa fa-check-circle text-success d-block mb-2" aria-hidden="true"/>No more classes this week.</div>
+                                                </t>
+                                            </div>
+                                        </div>
+                                        <div class="o_student_schedule_deadlines card border-0 shadow-sm rounded-3 mb-3">
+                                            <div class="card-header bg-white border-bottom px-3 py-3"><h4 class="h6 mb-0 fw-bold text-dark">Deadlines This Week</h4></div>
+                                            <div class="card-body p-3">
+                                                <t t-if="state.followups.length"><div t-foreach="state.followups.slice(0, 4)" t-as="item" t-key="item.id" class="small mb-2"><strong t-esc="item.title"/><div class="text-muted" t-esc="item.date_deadline || 'No date'"/></div></t>
+                                                <div t-else="" class="small text-muted">No deadlines recorded.</div>
+                                            </div>
+                                        </div>
+                                        <div class="o_student_schedule_calendar card border-0 shadow-sm rounded-3 mb-3">
+                                            <div class="card-header bg-white border-bottom px-3 py-3"><h4 class="h6 mb-0 fw-bold text-dark">This month</h4></div>
+                                            <div class="card-body p-2"><div class="o_student_mini_calendar"><span class="o_student_mini_weekday" t-foreach="['M','T','W','T','F','S','S']" t-as="weekday" t-key="weekday_index" t-esc="weekday"/><t t-foreach="this.miniCalendarWeeks" t-as="week" t-key="week[0].key"><span t-foreach="week" t-as="day" t-key="day.key" t-att-class="'o_student_mini_day ' + (!day.inMonth ? 'is_muted ' : '') + (day.isToday ? 'is_today' : '')" t-esc="day.day"/></t></div></div>
+                                        </div>
+                                        <div class="o_student_schedule_actions card border-0 shadow-sm rounded-3">
+                                            <div class="card-header bg-white border-bottom px-3 py-3">
+                                                <h4 class="h6 mb-0 fw-bold text-dark">Quick actions</h4>
+                                            </div>
+                                            <div class="card-body p-3 d-grid gap-2">
+                                                <button type="button" class="btn btn-light border text-start btn-sm" t-on-click="() => this.openMyTimetableCalendar()"><i class="fa fa-calendar text-primary me-2" aria-hidden="true"/>Export Schedule to Google Calendar</button>
+                                                <button type="button" class="btn btn-light border text-start btn-sm" t-on-click="() => this.openMyTimetableCalendar()"><i class="fa fa-warning text-warning me-2" aria-hidden="true"/>Report Conflict / Room Clashes</button>
+                                                <button type="button" class="btn btn-light border text-start btn-sm" t-on-click="() => this.setActiveTab('classes')"><i class="fa fa-download text-success me-2" aria-hidden="true"/>Download Class Resources</button>
+                                            </div>
+                                        </div>
+                                    </aside>
                                 </div>
-
-                                <div class="o_dashboard_embedded_schedule border rounded-3 bg-white overflow-hidden shadow-sm">
-
-                                    <UniversitySchedule/>
-
-                                </div>
-
                             </div>
 
 
@@ -1960,6 +1997,14 @@
 
                                         </button>
 
+                                        <button type="button" class="btn btn-success btn-sm text-white"
+
+                                                t-on-click="() => this.openFeePaymentWizard()">
+
+                                            <i class="fa fa-qrcode me-1"/>Pay Online (KHQR)
+
+                                        </button>
+
                                     </div>
 
                                 </div>
@@ -2084,7 +2129,7 @@
 
                     <!-- Bottom Quick Links Bar -->
 
-                    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+                    <div class="o_student_legacy_quick_links d-flex flex-wrap gap-2 pt-2 border-top">
 
                         <button type="button" class="btn btn-outline-secondary btn-sm"
 
@@ -2151,7 +2196,7 @@
 
 
                     <!-- ==================== RIGHT COLUMN: SCHEDULE SIDEBAR (340px) ==================== -->
-                    <aside class="o_student_schedule_sidebar" id="student-schedule-sidebar">
+                    <aside class="o_student_schedule_sidebar o_student_legacy_schedule_sidebar" id="student-schedule-sidebar">
                         <!-- Calendar Header Card -->
                         <div class="o_cal_widget_header pb-2 mb-2 border-bottom">
                             <!-- Top Row: Month / Year Title & Full Calendar Switcher -->
@@ -2519,7 +2564,7 @@
                                 <div class="modal-header bg-white border-bottom">
                                     <div>
                                         <span class="badge bg-primary-subtle text-primary me-2">Course Syllabus</span>
-                                        <span class="text-muted small"><t t-esc="state.selectedCourseModal.course_code || 'CRS'"/> &#8226; <t t-esc="state.selectedCourseModal.credits || 3"/> Credits</span>
+                                        <span class="text-muted small"><t t-esc="state.selectedCourseModal.course_code || 'Course code not assigned'"/> &#8226; <t t-esc="state.selectedCourseModal.credits || 0"/> Credits</span>
                                         <h4 class="modal-title h5 fw-bold text-dark mt-2" t-esc="state.selectedCourseModal.subject_name"/>
                                     </div>
                                     <button type="button" class="btn-close" t-on-click="() => this.closeModal()" aria-label="Close"/>
@@ -2535,7 +2580,7 @@
                                         <div class="col-md-6">
                                             <div class="p-3 bg-light rounded-3 border">
                                                 <div class="text-muted very-small text-uppercase fw-bold">Classroom</div>
-                                                <div class="fw-bold text-dark"><t t-esc="state.selectedCourseModal.classroom ? state.selectedCourseModal.classroom.name : 'B201, Standard Classroom'"/></div>
+                                                <div class="fw-bold text-dark"><t t-esc="state.selectedCourseModal.classroom ? state.selectedCourseModal.classroom.name : 'Room not assigned'"/></div>
                                             </div>
                                         </div>
                                     </div>

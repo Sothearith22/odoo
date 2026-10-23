@@ -79,7 +79,7 @@
                                 <button name="action_view_slots" type="object" class="btn btn-sm btn-outline-primary" string="View Sessions">
                                     <i class="fa fa-calendar me-1"/>View Sessions
                                 </button>
-                                <button t-if="record.status.raw_value == 'unresolved'" name="action_mark_resolved" type="object" class="btn btn-sm btn-outline-success" string="Resolve">
+                                <button t-if="record.status.raw_value == 'unresolved'" name="action_mark_resolved" type="object" class="btn btn-sm btn-outline-success" string="Resolve" groups="school_management.group_school_admin,base.group_system">
                                     <i class="fa fa-check me-1"/>Resolve
                                 </button>
                             </div>
@@ -97,7 +97,7 @@
         <field name="arch" type="xml">
             <list string="Schedule Conflicts" sample="1" decoration-danger="severity == 'danger'" decoration-warning="severity == 'warning'">
                 <header>
-                    <button name="action_rescan" type="object" string="Rescan Conflicts" class="btn-primary" icon="fa-refresh"/>
+                    <button name="action_rescan" type="object" string="Rescan Conflicts" class="btn-primary" icon="fa-refresh" groups="school_management.group_school_admin,base.group_system"/>
                 </header>
                 <field name="name" decoration-bf="1"/>
                 <field name="conflict_type" widget="badge"
@@ -128,8 +128,8 @@
             <form string="Schedule Conflict">
                 <header>
                     <button name="action_view_slots" type="object" string="Inspect Conflicting Sessions" class="btn-primary" icon="fa-calendar"/>
-                    <button name="action_mark_resolved" type="object" string="Mark as Resolved" class="btn-secondary" invisible="status == 'resolved'"/>
-                    <button name="action_rescan" type="object" string="Rescan Conflicts" class="btn-secondary" icon="fa-refresh"/>
+                    <button name="action_mark_resolved" type="object" string="Mark as Resolved" class="btn-secondary" invisible="status == 'resolved'" groups="school_management.group_school_admin,base.group_system"/>
+                    <button name="action_rescan" type="object" string="Rescan Conflicts" class="btn-secondary" icon="fa-refresh" groups="school_management.group_school_admin,base.group_system"/>
                     <field name="status" widget="statusbar" statusbar_visible="unresolved,resolved"/>
                 </header>
                 <sheet>

@@ -764,7 +764,7 @@ export class TeacherDashboardShell extends Component {
         const pad = (n) => String(n).padStart(2, "0");
         const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
         const sectionId = slot.section_id ? slot.section_id[0] : false;
-        this.action.doAction("school_management.action_university_attendance_sheet", {
+        this.action.doAction("school_management.action_university_attendance_session", {
             additionalContext: {
                 default_section_id: sectionId,
                 section_id: sectionId,
@@ -779,7 +779,7 @@ export class TeacherDashboardShell extends Component {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-        this.action.doAction("school_management.action_university_attendance_sheet", {
+        this.action.doAction("school_management.action_university_attendance_session", {
             additionalContext: {
                 default_section_id: sectionId,
                 section_id: sectionId,
@@ -817,7 +817,7 @@ export class TeacherDashboardShell extends Component {
     }
 
     openAttendanceSheet() {
-        this.action.doAction("school_management.action_university_attendance_sheet");
+        this.action.doAction("school_management.action_university_attendance_session");
     }
 
     openAttendanceRecords() {
@@ -838,7 +838,7 @@ export class TeacherDashboardShell extends Component {
     }
 
     openAssignments() {
-        this.action.doAction("school_management.action_university_grade_assignment");
+        this.action.doAction("school_management.action_university_assignment");
     }
 
     openSubmissions() {

@@ -135,6 +135,7 @@ class Student(models.Model):
         "university.student.advising.note",
         "student_id",
         string="Advising Notes",
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin",
     )
     followup_ids = fields.One2many(
         "university.student.followup",
@@ -144,6 +145,7 @@ class Student(models.Model):
     advising_note_count = fields.Integer(
         string="Advising Notes Count",
         compute="_compute_advising_counts",
+        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin",
     )
     followup_count = fields.Integer(
         string="Follow-up Count",
@@ -258,11 +260,13 @@ class Student(models.Model):
         "university.fee",
         "student_id",
         string="Fee Invoices",
+        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
     )
     payment_ids = fields.One2many(
         "university.payment",
         "student_id",
         string="Payments",
+        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
     )
     currency_id = fields.Many2one(
         "res.currency",
@@ -273,16 +277,19 @@ class Student(models.Model):
         string="Fee Total",
         compute="_compute_fee_totals",
         currency_field="currency_id",
+        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
     )
     fee_paid = fields.Monetary(
         string="Fees Paid",
         compute="_compute_fee_totals",
         currency_field="currency_id",
+        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
     )
     fee_balance = fields.Monetary(
         string="Fee Balance",
         compute="_compute_fee_totals",
         currency_field="currency_id",
+        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
     )
     financial_status = fields.Selection(
         [
@@ -346,7 +353,7 @@ class Student(models.Model):
             "name": "Payments",
             "res_model": "university.payment",
             "view_mode": "list,form",
-            "domain": [("fee_id.student_id", "=", self.id)],
+            "domain": [("student_id", "=", self.id)],
             "context": {"default_fee_id": False},
         }
 
@@ -404,14 +411,14 @@ class Student(models.Model):
 
     def action_register_student_payment(self):
         self.ensure_one()
-        fee = self.fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0).sorted("date asc, id asc")[:1]
+        fee = self.sudo().fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0).sorted("date asc, id asc")[:1]
         if not fee:
             raise UserError(_("No unpaid posted fee invoices found for this student."))
         return fee.action_register_payment()
 
     def action_send_urgent_payment_reminder(self):
         self.ensure_one()
-        fees = self.fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0)
+        fees = self.sudo().fee_ids.filtered(lambda f: f.state == "posted" and f.balance > 0)
         if not fees:
             raise UserError(_("No unpaid posted fee invoices found for this student."))
         for f in fees:
@@ -589,7 +596,7 @@ class Student(models.Model):
     )
     def _compute_fee_totals(self):
         for rec in self:
-            confirmed = rec.fee_ids.filtered(lambda fee: fee.state in ("posted", "paid"))
+            confirmed = rec.sudo().fee_ids.filtered(lambda fee: fee.state in ("posted", "paid"))
             rec.fee_total = sum(confirmed.mapped("total_amount"))
             rec.fee_paid = sum(confirmed.mapped("paid_amount"))
             rec.fee_balance = sum(confirmed.mapped("balance"))
@@ -598,7 +605,7 @@ class Student(models.Model):
     def _compute_financial_status(self):
         today = fields.Date.context_today(self)
         for student in self:
-            active_fees = student.fee_ids.filtered(lambda f: f.state in ("posted", "paid"))
+            active_fees = student.sudo().fee_ids.filtered(lambda f: f.state in ("posted", "paid"))
             if not active_fees:
                 student.financial_status = "no_invoices"
                 student.overdue_fee_count = 0
@@ -656,10 +663,11 @@ class Student(models.Model):
         return super().create(vals_list)
 
     def _compute_advising_counts(self):
+        NoteModel = self.env["university.student.advising.note"].sudo()
+        FollowupModel = self.env["university.student.followup"].sudo()
         for student in self:
-            notes = self.env["university.student.advising.note"].search([("student_id", "=", student.id)])
-            followups = self.env["university.student.followup"].search([("student_id", "=", student.id)])
-            student.advising_note_count = len(notes)
+            student.advising_note_count = NoteModel.search_count([("student_id", "=", student.id)])
+            followups = FollowupModel.search([("student_id", "=", student.id)])
             student.followup_count = len(followups)
             student.pending_followup_count = len(followups.filtered(lambda f: f.state in ("pending", "in_progress")))
 
@@ -742,6 +750,33 @@ class Student(models.Model):
             "view_mode": "list,form",
             "domain": [("student_id", "=", self.id)],
             "context": {"default_student_id": self.id},
+        }
+
+    @api.model
+    def action_open_own_profile(self):
+        """Open the student profile linked to the current login."""
+        student = self.search([("user_id", "=", self.env.user.id)], limit=1)
+        if not student:
+            raise UserError(
+                _("No student profile is linked to your login. Please contact an administrator.")
+            )
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("My Profile"),
+            "res_model": "university.student",
+            "res_id": student.id,
+            "views": [
+                (self.env.ref("school_management.view_university_student_form").id, "form")
+            ],
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "create": False,
+                "edit": False,
+                "delete": False,
+                "form_view_initial_mode": "readonly",
+            },
         }
 
     def action_view_followups(self):

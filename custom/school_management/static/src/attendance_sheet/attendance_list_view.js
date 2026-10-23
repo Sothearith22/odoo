@@ -40,7 +40,7 @@ export class AttendanceListController extends ListController {
     }
 
     async createRecord() {
-        return this.actionService.doAction("school_management.action_university_attendance_sheet", {
+        return this.actionService.doAction("school_management.action_university_attendance_session", {
             additionalContext: this._getAttendanceContext(),
         });
     }
@@ -64,7 +64,7 @@ export class AttendanceFormController extends FormController {
         const onError = (error, options) => this.onSaveError(error, options, true);
         const canProceed = !dirty || (await this.model.root.save({ onError }));
         if (canProceed) {
-            return this.actionService.doAction("school_management.action_university_attendance_sheet");
+            return this.actionService.doAction("school_management.action_university_attendance_session");
         }
     }
 }

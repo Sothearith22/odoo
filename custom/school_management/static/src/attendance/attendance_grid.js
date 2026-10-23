@@ -14,7 +14,7 @@ function localToday() {
     return { year: today.getFullYear(), month: today.getMonth() + 1 };
 }
 
-class AttendanceGrid extends Component {
+export class AttendanceGrid extends Component {
     static template = "school_management.AttendanceGrid";
     static props = ["*"];
 
@@ -102,7 +102,7 @@ class AttendanceGrid extends Component {
     }
 
     openAttendanceSheet(sectionId) {
-        this.action.doAction("school_management.action_university_attendance_sheet", {
+        this.action.doAction("school_management.action_university_attendance_session", {
             additionalContext: {
                 default_section_id: sectionId,
                 section_id: sectionId,

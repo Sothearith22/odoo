@@ -47,16 +47,22 @@ class UniversityDashboard(models.Model):
         for rec in self:
             rec.currency_id = currency
 
-    def _safe_count(self, model, domain=None):
+    def _safe_count(self, model, domain=None, elevated=True):
         try:
-            return self.env[model].sudo().search_count(domain or [])
+            records = self.env[model]
+            if elevated:
+                records = records.sudo()
+            return records.search_count(domain or [])
         except Exception:
             _logger.exception("Dashboard count failed for model %s", model)
             return 0
 
-    def _safe_sum(self, model, domain, field):
+    def _safe_sum(self, model, domain, field, elevated=True):
         try:
-            rows = self.env[model].sudo()._read_group(domain or [], [], [f"{field}:sum"])
+            records = self.env[model]
+            if elevated:
+                records = records.sudo()
+            rows = records._read_group(domain or [], [], [f"{field}:sum"])
             return float(rows[0][0] or 0.0) if rows else 0.0
         except Exception:
             _logger.exception("Dashboard sum failed for model %s.%s", model, field)
@@ -119,16 +125,22 @@ class UniversityDashboard(models.Model):
             )
             rec.active_semester_name = semester.display_name or _("No active semester")
 
-    def _safe_read_group(self, model, domain, groupby, aggregates, **kwargs):
+    def _safe_read_group(self, model, domain, groupby, aggregates, elevated=True, **kwargs):
         try:
-            return self.env[model].sudo()._read_group(domain or [], groupby, aggregates, **kwargs)
+            records = self.env[model]
+            if elevated:
+                records = records.sudo()
+            return records._read_group(domain or [], groupby, aggregates, **kwargs)
         except Exception:
             _logger.exception("Dashboard grouped query failed on %s", model)
             return []
 
-    def _safe_search_read(self, model, domain, field_names, **kwargs):
+    def _safe_search_read(self, model, domain, field_names, elevated=True, **kwargs):
         try:
-            return self.env[model].sudo().search_read(domain or [], field_names, **kwargs)
+            records = self.env[model]
+            if elevated:
+                records = records.sudo()
+            return records.search_read(domain or [], field_names, **kwargs)
         except Exception:
             _logger.exception("Dashboard search_read query failed on %s", model)
             return []
@@ -149,7 +161,7 @@ class UniversityDashboard(models.Model):
             return [("section_id.semester_id.academic_year_id", "=", year_id)]
         return []
 
-    def _get_attendance_rate(self, year_id=False, semester_id=False, extra_domain=None):
+    def _get_attendance_rate(self, year_id=False, semester_id=False, extra_domain=None, elevated=True):
         base_dom = self._attendance_domain(year_id, semester_id)
         if extra_domain:
             base_dom = base_dom + extra_domain
@@ -158,6 +170,7 @@ class UniversityDashboard(models.Model):
             base_dom,
             ["status"],
             ["__count"],
+            elevated=elevated,
         )
         counts = {"present": 0, "absent": 0, "late": 0, "excused": 0}
         for status, count in rows:
@@ -203,25 +216,27 @@ class UniversityDashboard(models.Model):
             return False, False
 
     @api.model
-    def get_filter_options(self):
+    def get_filter_options(self, year_id=False):
         years = self._safe_search_read(
             "university.academic.year",
             [("active", "=", True)],
             ["name", "current"],
             order="date_start desc, id desc",
         )
+        selected_year_id, selected_semester_id = self._selected_period(year_id=year_id)
         semesters = self._safe_search_read(
             "university.semester",
-            [("active", "=", True)],
+            [("active", "=", True), ("academic_year_id", "=", selected_year_id)]
+            if selected_year_id
+            else [("active", "=", True), ("academic_year_id", "=", False)],
             ["name", "academic_year_id", "semester_type"],
-            order="date_start desc, id desc",
+            order="date_start, id",
         )
-        year_id, semester_id = self._selected_period()
         return {
             "academic_years": years,
             "semesters": semesters,
-            "selected_year_id": year_id,
-            "selected_semester_id": semester_id,
+            "selected_year_id": selected_year_id,
+            "selected_semester_id": selected_semester_id,
         }
 
     @api.model
@@ -231,7 +246,7 @@ class UniversityDashboard(models.Model):
         is_registrar = user.has_group("school_management.group_school_registrar")
         is_dean = user.has_group("school_management.group_school_dean")
         is_hod = user.has_group("school_management.group_school_hod")
-        is_teacher = user.has_group("school_management.group_school_teacher")
+        is_teacher = user.has_group("school_management.group_university_teacher")
         is_student = user.has_group("school_management.group_school_student")
 
         if is_student and not (is_admin or is_registrar or is_dean or is_hod or is_teacher):
@@ -276,13 +291,13 @@ class UniversityDashboard(models.Model):
         else:
             user_initials = "SK"
 
-        year_name = "2026 - 2027"
+        year_name = ""
         if year_id:
             year_rec = self.env["university.academic.year"].sudo().browse(year_id)
             if year_rec.exists() and year_rec.name:
-                year_name = year_rec.name.replace("-", " - ")
+                year_name = year_rec.name
 
-        semester_name = _("Semester 1")
+        semester_name = ""
         if semester_id:
             semester_rec = self.env["university.semester"].sudo().browse(semester_id)
             semester_name = semester_rec.name or semester_rec.display_name or semester_name
@@ -648,26 +663,40 @@ class UniversityDashboard(models.Model):
         # 3. TEACHER DASHBOARD DATA LOGIC
         # =========================================================================
         elif role == "teacher":
-            teacher = self.env["university.teacher"].sudo().search([("user_id", "=", user.id)], limit=1)
-            if not teacher:
-                teacher = self.env["university.teacher"].sudo().search([], limit=1)
+            teacher = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
 
             t_id = teacher.id if teacher else False
-            sections = self.env["university.class.section"].sudo().search([("teacher_id", "=", t_id)])
-            section_count = len(sections) or 5
-            student_count = self._safe_count("university.student", [("enrollment_ids.section_id.teacher_id", "=", t_id)]) or 18
-            advisee_count = self._safe_count("university.student", [("advisor_id", "=", t_id)]) or 1
-            assignment_count = self._safe_count("university.assignment", [("teacher_id", "=", t_id)]) or 3
+            sections = (
+                self.env["university.class.section"].search([("teacher_id", "=", t_id)])
+                if t_id
+                else self.env["university.class.section"].browse()
+            )
+            section_count = len(sections)
+            student_domain = [("enrollment_ids.section_id.teacher_id", "=", t_id)]
+            student_count = self._safe_count("university.student", student_domain, elevated=False)
+            advisee_count = self._safe_count("university.student", student_domain, elevated=False)
+            assignment_count = self._safe_count(
+                "university.assignment",
+                [("section_id.teacher_id", "=", t_id)],
+                elevated=False,
+            )
             pending_grading = self._safe_count(
                 "university.assignment.submission",
-                [("assignment_id.teacher_id", "=", t_id), ("state", "=", "submitted")]
-            ) or 2
-            attendance_rate = self._get_attendance_rate(year_id, semester_id, [("section_id.teacher_id", "=", t_id)]) or 92.5
+                [("assignment_id.section_id.teacher_id", "=", t_id), ("state", "=", "submitted")],
+                elevated=False,
+            )
+            attendance_rate = self._get_attendance_rate(
+                year_id,
+                semester_id,
+                [("section_id.teacher_id", "=", t_id)],
+                elevated=False,
+            )
 
             today_classes_count = self._safe_count(
                 "university.timetable.slot",
-                [("teacher_id", "=", t_id), ("date", "=", today_date)]
-            ) or 2
+                [("section_id.teacher_id", "=", t_id), ("date", "=", today_date)],
+                elevated=False,
+            )
 
             dashboard = {
                 "user_name": display_user_name,
@@ -771,26 +800,19 @@ class UniversityDashboard(models.Model):
             # Breakdown across teacher's sections
             program_breakdown = []
             if sections:
-                sec_tot = sum(getattr(s, "enrolled_student_count", 0) or 4 for s in sections) or 1
+                sec_tot = sum(getattr(s, "enrolled_student_count", 0) or 0 for s in sections) or 1
                 for idx, s in enumerate(sections[:5]):
-                    cnt = getattr(s, "enrolled_student_count", 0) or 4
+                    cnt = getattr(s, "enrolled_student_count", 0) or 0
                     program_breakdown.append({
                         "name": s.name or "Class Section",
                         "count": cnt,
                         "percentage": round((cnt * 100.0) / sec_tot),
                         "color": prog_palette[idx % len(prog_palette)],
                     })
-            else:
-                program_breakdown = [
-                    {"name": "NUR101-SEC01", "count": 6, "percentage": 33, "color": "#3b82f6"},
-                    {"name": "MED103-SEC01", "count": 5, "percentage": 28, "color": "#10b981"},
-                    {"name": "B202", "count": 4, "percentage": 22, "color": "#f59e0b"},
-                    {"name": "MED103-SEC02", "count": 3, "percentage": 17, "color": "#8b5cf6"},
-                ]
 
             enrollment_trend = {
-                "labels": ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"],
-                "data": [16, 17, 18, 18, 17, 18],
+                "labels": [],
+                "data": [],
             }
 
             return {
@@ -1016,7 +1038,7 @@ class UniversityDashboard(models.Model):
         is_registrar = user.has_group("school_management.group_school_registrar")
         is_dean = user.has_group("school_management.group_school_dean")
         is_hod = user.has_group("school_management.group_school_hod")
-        is_teacher = user.has_group("school_management.group_school_teacher")
+        is_teacher = user.has_group("school_management.group_university_teacher")
         is_student = user.has_group("school_management.group_school_student")
 
         if is_student and not (is_admin or is_registrar or is_dean or is_hod or is_teacher):
@@ -1111,3 +1133,15 @@ class UniversityDashboard(models.Model):
         action = self.env.ref("school_management.action_university_fee").read()[0]
         action["domain"] = [("balance", ">", 0)]
         return action
+
+    def action_open_course_registrations(self):
+        return self.env.ref("school_management.action_university_course_registration").read()[0]
+
+    def action_open_course_evaluations(self):
+        return self.env.ref("school_management.action_university_course_evaluation").read()[0]
+
+    def action_open_service_requests(self):
+        return self.env.ref("school_management.action_university_service_request").read()[0]
+
+    def action_open_student_change_requests(self):
+        return self.env.ref("school_management.action_university_student_change_request").read()[0]

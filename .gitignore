@@ -54,3 +54,7 @@ package.json
 /venv/
 .env
 
+
+# Generated screenshots and PNG files
+*.png
+!**/static/**/*.png

@@ -123,9 +123,13 @@ class SchoolDashboardShell extends Component {
         this.charts = [];
     }
 
-    async loadFilterOptions() {
+    async loadFilterOptions(yearId = false) {
         try {
-            const options = await this.orm.call("school.dashboard", "get_filter_options", []);
+            const options = await this.orm.call(
+                "school.dashboard",
+                "get_filter_options",
+                yearId ? [Number(yearId)] : []
+            );
             this.state.filterOptions.academicYears = options.academic_years || [];
             this.state.filterOptions.semesters = options.semesters || [];
             this.state.filters.yearId = options.selected_year_id || false;
@@ -143,14 +147,18 @@ class SchoolDashboardShell extends Component {
         const semester = this.state.filterOptions.semesters.find(
             (item) => item.id === Number(this.state.filters.semesterId)
         );
-        this.state.academicPeriod.year = year?.name || "2026 - 2027";
-        this.state.academicPeriod.semester = semester?.name || "Semester 1";
+        this.state.academicPeriod.year = year?.name || "";
+        this.state.academicPeriod.semester = semester?.name || "";
         this.state.academicPeriod.label = [semester?.name, year?.name].filter(Boolean).join(" · ");
     }
 
     async changeFilter(name, value) {
         this.state.filters[name] = Number(value) || false;
-        this.updateAcademicPeriodLabel();
+        if (name === "yearId") {
+            await this.loadFilterOptions(this.state.filters.yearId);
+        } else {
+            this.updateAcademicPeriodLabel();
+        }
         await this.reload();
     }
 
@@ -287,7 +295,7 @@ class SchoolDashboardShell extends Component {
     }
 
     openAttendanceSheet() {
-        this.action.doAction("school_management.action_university_attendance_sheet");
+        this.action.doAction("school_management.action_university_attendance_session");
     }
 
     formatCurrency(amount) {

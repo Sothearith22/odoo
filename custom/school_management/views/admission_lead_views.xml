@@ -1,4 +1,4 @@
-﻿<odoo>
+<odoo>
     <record id="admission_lead_view_kanban" model="ir.ui.view">
         <field name="name">admission.lead.kanban</field>
         <field name="model">admission.lead</field>
@@ -99,8 +99,4 @@
         <field name="search_view_id" ref="admission_lead_view_search"/>
     </record>
 
-    <menuitem id="menu_admission_lead" name="Admission Pipeline"
-              parent="menu_university_enrollment_category" action="admission_lead_action"
-              sequence="6"
-              groups="base.group_system,school_management.group_school_admin"/>
 </odoo>

@@ -7027,6 +7027,9 @@ class BaseModel(metaclass=MetaModel):
     def _get_role_sections(self):
         pass
 
+    def _attendance_percentage(self, counts):
+        pass
+
 
 collections.abc.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have index or count

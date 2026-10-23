@@ -24,6 +24,14 @@ const FILTERS = [
     { value: "excused", label: "Excused" },
 ];
 
+/** Column metadata for the schedule-style agenda kanban (mirrors university_schedule). */
+const KANBAN_STATUS_GROUPS = [
+    { key: "present", label: "Present", badgeClass: "badge text-bg-success" },
+    { key: "late",    label: "Late",    badgeClass: "badge text-bg-warning" },
+    { key: "absent",  label: "Absent",  badgeClass: "badge text-bg-danger" },
+    { key: "excused", label: "Excused", badgeClass: "badge text-bg-secondary" },
+];
+
 const AVATAR_TONES = 4;
 
 function today() {
@@ -56,7 +64,7 @@ function nameTone(name) {
     return sum % AVATAR_TONES;
 }
 
-class AttendanceSheet extends Component {
+export class AttendanceSheet extends Component {
     static template = "school_management.AttendanceSheet";
     static components = { Chatter };
     static props = ["*"];
@@ -88,7 +96,9 @@ class AttendanceSheet extends Component {
             error: null,
             query: "",
             filter: "all",
-            viewMode: "kanban", // "kanban" or "list"
+            // Student attendance is intentionally card-based.  Keep this in state so
+            // the existing template remains reactive without exposing a second layout.
+            viewMode: "kanban",
             activeId: false,
             openNoteId: false,
             session: {},
@@ -180,15 +190,12 @@ class AttendanceSheet extends Component {
         this.state.tab = tab;
     }
 
-    setViewMode(mode) {
-        this.state.viewMode = mode;
-    }
-
     getStatusBadgeClass(status) {
-        if (status === "present") return "badge bg-success-subtle text-success border border-success-subtle";
-        if (status === "absent") return "badge bg-danger-subtle text-danger border border-danger-subtle";
-        if (status === "late") return "badge bg-warning-subtle text-warning border border-warning-subtle";
-        return "badge bg-secondary-subtle text-secondary border";
+        // Pill classes aligned with Scheduled Sessions status badges
+        if (status === "present") return "badge text-bg-success";
+        if (status === "absent") return "badge text-bg-danger";
+        if (status === "late") return "badge text-bg-warning";
+        return "badge text-bg-secondary";
     }
 
     getStatusIconClass(status) {
@@ -205,10 +212,6 @@ class AttendanceSheet extends Component {
                 this.state.tab === "attendance" ? "details" : "attendance";
             this._pendingFocus = `[role="tab"][data-tab="${this.state.tab}"]`;
         }
-    }
-
-    get visibleRows() {
-        return this.visibleLines;
     }
 
     get visibleLines() {
@@ -230,9 +233,41 @@ class AttendanceSheet extends Component {
         });
     }
 
+    /**
+     * Status columns for the agenda kanban — same grouping pattern as
+     * Scheduled Sessions (university_schedule.kanbanGroups).
+     */
+    get kanbanGroups() {
+        const lines = this.visibleLines;
+        return KANBAN_STATUS_GROUPS.map((meta) => ({
+            ...meta,
+            lines: lines.filter((line) => line.status === meta.key),
+        })).filter((group) => group.lines.length > 0 || this.state.filter === "all");
+    }
+
+    get attendanceRate() {
+        const tally = this.counts;
+        if (!tally.total) {
+            return 0;
+        }
+        return Math.round(((tally.present + tally.late) / tally.total) * 100);
+    }
+
     get activeStudent() {
         const visible = this.visibleLines;
         return visible.find((line) => line.student_id === this.state.activeId) || visible[0] || null;
+    }
+
+    setViewMode(mode) {
+        this.state.viewMode = mode === "list" ? "list" : "kanban";
+    }
+
+    statusPercent(status) {
+        const tally = this.counts;
+        if (!tally.total) {
+            return 0;
+        }
+        return Math.round(((tally[status] || 0) / tally.total) * 100);
     }
 
     get isDirty() {
@@ -459,6 +494,13 @@ class AttendanceSheet extends Component {
 
     setActive(line) {
         this.state.activeId = line.student_id;
+    }
+
+    onCardKeyDown(line, ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            this.setActive(line);
+        }
     }
 
     markAllPresent() {

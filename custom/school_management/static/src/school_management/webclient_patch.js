@@ -57,7 +57,7 @@ const SCHOOL_ACTION_XMLIDS = new Set([
     STUDENT_ACTION_XMLID,
     TEACHER_ACTION_XMLID,
     SCHEDULE_ACTION_XMLID,
-    "school_management.action_university_attendance_sheet",
+    "school_management.action_university_attendance_session",
     "school_management.action_university_attendance_grid",
     "school_management.action_university_attendance_at_risk",
     "school_management.action_university_attendance_comparison",

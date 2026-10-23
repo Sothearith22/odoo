@@ -150,6 +150,8 @@
                 <filter string="Running" name="filter_running" domain="[('state', '=', 'running')]"/>
                 <filter string="Ended" name="filter_ended" domain="[('state', '=', 'ended')]"/>
                 <separator/>
+                <filter string="Terms Ending Soon" name="filter_ending_soon"
+                        domain="[('date_end', '&gt;=', context_today().strftime('%Y-%m-%d')), ('date_end', '&lt;=', (context_today() + datetime.timedelta(days=14)).strftime('%Y-%m-%d'))]"/>
                 <filter string="Below Minimum Weeks" name="filter_below_min_weeks" domain="[('is_below_min_weeks', '=', True)]"/>
                 <group>
                     <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>

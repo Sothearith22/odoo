@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_university_notice_board_form_inherit_holiday" model="ir.ui.view">
+        <field name="name">university.notice.board.form.inherit.holiday</field>
+        <field name="model">university.notice.board</field>
+        <field name="inherit_id" ref="school_management.view_university_notice_board_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='academic_year_id']" position="after">
+                <field name="holiday_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_university_notice_board_list_inherit_holiday" model="ir.ui.view">
+        <field name="name">university.notice.board.list.inherit.holiday</field>
+        <field name="model">university.notice.board</field>
+        <field name="inherit_id" ref="school_management.view_university_notice_board_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='notice_type']" position="after">
+                <field name="holiday_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

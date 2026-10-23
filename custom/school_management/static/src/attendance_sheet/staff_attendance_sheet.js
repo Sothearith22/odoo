@@ -5,7 +5,6 @@ import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
-import { Chatter } from "@mail/chatter/web_portal/chatter";
 import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 
 const STATUS_OPTIONS = [
@@ -98,7 +97,6 @@ function fmtHours(h) {
 
 class StaffAttendanceSheet extends Component {
     static template = "school_management.StaffAttendanceSheet";
-    static components = { Chatter };
     static props = ["*"];
 
     setup() {
@@ -116,13 +114,14 @@ class StaffAttendanceSheet extends Component {
 
         this.state = useState({
             date:                 context.default_date || context.date || today(),
-            departmentId:         context.default_department_id || context.department_id || "",
+            departmentId:         context.default_department_id || context.department_id || "all",
             departments:          [],
             lines:                [],
             taken:                false,
             lastSaved:            "",
             loading:              false,
             saving:               false,
+            locked:               false,
             error:                null,
             query:                "",
             filter:               "all",
@@ -136,7 +135,7 @@ class StaffAttendanceSheet extends Component {
             expectedCheckInTime:  "08:00",
             expectedCheckOutTime: "17:00",
             graceMinutes:         15,
-            viewMode:             context.default_view_mode || "dashboard",
+            viewMode:             "table",
             isFullscreen:         false,
             // Monthly Matrix Dashboard State
             matrix:               null,
@@ -218,13 +217,10 @@ class StaffAttendanceSheet extends Component {
                 this.state.departmentId = passedDept === "all" ? "all" : Number(passedDept);
                 this.state.selectedDepartmentId = passedDept;
                 await this.loadSheet();
-            } else if (this.state.departments.length) {
-                this.state.departmentId = this.state.departments[0].id;
+            } else {
+                this.state.departmentId = "all";
                 await this.loadSheet();
             }
-
-            // Load monthly attendance matrix dashboard data
-            await this.loadMatrixData();
         });
     }
 
@@ -632,6 +628,7 @@ class StaffAttendanceSheet extends Component {
             this.state.lastSaved   = "";
             this.state.activeId    = false;
             this.state.holidayName = "";
+            this.state.locked      = false;
             this._baseline         = this.snapshot();
             return;
         }
@@ -697,8 +694,8 @@ class StaffAttendanceSheet extends Component {
             // 3. Assemble staff rows
             this.state.lines = teachers.map((t) => {
                 const rec = recMap[t.id] || null;
-                const checkIn  = utcToLocalTime(rec?.check_in);
-                const checkOut = utcToLocalTime(rec?.check_out);
+                const checkIn  = rec ? utcToLocalTime(rec.check_in) : this.state.expectedCheckInTime;
+                const checkOut = rec ? utcToLocalTime(rec.check_out) : this.state.expectedCheckOutTime;
                 return {
                     teacher_id:   t.id,
                     record_id:    rec?.id || false,
@@ -718,6 +715,7 @@ class StaffAttendanceSheet extends Component {
 
             this.state.activeId = this.state.lines.length ? this.state.lines[0].teacher_id : false;
             this.state.openNoteId = false;
+            this.state.locked = false;
             this._baseline = this.snapshot();
         } catch (e) {
             this.state.error = e.message || _t("Unable to load staff attendance.");
@@ -745,35 +743,59 @@ class StaffAttendanceSheet extends Component {
 
     // --- Status Controls ---
     setStatus(line, status) {
-        if (!this.state.isAdmin) return;
+        if (!this.state.isAdmin || this.state.locked) return;
         this.state.activeId = line.teacher_id;
         line.status = status;
-        // If absent or on leave, clear times & worked hours
         if (status === "absent" || status === "leave") {
             line.check_in     = "";
             line.check_out    = "";
             line.worked_hours = 0;
+        } else if (status === "half_day") {
+            line.check_in = this.state.expectedCheckInTime;
+            line.check_out = this._addMinutes(line.check_in, 240);
+            this._recalcHours(line);
+        } else if (status === "present" || status === "official_duty") {
+            line.check_in = this.state.expectedCheckInTime;
+            line.check_out = this.state.expectedCheckOutTime;
+            this._recalcHours(line);
         }
     }
 
     markAllPresent() {
-        if (!this.state.isAdmin) return;
+        if (!this.state.isAdmin || this.state.locked) return;
         for (const l of this.state.lines) {
             l.status = "present";
+            l.check_in = this.state.expectedCheckInTime;
+            l.check_out = this.state.expectedCheckOutTime;
+            this._recalcHours(l);
         }
     }
 
     // --- Time & Hours ---
     onCheckInChange(line, ev) {
-        if (!this.state.isAdmin) return;
+        if (!this.state.isAdmin || this.state.locked) return;
         line.check_in = ev.target.value;
+        this._applyLateStatus(line);
         this._recalcHours(line);
     }
 
     onCheckOutChange(line, ev) {
-        if (!this.state.isAdmin) return;
+        if (!this.state.isAdmin || this.state.locked) return;
         line.check_out = ev.target.value;
         this._recalcHours(line);
+    }
+
+    _addMinutes(value, minutes) {
+        const [hours, mins] = String(value || "08:00").split(":").map(Number);
+        const total = hours * 60 + mins + minutes;
+        return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+    }
+
+    _applyLateStatus(line) {
+        if (!line.check_in || !["present", "late"].includes(line.status)) return;
+        const [hours, mins] = line.check_in.split(":").map(Number);
+        const [startHours, startMins] = this.state.expectedCheckInTime.split(":").map(Number);
+        line.status = hours * 60 + mins > startHours * 60 + startMins + this.state.graceMinutes ? "late" : "present";
     }
 
     _recalcHours(line) {
@@ -837,7 +859,7 @@ class StaffAttendanceSheet extends Component {
 
     // --- Save Attendance ---
     async saveAttendance() {
-        if (!this.state.isAdmin) {
+        if (!this.state.isAdmin || this.state.locked) {
             this.notification.add(_t("Only administrators can record staff attendance."), { type: "danger" });
             return;
         }
@@ -893,9 +915,8 @@ class StaffAttendanceSheet extends Component {
             }
 
             await this.loadSheet();
-            await this.loadMatrixData();
             this.state.lastSaved = clockTime(new Date());
-            this.state.chatterRevision += 1;
+            this.state.locked = true;
 
             const c = this.counts;
             const deptLabel = this.currentDepartmentName;

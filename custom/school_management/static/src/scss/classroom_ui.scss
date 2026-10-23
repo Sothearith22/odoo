@@ -16,6 +16,8 @@ $classroom-colors: (
 );
 
 .o_university_classroom_kanban {
+    .o_classroom_thumb { width: 52px; height: 52px; }
+    .o_room_type_icon { padding: 14px; }
     .o_classroom_kanban_card {
         border-radius: 10px !important;
         border: 1px solid #e2e8f0 !important;

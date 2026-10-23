@@ -1,0 +1,18 @@
+/* Native schedule views: keep secondary text readable and group labels clear. */
+.o_university_schedule_kanban {
+    .text-muted {
+        color: #475569 !important;
+    }
+
+    .o_kanban_group_header,
+    .o_kanban_group_title {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .text-uppercase,
+    .small.text-uppercase {
+        font-size: .75rem;
+        letter-spacing: .03em;
+    }
+}

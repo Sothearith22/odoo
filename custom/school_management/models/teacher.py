@@ -647,6 +647,41 @@ class Teacher(models.Model):
             },
         }
 
+    @api.model
+    def action_open_own_profile(self):
+        """Open the existing staff profile linked to the current login.
+
+        A teacher must never need create access on ``university.teacher`` just
+        to open their profile.  Administrators without a linked staff record
+        are sent to the normal staff list instead.
+        """
+        teacher = self.search([("user_id", "=", self.env.user.id)], limit=1)
+        if not teacher:
+            if self.env.user.has_group("school_management.group_school_admin") or self.env.user.has_group("base.group_system"):
+                return self.env["ir.actions.act_window"]._for_xml_id(
+                    "school_management.action_university_teacher"
+                )
+            raise UserError(
+                _("No teacher profile is linked to your login. Please contact an administrator.")
+            )
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("My Profile"),
+            "res_model": "university.teacher",
+            "res_id": teacher.id,
+            "views": [
+                (self.env.ref("school_management.view_university_teacher_profile_form").id, "form")
+            ],
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "create": False,
+                "edit": True,
+                "delete": False,
+            },
+        }
+
     def action_normalize_titles_and_names(self):
         records = self if self else self.search([])
         updated = 0

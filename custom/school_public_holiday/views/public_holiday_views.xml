@@ -44,10 +44,11 @@
             <list string="Public Holidays" sample="1" decoration-danger="session_count &gt; 0">
                 <header>
                     <button name="%(school_public_holiday.action_wizard_import_public_holiday)d"
-                            string="Import Holidays"
+                            string="Import Public Holidays"
                             type="action"
                             class="btn-primary"
-                            icon="fa-upload"/>
+                            icon="fa-upload"
+                            groups="school_management.group_school_admin,base.group_system"/>
                 </header>
                 <field name="name" string="Name"/>
                 <field name="academic_year_id" string="Academic Year"/>
@@ -88,6 +89,12 @@
                             class="btn-secondary"
                             icon="fa-calendar-times-o"
                             invisible="session_count == 0"/>
+                    <button name="action_publish_as_notice"
+                            string="Publish as Notice"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-bullhorn"
+                            groups="school_management.group_school_admin,base.group_system"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -133,6 +140,8 @@
                             <field name="academic_year_id" options="{'no_create_edit': True}"/>
                             <field name="semester_id" options="{'no_create_edit': True}"/>
                             <field name="active" widget="boolean_toggle"/>
+                            <field name="auto_publish_notice"/>
+                            <field name="notice_id" readonly="1"/>
                         </group>
                     </group>
 

@@ -4,17 +4,20 @@ import { Component, onWillStart, useState } from "@odoo/owl";
 import { user } from "@web/core/user";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { UniversitySchedule } from "../schedule/university_schedule";
 
 class StudentDashboardShell extends Component {
     static template = "school_management.StudentDashboardShell";
-    static components = { UniversitySchedule };
     static props = ["*"];
 
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        const actionContext = this.props.action?.context || this.props.context || {};
+        const initialTab = ["dashboard", "classes", "schedule", "attendance", "transcript", "curriculum", "financial", "notices"]
+            .includes(actionContext.student_initial_tab)
+            ? actionContext.student_initial_tab
+            : "dashboard";
 
         this.state = useState({
             loading: true,
@@ -22,7 +25,7 @@ class StudentDashboardShell extends Component {
             student: null,
             isPreviewMode: false,
             previewStudents: [],
-            activeTab: "dashboard", // 'dashboard' | 'classes' | 'attendance' | 'schedule' | 'transcript' | 'curriculum' | 'financial' | 'notices'
+            activeTab: initialTab, // 'dashboard' | 'classes' | 'attendance' | 'schedule' | 'transcript' | 'curriculum' | 'financial' | 'notices'
             courseFilter: "all", // 'all' | 'attention' | 'today' | 'completed'
             courseSearchQuery: "",
             showAllCourses: false,
@@ -43,6 +46,11 @@ class StudentDashboardShell extends Component {
             selectedDayDateStr: null,
             enrolledClasses: [],
             scheduleSlots: [],
+            academicYears: [],
+            semesters: [],
+            selectedAcademicYearId: null,
+            selectedSemesterId: null,
+            scheduleStudentId: null,
             attendanceStats: {
                 rate: 100,
                 totalSessions: 0,
@@ -177,6 +185,11 @@ class StudentDashboardShell extends Component {
             if (this.state.student) {
                 const studentId = this.state.student.id;
 
+                if (!this.state.academicYears.length || this.state.scheduleStudentId !== this.state.student.id) {
+                    await this.loadScheduleFilters(this.state.student);
+                    this.state.scheduleStudentId = this.state.student.id;
+                }
+
                 // 1. Load Enrollments & Class Sections & Classrooms
                 const enrollments = await this.orm.searchRead(
                     "university.enrollment",
@@ -287,16 +300,16 @@ class StudentDashboardShell extends Component {
                         subject_id: subId,
                         subject_name: enr.subject_id?.[1] || sec?.subject_id?.[1] || "Enrolled Subject",
                         course_code: subInfo?.code || "CRS",
-                        credits: subInfo?.credits || 3,
+                        credits: subInfo?.credits || 0,
                         instructor_id: enr.instructor_id?.[0] || sec?.teacher_id?.[0],
-                        instructor_name: enr.instructor_id?.[1] || sec?.teacher_id?.[1] || "Faculty Member",
-                        semester_name: enr.semester_id?.[1] || sec?.semester_id?.[1] || "Current Semester",
-                        academic_year_name: enr.academic_year_id?.[1] || "Current Academic Year",
+                        instructor_name: enr.instructor_id?.[1] || sec?.teacher_id?.[1] || "Instructor not assigned",
+                        semester_name: enr.semester_id?.[1] || sec?.semester_id?.[1] || "Semester not assigned",
+                        academic_year_name: enr.academic_year_id?.[1] || "Academic year not assigned",
                         classroom: sec?.classroom_id
                             ? {
                                   id: cId,
                                   name: sec.classroom_id[1],
-                                  building: cDetail?.building || "Main Campus",
+                                  building: cDetail?.building || "Building not assigned",
                                   room_type: cDetail?.room_type || "classroom",
                                   capacity: cDetail?.capacity || null,
                               }
@@ -352,7 +365,7 @@ class StudentDashboardShell extends Component {
                                     sectionId: secId,
                                     sectionName: att.section_id[1],
                                     subjectName: "Course Section",
-                                    instructorName: att.teacher_id?.[1] || "Instructor",
+                                    instructorName: att.teacher_id?.[1] || "Instructor not assigned",
                                     total: 0,
                                     present: 0,
                                     late: 0,
@@ -395,9 +408,9 @@ class StudentDashboardShell extends Component {
                             id: att.id,
                             date: att.date,
                             dateFormatted: timeInfo.dateFormatted || att.date,
-                            sectionName: att.section_id?.[1] || "Section",
-                            subjectName: sec?.subject_name || att.section_id?.[1] || "Subject",
-                            teacherName: att.teacher_id?.[1] || sec?.instructor_name || "Instructor",
+                            sectionName: att.section_id?.[1] || "Section not assigned",
+                            subjectName: sec?.subject_name || att.section_id?.[1] || "Subject not assigned",
+                            teacherName: att.teacher_id?.[1] || sec?.instructor_name || "Instructor not assigned",
                             status: att.status,
                             remark: att.remark || "",
                         };
@@ -473,22 +486,27 @@ class StudentDashboardShell extends Component {
                     const schedRes = await this.orm.call(
                         "university.timetable.slot",
                         "get_schedule",
-                        [startStr, endStr]
+                        [startStr, endStr, {
+                            academic_year_id: this.state.selectedAcademicYearId || undefined,
+                            semester_id: this.state.selectedSemesterId || undefined,
+                        }]
                     );
 
                     const sessions = schedRes.sessions || [];
                     scheduleSlots = sessions.map((s) => {
                         const timeInfo = this.parseSlotTimes(s.start || s.start_time, s.end || s.end_time);
                         const statusMeta = this.getSlotStatusMeta(s);
+                        const subjectCode = s.subject_code || s.course_code || "COURSE";
                         return {
                             id: s.id,
                             name: s.name,
                             section_id: s.section_id,
-                            section_name: s.section_code || s.section_name || "Section",
+                            section_name: s.section_code || s.section_name || "Section not assigned",
                             subject_id: s.subject_id,
-                            subject_name: s.subject || s.subject_name || "Subject",
-                            teacher_name: s.teacher || s.teacher_name || "Instructor",
-                            classroom_name: s.room || s.classroom_name || "Room TBA",
+                            subject_code: subjectCode,
+                            subject_name: s.subject || s.subject_name || "Subject not assigned",
+                            teacher_name: s.teacher || s.teacher_name || "Instructor not assigned",
+                            classroom_name: s.room || s.classroom_name || "Room not assigned",
                             start_time: s.start || s.start_time,
                             end_time: s.end || s.end_time,
                             state: s.state || "scheduled",
@@ -499,10 +517,11 @@ class StudentDashboardShell extends Component {
                             student_attendance: s.student_attendance || "unrecorded",
                             date_key: s.date_str || timeInfo.dateStr,
                             date_formatted: timeInfo.dateFormatted,
-                            time_formatted: s.start_time_str && s.end_time_str ? `${s.start_time_str} – ${s.end_time_str}` : (timeInfo.timeCompact || timeInfo.timeFormatted),
-                            start_display: s.start_time_str || timeInfo.startTimeStr,
-                            end_display: s.end_time_str || timeInfo.endTimeStr,
-                            color_class: this.getSubjectColorClass(s.subject_id || 0),
+                            time_formatted: `${timeInfo.startTimeStr} – ${timeInfo.endTimeStr}`,
+                            start_display: timeInfo.startTimeStr,
+                            end_display: timeInfo.endTimeStr,
+                            time_key: `${timeInfo.startTimeStr}|${timeInfo.endTimeStr}`,
+                            color_class: this.getSubjectColorClass(subjectCode),
                         };
                     });
                 } catch {
@@ -704,6 +723,68 @@ class StudentDashboardShell extends Component {
         }
     }
 
+    async loadScheduleFilters(student) {
+        try {
+            const years = await this.orm.searchRead(
+                "university.academic.year",
+                [["active", "=", true]],
+                ["id", "name", "current", "date_start", "date_end"],
+                { order: "date_start desc, id desc" }
+            );
+            this.state.academicYears = years;
+            const studentYearId = student.academic_year_id?.[0] || null;
+            const selectedYear = years.find((year) => year.id === studentYearId)
+                || years.find((year) => year.current)
+                || years[0];
+            this.state.selectedAcademicYearId = selectedYear?.id || null;
+            await this.loadScheduleSemesters(this.state.selectedAcademicYearId, student.current_semester_id?.[0] || null);
+        } catch {
+            this.state.academicYears = [];
+            this.state.semesters = [];
+            this.state.selectedAcademicYearId = null;
+            this.state.selectedSemesterId = null;
+        }
+    }
+
+    async loadScheduleSemesters(yearId, preferredSemesterId = null) {
+        if (!yearId) {
+            this.state.semesters = [];
+            this.state.selectedSemesterId = null;
+            return;
+        }
+        try {
+            const semesters = await this.orm.searchRead(
+                "university.semester",
+                [["academic_year_id", "=", yearId], ["active", "=", true]],
+                ["id", "name", "semester_type", "date_start", "date_end"],
+                { order: "date_start asc, id asc" }
+            );
+            this.state.semesters = semesters;
+            this.state.selectedSemesterId = semesters.find((semester) => semester.id === preferredSemesterId)?.id
+                || semesters[0]?.id
+                || null;
+        } catch {
+            this.state.semesters = [];
+            this.state.selectedSemesterId = null;
+        }
+    }
+
+    async onScheduleAcademicYearChange(ev) {
+        const yearId = parseInt(ev.target.value, 10) || null;
+        this.state.selectedAcademicYearId = yearId;
+        await this.loadScheduleSemesters(yearId);
+        await this.loadStudentData(this.state.student?.id || null);
+    }
+
+    async onScheduleSemesterChange(ev) {
+        this.state.selectedSemesterId = parseInt(ev.target.value, 10) || null;
+        await this.loadStudentData(this.state.student?.id || null);
+    }
+
+    async refreshStudentSchedule() {
+        await this.loadStudentData(this.state.student?.id || null);
+    }
+
     async onSelectPreviewStudent(ev) {
         const selectedId = parseInt(ev.target.value, 10);
         if (selectedId) {
@@ -721,13 +802,13 @@ class StudentDashboardShell extends Component {
         monday.setDate(today.getDate() + distanceToMonday + (this.state.currentWeekOffset * 7));
 
         const days = [];
-        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
         const pad = (n) => n.toString().padStart(2, "0");
         const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 6; i++) {
             const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
             d.setDate(monday.getDate() + i);
             const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -742,7 +823,7 @@ class StudentDashboardShell extends Component {
                 dayLetter: shortNames[i].slice(0, 1),
                 dayNum: d.getDate(),
                 dateStr: dateStr,
-                formattedDate: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+                formattedDate: d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" }),
                 isToday: dateStr === todayStr,
                 slots: daySlots,
                 hasSlots: daySlots.length > 0,
@@ -750,6 +831,54 @@ class StudentDashboardShell extends Component {
             });
         }
         return days;
+    }
+
+    get scheduleTimeRows() {
+        const rows = new Map();
+        for (const slot of this.state.scheduleSlots || []) {
+            if (!slot.start_display || !slot.end_display || !slot.date_key) continue;
+            const key = slot.time_key || `${slot.start_display}|${slot.end_display}`;
+            rows.set(key, {
+                key,
+                label: `${slot.start_display} – ${slot.end_display}`,
+                sort: this.timeToMinutes(slot.start_display),
+            });
+        }
+        return [...rows.values()].sort((a, b) => a.sort - b.sort);
+    }
+
+    getSlotsForDayAndRow(day, row) {
+        return day.slots.filter((slot) => slot.time_key === row.key);
+    }
+
+    get miniCalendarWeeks() {
+        const DateTime = globalThis.luxon?.DateTime;
+        if (!DateTime) return [];
+        const today = DateTime.local();
+        const first = today.startOf("month").startOf("week");
+        const weeks = [];
+        for (let week = 0; week < 6; week++) {
+            const days = [];
+            for (let day = 0; day < 7; day++) {
+                const date = first.plus({ days: week * 7 + day });
+                days.push({
+                    key: date.toISODate(),
+                    day: date.day,
+                    inMonth: date.month === today.month,
+                    isToday: date.hasSame(today, "day"),
+                });
+            }
+            weeks.push(days);
+        }
+        return weeks;
+    }
+
+    timeToMinutes(value) {
+        const match = String(value || "").match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!match) return 0;
+        let hour = parseInt(match[1], 10) % 12;
+        if (match[3].toUpperCase() === "PM") hour += 12;
+        return hour * 60 + parseInt(match[2], 10);
     }
 
     get calendarHeaderLabel() {
@@ -829,7 +958,8 @@ class StudentDashboardShell extends Component {
 
         let countdown = "Upcoming";
         if (nextSlot.start_time) {
-            const startDt = new Date(nextSlot.start_time.replace(" ", "T"));
+            const startDt = this.toLocalDateTime(nextSlot.start_time)?.toJSDate();
+            if (!startDt) return { ...nextSlot, countdown };
             const diffMs = startDt.getTime() - now.getTime();
             if (diffMs <= 0) {
                 countdown = "Live Now";
@@ -867,12 +997,8 @@ class StudentDashboardShell extends Component {
         const now = new Date();
         let startTime = null;
         let endTime = null;
-        if (slot.start_time) {
-            startTime = new Date(slot.start_time.replace(" ", "T"));
-        }
-        if (slot.end_time) {
-            endTime = new Date(slot.end_time.replace(" ", "T"));
-        }
+        if (slot.start_time) startTime = this.toLocalDateTime(slot.start_time)?.toJSDate();
+        if (slot.end_time) endTime = this.toLocalDateTime(slot.end_time)?.toJSDate();
 
         if (startTime && endTime) {
             if (now < startTime) {
@@ -1019,16 +1145,16 @@ class StudentDashboardShell extends Component {
     }
 
     get profileName() {
-        return this.state.student?.name || user.name || "Hannah Abbott";
+        return this.state.student?.name || user.name || "Student";
     }
 
     get profileInitials() {
-        const name = (this.profileName || "Hannah Abbott").trim();
+        const name = (this.profileName || "Student").trim();
         const parts = name.split(/\s+/).filter(Boolean);
         if (parts.length >= 2) {
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
-        return name.slice(0, 2).toUpperCase() || "HA";
+        return name.slice(0, 2).toUpperCase() || "ST";
     }
 
     get profileRole() {
@@ -1036,20 +1162,21 @@ class StudentDashboardShell extends Component {
     }
 
     get classesBadgeText() {
-        return String(this.state.enrolledClasses?.length || 36);
+        return String(this.state.enrolledClasses?.length || 0);
     }
 
     get attendanceBadgeText() {
-        return `${Math.round(this.state.attendanceStats?.rate || 62)}%`;
+        const rate = this.state.attendanceStats?.rate;
+        return rate === null || rate === undefined ? "—" : `${Math.round(rate)}%`;
     }
 
     get tuitionBadgeText() {
-        const bal = Math.round(this.state.student?.fee_balance !== undefined ? this.state.student.fee_balance : 250);
+        const bal = Math.round(this.state.student?.fee_balance || 0);
         return `$${bal}`;
     }
 
     get noticesBadgeText() {
-        return String(this.state.notices?.length || 2);
+        return String(this.state.notices?.length || 0);
     }
 
     get studentSidebarGroups() {
@@ -1163,49 +1290,79 @@ class StudentDashboardShell extends Component {
         } else if (hour >= 17) {
             salutation = "Good evening";
         }
-        const firstName = (this.state.student?.name || "Hannah").trim().split(" ")[0];
+        const firstName = (this.state.student?.name || "Student").trim().split(" ")[0];
         return `${salutation}, ${firstName}`;
     }
 
     get studentFirstName() {
-        return (this.state.student?.name || "Hannah").trim().split(" ")[0];
+        return (this.state.student?.name || "Student").trim().split(" ")[0];
     }
 
     get studentGpaDisplay() {
         if (this.state.student?.gpa !== undefined && this.state.student?.gpa !== null) {
             return Number(this.state.student.gpa).toFixed(2);
         }
-        return "2.42";
+        return "—";
     }
 
     get attendanceProgressWidth() {
-        const rate = this.state.attendanceStats?.rate || 62;
+        const rate = this.state.attendanceStats?.rate || 0;
         return `${Math.min(100, Math.max(0, rate))}%`;
     }
 
     get creditsProgressWidth() {
-        const credits = this.state.student?.completed_credits || 13;
+        const credits = this.state.student?.completed_credits || 0;
         const pct = Math.min(100, Math.round((credits / 130) * 100));
         return `${pct}%`;
     }
 
+    get totalEnrolledCredits() {
+        return (this.state.enrolledClasses || []).reduce((sum, c) => sum + (Number(c.credits) || 0), 0);
+    }
+
+    get studentStandingBadge() {
+        const gpa = Number(this.studentGpaDisplay);
+        if (!Number.isFinite(gpa)) return { label: "GPA unavailable", class: "bg-light text-muted border" };
+        if (gpa >= 3.8) return { label: "First Class Honors", class: "bg-warning-subtle text-warning border border-warning-subtle" };
+        if (gpa >= 3.5) return { label: "Dean's List", class: "bg-success-subtle text-success border border-success-subtle" };
+        if (gpa >= 2.0) return { label: "Good Standing", class: "bg-info-subtle text-info border border-info-subtle" };
+        return { label: "Academic Advisory", class: "bg-danger-subtle text-danger border border-danger-subtle" };
+    }
+
+    get creditsCompletionPercent() {
+        const credits = Number(this.state.student?.completed_credits) || 0;
+        return Math.min(100, Math.round((credits / 130) * 100));
+    }
+
     get studentIdDisplay() {
-        return this.state.student?.student_id || "4818912";
+        return this.state.student?.student_id || "ID pending";
     }
 
     get programDisplay() {
         if (this.state.student?.program_id) {
             return this.relationLabel(this.state.student.program_id);
         }
-        return "Bachelor of Science in Nursing";
+        return "Program not assigned";
+    }
+
+    get academicYearDisplay() {
+        return this.state.student?.academic_year_id
+            ? this.relationLabel(this.state.student.academic_year_id)
+            : "Academic year not assigned";
+    }
+
+    get academicSemesterDisplay() {
+        return this.state.student?.current_semester_id
+            ? this.relationLabel(this.state.student.current_semester_id)
+            : "Semester not assigned";
     }
 
     get advisorDisplay() {
         if (this.state.student?.advisor_id) {
             const name = this.relationLabel(this.state.student.advisor_id);
-            return name.startsWith("Dr.") || name.startsWith("Prof.") ? name : `Dr. ${name}`;
+            return name;
         }
-        return "Dr. John Doe";
+        return "Advisor not assigned";
     }
 
     get currentDayFormatted() {
@@ -1316,18 +1473,18 @@ class StudentDashboardShell extends Component {
         const count = (this.state.enrolledClasses || []).filter(
             (c) => this.getCourseAttendanceMeta(c).rate < 75
         ).length;
-        return count || 3;
+        return count;
     }
 
     get courseTodayCount() {
-        return this.todayScheduleItems.length || 3;
+        return this.todayScheduleItems.length;
     }
 
     get courseCompletedCount() {
         const count = (this.state.enrolledClasses || []).filter(
             (c) => c.status === "completed" || c.status === "passed"
         ).length;
-        return count || 2;
+        return count;
     }
 
     get filteredCourses() {
@@ -1387,43 +1544,14 @@ class StudentDashboardShell extends Component {
         const selectedDateStr = days[this.state.selectedDayOffset]?.dateStr || todayStr;
         const slots = (this.state.scheduleSlots || []).filter((s) => s.date_key === selectedDateStr);
 
-        if (slots.length) {
-            return slots.slice(0, 3).map((s, idx) => ({
-                id: s.id,
-                timeStart: s.start_display?.split(" ")[0] || "09:45",
-                timeEnd: s.end_display?.split(" ")[0] || "10:45",
-                title: s.subject_name || "Course Session",
-                room: `${s.classroom_name || "B201"} • ${s.teacher_name || "Faculty Member"}`,
-                isFirst: idx === 0,
-            }));
-        }
-
-        return [
-            {
-                id: "mock-1",
-                timeStart: "09:45",
-                timeEnd: "10:45",
-                title: "Anatomy & Human Physiology I",
-                room: "B201 • Dr. Gregory Hoax",
-                isFirst: true,
-            },
-            {
-                id: "mock-2",
-                timeStart: "11:00",
-                timeEnd: "12:00",
-                title: "DevOps Server",
-                room: "B201 • Prof. John Doe",
-                isFirst: false,
-            },
-            {
-                id: "mock-3",
-                timeStart: "12:45",
-                timeEnd: "14:15",
-                title: "Adult Health Nursing I",
-                room: "Lab 201 • Florence Nightingale",
-                isFirst: false,
-            },
-        ];
+        return slots.slice(0, 3).map((s, idx) => ({
+            id: s.id,
+            timeStart: s.start_display?.split(" ")[0] || "—",
+            timeEnd: s.end_display?.split(" ")[0] || "—",
+            title: s.subject_name || "Subject not assigned",
+            room: `${s.classroom_name || "Room not assigned"} • ${s.teacher_name || "Instructor not assigned"}`,
+            isFirst: idx === 0,
+        }));
     }
 
     get campusNoticesItems() {
@@ -1450,26 +1578,7 @@ class StudentDashboardShell extends Component {
             });
         }
 
-        return [
-            {
-                id: "mock-n1",
-                title: "Midterm timetable & hall allocation",
-                date: "Oct 14",
-                isNew: true,
-            },
-            {
-                id: "mock-n2",
-                title: "Enrollment schedule announced",
-                date: "Oct 10",
-                isNew: true,
-            },
-            {
-                id: "mock-n3",
-                title: "Tuition fee deadline reminder",
-                date: "Oct 5",
-                isNew: false,
-            },
-        ];
+        return [];
     }
 
     openSyllabusModal(course) {
@@ -1487,9 +1596,9 @@ class StudentDashboardShell extends Component {
     // DEDICATED "MY CLASSES" GETTERS & METHODS
     // ==========================================
     get classesProgramSubtitle() {
-        const sem = this.state.student?.current_semester_id ? this.relationLabel(this.state.student.current_semester_id) : (this.state.student?.academic_year_id ? this.relationLabel(this.state.student.academic_year_id) : "Fall 2026");
-        const prog = this.state.student?.program_id ? this.relationLabel(this.state.student.program_id) : "BSc Nursing";
-        const count = this.state.enrolledClasses?.length || 57;
+        const sem = this.state.student?.current_semester_id ? this.relationLabel(this.state.student.current_semester_id) : (this.state.student?.academic_year_id ? this.relationLabel(this.state.student.academic_year_id) : "Current academic term");
+        const prog = this.state.student?.program_id ? this.relationLabel(this.state.student.program_id) : "Program not assigned";
+        const count = this.state.enrolledClasses?.length || 0;
         return `${sem} • ${prog} • ${count} classes`;
     }
 
@@ -1504,21 +1613,13 @@ class StudentDashboardShell extends Component {
                 id: first.id,
                 section_id: first.section_id,
                 subject_name: first.subject_name,
-                classroom_name: first.classroom?.name || "B201",
-                teacher_name: first.instructor_name || "Dr. Gregory House",
-                time_formatted: first.time_summary ? `Today ${first.time_summary}` : "Today 09:45–10:45",
-                countdown: "in 25 minutes",
+                classroom_name: first.classroom?.name || "Room not assigned",
+                teacher_name: first.instructor_name || "Instructor not assigned",
+                time_formatted: first.time_summary ? `Today ${first.time_summary}` : "Time not assigned",
+                countdown: "scheduled",
             };
         }
-        return {
-            id: "default-upnext",
-            section_id: null,
-            subject_name: "Anatomy & Human Physiology I",
-            classroom_name: "B201",
-            teacher_name: "Dr. Gregory House",
-            time_formatted: "Today 09:45–10:45",
-            countdown: "in 25 minutes",
-        };
+        return null;
     }
 
     get upNextTagText() {
@@ -1527,14 +1628,15 @@ class StudentDashboardShell extends Component {
             const cd = next.countdown.toLowerCase();
             return `Up next — ${cd.startsWith("starts") || cd.startsWith("in") ? cd : "in " + cd}`;
         }
-        return "Up next — in 25 minutes";
+        return "No upcoming session";
     }
 
     get upNextClassSummary() {
         const next = this.upNextClass;
-        const time = next?.time_formatted || "Today 09:45–10:45";
-        const room = next?.classroom_name || next?.classroom?.name || "B201";
-        const teacher = next?.teacher_name || next?.instructor_name || "Dr. Gregory House";
+        if (!next) return "Your next scheduled class will appear here.";
+        const time = next.time_formatted || "Time not assigned";
+        const room = next.classroom_name || next.classroom?.name || "Room not assigned";
+        const teacher = next.teacher_name || next.instructor_name || "Instructor not assigned";
         return `${time} • ${room} • ${teacher}`;
     }
 
@@ -1542,7 +1644,7 @@ class StudentDashboardShell extends Component {
         const count = (this.state.enrolledClasses || []).filter(
             (c) => this.getCourseAttendanceMeta(c).rate < 75
         ).length;
-        return count || 3;
+        return count;
     }
 
     get attendanceAlertTitle() {
@@ -1551,13 +1653,13 @@ class StudentDashboardShell extends Component {
     }
 
     get classesCountAll() {
-        return this.state.enrolledClasses?.length || 57;
+        return this.state.enrolledClasses?.length || 0;
     }
 
     get classesCountToday() {
         const todaySectionIds = new Set((this.state.scheduleSlots || []).map((s) => s.section_id).filter(Boolean));
         const matches = (this.state.enrolledClasses || []).filter((c) => todaySectionIds.has(c.section_id));
-        return matches.length || 3;
+        return matches.length;
     }
 
     get classesCountAttention() {
@@ -1568,24 +1670,24 @@ class StudentDashboardShell extends Component {
         const count = (this.state.enrolledClasses || []).filter(
             (c) => c.status === "completed" || c.status === "passed"
         ).length;
-        return count || 2;
+        return count;
     }
 
     get classesCountDropped() {
         const count = (this.state.enrolledClasses || []).filter(
             (c) => c.status === "dropped" || c.status === "withdrawn"
         ).length;
-        return count || 2;
+        return count;
     }
 
     getTeacherInitials(name) {
-        if (!name) return "GH";
+        if (!name) return "—";
         const clean = name.replace(/^(Dr\.|Prof\.|Mr\.|Mrs\.|Ms\.)\s+/i, "").trim();
         const parts = clean.split(/\s+/).filter(Boolean);
         if (parts.length >= 2) {
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
-        return clean.slice(0, 2).toUpperCase() || "GH";
+        return clean.slice(0, 2).toUpperCase() || "—";
     }
 
     getCourseScheduleChip(course) {
@@ -1598,21 +1700,15 @@ class StudentDashboardShell extends Component {
             const firstDay = course.day_summary ? course.day_summary.split(",")[0].trim() : "Today";
             return `${firstDay} ${firstTime}`;
         }
-        const mockSlots = {
-            "ANA101": "Today 09:45",
-            "MIC210": "Today 08:00",
-            "PHA230": "Today 11:30",
-        };
-        const code = course.course_code || this.getCourseAbbr(course);
-        return mockSlots[code] || null;
+        return null;
     }
 
     getCourseLocationSummary(course, isCompleted = false) {
         if (isCompleted) {
             return "Grade: B+";
         }
-        const day = course.day_summary ? course.day_summary.split(",")[0].trim() : "Tue";
-        const room = course.classroom?.name || "B201";
+        const day = course.day_summary ? course.day_summary.split(",")[0].trim() : "Schedule not assigned";
+        const room = course.classroom?.name || "Room not assigned";
         return `${day} • ${room}`;
     }
 
@@ -1620,10 +1716,6 @@ class StudentDashboardShell extends Component {
         return (this.state.enrolledClasses || []).map((cls, idx) => {
             const attMeta = this.getCourseAttendanceMeta(cls);
             let isCompleted = cls.status === "completed" || cls.status === "passed";
-            if (!isCompleted && idx === 8) {
-                // If 9th item, flag as Finished Spring 2026 to mirror reference design
-                isCompleted = true;
-            }
             let statusLabel = attMeta.statusLabel;
             let statusClass = attMeta.statusBadgeClass;
             if (isCompleted) {
@@ -1706,7 +1798,7 @@ class StudentDashboardShell extends Component {
     }
 
     get remainingClassesCount() {
-        const total = this.state.enrolledClasses?.length || 57;
+        const total = this.state.enrolledClasses?.length || 0;
         return Math.max(0, total - 9);
     }
 
@@ -1855,12 +1947,7 @@ class StudentDashboardShell extends Component {
                 }
             }
         } catch {}
-        this.action.doAction("school_management.action_university_schedule_view", {
-            additionalContext: {
-                default_mode: "week",
-                calendar_mode: "week",
-            },
-        });
+        this.action.doAction("school_management.action_university_schedule_view");
     }
 
     openMyProfile() {
@@ -1987,6 +2074,13 @@ class StudentDashboardShell extends Component {
         }
     }
 
+    toLocalDateTime(value) {
+        const DateTime = globalThis.luxon?.DateTime;
+        if (!value || !DateTime) return null;
+        const parsed = DateTime.fromSQL(value, { zone: "utc" }).toLocal();
+        return parsed.isValid ? parsed : null;
+    }
+
     parseSlotTimes(startStr, endStr) {
         if (!startStr) {
             return {
@@ -1997,6 +2091,24 @@ class StudentDashboardShell extends Component {
                 endTimeStr: "",
             };
         }
+        const start = this.toLocalDateTime(startStr);
+        const end = this.toLocalDateTime(endStr);
+        if (!start) return { dateStr: "", dateFormatted: "", timeFormatted: "", startTimeStr: "", endTimeStr: "" };
+        const dateStr = start.toISODate();
+        const startTimeStr = start.toFormat("h:mm a");
+        const endTimeStr = end ? end.toFormat("h:mm a") : "";
+        const dateFormatted = start.toFormat("cccc, LLL d");
+        /* The remaining legacy parsing block is intentionally bypassed. */
+        return {
+            dateStr,
+            dateFormatted,
+            timeFormatted: endTimeStr ? `${startTimeStr} – ${endTimeStr}` : startTimeStr,
+            timeCompact: endTimeStr ? `${startTimeStr} – ${endTimeStr}` : startTimeStr,
+            startTimeStr,
+            endTimeStr,
+        };
+        /*
+        // Legacy parsing retained only in the source history comment below.
         const [datePart, timePart = "00:00:00"] = startStr.split(" ");
         const [hS = "0", mS = "0"] = timePart.split(":");
         const startH = parseInt(hS, 10);
@@ -2046,7 +2158,10 @@ class StudentDashboardShell extends Component {
         };
     }
 
-    getSubjectColorClass(id) {
+        */
+    }
+
+    getSubjectColorClass(code) {
         const palettes = [
             "o_slot_palette_sapphire",
             "o_slot_palette_emerald",
@@ -2055,7 +2170,9 @@ class StudentDashboardShell extends Component {
             "o_slot_palette_teal",
             "o_slot_palette_rose",
         ];
-        return palettes[Math.abs(id) % palettes.length];
+        const value = String(code || "COURSE");
+        const hash = [...value].reduce((total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0, 0);
+        return palettes[hash % palettes.length];
     }
 
     formatRoomType(type) {
@@ -2111,6 +2228,38 @@ class StudentDashboardShell extends Component {
             domain: [['student_id', '=', this.state.student.id]],
             views: [[false, 'list'], [false, 'form']],
             view_mode: 'list,form',
+        });
+    }
+
+    openCourseRegistration() {
+        this.action.doAction("school_management.action_university_course_registration_student");
+    }
+
+    openCourseEvaluation() {
+        this.action.doAction("school_management.action_university_course_evaluation_student_open");
+    }
+
+    openServiceRequest() {
+        this.action.doAction("school_management.action_university_service_request_student");
+    }
+
+    openStudentChangeRequest() {
+        this.action.doAction("school_management.action_university_student_change_request_student");
+    }
+
+    openFeePaymentWizard(feeId = null) {
+        if (!this.state.student) return;
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Online Tuition Payment",
+            res_model: "university.fee.payment.wizard",
+            views: [[false, "form"]],
+            view_mode: "form",
+            target: "new",
+            context: {
+                default_student_id: this.state.student.id,
+                ...(feeId ? { default_fee_id: feeId } : {}),
+            },
         });
     }
 }

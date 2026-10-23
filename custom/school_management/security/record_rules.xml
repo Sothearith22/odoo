@@ -136,8 +136,8 @@
     <record id="rule_teacher_own_timetable" model="ir.rule">
         <field name="name">Teacher: own timetable</field>
         <field name="model_id" ref="model_university_timetable_slot"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['&amp;', ('generation_state', '=', 'published'), '|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
@@ -248,10 +248,10 @@
     <record id="rule_teacher_own_profile" model="ir.rule">
         <field name="name">Teacher: own profile</field>
         <field name="model_id" ref="model_university_teacher"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('user_id', '=', user.id), ('id', '=', user.teacher_id.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
+        <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
@@ -260,7 +260,7 @@
     <record id="rule_teacher_own_assignments" model="ir.rule">
         <field name="name">Teacher: own role assignments</field>
         <field name="model_id" ref="model_university_academic_assignment"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">['|', ('staff_id.user_id', '=', user.id), ('staff_id', '=', user.teacher_id.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -272,7 +272,7 @@
     <record id="rule_teacher_own_sections" model="ir.rule">
         <field name="name">Teacher: own class sections</field>
         <field name="model_id" ref="model_university_class_section"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -284,8 +284,8 @@
     <record id="rule_teacher_own_subjects" model="ir.rule">
         <field name="name">Teacher: own subjects</field>
         <field name="model_id" ref="model_university_subject"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">[('teacher_ids.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_ids.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -297,8 +297,8 @@
     <record id="rule_teacher_own_section_students" model="ir.rule">
         <field name="name">Teacher: students in own sections or advisees</field>
         <field name="model_id" ref="model_university_student"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('advisor_id.user_id', '=', user.id), ('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -309,7 +309,7 @@
     <record id="rule_teacher_own_section_enrollments" model="ir.rule">
         <field name="name">Teacher: enrollments in own sections</field>
         <field name="model_id" ref="model_university_enrollment"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -320,8 +320,8 @@
     <record id="rule_teacher_own_lesson_plans" model="ir.rule">
         <field name="name">Teacher: own lesson plans</field>
         <field name="model_id" ref="model_university_lesson_plan"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -331,8 +331,8 @@
     <record id="rule_teacher_own_assignments_teaching" model="ir.rule">
         <field name="name">Teacher: own teaching assignments</field>
         <field name="model_id" ref="model_university_assignment"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -342,8 +342,8 @@
     <record id="rule_teacher_own_assignment_submissions" model="ir.rule">
         <field name="name">Teacher: submissions for own assignments</field>
         <field name="model_id" ref="model_university_assignment_submission"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('assignment_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('assignment_id.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
@@ -353,7 +353,7 @@
     <record id="rule_teacher_own_attendance_records" model="ir.rule">
         <field name="name">Teacher: attendance for own sections</field>
         <field name="model_id" ref="model_university_attendance"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -364,7 +364,7 @@
     <record id="rule_teacher_attendance_sessions" model="ir.rule">
         <field name="name">Teacher: attendance sessions for own sections</field>
         <field name="model_id" ref="model_university_attendance_session"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
     </record>
     <record id="rule_hod_attendance_sessions" model="ir.rule">
@@ -419,7 +419,7 @@
     <record id="rule_teacher_own_staff_attendance" model="ir.rule">
         <field name="name">Teacher: own staff attendance</field>
         <field name="model_id" ref="model_university_staff_attendance"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('staff_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -452,8 +452,8 @@
     <record id="rule_teacher_own_assessment_results" model="ir.rule">
         <field name="name">Teacher: own assessment results</field>
         <field name="model_id" ref="model_university_assessment_result"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -463,7 +463,7 @@
     <record id="rule_teacher_own_service_hours" model="ir.rule">
         <field name="name">Teacher: own service hours</field>
         <field name="model_id" ref="model_university_service_hour"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -889,8 +889,8 @@
     <record id="rule_teacher_own_exams" model="ir.rule">
         <field name="name">Teacher: own section exams</field>
         <field name="model_id" ref="model_university_exam"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -900,8 +900,8 @@
     <record id="rule_teacher_own_exam_scores" model="ir.rule">
         <field name="name">Teacher: own section exam scores</field>
         <field name="model_id" ref="model_university_exam_score"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', ('exam_id.teacher_id.user_id', '=', user.id), ('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -1049,8 +1049,8 @@
     <record id="rule_teacher_departments" model="ir.rule">
         <field name="name">Teacher: own department</field>
         <field name="model_id" ref="model_university_department"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
-        <field name="domain_force">['|', '|', '|', ('teacher_ids.user_id', '=', user.id), ('teacher_ids', '=', user.teacher_id.id), ('program_ids.section_ids.teacher_id.user_id', '=', user.id), ('subject_ids.section_ids.teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">['|', ('program_ids.section_ids.teacher_id.user_id', '=', user.id), ('subject_ids.section_ids.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>
@@ -1106,7 +1106,7 @@
     <record id="rule_advising_note_teacher" model="ir.rule">
         <field name="name">Teacher: own or non-private advisee notes</field>
         <field name="model_id" ref="model_university_student_advising_note"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">['|', ('user_id', '=', user.id), '&amp;', ('is_private', '=', False), '|', ('student_id.advisor_id.user_id', '=', user.id), ('student_id.enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -1140,7 +1140,7 @@
     <record id="rule_followup_teacher" model="ir.rule">
         <field name="name">Teacher: own or advisee follow-ups</field>
         <field name="model_id" ref="model_university_student_followup"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">['|', ('advisor_id.user_id', '=', user.id), '|', ('student_id.advisor_id.user_id', '=', user.id), ('student_id.enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -1200,7 +1200,7 @@
     <record id="rule_schedule_line_teacher" model="ir.rule">
         <field name="name">Teacher: own class schedule lines</field>
         <field name="model_id" ref="model_university_class_schedule_line"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('class_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
@@ -1233,7 +1233,7 @@
     <record id="rule_teacher_curriculum" model="ir.rule">
         <field name="name">Teacher: all curriculums</field>
         <field name="model_id" ref="model_university_curriculum"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -1267,7 +1267,7 @@
     <record id="rule_teacher_curriculum_line" model="ir.rule">
         <field name="name">Teacher: all curriculum lines</field>
         <field name="model_id" ref="model_university_curriculum_line"/>
-        <field name="groups" eval="[(4, ref('group_school_teacher'))]"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -1284,6 +1284,207 @@
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
+    </record>
+
+
+    <!-- ========================================== -->
+    <!-- Course Evaluation Record Rules             -->
+    <!-- ========================================== -->
+    <record id="rule_course_evaluation_student" model="ir.rule">
+        <field name="name">Student: own course evaluations</field>
+        <field name="model_id" ref="model_university_course_evaluation"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_course_evaluation_teacher" model="ir.rule">
+        <field name="name">Teacher: own section course evaluations</field>
+        <field name="model_id" ref="model_university_course_evaluation"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_course_evaluation_admin" model="ir.rule">
+        <field name="name">Admin/HOD/Dean: all course evaluations</field>
+        <field name="model_id" ref="model_university_course_evaluation"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_hod')), (4, ref('group_school_dean'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Course Registration Record Rules           -->
+    <!-- ========================================== -->
+    <record id="rule_course_registration_student" model="ir.rule">
+        <field name="name">Student: own course registrations</field>
+        <field name="model_id" ref="model_university_course_registration"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_course_registration_staff" model="ir.rule">
+        <field name="name">Staff: all course registrations</field>
+        <field name="model_id" ref="model_university_course_registration"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_course_registration_line_student" model="ir.rule">
+        <field name="name">Student: own course registration lines</field>
+        <field name="model_id" ref="model_university_course_registration_line"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('registration_id.student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_course_registration_line_staff" model="ir.rule">
+        <field name="name">Staff: all course registration lines</field>
+        <field name="model_id" ref="model_university_course_registration_line"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Service Request Record Rules               -->
+    <!-- ========================================== -->
+    <record id="rule_service_request_student" model="ir.rule">
+        <field name="name">Student: own service requests</field>
+        <field name="model_id" ref="model_university_service_request"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_service_request_staff" model="ir.rule">
+        <field name="name">Staff: all service requests</field>
+        <field name="model_id" ref="model_university_service_request"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- Student Change Request Record Rules        -->
+    <!-- ========================================== -->
+    <record id="rule_student_change_request_student" model="ir.rule">
+        <field name="name">Student: own change requests</field>
+        <field name="model_id" ref="model_university_student_change_request"/>
+        <field name="groups" eval="[(4, ref('group_school_student'))]"/>
+        <field name="domain_force">[('student_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_student_change_request_staff" model="ir.rule">
+        <field name="name">Staff: all change requests</field>
+        <field name="model_id" ref="model_university_student_change_request"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+
+    <!-- ==================== TEACHER READ-ALL RULES FOR KANBAN ====================
+         These rules allow teachers to READ (but not write/create/delete) any record
+         of models referenced by the Room Occupancy kanban search panel.
+         Without these, the search panel's search_panel_select_range call
+         crashes with an AccessError when it tries to list subjects, sections,
+         classrooms, academic years, or semesters that are outside the teacher's
+         "own records" scope.
+
+         Since Odoo OR-s rules of the same group, the existing "own records"
+         rules continue to control write access. -->
+
+    <record id="rule_teacher_read_all_subjects" model="ir.rule">
+        <field name="name">Teacher: read all subjects (kanban)</field>
+        <field name="model_id" ref="model_university_subject"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('section_ids.teacher_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_teacher_read_all_sections" model="ir.rule">
+        <field name="name">Teacher: read all class sections (kanban)</field>
+        <field name="model_id" ref="model_university_class_section"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_teacher_read_all_teachers" model="ir.rule">
+        <field name="name">Teacher: read all teacher profiles (kanban)</field>
+        <field name="model_id" ref="model_university_teacher"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_teacher_read_all_academic_years" model="ir.rule">
+        <field name="name">Teacher: read all academic years (kanban)</field>
+        <field name="model_id" ref="model_university_academic_year"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_teacher_read_all_semesters" model="ir.rule">
+        <field name="name">Teacher: read all semesters (kanban)</field>
+        <field name="model_id" ref="model_university_semester"/>
+        <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
 </odoo>

@@ -141,11 +141,26 @@ class UniversityTimeslot(models.Model):
 class UniversityTimetableSlot(models.Model):
     _name = "university.timetable.slot"
     _description = "Timetable Slot"
-    _order = "start_time asc"
+    _order = "start_datetime desc"
 
     name = fields.Char(string="Reference", compute="_compute_name", store=True)
-    teacher_id = fields.Many2one("university.teacher", string="Teacher", required=True)
+    teacher_id = fields.Many2one("university.teacher", string="Teacher", required=True, index=True)
+    instructor_id = fields.Many2one(
+        "university.teacher",
+        string="Instructor",
+        related="teacher_id",
+        store=True,
+        readonly=True,
+        index=True,
+    )
     section_id = fields.Many2one("university.class.section", string="Class", required=True)
+    section_code = fields.Char(
+        string="Section Code",
+        related="section_id.name",
+        store=True,
+        readonly=True,
+        index=True,
+    )
     has_conflict = fields.Boolean(
         string="Has Conflict",
         compute="_compute_has_conflict",
@@ -153,8 +168,8 @@ class UniversityTimetableSlot(models.Model):
         index=True,
         help="Indicates whether this slot conflicts with another session (same teacher or classroom at overlapping time).",
     )
-    subject_id = fields.Many2one("university.subject", string="Subject", required=True)
-    classroom_id = fields.Many2one("university.classroom", string="Classroom")
+    subject_id = fields.Many2one("university.subject", string="Subject", required=True, index=True)
+    classroom_id = fields.Many2one("university.classroom", string="Classroom", index=True)
     timeslot_id = fields.Many2one("university.timeslot", string="Timeslot")
     academic_year_id = fields.Many2one(
         "university.academic.year",
@@ -162,6 +177,7 @@ class UniversityTimetableSlot(models.Model):
         related="section_id.semester_id.academic_year_id",
         store=True,
         readonly=True,
+        index=True,
     )
     semester_id = fields.Many2one(
         "university.semester",
@@ -169,6 +185,14 @@ class UniversityTimetableSlot(models.Model):
         related="section_id.semester_id",
         store=True,
         readonly=True,
+        index=True,
+    )
+    semester_name = fields.Selection(
+        string="Semester Name",
+        related="semester_id.semester_type",
+        store=True,
+        readonly=True,
+        index=True,
     )
     year_level = fields.Selection(
         related="section_id.year_level",
@@ -178,7 +202,14 @@ class UniversityTimetableSlot(models.Model):
         index=True,
     )
     location = fields.Char(string="Location")
-    start_time = fields.Datetime(string="Start Time", required=True)
+    start_time = fields.Datetime(string="Start Time", required=True, index=True)
+    start_datetime = fields.Datetime(
+        string="Start",
+        related="start_time",
+        store=True,
+        readonly=True,
+        index=True,
+    )
     end_time = fields.Datetime(string="End Time", required=True)
     generation_state = fields.Selection(
         [("draft", "Draft"), ("published", "Published"), ("cancelled", "Cancelled")],
@@ -199,6 +230,7 @@ class UniversityTimetableSlot(models.Model):
         compute="_compute_room_id",
         inverse="_inverse_room_id",
         store=True,
+        index=True,
     )
     date = fields.Date(
         string="Session Date",
@@ -206,6 +238,20 @@ class UniversityTimetableSlot(models.Model):
         inverse="_inverse_date",
         store=True,
         index=True,
+    )
+    session_date = fields.Date(
+        string="Calendar Date",
+        compute="_compute_session_date",
+        store=True,
+        index=True,
+        help="The session date in the current user's timezone, used for native filters and grouping.",
+    )
+    is_holiday = fields.Boolean(
+        string="Public Holiday",
+        compute="_compute_is_holiday",
+        store=True,
+        index=True,
+        help="True when the session date falls within a configured holiday range.",
     )
     cancel_reason = fields.Char(string="Cancellation Reason")
     is_holiday_conflict = fields.Boolean(
@@ -227,6 +273,7 @@ class UniversityTimetableSlot(models.Model):
         string="Schedule State",
         default="scheduled",
         required=True,
+        index=True,
     )
     status = fields.Selection(
         [
@@ -238,6 +285,7 @@ class UniversityTimetableSlot(models.Model):
         string="Session Status",
         compute="_compute_status",
         store=True,
+        index=True,
     )
     session_type = fields.Selection(
         [
@@ -249,7 +297,7 @@ class UniversityTimetableSlot(models.Model):
         default="lecture",
         required=True,
     )
-    is_room_changed = fields.Boolean(string="Room Changed", default=False)
+    is_room_changed = fields.Boolean(string="Room Changed", default=False, index=True)
     original_classroom_id = fields.Many2one("university.classroom", string="Original Classroom")
     notes = fields.Text(string="Session Notes")
     enrolled_student_count = fields.Integer(
@@ -260,6 +308,26 @@ class UniversityTimetableSlot(models.Model):
     room_capacity = fields.Integer(
         string="Room Capacity",
         related="classroom_id.capacity",
+        readonly=True,
+    )
+    students_display = fields.Char(
+        string="Students",
+        compute="_compute_students_display",
+        store=True,
+        readonly=True,
+    )
+    conflict_indicator = fields.Selection(
+        [("conflict", "Conflict")],
+        string="Conflict",
+        compute="_compute_list_indicators",
+        store=True,
+        readonly=True,
+    )
+    room_change_indicator = fields.Selection(
+        [("changed", "Room Changed")],
+        string="Room Change Indicator",
+        compute="_compute_list_indicators",
+        store=True,
         readonly=True,
     )
     duration_hours = fields.Float(
@@ -316,6 +384,33 @@ class UniversityTimetableSlot(models.Model):
                 ("date", "=", slot_date),
             ]) > 0
             slot.has_attendance = bool(has_session or has_student_att)
+
+    @api.depends("section_id.enrolled_student_count", "classroom_id.capacity")
+    def _compute_students_display(self):
+        """Populate list counts in one grouped enrollment query for the batch."""
+        section_ids = self.mapped("section_id").ids
+        counts = {}
+        if section_ids:
+            grouped = self.env["university.enrollment"]._read_group(
+                [("class_section_id", "in", section_ids), ("status", "=", "enrolled")],
+                groupby=["class_section_id"],
+                aggregates=["__count"],
+            )
+            counts = {
+                section.id: count
+                for section, count in grouped
+                if section
+            }
+        for slot in self:
+            enrolled = counts.get(slot.section_id.id, 0)
+            capacity = slot.classroom_id.capacity or 0
+            slot.students_display = f"{enrolled} / {capacity}"
+
+    @api.depends("has_conflict", "is_room_changed")
+    def _compute_list_indicators(self):
+        for slot in self:
+            slot.conflict_indicator = "conflict" if slot.has_conflict else False
+            slot.room_change_indicator = "changed" if slot.is_room_changed else False
 
     @api.depends("start_time", "end_time", "state")
     def _compute_status(self):
@@ -717,6 +812,49 @@ class UniversityTimetableSlot(models.Model):
                 slot.date = fields.Datetime.context_timestamp(slot, slot.start_time).date()
             else:
                 slot.date = False
+
+    @api.depends("start_time")
+    def _compute_session_date(self):
+        """Store the calendar date after converting the UTC datetime to user TZ."""
+        for slot in self:
+            slot.session_date = (
+                fields.Datetime.context_timestamp(slot, slot.start_time).date()
+                if slot.start_time
+                else False
+            )
+
+    @api.depends("session_date", "section_id")
+    def _compute_is_holiday(self):
+        """Compute holiday flags in batches so calendar/list reads stay cheap."""
+        dates = {slot.session_date for slot in self if slot.session_date}
+        holiday_dates = set()
+        if dates and "public.holiday" in self.env:
+            public_holidays = self.env["public.holiday"].search([
+                ("active", "=", True),
+                ("date_from", "<=", max(dates)),
+                ("date_to", ">=", min(dates)),
+            ])
+            for holiday in public_holidays:
+                start = fields.Date.to_date(holiday.date_from)
+                end = fields.Date.to_date(holiday.date_to)
+                if start and end:
+                    holiday_dates.update(
+                        d for d in dates if start <= d <= end
+                    )
+        if dates and "university.holiday" in self.env:
+            university_holidays = self.env["university.holiday"].search([
+                ("date_start", "<=", max(dates)),
+                ("date_end", ">=", min(dates)),
+            ])
+            for holiday in university_holidays:
+                start = fields.Date.to_date(holiday.date_start)
+                end = fields.Date.to_date(holiday.date_end)
+                if start and end:
+                    holiday_dates.update(
+                        d for d in dates if start <= d <= end
+                    )
+        for slot in self:
+            slot.is_holiday = bool(slot.session_date and slot.session_date in holiday_dates)
 
     def _inverse_date(self):
         for slot in self:
@@ -1123,7 +1261,7 @@ class UniversityTimetableSlot(models.Model):
         self.ensure_one()
         if not self.check_can_manage_attendance():
             raise AccessError(_("You do not have permission to manage attendance for this class."))
-        action = self.env.ref("school_management.action_university_attendance_sheet").sudo().read()[0]
+        action = self.env.ref("school_management.action_university_attendance_session").sudo().read()[0]
         attendance_date = fields.Date.context_today(self)
         if self.start_time:
             attendance_date = fields.Datetime.context_timestamp(self, self.start_time).date()

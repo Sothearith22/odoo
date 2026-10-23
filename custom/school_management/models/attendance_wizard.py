@@ -12,10 +12,29 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
     date = fields.Date(
         string="Attendance Date", default=fields.Date.context_today, required=True,
     )
+    status = fields.Selection(
+[
+            ("present", "Present"),
+            ("absent", "Absent"),
+            ("late", "Late")
+       ],
+    default = "present",
+    )
     notes = fields.Text(string="Session Notes")
     line_ids = fields.One2many(
         "university.attendance.take.wizard.line", "wizard_id", string="Students",
     )
+    present_count = fields.Integer(compute="_compute_status_counts")
+    late_count = fields.Integer(compute="_compute_status_counts")
+    absent_count = fields.Integer(compute="_compute_status_counts")
+
+    @api.depends("line_ids.status")
+    def _compute_status_counts(self):
+        for wiz in self:
+            statuses = wiz.line_ids.mapped("status")
+            wiz.present_count = statuses.count("present")
+            wiz.late_count = statuses.count("late")
+            wiz.absent_count = statuses.count("absent")
 
     @api.model
     def default_get(self, fields_list):
@@ -50,6 +69,7 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
     def create(self, vals_list):
         Attendance = self.env["university.attendance"]
         for vals in vals_list:
+            vals["line_ids"] = self._clean_line_commands(vals.get("line_ids"))
             if vals.get("section_id") and not vals.get("line_ids"):
                 section_id = vals["section_id"]
                 att_date = vals.get("date") or fields.Date.context_today(self)
@@ -69,6 +89,29 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
                     }))
                 vals["line_ids"] = lines
         return super().create(vals_list)
+
+    @staticmethod
+    def _clean_line_commands(commands):
+        """Ignore blank rows accidentally submitted by editable one2many lists."""
+        cleaned = []
+        for command in commands or []:
+            if not command or command[0] != 0:
+                if command and command[0] == 1 and len(command) > 2:
+                    values = dict(command[2] or {})
+                    if not values.get("student_id") and "student_id" in values:
+                        values.pop("student_id")
+                    command = (command[0], command[1], values)
+                cleaned.append(command)
+                continue
+            values = dict(command[2] or {})
+            if values.get("student_id"):
+                cleaned.append((command[0], command[1], values))
+        return cleaned
+
+    def write(self, vals):
+        if "line_ids" in vals:
+            vals["line_ids"] = self._clean_line_commands(vals["line_ids"])
+        return super().write(vals)
 
     @api.onchange("section_id", "date")
     def _onchange_section_date(self):
@@ -131,8 +174,10 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
             raise ValidationError(_("Please choose an attendance date."))
         lines = [
             {"student_id": line.student_id.id, "status": line.status, "remark": line.remark or ""}
-            for line in self.line_ids
+            for line in self.line_ids.filtered("student_id")
         ]
+        if not lines:
+            raise ValidationError(_("No student attendance lines are available to save."))
         Attendance = self.env["university.attendance"]
         Attendance.save_sheet(
             self.section_id.id,
@@ -140,7 +185,19 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
             lines,
             (self.notes or "").strip() or None,
         )
-        return {"type": "ir.actions.act_window_close"}
+        # Open the native session form (kanban / list / mail log notes)
+        return self.env["university.attendance.session"].action_open_or_create(
+            self.section_id.id,
+            self.date,
+        )
+
+    def action_open_management(self):
+        """Jump to Student Attendance Management for this section/date."""
+        self.ensure_one()
+        return self.env["university.attendance.session"].action_open_or_create(
+            self.section_id.id if self.section_id else None,
+            self.date,
+        )
 
 
 class UniversityAttendanceTakeWizardLine(models.TransientModel):

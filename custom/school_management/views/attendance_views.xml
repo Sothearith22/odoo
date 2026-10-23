@@ -4,8 +4,7 @@
         <field name="name">university.attendance.kanban</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status" sample="1" quick_create="false">
-                <field name="id"/>
+            <kanban default_group_by="status" sample="1" quick_create="false" class="o_attendance_history_kanban">
                 <field name="date"/>
                 <field name="student_id"/>
                 <field name="section_id"/>
@@ -13,45 +12,48 @@
                 <field name="status"/>
                 <field name="remark"/>
                 <templates>
-                    <t t-name="card" class="d-flex flex-column justify-content-between p-3">
-                        <main class="d-flex gap-3 align-items-start min-w-0">
-                            <div class="flex-shrink-0" style="width: 48px; height: 48px;">
-                                <img t-att-src="'/web/image/university.student/' + record.student_id.raw_value + '/avatar_128'"
-                                     class="rounded-circle object-fit-cover w-100 h-100 border shadow-sm"
-                                     alt="Student Avatar"
-                                     onerror="this.src='/web/static/img/placeholder.png'"/>
-                            </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                    <!-- Card layout mirrors Scheduled Sessions agenda cards -->
+                    <t t-name="card">
+                        <main t-attf-class="p-3 o_att_history_card o_att_history_card--{{record.status.raw_value}}">
+                            <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <img t-att-src="'/web/image/university.student/' + record.student_id.raw_value + '/avatar_128'"
+                                         class="rounded-circle object-fit-cover border flex-shrink-0"
+                                         style="width: 36px; height: 36px;"
+                                         alt="Student avatar"
+                                         onerror="this.src='/web/static/img/placeholder.png'"/>
                                     <strong class="text-truncate fs-6 text-dark" t-att-title="record.student_id.value">
                                         <field name="student_id"/>
                                     </strong>
-                                    <field name="status" widget="badge"
-                                           decoration-success="status == 'present'"
-                                           decoration-danger="status == 'absent'"
-                                           decoration-warning="status == 'late'"
-                                           decoration-info="status == 'excused'"/>
                                 </div>
-                                <div class="text-muted small text-truncate mb-1">
-                                    <i class="fa fa-users me-1 text-primary" title="Class Section"/>
+                                <field name="status" widget="badge"
+                                       decoration-success="status == 'present'"
+                                       decoration-danger="status == 'absent'"
+                                       decoration-warning="status == 'late'"
+                                       decoration-muted="status == 'excused'"/>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 text-muted small mb-2 text-truncate">
+                                <span t-if="record.section_id.value" class="fw-semibold text-dark text-truncate">
+                                    <i class="fa fa-users text-secondary me-1" title="Class Section"/>
                                     <field name="section_id" options="{'no_open': True}"/>
-                                </div>
-                                <div class="text-muted small text-truncate" t-if="record.teacher_id.value">
-                                    <i class="fa fa-user me-1 text-secondary" title="Teacher"/>
+                                </span>
+                                <span t-if="record.section_id.value and record.teacher_id.value">·</span>
+                                <span t-if="record.teacher_id.value" class="text-truncate">
+                                    <i class="fa fa-user-circle-o text-muted me-1" title="Teacher"/>
                                     <field name="teacher_id" options="{'no_open': True}"/>
-                                </div>
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-primary small fw-semibold mb-1">
+                                <i class="fa fa-calendar text-primary" title="Date"/>
+                                <field name="date"/>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top text-muted small" t-if="record.remark.value">
+                                <span class="text-truncate" t-att-title="record.remark.value">
+                                    <i class="fa fa-commenting me-1" title="Remark" aria-hidden="true"/>
+                                    <field name="remark"/>
+                                </span>
                             </div>
                         </main>
-                        <footer class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
-                            <span class="badge text-bg-light border text-muted small">
-                                <i class="fa fa-calendar me-1" title="Date"/>
-                                <field name="date"/>
-                            </span>
-                            <span class="text-muted small text-truncate ms-2" t-if="record.remark.value" t-att-title="record.remark.value">
-                                <i class="fa fa-comment-o me-1" title="Remark"/>
-                                <field name="remark"/>
-                            </span>
-                        </footer>
                     </t>
                 </templates>
             </kanban>
@@ -136,6 +138,7 @@
                 <filter string="Present" name="filter_present" domain="[('status', '=', 'present')]"/>
                 <filter string="Absent" name="filter_absent" domain="[('status', '=', 'absent')]"/>
                 <filter string="Late" name="filter_late" domain="[('status', '=', 'late')]"/>
+                <filter string="At-Risk Students" name="at_risk" domain="[('student_id.attendance_rate', '&lt;', 75)]"/>
                 <group>
                     <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
                     <filter string="Section" name="group_by_section" context="{'group_by': 'section_id'}"/>

@@ -18,7 +18,7 @@ class UniversitySubject(models.Model):
         "university_program_subject_rel",
         "subject_id",
         "program_id",
-        string="Majors / Programs",
+        string="Majors /Programs",
     )
     credits = fields.Integer(string="Credits", default=3)
     description = fields.Text(string="Description")
@@ -33,10 +33,12 @@ class UniversitySubject(models.Model):
         "teacher_id",
         string="Teachers",
     )
+
     section_ids = fields.One2many(
         "university.class.section",
         "subject_id",
         string="Class Sections",
+
     )
     semester_subject_ids = fields.One2many(
         "university.semester.subject",

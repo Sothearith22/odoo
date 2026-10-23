@@ -163,37 +163,30 @@
         <field name="name">university.timetable.slot.tree</field>
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
-            <list string="Timetable">
-                <button name="action_track_attendance" type="object" string="Track Attendance" icon="fa-calendar-check-o" groups="school_management.group_school_teacher,school_management.group_school_admin"/>
-                <button name="action_view_assignments" type="object" string="Assignments" icon="fa-tasks"/>
-                <field name="name"/>
-                <field name="academic_year_id" optional="show"/>
-                <field name="semester_id" optional="show"/>
-                <field name="session_type" widget="badge" decoration-info="session_type == 'lecture'" decoration-success="session_type == 'lab'" decoration-warning="session_type == 'exam'"/>
-                <field name="section_id"/>
-                <field name="subject_id"/>
-                <field name="teacher_id"/>
-                <field name="date" optional="show"/>
-                <field name="classroom_id"/>
-                <field name="start_time" string="Class Date"/>
-                <field name="end_time"/>
-                <field name="location" optional="hide"/>
-                <field name="has_conflict" widget="boolean_toggle" optional="show" string="Conflict" decoration-danger="has_conflict"/>
-                <field name="is_holiday_conflict" widget="boolean_toggle" optional="show" string="Holiday Conflict"/>
-                <field name="is_room_changed" widget="boolean_toggle" optional="show"/>
-                <field name="generation_state" widget="badge" decoration-info="generation_state == 'draft'" decoration-success="generation_state == 'published'"/>
+            <list string="Scheduled Sessions" default_order="start_datetime desc" sample="1">
+                <field name="name" string="Session Code" decoration-bf="1"/>
+                <field name="subject_id" string="Subject"/>
+                <field name="section_id" string="Section"/>
+                <field name="academic_year_id"/>
+                <field name="semester_id"/>
+                <field name="start_datetime" widget="datetime"/>
+                <field name="end_time" widget="datetime"/>
+                <field name="room_id" string="Room"/>
+                <field name="instructor_id" string="Instructor"/>
+                <field name="students_display" string="Students" class="text-end"/>
                 <field name="status" widget="badge" 
                        decoration-success="status == 'completed'" 
                        decoration-warning="status == 'ongoing'"
                        decoration-info="status == 'upcoming'"
                        decoration-danger="status == 'cancelled'"/>
-                <field name="state" widget="badge"
-                       decoration-success="state == 'scheduled'"
-                       decoration-warning="state == 'rescheduled'"
-                       decoration-danger="state == 'cancelled'"/>
-                <field name="is_today" invisible="1"/>
-                <field name="is_this_week" invisible="1"/>
-                <field name="is_this_month" invisible="1"/>
+                <field name="year_level" optional="hide"/>
+                <field name="session_date" optional="hide"/>
+                <field name="conflict_indicator" string="Conflict" widget="badge" optional="show"
+                       decoration-danger="conflict_indicator == 'conflict'" invisible="not has_conflict"/>
+                <field name="room_change_indicator" string="Room Changed" widget="badge" optional="show"
+                       decoration-warning="room_change_indicator == 'changed'" invisible="not is_room_changed"/>
+                <field name="has_conflict" invisible="1"/>
+                <field name="is_room_changed" invisible="1"/>
             </list>
         </field>
     </record>
@@ -278,15 +271,15 @@
         <field name="name">university.timetable.slot.calendar</field>
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
-            <calendar string="Class Timetable"
+            <calendar string="Scheduled Sessions"
                       date_start="start_time"
                       date_stop="end_time"
-                      color="teacher_id"
+                      color="subject_id"
                       mode="week"
                       scales="day,week,month"
                       event_limit="8"
                       quick_create="0"
-                      create="0"
+                      create="1"
                       delete="0"
                       event_open_popup="true">
                 <field name="academic_year_id" string="Academic Year" filters="1"/>
@@ -299,6 +292,7 @@
                 <field name="session_type"/>
                 <field name="location"/>
                 <field name="has_conflict"/>
+                <field name="is_holiday" widget="badge" decoration-warning="is_holiday"/>
                 <field name="status" widget="badge"/>
                 <field name="state" widget="badge"/>
             </calendar>
@@ -309,7 +303,7 @@
         <field name="name">university.timetable.slot.kanban</field>
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status" sample="1" quick_create="0">
+            <kanban class="o_university_schedule_kanban" default_group_by="session_date" sample="1" quick_create="0">
                 <field name="name"/>
                 <field name="academic_year_id"/>
                 <field name="semester_id"/>
@@ -320,10 +314,12 @@
                 <field name="session_type"/>
                 <field name="start_time"/>
                 <field name="end_time"/>
+                <field name="session_date"/>
                 <field name="status"/>
                 <field name="state"/>
                 <field name="has_conflict"/>
                 <field name="is_holiday_conflict"/>
+                <field name="is_holiday"/>
                 <field name="is_room_changed"/>
                 <field name="enrolled_student_count"/>
                 <field name="room_capacity"/>
@@ -341,8 +337,8 @@
                                     <span t-if="record.has_conflict.raw_value" class="badge text-bg-danger">
                                         <i class="fa fa-exclamation-triangle me-1" title="Schedule Conflict" aria-label="Schedule Conflict"/>Conflict
                                     </span>
-                                    <span t-if="record.is_holiday_conflict.raw_value" class="badge text-bg-warning">
-                                        <i class="fa fa-calendar-times-o me-1" title="Holiday Conflict" aria-label="Holiday Conflict"/>Holiday
+                                    <span t-if="record.is_holiday.raw_value" class="badge text-bg-warning">
+                                        <i class="fa fa-calendar-times-o me-1" title="Public Holiday" aria-label="Public Holiday"/>Holiday
                                     </span>
                                 </div>
                                 <div class="d-flex gap-1">
@@ -358,7 +354,7 @@
                                 <field name="section_id"/>
                             </div>
                             <div class="d-flex align-items-center gap-1 mb-2 text-muted small" t-if="record.academic_year_id.value or record.semester_id.value">
-                                <span class="badge bg-purple-subtle text-purple border border-purple-subtle very-small" t-if="record.academic_year_id.value">
+                                <span class="badge bg-light text-muted border very-small" t-if="record.academic_year_id.value">
                                     <i class="fa fa-graduation-cap me-1" title="Academic Year" aria-label="Academic Year"/><field name="academic_year_id"/>
                                 </span>
                                 <span class="badge bg-info-subtle text-info border border-info-subtle very-small" t-if="record.semester_id.value">
@@ -403,63 +399,36 @@
         <field name="name">university.timetable.slot.search</field>
         <field name="model">university.timetable.slot</field>
         <field name="arch" type="xml">
-            <search string="Search Timetable Slots">
-                <field name="name"/>
-                <field name="academic_year_id"/>
-                <field name="semester_id"/>
-                <field name="year_level"/>
-                <field name="section_id"/>
+            <search string="Search Scheduled Sessions">
                 <field name="subject_id"/>
-                <field name="teacher_id"/>
-                <field name="classroom_id"/>
-                <filter string="Current Academic Year" name="filter_current_year" domain="[('academic_year_id.current', '=', True)]"/>
-                <filter string="Year 2026-2027" name="filter_year_2026" domain="[('academic_year_id.name', 'ilike', '2026-2027')]"/>
-                <filter string="Year 2025-2026" name="filter_year_2025" domain="[('academic_year_id.name', 'ilike', '2025-2026')]"/>
+                <field name="section_code"/>
+                <field name="section_id" string="Class"/>
+                <field name="instructor_id"/>
+                <field name="room_id"/>
                 <separator/>
-                <filter string="Year 1 (Freshman)" name="filter_year_level_1" domain="[('year_level', '=', '1')]"/>
-                <filter string="Year 2 (Sophomore)" name="filter_year_level_2" domain="[('year_level', '=', '2')]"/>
-                <filter string="Year 3 (Junior)" name="filter_year_level_3" domain="[('year_level', '=', '3')]"/>
-                <filter string="Year 4 (Senior)" name="filter_year_level_4" domain="[('year_level', '=', '4')]"/>
-                <separator/>
-                <filter string="Today" name="filter_today" domain="[('is_today', '=', True)]"/>
-                <filter string="This Week" name="filter_this_week" domain="[('is_this_week', '=', True)]"/>
-                <filter string="This Month" name="filter_this_month" domain="[('is_this_month', '=', True)]"/>
-                <filter string="Session Date" name="filter_session_date" date="start_time"/>
-                <separator/>
-                <filter string="Lecture" name="filter_lecture" domain="[('session_type', '=', 'lecture')]"/>
-                <filter string="Lab" name="filter_lab" domain="[('session_type', '=', 'lab')]"/>
-                <filter string="Exam" name="filter_exam" domain="[('session_type', '=', 'exam')]"/>
+                <filter string="Current Academic Year" name="filter_current_academic_year" domain="[('academic_year_id.current', '=', True)]"/>
+                <filter string="Active" name="active_sessions" domain="[('state', '!=', 'cancelled')]"/>
+                <filter string="Today" name="filter_today" domain="[('session_date', '=', context_today())]"/>
+                <filter string="This Week" name="filter_this_week"
+                        domain="[('session_date', '&gt;=', context_today() - relativedelta(days=context_today().weekday())), ('session_date', '&lt;', context_today() - relativedelta(days=context_today().weekday()) + relativedelta(days=7))]"/>
                 <separator/>
                 <filter string="Upcoming" name="filter_upcoming" domain="[('status', '=', 'upcoming')]"/>
                 <filter string="Ongoing" name="filter_ongoing" domain="[('status', '=', 'ongoing')]"/>
                 <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
                 <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
-                <filter string="Has Conflicts" name="filter_conflicts" domain="[('has_conflict', '=', True)]"/>
-                <filter string="Holiday Conflicts" name="filter_holiday_conflicts" domain="[('is_holiday_conflict', '=', True)]"/>
-                <filter string="Room Changed" name="filter_room_changed" domain="[('is_room_changed', '=', True)]"/>
-                <separator/>
-                <filter string="Draft" name="filter_draft" domain="[('generation_state', '=', 'draft')]"/>
-                <filter string="Published" name="filter_published" domain="[('generation_state', '=', 'published')]"/>
+                <filter string="Conflict" name="filter_conflict" domain="[('has_conflict', '=', True)]"/>
                 <group>
                     <filter string="Academic Year" name="group_by_academic_year" context="{'group_by': 'academic_year_id'}"/>
-                    <filter string="Year Level" name="group_by_year_level" context="{'group_by': 'year_level'}"/>
-                    <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_id'}"/>
-                    <filter string="Date" name="group_by_date" context="{'group_by': 'start_time:day'}"/>
-                    <filter string="Week" name="group_by_week" context="{'group_by': 'start_time:week'}"/>
-                    <filter string="Teacher" name="group_by_teacher" context="{'group_by': 'teacher_id'}"/>
-                    <filter string="Class Section" name="group_by_section" context="{'group_by': 'section_id'}"/>
-                    <filter string="Room" name="group_by_room" context="{'group_by': 'classroom_id'}"/>
-                    <filter string="Subject" name="group_by_subject" context="{'group_by': 'subject_id'}"/>
-                    <filter string="Session Type" name="group_by_type" context="{'group_by': 'session_type'}"/>
+                    <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_name'}"/>
+                    <filter string="Room" name="group_by_room" context="{'group_by': 'room_id'}"/>
+                    <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
                     <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                    <filter string="Session Date" name="group_by_session_date" context="{'group_by': 'session_date'}"/>
                 </group>
                 <searchpanel>
-                    <field name="academic_year_id" icon="fa-graduation-cap" enable_counters="1" select="multi"/>
-                    <field name="year_level" icon="fa-level-up" enable_counters="1"/>
-                    <field name="semester_id" icon="fa-calendar" enable_counters="1" select="multi"/>
-                    <field name="section_id" icon="fa-users" enable_counters="1"/>
-                    <field name="subject_id" icon="fa-book" enable_counters="1"/>
-                    <field name="session_type" icon="fa-tags" enable_counters="1"/>
+                    <field name="academic_year_id" icon="fa-graduation-cap" enable_counters="1" select="one"/>
+                    <field name="year_level" icon="fa-level-up" enable_counters="1" select="one"/>
+                    <field name="semester_name" string="Semester" icon="fa-calendar" enable_counters="1" select="one"/>
                 </searchpanel>
             </search>
         </field>
@@ -467,22 +436,27 @@
 
     <!-- Unified OWL Schedule Client Action -->
     <record id="action_university_schedule_view" model="ir.actions.client">
-        <field name="name">University Schedule</field>
+        <field name="name">Scheduled Sessions</field>
         <field name="tag">university_schedule_view</field>
         <field name="target">main</field>
+        <field name="context">{'default_view_mode': 'week'}</field>
     </record>
 
     <!-- Standard Act Window for backend management -->
     <record id="action_university_timetable_slot" model="ir.actions.act_window">
-        <field name="name">Class Timetable</field>
+        <field name="name">Scheduled Sessions</field>
         <field name="res_model">university.timetable.slot</field>
-        <field name="view_mode">calendar,kanban,list,form</field>
+        <field name="view_mode">list,kanban,calendar,form</field>
         <field name="search_view_id" ref="view_university_timetable_slot_search"/>
-        <field name="context">{'default_mode': 'week', 'calendar_mode': 'week'}</field>
+        <field name="context">{'search_default_filter_current_academic_year': 1, 'search_default_active_sessions': 1, 'calendar_mode': 'week'}</field>
+        <field name="limit">80</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No classes this week. Enjoy your break!</p>
+        </field>
     </record>
 
     <record id="action_university_timetable_slot_view_calendar" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
+        <field name="sequence" eval="3"/>
         <field name="view_mode">calendar</field>
         <field name="view_id" ref="view_university_timetable_slot_calendar"/>
         <field name="act_window_id" ref="action_university_timetable_slot"/>
@@ -496,27 +470,24 @@
     </record>
 
     <record id="action_university_timetable_slot_view_list" model="ir.actions.act_window.view">
-        <field name="sequence" eval="3"/>
+        <field name="sequence" eval="1"/>
         <field name="view_mode">list</field>
         <field name="view_id" ref="view_university_timetable_slot_tree"/>
         <field name="act_window_id" ref="action_university_timetable_slot"/>
     </record>
 
-    <record id="action_university_timetable_slot_view_form" model="ir.actions.act_window.view">
-        <field name="sequence" eval="4"/>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_university_timetable_slot_form"/>
-        <field name="act_window_id" ref="action_university_timetable_slot"/>
-    </record>
 
     <!-- Legacy Action preserved, now defaulting to published slots -->
     <record id="action_university_timetable_slot_student" model="ir.actions.act_window">
-        <field name="name">Schedule (Backend)</field>
+        <field name="name">My Schedule Session</field>
         <field name="res_model">university.timetable.slot</field>
         <field name="view_mode">calendar,kanban,list,form</field>
         <field name="domain">[('generation_state', '=', 'published')]</field>
-        <field name="context">{'default_mode': 'week', 'calendar_mode': 'week', 'create': False, 'edit': False, 'delete': False}</field>
+        <field name="context">{'default_mode': 'week', 'calendar_mode': 'week', 'search_default_active_sessions': 1, 'search_default_filter_upcoming': 1, 'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_timetable_slot_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No classes this week. Enjoy your break!</p>
+        </field>
     </record>
 
     <record id="action_university_timetable_slot_teacher" model="ir.actions.act_window">

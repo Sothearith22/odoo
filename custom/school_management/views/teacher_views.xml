@@ -10,6 +10,13 @@
         <field name="model">university.teacher</field>
         <field name="arch" type="xml">
             <list string="Academic Staff" sample="1">
+                <header>
+                    <button name="%(school_management.action_university_staff_attendance)d"
+                            string="Take Attendance"
+                            type="action"
+                            class="btn-primary"
+                            icon="fa-check-square-o"/>
+                </header>
                 <field name="avatar_128" widget="image" options="{'size': [32, 32]}" string="Avatar"/>
                 <field name="teacher_id" decoration-bf="1" string="Staff ID"/>
                 <field name="display_name" decoration-bf="1"/>
@@ -355,6 +362,157 @@
         </field>
     </record>
 
+    <!-- ==================== TEACHER SELF-SERVICE PROFILE ==================== -->
+    <record id="view_university_teacher_profile_form" model="ir.ui.view">
+        <field name="name">university.teacher.profile.form</field>
+        <field name="model">university.teacher</field>
+        <field name="arch" type="xml">
+            <form string="My Profile" create="0" edit="1" delete="0" class="o_teacher_profile_form">
+                <sheet>
+                    <div class="o_teacher_profile_hero">
+                        <div class="o_teacher_profile_identity">
+                            <div class="o_teacher_profile_avatar">
+                                <field name="image_1920" widget="image"
+                                       options="{'preview_image': 'image_1920', 'size': [160, 160]}"
+                                       nolabel="1"/>
+                            </div>
+                            <div class="o_teacher_profile_identity_copy">
+                                <span class="o_teacher_profile_eyebrow">ACADEMIC STAFF / MY PROFILE</span>
+                                <h1><field name="display_name" nolabel="1"/></h1>
+                                <div class="o_teacher_profile_staff_id">
+                                    <i class="fa fa-id-badge" aria-hidden="true"/>
+                                    <span>Staff ID</span>
+                                    <field name="teacher_id" nolabel="1"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_teacher_profile_status">
+                            <span class="o_teacher_profile_label">ACCOUNT STATUS</span>
+                            <field name="active" widget="boolean_toggle" nolabel="1"/>
+                        </div>
+                    </div>
+
+                    <div class="o_teacher_profile_stats">
+                        <div class="o_teacher_profile_stat">
+                            <span class="o_teacher_profile_stat_label">Position</span>
+                            <strong><field name="position" nolabel="1"/></strong>
+                        </div>
+                        <div class="o_teacher_profile_stat">
+                            <span class="o_teacher_profile_stat_label">Department</span>
+                            <strong><field name="department_id" nolabel="1" options="{'no_open': True}"/></strong>
+                        </div>
+                        <div class="o_teacher_profile_stat">
+                            <span class="o_teacher_profile_stat_label">Classes</span>
+                            <strong><field name="class_count" nolabel="1"/></strong>
+                        </div>
+                        <div class="o_teacher_profile_stat">
+                            <span class="o_teacher_profile_stat_label">Weekly teaching load</span>
+                            <strong><field name="weekly_hours" nolabel="1"/> <small>hours</small></strong>
+                        </div>
+                    </div>
+
+                    <div class="o_teacher_profile_grid">
+                        <div class="o_teacher_profile_card">
+                            <div class="o_teacher_profile_card_header">
+                                <div>
+                                    <span class="o_teacher_profile_eyebrow">IDENTITY</span>
+                                    <h2>Personal information</h2>
+                                </div>
+                                <i class="fa fa-user-o" title="Personal information" aria-hidden="true"/>
+                            </div>
+                            <group col="2">
+                                <group>
+                                    <field name="title"/>
+                                    <field name="name"/>
+                                    <field name="gender"/>
+                                </group>
+                                <group>
+                                    <field name="date_of_birth"/>
+                                    <field name="phone" widget="phone"/>
+                                    <field name="email" widget="email"/>
+                                </group>
+                            </group>
+                            <div class="o_teacher_profile_address">
+                                <span class="o_teacher_profile_field_caption">Address</span>
+                                <field name="address" nolabel="1" placeholder="No address recorded"/>
+                            </div>
+                        </div>
+
+                        <div class="o_teacher_profile_card">
+                            <div class="o_teacher_profile_card_header">
+                                <div>
+                                    <span class="o_teacher_profile_eyebrow">ACADEMICS</span>
+                                    <h2>Academic appointment</h2>
+                                </div>
+                                <i class="fa fa-university" title="Academic appointment" aria-hidden="true"/>
+                            </div>
+                            <group col="2">
+                                <group>
+                                    <field name="faculty_id" options="{'no_open': True}"/>
+                                    <field name="department_id" options="{'no_open': True}"/>
+                                    <field name="position"/>
+                                </group>
+                                <group>
+                                    <field name="specialization"/>
+                                    <field name="qualification"/>
+                                    <field name="hire_date"/>
+                                </group>
+                            </group>
+                        </div>
+                    </div>
+
+                    <div class="o_teacher_profile_section_heading">
+                        <div>
+                            <span class="o_teacher_profile_eyebrow">TEACHING ASSIGNMENTS</span>
+                            <h2>Your academic workload</h2>
+                            <p>Sections, subjects, and timetable sessions currently linked to your staff profile.</p>
+                        </div>
+                        <div class="o_teacher_profile_section_mark">
+                            <i class="fa fa-book" title="Teaching assignments" aria-hidden="true"/>
+                        </div>
+                    </div>
+
+                    <notebook class="o_teacher_profile_notebook">
+                        <page string="Class sections" name="profile_sections">
+                            <field name="section_ids" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="subject_id"/>
+                                    <field name="semester_id"/>
+                                    <field name="classroom_id"/>
+                                    <field name="capacity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Subjects" name="profile_subjects">
+                            <field name="subject_ids" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="credits"/>
+                                    <field name="department_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Timetable" name="profile_timetable">
+                            <field name="timetable_slot_ids" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="section_id"/>
+                                    <field name="subject_id"/>
+                                    <field name="start_time"/>
+                                    <field name="end_time"/>
+                                    <field name="classroom_id"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <!-- ==================== SEARCH VIEW ==================== -->
     <record id="view_university_teacher_search" model="ir.ui.view">
         <field name="name">university.teacher.search</field>
@@ -558,10 +716,24 @@
     <record id="action_university_teacher_profile" model="ir.actions.act_window">
         <field name="name">My Profile</field>
         <field name="res_model">university.teacher</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_university_teacher_profile_form"/>
         <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'create': False, 'delete': False}</field>
+        <field name="context">{'create': False, 'edit': True, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_teacher_search"/>
+    </record>
+
+    <record id="action_open_university_teacher_profile" model="ir.actions.server">
+        <field name="name">Open My Profile</field>
+        <field name="model_id" ref="model_university_teacher"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_university_teacher'), ref('school_management.group_school_student')])]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+if env.user.has_group('school_management.group_school_student'):
+    action = env['university.student'].action_open_own_profile()
+else:
+    action = env['university.teacher'].action_open_own_profile()
+        ]]></field>
     </record>
 
     <!-- ==================== SERVER ACTION: NORMALIZE TITLES & NAMES ==================== -->
