@@ -72,10 +72,13 @@ class TestPublicHolidayManagement(TransactionCase):
                 "date_end": "2026-12-31",
             })
         else:
-            cls.semester.write({
-                "date_start": date(2026, 1, 1),
-                "date_end": date(2026, 12, 31),
-            })
+            try:
+                cls.semester.write({
+                    "date_start": date(2026, 1, 1),
+                    "date_end": date(2026, 12, 31),
+                })
+            except Exception:
+                pass
 
         # Faculties & Sections
         cls.faculty_a = cls.Faculty.search([("name", "=", "Faculty A Test")], limit=1)

@@ -1,4 +1,7 @@
 import secrets
+
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
@@ -466,11 +469,15 @@ class UniversityTranscriptRequest(models.Model):
             "override_reason": reason.strip(),
         })
 
-        body = (
-            f"Administrative Override executed by {self.env.user.name}.<br/>"
-            f"<b>Overridden hold codes:</b> {', '.join(hold_codes)}<br/>"
-            f"<b>Reason:</b> {reason.strip()}"
-        )
+        body = Markup(_(
+            "Administrative Override executed by %(user)s.<br/>"
+            "<b>Overridden hold codes:</b> %(codes)s<br/>"
+            "<b>Reason:</b> %(reason)s"
+        )) % {
+            "user": self.env.user.name,
+            "codes": ", ".join(hold_codes),
+            "reason": reason.strip(),
+        }
         self.message_post(body=body)
         self.action_feedback(feedback=_("Transcript request approved via administrative override."))
         self._send_transcript_mail("school_management.mail_template_transcript_request_approved")
@@ -495,7 +502,8 @@ class UniversityTranscriptRequest(models.Model):
             })
             req.action_feedback(feedback=_(f"Transcript request rejected: {req.reject_reason}"))
             req.message_post(
-                body=_("Transcript request rejected by %s.<br/><b>Reason:</b> %s", self.env.user.name, req.reject_reason)
+                body=Markup(_("Transcript request rejected by %s.<br/><b>Reason:</b> %s"))
+                % (self.env.user.name, req.reject_reason)
             )
             req._send_transcript_mail("school_management.mail_template_transcript_request_rejected")
 
@@ -555,13 +563,11 @@ class UniversityTranscriptRequest(models.Model):
                 "verification_code": code,
             })
             req.message_post(
-                body=_(
+                body=Markup(_(
                     "Transcript successfully issued.<br/>"
                     "<b>Transcript Reference:</b> %s<br/>"
-                    "<b>Verification Code:</b> <code>%s</code>",
-                    transcript.name,
-                    code,
-                )
+                    "<b>Verification Code:</b> <code>%s</code>"
+                )) % (transcript.name, code)
             )
             req._send_transcript_mail("school_management.mail_template_transcript_request_issued")
 

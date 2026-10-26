@@ -6,7 +6,7 @@
         <field name="name">university.semester.subject.list</field>
         <field name="model">university.semester.subject</field>
         <field name="arch" type="xml">
-            <list string="Semester Subjects" sample="1">
+            <list string="Semester Subjects" sample="1" limit="10">
                 <field name="subject_code" decoration-bf="1" string="Code"/>
                 <field name="subject_id" decoration-bf="1"/>
                 <field name="credits" widget="badge" decoration-info="1"/>
@@ -66,7 +66,7 @@
                     <notebook>
                         <page string="Instructors" name="instructors">
                             <field name="teacher_ids">
-                                <list string="Assigned Instructors">
+                                <list limit="10" string="Assigned Instructors">
                                     <field name="name"/>
                                     <field name="email"/>
                                     <field name="department_id"/>
@@ -111,7 +111,7 @@
         <field name="name">university.semester.subject.kanban</field>
         <field name="model">university.semester.subject</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="semester_id" quick_create="false">
+            <kanban sample="1" default_group_by="semester_id" quick_create="false" limit="10">
                 <field name="subject_id"/>
                 <field name="subject_code"/>
                 <field name="semester_id"/>
@@ -166,6 +166,7 @@
         <field name="res_model">university.semester.subject</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_semester_subject_search"/>
+        <field name="limit">10</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Register a new Semester Subject Offering!

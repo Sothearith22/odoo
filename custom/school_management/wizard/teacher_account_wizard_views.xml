@@ -21,6 +21,7 @@
         <field name="name">Create Teacher Login Accounts</field>
         <field name="res_model">university.teacher.account.wizard</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="target">new</field>
         <field name="binding_model_id" ref="model_university_teacher"/>
         <field name="binding_view_types">list,form</field>

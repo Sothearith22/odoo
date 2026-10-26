@@ -59,7 +59,7 @@
         <field name="name">university.transcript.request.list</field>
         <field name="model">university.transcript.request</field>
         <field name="arch" type="xml">
-            <list string="Transcript Requests" sample="1">
+            <list limit="10" string="Transcript Requests" sample="1">
                 <field name="name" string="Reference"/>
                 <field name="student_id"/>
                 <field name="program_id" optional="show"/>
@@ -91,7 +91,7 @@
         <field name="name">university.transcript.request.kanban</field>
         <field name="model">university.transcript.request</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="state" sample="1" quick_create="false">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
@@ -337,6 +337,7 @@
         <field name="name">Transcript Requests</field>
         <field name="res_model">university.transcript.request</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_transcript_request_search"/>
         <field name="context">{}</field>
         <field name="help" type="html">
@@ -354,6 +355,7 @@
         <field name="name">My Transcript Requests</field>
         <field name="res_model">university.transcript.request</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': True}</field>
     </record>

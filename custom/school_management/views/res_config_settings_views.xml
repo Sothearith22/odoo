@@ -186,6 +186,7 @@
         <field name="res_model">res.config.settings</field>
         <field name="view_id" ref="view_university_res_config_settings"/>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="context">{'module': 'university', 'bin_size': False}</field>
     </record>
 </odoo>

@@ -183,6 +183,10 @@
                                             t-on-click="() => this.openCourseRegistration()">
                                         <i class="fa fa-pencil-square-o me-1"/> Course Registration
                                     </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm fw-semibold shadow-xs"
+                                            t-on-click="() => this.openStudentChangeRequest()">
+                                        <i class="fa fa-id-card-o me-1"/> Profile Change
+                                    </button>
                                     <button type="button" class="btn btn-outline-secondary btn-sm fw-semibold shadow-xs"
                                             t-on-click="() => this.openServiceRequest()">
                                         <i class="fa fa-life-ring me-1"/> Requests
@@ -921,14 +925,6 @@
                                         <i class="fa fa-check-circle me-2 text-success" aria-hidden="true"/>Attendance
                                         <span t-att-class="'badge rounded-pill ms-1 ' + (state.attendanceStats.rate >= 80 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle')"
                                               t-esc="state.attendanceStats.rate + '%'"/>
-                                    </button>
-                                </li>
-                                <li class="nav-item">
-                                    <button type="button"
-                                            t-att-class="'nav-link fw-semibold px-3 py-2 ' + (state.activeTab === 'schedule' ? 'active' : '')"
-                                            t-on-click="() => this.setActiveTab('schedule')"
-                                            title="Interactive Academic Schedule">
-                                        <i class="fa fa-calendar me-2 text-info" aria-hidden="true"/>Schedule
                                     </button>
                                 </li>
                                 <li class="nav-item">
@@ -2152,6 +2148,16 @@
                                 t-on-click="() => this.openMyProfile()">
 
                             <i class="fa fa-user me-1"/>My Profile
+
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+
+                                t-on-click="() => this.openStudentChangeRequest()"
+
+                                title="Request Profile / Contact Information Changes">
+
+                            <i class="fa fa-id-card-o me-1"/>Profile Change
 
                         </button>
 

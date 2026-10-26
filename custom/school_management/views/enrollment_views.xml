@@ -7,7 +7,7 @@
         <field name="model">university.enrollment</field>
         <field name="active" eval="True"/>
         <field name="arch" type="xml">
-            <list string="Enrollments" sample="1">
+            <list limit="10" string="Enrollments" sample="1">
                 <header>
                     <button name="%(school_management.action_university_bulk_enrollment_wizard)d"
                             string="Bulk Enrollment"
@@ -166,7 +166,7 @@
         <field name="name">university.enrollment.kanban</field>
         <field name="model">university.enrollment</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="program_id" quick_create="false">
+            <kanban limit="10" sample="1" default_group_by="program_id" quick_create="false">
                 <field name="student_id"/>
                 <field name="program_id"/>
                 <field name="semester_id"/>
@@ -204,6 +204,7 @@
         <field name="name">Enrollments</field>
         <field name="res_model">university.enrollment</field>
         <field name="view_mode">list,form,kanban,graph,pivot</field>
+        <field name="limit">10</field>
         <field name="view_id" ref="view_university_enrollment_list"/>
         <field name="search_view_id" ref="view_university_enrollment_search"/>
     </record>
@@ -212,6 +213,7 @@
         <field name="name">My Enrollments</field>
         <field name="res_model">university.enrollment</field>
         <field name="view_mode">list,form,kanban</field>
+        <field name="limit">10</field>
         <field name="view_id" ref="view_university_enrollment_list"/>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>

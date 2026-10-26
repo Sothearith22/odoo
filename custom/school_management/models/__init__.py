@@ -29,6 +29,7 @@ from . import capability
 from . import lesson_plan
 from . import assignment    
 from . import timetable
+from . import room_availability
 from . import timetable_conflict
 from . import notice_board
 from . import service_hour

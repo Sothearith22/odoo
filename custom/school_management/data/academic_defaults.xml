@@ -89,11 +89,6 @@
         <field name="start_hour">9.75</field>
         <field name="end_hour">11.25</field>
     </record>
-    <record id="timeslot_monday_1000" model="university.timeslot">
-        <field name="day_of_week">0</field>
-        <field name="start_hour">10.0</field>
-        <field name="end_hour">11.5</field>
-    </record>
     <record id="timeslot_monday_1330" model="university.timeslot">
         <field name="day_of_week">0</field>
         <field name="start_hour">13.5</field>
@@ -137,11 +132,6 @@
         <field name="day_of_week">2</field>
         <field name="start_hour">9.75</field>
         <field name="end_hour">11.25</field>
-    </record>
-    <record id="timeslot_wednesday_1000" model="university.timeslot">
-        <field name="day_of_week">2</field>
-        <field name="start_hour">10.0</field>
-        <field name="end_hour">11.5</field>
     </record>
     <record id="timeslot_wednesday_1330" model="university.timeslot">
         <field name="day_of_week">2</field>
@@ -226,9 +216,4 @@
         <field name="value">14</field>
     </record>
 
-    <!-- University / Company Default Branding Logo -->
-    <record id="base.main_company" model="res.company">
-        <field name="name">University Management</field>
-        <field name="logo" type="base64" file="school_management/static/src/img/university_logo.png"/>
-    </record>
 </odoo>

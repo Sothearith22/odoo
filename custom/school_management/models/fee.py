@@ -1,3 +1,5 @@
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -32,6 +34,11 @@ class UniversityFee(models.Model):
     date = fields.Date(string="Invoice Date", default=fields.Date.context_today, required=True, tracking=True)
     due_date = fields.Date(string="Due Date", tracking=True)
     
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        default=lambda self: self.env.company,
+    )
     currency_id = fields.Many2one(
         "res.currency",
         string="Currency",
@@ -236,7 +243,7 @@ class UniversityFee(models.Model):
         self.last_reminder_date = fields.Datetime.now()
         due_str = self.due_date.strftime("%B %d, %Y") if self.due_date else "Immediate Settlement"
 
-        body = _(
+        body = Markup(_(
             "<div style='border: 1px solid #f5c2c7; background-color: #f8d7da; padding: 12px; border-radius: 6px;'>"
             "<h5 style='color: #842029; margin-top: 0;'><i class='fa fa-exclamation-triangle'></i> URGENT TUITION PAYMENT NOTICE</h5>"
             "<p style='color: #842029; margin-bottom: 8px;'>This official notice alerts <strong>%(student)s</strong> regarding an outstanding balance on invoice <strong>%(invoice)s</strong>.</p>"
@@ -246,13 +253,14 @@ class UniversityFee(models.Model):
             "<li><strong>Reminder Sequence:</strong> Notice #%(count)d</li>"
             "</ul>"
             "<p style='color: #842029; font-weight: bold; margin-bottom: 0;'>Please arrange payment as soon as possible via the University Finance Cashier or Bank Wire to maintain enrollment in good standing.</p>"
-            "</div>",
-            student=self.student_id.name,
-            invoice=self.name,
-            balance=self.balance,
-            due=due_str,
-            count=self.reminder_count,
-        )
+            "</div>"
+        )) % {
+            "student": self.student_id.name,
+            "invoice": self.name,
+            "balance": self.balance,
+            "due": due_str,
+            "count": self.reminder_count,
+        }
         self.message_post(body=body, message_type="notification")
         if self.student_id:
             self.student_id.message_post(body=body, message_type="notification")
@@ -368,6 +376,12 @@ class UniversityFee(models.Model):
                 )
             fee.state = "draft"
 
+    def action_print_invoice(self):
+        self.ensure_one()
+        return self.env.ref(
+            "school_management.action_report_university_fee_invoice"
+        ).report_action(self)
+
     def action_print_receipt(self):
         self.ensure_one()
         payment = self.payment_ids.filtered(
@@ -386,6 +400,11 @@ class UniversityFeeLine(models.Model):
 
     fee_id = fields.Many2one("university.fee", string="Fee Invoice", required=True, ondelete="cascade")
     name = fields.Char(string="Description", required=True)
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        default=lambda self: self.env.company,
+    )
     currency_id = fields.Many2one(
         "res.currency",
         related="fee_id.currency_id",
@@ -407,6 +426,11 @@ class UniversityFeeStructure(models.Model):
     _order = "name"
 
     name = fields.Char(string="Fee Structure", required=True)
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        default=lambda self: self.env.company,
+    )
     currency_id = fields.Many2one(
         "res.currency",
         string="Currency",
@@ -487,6 +511,11 @@ class UniversityFeeStructureLine(models.Model):
         ondelete="cascade",
     )
     name = fields.Char(string="Description", required=True)
+    company_id = fields.Many2one(
+        "res.company",
+        string="Company",
+        default=lambda self: self.env.company,
+    )
     currency_id = fields.Many2one(
         "res.currency",
         related="structure_id.currency_id",

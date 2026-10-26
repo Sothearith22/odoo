@@ -93,7 +93,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item py-1" href="#" t-on-click.prevent="() => this.exportScheduleExcel()">
+                                        <a class="dropdown-item py-1" href="#" t-on-click.prevent="() => this.exportExcel()">
                                             <i class="fa fa-file-excel-o me-2 text-success"/>Export Schedule
                                         </a>
                                     </li>

@@ -4,7 +4,7 @@
                         <field name="name">university.lesson.plan.tree</field>
                         <field name="model">university.lesson.plan</field>
                         <field name="arch" type="xml">
-                            <list string="Lesson Plans" sample="1">
+                            <list limit="10" string="Lesson Plans" sample="1">
                                 <field name="name" class="fw-bold"/>
                                 <field name="subject_id"/>
                                 <field name="section_id"/>
@@ -20,7 +20,7 @@
                         <field name="name">university.lesson.plan.kanban</field>
                         <field name="model">university.lesson.plan</field>
                         <field name="arch" type="xml">
-                            <kanban default_group_by="state" sample="1" quick_create="false">
+                            <kanban limit="10" default_group_by="state" sample="1" quick_create="false">
                                 <field name="id"/>
                                 <field name="name"/>
                                 <field name="subject_id"/>
@@ -134,6 +134,7 @@
                         <field name="name">Lesson Plans</field>
                         <field name="res_model">university.lesson.plan</field>
                         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
                         <field name="search_view_id" ref="view_university_lesson_plan_search"/>
                     </record>
                 </odoo>

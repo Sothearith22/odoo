@@ -39,6 +39,7 @@
         <field name="name">Reschedule Session</field>
         <field name="res_model">wizard.reschedule.session</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="target">new</field>
     </record>
 </odoo>

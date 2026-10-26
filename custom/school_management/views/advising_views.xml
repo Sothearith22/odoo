@@ -7,7 +7,7 @@
         <field name="name">university.student.advising.note.kanban</field>
         <field name="model">university.student.advising.note</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="category" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="category" sample="1" quick_create="false">
                 <field name="id"/>
                 <field name="student_id"/>
                 <field name="advisor_id"/>
@@ -76,7 +76,7 @@
         <field name="name">university.student.advising.note.list</field>
         <field name="model">university.student.advising.note</field>
         <field name="arch" type="xml">
-            <list string="Advising Notes" default_order="date desc, id desc" sample="1">
+            <list limit="10" string="Advising Notes" default_order="date desc, id desc" sample="1">
                 <field name="date" widget="date" decoration-bf="1"/>
                 <field name="student_id" widget="many2one_avatar" decoration-bf="1"/>
                 <field name="advisor_id" widget="many2one_avatar"/>
@@ -169,6 +169,7 @@
         <field name="name">Advising Notes</field>
         <field name="res_model">university.student.advising.note</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_student_advising_note_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -184,7 +185,7 @@
         <field name="name">university.student.followup.kanban</field>
         <field name="model">university.student.followup</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" sample="1" quick_create="false">
+            <kanban default_group_by="state" sample="1" quick_create="false" limit="10">
                 <field name="id"/>
                 <field name="title"/>
                 <field name="student_id"/>
@@ -250,7 +251,7 @@
         <field name="name">university.student.followup.list</field>
         <field name="model">university.student.followup</field>
         <field name="arch" type="xml">
-            <list string="Follow-up Actions" default_order="date_deadline asc, id desc" sample="1">
+            <list string="Follow-up Actions" limit="10" default_order="date_deadline asc, id desc" sample="1">
                 <field name="date_deadline" widget="date" decoration-bf="1"/>
                 <field name="title" decoration-bf="1"/>
                 <field name="student_id" widget="many2one_avatar" decoration-bf="1"/>
@@ -362,6 +363,7 @@
         <field name="res_model">university.student.followup</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_student_followup_search"/>
+        <field name="limit">10</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Manage academic advising follow-up actions and student interventions.

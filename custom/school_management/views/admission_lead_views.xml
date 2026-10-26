@@ -3,7 +3,7 @@
         <field name="name">admission.lead.kanban</field>
         <field name="model">admission.lead</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="stage_id" records_draggable="1">
+            <kanban limit="10" default_group_by="stage_id" records_draggable="1">
                 <field name="stage_id"/>
                 <field name="student_name"/>
                 <field name="program_id"/>
@@ -96,6 +96,7 @@
         <field name="name">Admission Pipeline</field>
         <field name="res_model">admission.lead</field>
         <field name="view_mode">kanban,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="admission_lead_view_search"/>
     </record>
 

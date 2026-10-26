@@ -6,7 +6,7 @@
         <field name="name">university.student.list</field>
         <field name="model">university.student</field>
         <field name="arch" type="xml">
-            <list string="Students" sample="1">
+            <list limit="10" string="Students" sample="1">
                 <header>
                     <button name="%(school_management.action_university_bulk_enrollment_wizard)d"
                             string="Enroll Students"
@@ -29,16 +29,18 @@
                        decoration-warning="risk_level == 'medium'"
                        decoration-danger="risk_level == 'high'"/>
                 <field name="enrollment_count" string="Classes" optional="show"/>
+                <field name="session_count" string="Sessions" optional="show"/>
                 <field name="status" widget="badge"
                        decoration-success="status == 'active'"
                        decoration-warning="status == 'suspended'"
                        decoration-info="status == 'graduated'"
                        decoration-danger="status == 'dropped'"/>
                 <field name="academic_year_id" optional="show"/>
-                <field name="fee_balance" widget="monetary" string="Balance" optional="show" groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student"/>
+                <field name="fee_balance" widget="monetary" string="Balance" optional="show" groups="school_management.group_school_admin,base.group_system"/>
                 <field name="financial_status"
                        widget="badge"
                        optional="show"
+                       groups="school_management.group_school_admin,base.group_system"
                        decoration-danger="financial_status == 'overdue'"
                        decoration-warning="financial_status == 'pending'"
                        decoration-success="financial_status == 'good_standing'"
@@ -55,7 +57,7 @@
         <field name="name">university.student.kanban</field>
         <field name="model">university.student</field>
         <field name="arch" type="xml">
-            <kanban class="o_university_teacher_kanban" sample="1" records_draggable="0" highlight_color="color">
+            <kanban limit="10" class="o_university_teacher_kanban" sample="1" records_draggable="0" highlight_color="color">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
@@ -64,12 +66,13 @@
                 <field name="department_id"/>
                 <field name="academic_year_id"/>
                 <field name="enrollment_count"/>
+                <field name="session_count"/>
                 <field name="email"/>
                 <field name="status"/>
                 <field name="risk_level"/>
                 <field name="color"/>
-                <field name="financial_status"/>
-                <field name="fee_balance" groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student"/>
+                <field name="financial_status" groups="school_management.group_school_admin,base.group_system"/>
+                <field name="fee_balance" groups="school_management.group_school_admin,base.group_system"/>
                 <templates>
                     <t t-name="card" class="o_teacher_kanban_card d-flex flex-column justify-content-between p-3">
                         <main class="d-flex gap-3 align-items-start min-w-0">
@@ -98,11 +101,11 @@
                                                decoration-warning="status == 'suspended'"
                                                decoration-info="status == 'graduated'"
                                                decoration-danger="status == 'dropped'"/>
-                                        <t groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student">
-                                            <span t-if="record.financial_status.raw_value == 'overdue'" class="badge text-bg-danger fw-bold" title="Payment Overdue">
+                                        <t groups="school_management.group_school_admin,base.group_system">
+                                            <span t-if="record.financial_status and record.financial_status.raw_value == 'overdue'" class="badge text-bg-danger fw-bold" title="Payment Overdue">
                                                 <i class="fa fa-exclamation-triangle me-1"/>Overdue
                                             </span>
-                                            <span t-elif="record.financial_status.raw_value == 'pending'" class="badge text-bg-warning" title="Tuition Due">
+                                            <span t-elif="record.financial_status and record.financial_status.raw_value == 'pending'" class="badge text-bg-warning" title="Tuition Due">
                                                 Due
                                             </span>
                                         </t>
@@ -137,12 +140,18 @@
                             </div>
                         </main>
 
-                        <!-- Footer: enrolled classes chip and email widget -->
+                        <!-- Footer: enrolled classes chip, sessions chip, and email widget -->
                         <footer class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top">
-                            <span class="badge text-bg-light border text-muted small" title="Enrolled Classes">
-                                <i class="fa fa-book me-1"/>
-                                <t t-out="record.enrollment_count.raw_value"/> Classes
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="badge text-bg-light border text-muted small" title="Enrolled Classes">
+                                    <i class="fa fa-book me-1"/>
+                                    <t t-out="record.enrollment_count.raw_value"/> Classes
+                                </span>
+                                <span class="badge text-bg-light border text-muted small" title="Total Sessions">
+                                    <i class="fa fa-calendar me-1"/>
+                                    <t t-out="record.session_count.raw_value"/> Sessions
+                                </span>
+                            </div>
                             <div class="text-truncate small ms-2">
                                 <field name="email" widget="email"/>
                             </div>
@@ -203,10 +212,13 @@
                         <button name="action_view_enrollments" type="object" class="oe_stat_button" icon="fa-graduation-cap">
                             <field name="enrollment_count" widget="statinfo" string="Enrollments"/>
                         </button>
+                        <button name="action_view_sessions" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="session_count" widget="statinfo" string="Sessions"/>
+                        </button>
                         <button name="action_view_exam_scores" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
                             <field name="exam_score_count" widget="statinfo" string="Exams &amp; Quizzes"/>
                         </button>
-                        <button name="action_view_fees" type="object" class="oe_stat_button" icon="fa-money" groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student">
+                        <button name="action_view_fees" type="object" class="oe_stat_button" icon="fa-money" groups="school_management.group_school_admin,base.group_system">
                             <div class="o_stat_info">
                                 <span class="o_stat_value"><field name="fee_balance" widget="monetary"/></span>
                                 <span class="o_stat_text">Fee Balance</span>
@@ -229,37 +241,37 @@
                     <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
                     <field name="currency_id" invisible="1"/>
-                    <field name="financial_status" invisible="1"/>
-                    <field name="overdue_fee_count" invisible="1"/>
+                    <field name="financial_status" invisible="1" groups="school_management.group_school_admin,base.group_system"/>
+                    <field name="overdue_fee_count" invisible="1" groups="school_management.group_school_admin,base.group_system"/>
 
                     <!-- CRITICAL OVERDUE TUITION ALERT BANNER -->
-                    <div class="alert alert-danger d-flex align-items-center mb-3 shadow-sm rounded-3" role="alert" invisible="financial_status != 'overdue'" groups="school_management.group_school_admin,school_management.group_school_registrar">
+                    <div class="alert alert-danger d-flex align-items-center mb-3 shadow-sm rounded-3" role="alert" invisible="financial_status != 'overdue'" groups="school_management.group_school_admin,base.group_system">
                         <i class="fa fa-exclamation-triangle fa-2x me-3 text-danger" title="Critical Overdue Tuition Alert"/>
                         <div class="flex-grow-1">
                             <h5 class="alert-heading text-danger mb-1 font-weight-bold" role="status">
                                 <i class="fa fa-bell me-1" title="Alert"/>URGENT FINANCIAL ALERT — OVERDUE PAYMENT REQUIRED
                             </h5>
                             <div>
-                                This student has <strong><field name="overdue_fee_count"/> overdue invoice(s)</strong> totaling 
-                                <field name="fee_balance" widget="monetary" class="fw-bold text-danger"/>. 
+                                This student has <strong><field name="overdue_fee_count" groups="school_management.group_school_admin,base.group_system"/> overdue invoice(s)</strong> totaling 
+                                <field name="fee_balance" widget="monetary" class="fw-bold text-danger" groups="school_management.group_school_admin,base.group_system"/>. 
                                 Immediate payment settlement is required to prevent academic hold or suspension of class enrollment.
                             </div>
                         </div>
-                        <button name="action_register_student_payment" type="object" string="Collect Payment Now" class="btn btn-danger btn-sm ms-3 shadow-sm"/>
-                        <button name="action_send_urgent_payment_reminder" type="object" string="Send Alert Notice" class="btn btn-outline-danger btn-sm ms-2"/>
+                        <button name="action_register_student_payment" type="object" string="Collect Payment Now" class="btn btn-danger btn-sm ms-3 shadow-sm" groups="school_management.group_school_admin,base.group_system"/>
+                        <button name="action_send_urgent_payment_reminder" type="object" string="Send Alert Notice" class="btn btn-outline-danger btn-sm ms-2" groups="school_management.group_school_admin,base.group_system"/>
                     </div>
 
                     <!-- PENDING TUITION PAYMENT BANNER -->
-                    <div class="alert alert-warning d-flex align-items-center mb-3 shadow-sm rounded-3" role="status" invisible="financial_status != 'pending'" groups="school_management.group_school_admin,school_management.group_school_registrar">
+                    <div class="alert alert-warning d-flex align-items-center mb-3 shadow-sm rounded-3" role="status" invisible="financial_status != 'pending'" groups="school_management.group_school_admin,base.group_system">
                         <i class="fa fa-clock-o fa-2x me-3 text-warning" title="Tuition Payment Pending"/>
                         <div class="flex-grow-1">
                             <strong class="text-dark">⚠️ TUITION PAYMENT PENDING:</strong>
                             <div>
-                                Outstanding fee balance: <field name="fee_balance" widget="monetary" class="fw-bold text-dark"/>. Please settle payment before the upcoming deadline.
+                                Outstanding fee balance: <field name="fee_balance" widget="monetary" class="fw-bold text-dark" groups="school_management.group_school_admin,base.group_system"/>. Please settle payment before the upcoming deadline.
                             </div>
                         </div>
-                        <button name="action_register_student_payment" type="object" string="Register Payment" class="btn btn-primary btn-sm ms-3 shadow-sm"/>
-                        <button name="action_send_urgent_payment_reminder" type="object" string="Send Payment Notice" class="btn btn-outline-secondary btn-sm ms-2"/>
+                        <button name="action_register_student_payment" type="object" string="Register Payment" class="btn btn-primary btn-sm ms-3 shadow-sm" groups="school_management.group_school_admin,base.group_system"/>
+                        <button name="action_send_urgent_payment_reminder" type="object" string="Send Payment Notice" class="btn btn-outline-secondary btn-sm ms-2" groups="school_management.group_school_admin,base.group_system"/>
                     </div>
 
                     <field name="image_1920"
@@ -322,7 +334,7 @@
 
                         <page string="Enrollments" name="enrollments_tab">
                             <field name="enrollment_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="class_section_id" options="{'no_create': True}"/>
                                     <field name="subject_id"/>
                                     <field name="instructor_id"/>
@@ -349,14 +361,15 @@
 
                         <page string="My Curriculum" name="my_curriculum_tab">
                             <field name="curriculum_line_ids" readonly="1" context="{'active_student_id': id}">
-                                <list default_order="year_level, semester_number, sequence, id"
-                                      decoration-bf="year_level == parent.year_level"
-                                      decoration-info="year_level == parent.year_level">
+                                <list limit="10" default_order="year_level, semester_number, sequence, id"
+                                      decoration-bf="is_current_student_year"
+                                      decoration-info="is_current_student_year">
                                     <field name="subject_id"/>
                                     <field name="year_level"/>
                                     <field name="semester_number"/>
                                     <field name="credits" sum="Total Credits"/>
                                     <field name="is_student_enrolled" column_invisible="1"/>
+                                    <field name="is_current_student_year" column_invisible="1"/>
                                     <field name="enrollment_status" string="Status" widget="badge"
                                            decoration-success="enrollment_status == 'Enrolled'"
                                            decoration-info="enrollment_status == 'Completed'"
@@ -365,17 +378,17 @@
                             </field>
                         </page>
 
-                        <page string="Fees &amp; Payments" name="fees_tab" groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student">
+                        <page string="Fees &amp; Payments" name="fees_tab" groups="school_management.group_school_admin,base.group_system">
                             <group>
                                 <group string="Fee Summary">
-                                    <field name="fee_total" widget="monetary"/>
-                                    <field name="fee_paid" widget="monetary"/>
-                                    <field name="fee_balance" widget="monetary"/>
+                                    <field name="fee_total" widget="monetary" groups="school_management.group_school_admin,base.group_system"/>
+                                    <field name="fee_paid" widget="monetary" groups="school_management.group_school_admin,base.group_system"/>
+                                    <field name="fee_balance" widget="monetary" groups="school_management.group_school_admin,base.group_system"/>
                                 </group>
                             </group>
                             <separator string="Invoices"/>
-                            <field name="fee_ids">
-                                <list>
+                            <field name="fee_ids" groups="school_management.group_school_admin,base.group_system">
+                                <list limit="10">
                                     <field name="name"/>
                                     <field name="date"/>
                                     <field name="due_date"/>
@@ -389,8 +402,8 @@
                                 </list>
                             </field>
                             <separator string="Payments"/>
-                            <field name="payment_ids">
-                                <list>
+                            <field name="payment_ids" groups="school_management.group_school_admin,base.group_system">
+                                <list limit="10">
                                     <field name="name"/>
                                     <field name="date"/>
                                     <field name="fee_id"/>
@@ -407,7 +420,7 @@
                                 <button name="action_view_exam_scores" string="Result of Exam and Quiz" type="object" class="btn btn-sm btn-outline-primary" icon="fa-external-link"/>
                             </div>
                             <field name="exam_score_ids" readonly="1">
-                                <list default_order="exam_date desc, id desc">
+                                <list limit="10" default_order="exam_date desc, id desc">
                                     <field name="exam_id" string="Exam / Quiz"/>
                                     <field name="exam_type" widget="badge"
                                            decoration-info="exam_type == 'quiz'"
@@ -431,7 +444,7 @@
                             </field>
                             <separator string="Report Cards" class="mt-4"/>
                             <field name="report_card_ids" readonly="1">
-                                <list>
+                                <list limit="10">
                                     <field name="name"/>
                                     <field name="academic_year_id"/>
                                     <field name="semester_id"/>
@@ -441,7 +454,7 @@
                             </field>
                             <separator string="Transcripts"/>
                             <field name="transcript_ids" readonly="1">
-                                <list>
+                                <list limit="10">
                                     <field name="name"/>
                                     <field name="total_credits"/>
                                     <field name="cumulative_gpa"/>
@@ -452,7 +465,7 @@
 
                         <page string="Submissions" name="submissions_tab">
                             <field name="submission_ids" readonly="1">
-                                <list>
+                                <list limit="10">
                                     <field name="assignment_id"/>
                                     <field name="subject_id"/>
                                     <field name="section_id"/>
@@ -481,7 +494,7 @@
                             </group>
                             <group string="Advising Notes">
                                 <field name="advising_note_ids" nolabel="1" groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin"  >
-                                    <list editable="bottom">
+                                    <list limit="10" editable="bottom">
                                         <field name="date"/>
                                         <field name="advisor_id"/>
                                         <field name="category"/>
@@ -492,7 +505,7 @@
                             </group>
                             <group string="Follow-up Actions">
                                 <field name="followup_ids" nolabel="1">
-                                    <list editable="bottom">
+                                    <list limit="10" editable="bottom">
                                         <field name="date_deadline"/>
                                         <field name="title"/>
                                         <field name="advisor_id"/>
@@ -543,9 +556,9 @@
                 <filter string="Graduated" name="filter_status_graduated" domain="[('status', '=', 'graduated')]"/>
                 <filter string="Dropped" name="filter_status_dropped" domain="[('status', '=', 'dropped')]"/>
                 <separator/>
-                <filter string="🚨 Payment Overdue" name="filter_financial_overdue" domain="[('financial_status', '=', 'overdue')]"/>
-                <filter string="⚠️ Tuition Pending" name="filter_financial_pending" domain="[('financial_status', '=', 'pending')]"/>
-                <filter string="✅ Fees Paid" name="filter_financial_paid" domain="[('financial_status', '=', 'good_standing')]"/>
+                <filter string="🚨 Payment Overdue" name="filter_financial_overdue" domain="[('financial_status', '=', 'overdue')]" groups="school_management.group_school_admin,base.group_system"/>
+                <filter string="⚠️ Tuition Pending" name="filter_financial_pending" domain="[('financial_status', '=', 'pending')]" groups="school_management.group_school_admin,base.group_system"/>
+                <filter string="✅ Fees Paid" name="filter_financial_paid" domain="[('financial_status', '=', 'good_standing')]" groups="school_management.group_school_admin,base.group_system"/>
                 <separator/>
                 <filter string="Active Records" name="filter_active" domain="[('active', '=', True)]"/>
                 <filter string="Archived Records" name="filter_inactive" domain="[('active', '=', False)]"/>
@@ -573,6 +586,7 @@
         <field name="name">Students</field>
         <field name="res_model">university.student</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_student_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first student record</p>
@@ -584,6 +598,7 @@
         <field name="name">My Profile</field>
         <field name="res_model">university.student</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_student_search"/>

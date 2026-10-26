@@ -6,7 +6,7 @@
         <field name="name">university.capability.list</field>
         <field name="model">university.capability</field>
         <field name="arch" type="xml">
-            <list string="System Capabilities &amp; Roadmap" sample="2">
+            <list limit="10" string="System Capabilities &amp; Roadmap" sample="2">
                 <field name="sort_order" optional="hide"/>
                 <field name="icon" string="Icon" optional="hide"/>
                 <field name="name" decoration-bf="1"/>
@@ -93,6 +93,7 @@
         <field name="name">Capabilities &amp; Roadmap</field>
         <field name="res_model">university.capability</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_capability_search"/>
         <field name="context">{'default_sort_order': 10}</field>
     </record>

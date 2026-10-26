@@ -6,7 +6,7 @@
         <field name="name">university.fee.structure.list</field>
         <field name="model">university.fee.structure</field>
         <field name="arch" type="xml">
-            <list string="Fee Structures" class="o_university_fee_structure_list">
+            <list limit="10" string="Fee Structures" class="o_university_fee_structure_list">
                 <field name="name" decoration-bf="1"/>
                 <field name="program_id"/>
                 <field name="academic_year_id"/>
@@ -23,7 +23,7 @@
         <field name="name">university.fee.structure.kanban</field>
         <field name="model">university.fee.structure</field>
         <field name="arch" type="xml">
-            <kanban sample="1" class="o_university_fee_structure_kanban">
+            <kanban limit="10" sample="1" class="o_university_fee_structure_kanban">
                 <field name="name"/>
                 <field name="program_id"/>
                 <field name="academic_year_id"/>
@@ -82,7 +82,7 @@
                     <notebook>
                         <page string="Fee Components &amp; Line Items" name="fee_structure_lines">
                             <field name="line_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="name" string="Fee Description" placeholder="e.g. Tuition Fee / Technology Fee"/>
                                     <field name="currency_id" column_invisible="1"/>
@@ -105,6 +105,7 @@
         <field name="name">Fee Structures</field>
         <field name="res_model">university.fee.structure</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
     </record>
 
     <!-- FEE INVOICE: LIST VIEW -->
@@ -112,7 +113,7 @@
         <field name="name">university.fee.list</field>
         <field name="model">university.fee</field>
         <field name="arch" type="xml">
-            <list string="Fee Invoices" multi_edit="1" default_order="is_overdue desc, date desc" class="o_university_fee_list">
+            <list string="Fee Invoices" multi_edit="1" limit="10" default_order="is_overdue desc, date desc" class="o_university_fee_list">
                 <field name="name" decoration-bf="1"/>
                 <field name="student_id" decoration-bf="1"/>
                 <field name="academic_year_id" optional="show"/>
@@ -147,6 +148,7 @@
         <field name="arch" type="xml">
             <form string="Fee Invoice">
                 <header>
+                    <button name="action_print_invoice" string="Print Invoice" type="object" invisible="state == 'canceled'" class="oe_highlight"/>
                     <button name="action_register_payment" string="Register Payment" type="object" invisible="state != 'posted' or balance &lt;= 0" class="oe_highlight btn-success"/>
                     <button name="action_send_payment_reminder" string="Send Payment Alert" type="object" invisible="state != 'posted' or balance &lt;= 0" class="btn-outline-danger"/>
                     <button name="action_post" string="Confirm Invoice" type="object" invisible="state != 'draft'" class="oe_highlight"/>
@@ -239,7 +241,7 @@
                     <notebook>
                         <page string="Fee Lines &amp; Breakdown" name="fee_lines">
                             <field name="line_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="name" string="Description" placeholder="e.g. Semester 1 Tuition Fee"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="amount" sum="Total" widget="monetary"/>
@@ -255,7 +257,7 @@
 
                         <page string="Payment History" name="payments">
                             <field name="payment_ids">
-                                <list default_order="date desc">
+                                <list limit="10" default_order="date desc">
                                     <field name="name" string="Receipt Reference" decoration-bf="1"/>
                                     <field name="date"/>
                                     <field name="payment_method"/>
@@ -278,7 +280,7 @@
         <field name="name">university.fee.kanban</field>
         <field name="model">university.fee</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="payment_state" quick_create="false" class="o_university_fee_kanban">
+            <kanban sample="1" default_group_by="payment_state" quick_create="false" limit="10" class="o_university_fee_kanban">
                 <field name="name"/>
                 <field name="student_id"/>
                 <field name="total_amount"/>
@@ -363,6 +365,7 @@
         <field name="res_model">university.fee</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_fee_search"/>
+        <field name="limit">10</field>
         <field name="context">{'search_default_filter_unpaid': 1}</field>
     </record>
 
@@ -371,6 +374,7 @@
         <field name="res_model">university.fee</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
+        <field name="limit">10</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>
 

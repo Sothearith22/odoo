@@ -6,7 +6,7 @@
         <field name="name">university.subject.list</field>
         <field name="model">university.subject</field>
         <field name="arch" type="xml">
-            <list string="Subjects" sample="1" default_order="department_id, code" class="o_university_subject_list">
+            <list limit="10" string="Subjects" sample="1" default_order="department_id, code" class="o_university_subject_list">
                 <field name="code" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="department_id"/>
@@ -26,7 +26,7 @@
         <field name="name">university.subject.kanban</field>
         <field name="model">university.subject</field>
         <field name="arch" type="xml">
-            <kanban sample="1" class="o_university_subject_kanban">
+            <kanban limit="10" sample="1" class="o_university_subject_kanban">
                 <field name="name"/>
                 <field name="code"/>
                 <field name="program_ids"/>
@@ -143,7 +143,7 @@
 
                         <page string="Teachers &amp; Instructors" name="teachers_tab">
                             <field name="teacher_ids" widget="many2many" domain="[('department_id', '=', department_id)]">
-                                <list>
+                                <list limit="10">
                                     <field name="teacher_id" string="ID / Code"/>
                                     <field name="name" string="Instructor Name" decoration-bf="1"/>
                                     <field name="department_id"/>
@@ -155,7 +155,7 @@
 
                         <page string="Class Sections" name="sections_tab">
                             <field name="section_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="name" decoration-bf="1"/>
                                     <field name="teacher_id"/>
                                     <field name="semester_id"/>
@@ -170,7 +170,7 @@
 
                         <page string="Semester Offerings" name="offerings_tab">
                             <field name="semester_subject_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="academic_year_id"/>
                                     <field name="semester_id"/>
                                     <field name="credits"/>
@@ -224,6 +224,7 @@
         <field name="name">Subjects</field>
         <field name="res_model">university.subject</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_subject_search"/>
     </record>
 

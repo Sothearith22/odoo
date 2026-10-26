@@ -24,8 +24,8 @@
         res.groups.privilege rather than res.groups.category_id).
     -->
     <record id="school_management_privilege" model="res.groups.privilege">
-        <field name="name">University Management</field>
-        <field name="description">Roles that define access to the University Management System.</field>
+        <field name="name">Harvard University</field>
+        <field name="description">Roles that define access to Harvard University.</field>
         <field name="sequence">100</field>
     </record>
 
@@ -96,7 +96,7 @@
     <record id="group_university_teacher" model="res.groups">
         <field name="name">University / Teacher</field>
         <field name="privilege_id" ref="school_management_privilege"/>
-        <field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
     </record>
 
     <record id="group_university_admin" model="res.groups">
@@ -109,9 +109,6 @@
         <field name="implied_ids" eval="[(4, ref('group_university_teacher'))]"/>
     </record>
 
-    <record id="group_school_admin" model="res.groups">
-        <field name="implied_ids" eval="[(4, ref('group_university_teacher'))]"/>
-    </record>
 
     <record id="rule_teacher_ui_sections" model="ir.rule">
         <field name="name">Teacher: assigned sections</field>
@@ -176,7 +173,7 @@
     <record id="rule_teacher_ui_students" model="ir.rule">
         <field name="name">Teacher: students in assigned sections</field>
         <field name="model_id" ref="model_university_student"/>
-        <field name="domain_force">[('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('advisor_id.user_id', '=', user.id), ('enrollment_ids.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
@@ -303,10 +300,10 @@
         <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
     </record>
     <record id="rule_admin_ui_notice_board" model="ir.rule">
-        <field name="name">Administrator: all notices</field>
+        <field name="name">Administrator and Registrar: all notices</field>
         <field name="model_id" ref="model_university_notice_board"/>
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+        <field name="groups" eval="[(4, ref('group_school_admin')), (4, ref('group_school_registrar'))]"/>
     </record>
 
 </odoo>

@@ -1,3 +1,5 @@
+from markupsafe import Markup
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -129,15 +131,16 @@ class UniversityPayment(models.Model):
                 fee._update_state_from_balance()
                 # Post chatter confirmation note
                 method_name = dict(payment._fields["payment_method"].selection).get(payment.payment_method, payment.payment_method)
-                msg = _(
+                msg = Markup(_(
                     "<p>✅ <strong>Payment Received:</strong> $%(amount).2f via %(method)s "
                     "(Receipt: %(receipt)s, Ref: %(ref)s). Remaining Invoice Balance: $%(balance).2f.</p>",
-                    amount=payment.amount,
-                    method=method_name,
-                    receipt=payment.name,
-                    ref=payment.reference or "N/A",
-                    balance=fee.balance,
-                )
+                )) % {
+                    "amount": payment.amount,
+                    "method": method_name,
+                    "receipt": payment.name,
+                    "ref": payment.reference or "N/A",
+                    "balance": fee.balance,
+                }
                 fee.message_post(body=msg)
                 if payment.student_id:
                     payment.student_id.message_post(body=msg)

@@ -12,7 +12,7 @@
         <field name="name">university.faculty.list</field>
         <field name="model">university.faculty</field>
         <field name="arch" type="xml">
-            <list string="Faculties" sample="1">
+            <list limit="10" string="Faculties" sample="1">
                 <field name="code" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'active'" decoration-warning="state == 'closed'" optional="show"/>
@@ -31,7 +31,7 @@
         <field name="name">university.faculty.kanban</field>
         <field name="model">university.faculty</field>
         <field name="arch" type="xml">
-            <kanban sample="1" class="o_university_faculty_kanban" highlight_color="color" records_draggable="0">
+            <kanban limit="10" sample="1" class="o_university_faculty_kanban" highlight_color="color" records_draggable="0">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="code"/>
@@ -266,7 +266,7 @@
                     <notebook>
                         <page string="Departments" name="departments_tab">
                             <field name="department_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="head_id" string="HOD"/>
@@ -278,7 +278,7 @@
                         </page>
                         <page string="Teachers" name="teachers_tab">
                             <field name="teacher_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="teacher_id"/>
                                     <field name="name"/>
                                     <field name="position"/>
@@ -289,7 +289,7 @@
                         </page>
                         <page string="Programs" name="programs_tab">
                             <field name="program_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="department_id"/>
@@ -299,7 +299,7 @@
                         </page>
                         <page string="Students" name="students_tab">
                             <field name="student_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="student_id"/>
                                     <field name="name"/>
                                     <field name="program_id"/>
@@ -352,6 +352,7 @@
         <field name="name">Faculties</field>
         <field name="res_model">university.faculty</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_faculty_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first faculty</p>

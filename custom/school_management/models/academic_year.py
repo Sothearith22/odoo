@@ -351,6 +351,7 @@ class UniversityAcademicYear(models.Model):
             "type": "ir.actions.act_window",
             "view_mode": "kanban,calendar,list,form",
             "res_model": "university.timetable.slot",
+            "limit": 10,
             "domain": [("academic_year_id", "=", self.id), ("classroom_id", "!=", False)],
             "context": {
                 "default_academic_year_id": self.id,

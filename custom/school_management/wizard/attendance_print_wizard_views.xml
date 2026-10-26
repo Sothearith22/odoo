@@ -34,6 +34,7 @@
         <field name="name">Reports &amp; Export</field>
         <field name="res_model">university.attendance.print.wizard</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="target">new</field>
         <field name="context">{'dialog_size': 'large'}</field>
     </record>

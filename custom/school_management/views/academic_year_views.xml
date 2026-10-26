@@ -6,7 +6,7 @@
         <field name="name">university.academic.year.list</field>
         <field name="model">university.academic.year</field>
         <field name="arch" type="xml">
-            <list string="Academic Years" sample="1" class="o_university_academic_year_list">
+            <list limit="10" string="Academic Years" sample="1" class="o_university_academic_year_list">
                 <field name="name" decoration-bf="1"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
@@ -165,7 +165,7 @@
                                         class="btn btn-primary btn-sm"/>
                             </div>
                             <field name="semester_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="name" readonly="1"/>
                                     <field name="semester_type"/>
                                     <field name="date_start"/>
@@ -176,7 +176,7 @@
                         </page>
                         <page string="Holidays" name="holidays_tab">
                             <field name="holiday_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="name"/>
                                     <field name="faculty_id"/>
                                     <field name="date_start"/>
@@ -223,7 +223,7 @@
         <field name="name">university.academic.year.kanban</field>
         <field name="model">university.academic.year</field>
         <field name="arch" type="xml">
-            <kanban sample="1" class="o_university_academic_year_kanban">
+            <kanban limit="10" sample="1" class="o_university_academic_year_kanban">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="image_1920"/>
@@ -337,6 +337,7 @@
         <field name="name">Academic Years</field>
         <field name="res_model">university.academic.year</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_academic_year_search"/>
     </record>
 
@@ -345,7 +346,7 @@
         <field name="name">university.semester.list</field>
         <field name="model">university.semester</field>
         <field name="arch" type="xml">
-            <list string="Semesters" sample="1">
+            <list limit="10" string="Semesters" sample="1">
                 <field name="name" decoration-bf="1"/>
                 <field name="academic_year_id"/>
                 <field name="semester_type" widget="badge"/>
@@ -412,7 +413,7 @@
                     <notebook>
                         <page string="Offered Subjects" name="offered_subjects_tab">
                             <field name="semester_subject_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="subject_id"/>
                                     <field name="department_id"/>
                                     <field name="credits"/>
@@ -423,7 +424,7 @@
 
                         <page string="Department Schedule" name="department_schedule_tab">
                             <field name="department_term_ids">
-                                <list editable="bottom" decoration-warning="is_below_min_weeks">
+                                <list limit="10" editable="bottom" decoration-warning="is_below_min_weeks">
                                     <field name="is_below_min_weeks" column_invisible="True"/>
                                     <field name="faculty_id" readonly="1"/>
                                     <field name="department_id"/>
@@ -450,7 +451,7 @@
         <field name="name">university.semester.kanban</field>
         <field name="model">university.semester</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="academic_year_id" quick_create="false" class="o_university_semester_kanban">
+            <kanban limit="10" sample="1" default_group_by="academic_year_id" quick_create="false" class="o_university_semester_kanban">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="academic_year_id"/>
@@ -565,6 +566,7 @@
         <field name="name">Semesters</field>
         <field name="res_model">university.semester</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
     </record>
 
     <record id="action_export_department_terms_server" model="ir.actions.server">

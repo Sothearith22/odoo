@@ -5,7 +5,7 @@
         <field name="name">university.assignment.kanban</field>
         <field name="model">university.assignment</field>
         <field name="arch" type="xml">
-            <kanban class="o_university_schedule_kanban" sample="1" default_group_by="due_date:week" quick_create="false">
+            <kanban limit="10" class="o_university_schedule_kanban" sample="1" default_group_by="due_date:week" quick_create="false">
                 <field name="name"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
@@ -70,7 +70,7 @@
         <field name="name">university.assignment.tree</field>
         <field name="model">university.assignment</field>
         <field name="arch" type="xml">
-            <list string="Assignments" sample="1">
+            <list limit="10" string="Assignments" sample="1">
                 <field name="name"/>
                 <field name="assignment_type"/>
                 <field name="student_id" optional="show"/>
@@ -152,7 +152,7 @@
                         </page>
                         <page string="Submissions" name="submissions" groups="school_management.group_school_teacher,school_management.group_school_admin">
                             <field name="submission_ids" readonly="1">
-                                <list>
+                                <list limit="10">
                                     <field name="student_id"/>
                                     <field name="submitted_on"/>
                                     <field name="score"/>
@@ -185,8 +185,7 @@
                 <filter string="Individual Assignments" name="assignment_type_student" domain="[('assignment_type', '=', 'student')]"/>
                 <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="Due This Week" name="due_this_week"
-                        domain="[('due_date', '>=', context_today() - relativedelta(days=context_today().weekday())), ('due_date', '&lt;', context_today() - relativedelta(days=context_today().weekday()) + relativedelta(days=7))]"/>
+                <filter string="Due This Week" name="due_this_week" domain="[('is_due_this_week', '=', True)]"/>
                 <group>
                     <filter string="Due Week" name="group_by_due_week" context="{'group_by': 'due_date:week'}"/>
                     <filter string="Status" name="group_by_state" context="{'group_by': 'state'}"/>
@@ -209,6 +208,7 @@
         <field name="name">Assignments</field>
         <field name="res_model">university.assignment</field>
         <field name="view_mode">kanban,calendar,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_assignment_search"/>
         <field name="context">{'search_default_due_this_week': 1}</field>
     </record>
@@ -231,6 +231,7 @@
         <field name="name">My Assignments</field>
         <field name="res_model">university.assignment</field>
         <field name="view_mode">kanban,calendar,list,form</field>
+        <field name="limit">10</field>
         <field name="domain">['|', ('student_id.user_id', '=', uid), ('section_id.enrollment_ids.student_id.user_id', '=', uid)]</field>
         <field name="search_view_id" ref="view_university_assignment_search"/>
         <field name="context">{'create': False, 'edit': False, 'delete': False, 'search_default_due_this_week': 1}</field>
@@ -248,7 +249,7 @@
         <field name="name">university.assignment.submission.kanban</field>
         <field name="model">university.assignment.submission</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="state" quick_create="false">
+            <kanban limit="10" sample="1" default_group_by="state" quick_create="false">
                 <field name="name"/>
                 <field name="assignment_id"/>
                 <field name="student_id"/>
@@ -305,7 +306,7 @@
         <field name="name">university.assignment.submission.list</field>
         <field name="model">university.assignment.submission</field>
         <field name="arch" type="xml">
-            <list string="Assignment Submissions" sample="1">
+            <list limit="10" string="Assignment Submissions" sample="1">
                 <field name="assignment_id"/>
                 <field name="student_id"/>
                 <field name="section_id"/>
@@ -411,6 +412,7 @@
         <field name="name">Assignment Submissions</field>
         <field name="res_model">university.assignment.submission</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_assignment_submission_search"/>
     </record>
 
@@ -418,6 +420,7 @@
         <field name="name">My Submissions</field>
         <field name="res_model">university.assignment.submission</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_assignment_submission_search"/>
         <field name="domain">['|', ('student_id.user_id', '=', uid), ('student_id', '=', context.get('default_student_id'))]</field>
         <field name="context">{'delete': False}</field>

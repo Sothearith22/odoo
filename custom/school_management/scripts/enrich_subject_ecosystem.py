@@ -96,7 +96,7 @@ def run():
                 "email": "paul.farmer@faculty.university.edu",
                 "phone": "+855 23 881 202",
                 "specialization": "Global Health Equity, Infectious Disease Epidemiology & Community Medicine",
-                "qualification": "MD, PhD in Medical Anthropology, Harvard University",
+                "qualification": "MD, PhD in Medical Anthropology, University of Cambridge",
             },
             {
                 "name": "Prof. Patricia Benner",
@@ -142,7 +142,7 @@ def run():
                 "email": "fred.brooks@faculty.university.edu",
                 "phone": "+855 23 881 303",
                 "specialization": "Software Engineering Management, System Architecture & Agile Methodologies",
-                "qualification": "PhD in Applied Mathematics, Harvard University",
+                "qualification": "PhD in Applied Mathematics, MIT",
             },
             # Artificial Intelligence & Data Science
             {
@@ -171,7 +171,7 @@ def run():
                 "email": "clayton.c@faculty.university.edu",
                 "phone": "+855 23 881 501",
                 "specialization": "Disruptive Innovation, Strategic Business Models & Corporate Evolution",
-                "qualification": "DBA, Harvard Business School",
+                "qualification": "DBA, Stanford Graduate School of Business",
             },
             {
                 "name": "Dr. Henry Mintzberg",

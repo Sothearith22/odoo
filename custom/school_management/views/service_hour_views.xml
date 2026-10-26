@@ -5,7 +5,7 @@
         <field name="name">university.service.hour.list</field>
         <field name="model">university.service.hour</field>
         <field name="arch" type="xml">
-            <list string="Service Hours" sample="1">
+            <list string="Service Hours" sample="1" limit="10">
                 <header>
                     <button name="action_approve" type="object" string="Approve"
                             class="btn-primary"
@@ -45,7 +45,7 @@
         <field name="name">university.service.hour.kanban</field>
         <field name="model">university.service.hour</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" sample="1" quick_create="false">
+            <kanban default_group_by="state" sample="1" quick_create="false" limit="10">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
@@ -221,6 +221,7 @@ records.filtered(lambda r: r.state == 'pending').action_reject()
         <field name="res_model">university.service.hour</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_service_hour_search"/>
+        <field name="limit">10</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No service-hour requests found.</p>
             <p>Students can submit service hours for administrator or supervisor approval.</p>

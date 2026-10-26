@@ -17,7 +17,7 @@
                             <div class="d-flex align-items-center">
 
                                 <div>
-                                    <h3 class="fw-bold mb-0 dashboard-title">University Management</h3>
+                                    <h3 class="fw-bold mb-0 dashboard-title">Harvard University</h3>
                                     <div class="text-muted small d-none d-md-block">Overview of academic structure, people, subjects, and operations</div>
                                 </div>
                             </div>
@@ -235,7 +235,7 @@
                                 <i class="fa fa-pie-chart me-2" style="color: var(--accent);" aria-hidden="true"></i>Student Academic Status Breakdown
                             </h5>
                             <button name="action_open_students" type="object" class="btn btn-sm btn-link text-decoration-none p-0 section-link">
-                                View All Students <i class="fa fa-arrow-right ms-1" aria-hidden="true"></i>
+                                View All Students <i class="fa fa-arrow-right ms-1" aria-hidden="true" title="View"></i>
                             </button>
                         </div>
                         <div class="card-body p-4">
@@ -283,7 +283,7 @@
                                 <i class="fa fa-money me-2" style="color: var(--accent);" aria-hidden="true"></i>Fee Status
                             </h5>
                             <button name="action_open_fees" type="object" class="btn btn-sm btn-link text-decoration-none p-0 section-link">
-                                View All Invoices <i class="fa fa-arrow-right ms-1" aria-hidden="true"></i>
+                                View All Invoices <i class="fa fa-arrow-right ms-1" aria-hidden="true" title="View"></i>
                             </button>
                         </div>
                         <div class="card-body p-4">
@@ -403,6 +403,7 @@
         <field name="name">Dashboard</field>
         <field name="res_model">school.dashboard</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="res_id" ref="school_dashboard_default"/>
         <field name="target">current</field>
     </record>

@@ -60,6 +60,25 @@ class UniversityTimeslot(models.Model):
         for slot in self:
             slot.duration = max(0.0, slot.end_hour - slot.start_hour)
 
+    @api.constrains("day_of_week", "start_hour", "end_hour", "active")
+    def _check_overlapping_timeslots(self):
+        for slot in self.filtered("active"):
+            overlap = self.search(
+                [
+                    ("id", "!=", slot.id),
+                    ("active", "=", True),
+                    ("day_of_week", "=", slot.day_of_week),
+                    ("start_hour", "<", slot.end_hour),
+                    ("end_hour", ">", slot.start_hour),
+                ],
+                limit=1,
+            )
+            if overlap:
+                raise ValidationError(
+                    "Timeslot %s overlaps with %s on the same day."
+                    % (slot.display_name, overlap.display_name)
+                )
+
     def _compute_slot_count(self):
         slot_data = self.env["university.timetable.slot"]._read_group(
             [("timeslot_id", "in", self.ids)],
@@ -145,6 +164,17 @@ class UniversityTimetableSlot(models.Model):
 
     name = fields.Char(string="Reference", compute="_compute_name", store=True)
     teacher_id = fields.Many2one("university.teacher", string="Teacher", required=True, index=True)
+    teacher_user_id = fields.Many2one(
+        "res.users",
+        string="Teacher User",
+        related="teacher_id.user_id",
+        readonly=True,
+    )
+    can_view_session_details = fields.Boolean(
+        string="Can View Session Details",
+        compute="_compute_can_view_session_details",
+        readonly=True,
+    )
     instructor_id = fields.Many2one(
         "university.teacher",
         string="Instructor",
@@ -305,6 +335,18 @@ class UniversityTimetableSlot(models.Model):
         related="section_id.enrolled_student_count",
         readonly=True,
     )
+
+    @api.depends("teacher_id")
+    def _compute_can_view_session_details(self):
+        can_view = (
+            self.env.su
+            or self.env.user.has_group("base.group_system")
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.user.has_group("school_management.group_school_dean")
+            or self.env.user.has_group("school_management.group_school_hod")
+        )
+        for slot in self:
+            slot.can_view_session_details = can_view
     room_capacity = fields.Integer(
         string="Room Capacity",
         related="classroom_id.capacity",
@@ -1502,9 +1544,15 @@ class UniversityTimetableSlot(models.Model):
                 if other.start_time < s.end_time and other.end_time > s.start_time:
                     reasons = []
                     if s.classroom_id and other.classroom_id and s.classroom_id.id == other.classroom_id.id:
-                        reasons.append(_("Room '%s' double-booked with %s") % (s.classroom_id.name, other.name or other.subject_id.name))
+                        if role == "teacher":
+                            reasons.append(_("Room conflict with another session."))
+                        else:
+                            reasons.append(_("Room '%s' double-booked with %s") % (s.classroom_id.name, other.name or other.subject_id.name))
                     if s.teacher_id and other.teacher_id and s.teacher_id.id == other.teacher_id.id:
-                        reasons.append(_("Teacher '%s' double-booked with %s") % (s.teacher_id.name, other.name or other.subject_id.name))
+                        if role == "teacher":
+                            reasons.append(_("Teacher conflict with another session."))
+                        else:
+                            reasons.append(_("Teacher '%s' double-booked with %s") % (s.teacher_id.name, other.name or other.subject_id.name))
                     if reasons:
                         conflict_map.setdefault(s.id, []).extend(reasons)
 

@@ -6,7 +6,7 @@
         <field name="name">university.class.section.list</field>
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
-            <list string="Class Management" sample="1" decoration-danger="is_full" decoration-muted="not active">
+            <list string="Class Management" sample="1" limit="10" decoration-danger="is_full" decoration-muted="not active">
                 <field name="name" decoration-bf="1" string="Class Section"/>
                 <field name="day_summary" string="Days" optional="show"/>
                 <field name="time_summary" string="Time" optional="show"/>
@@ -159,7 +159,7 @@
                     <notebook>
                         <page string="Enrolled Students" name="students_tab">
                             <field name="enrollment_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="student_id" options="{'no_create': True}"/>
                                     <field name="enrollment_date"/>
                                     <field name="status"
@@ -212,7 +212,7 @@
                                 </div>
                             </div>
                             <field name="schedule_line_ids">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="weekday"/>
                                     <field name="timeslot_id"/>
                                     <field name="room_id"/>
@@ -224,7 +224,7 @@
 
                         <page string="Assignments" name="assignments_tab">
                             <field name="assignment_ids" context="{'default_teacher_id': teacher_id, 'default_section_id': id, 'default_subject_id': subject_id}">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="name" string="Assignment Title"/>
                                     <field name="assignment_type" string="Type" widget="badge"/>
                                     <field name="category_id" string="Category"/>
@@ -240,7 +240,7 @@
 
                         <page string="Exams &amp; Quizzes" name="exams_tab">
                             <field name="exam_ids" context="{'default_section_id': id, 'default_subject_id': subject_id, 'default_teacher_id': teacher_id, 'default_semester_id': semester_id, 'default_academic_year_id': academic_year_id}">
-                                <list editable="bottom">
+                                <list limit="10" editable="bottom">
                                     <field name="name" string="Exam Title"/>
                                     <field name="exam_type" widget="badge"
                                            decoration-info="exam_type == 'quiz'"
@@ -328,7 +328,7 @@
         <field name="name">university.class.section.kanban</field>
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="semester_id" quick_create="false" class="o_kanban_dashboard">
+            <kanban sample="1" default_group_by="semester_id" quick_create="false" limit="10" class="o_kanban_dashboard">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="section_type"/>
@@ -464,6 +464,7 @@
         <field name="res_model">university.class.section</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_class_section_search"/>
+        <field name="limit">10</field>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -529,7 +530,7 @@
         <field name="name">university.class.section.my.classes.kanban</field>
         <field name="model">university.class.section</field>
         <field name="arch" type="xml">
-            <kanban sample="1" quick_create="false" class="o_kanban_dashboard">
+            <kanban limit="10" sample="1" quick_create="false" class="o_kanban_dashboard">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="section_type"/>
@@ -664,6 +665,7 @@
         <field name="name">My Classes</field>
         <field name="res_model">university.class.section</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_university_class_section_my_classes_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_university_class_section_list')}),
@@ -688,6 +690,7 @@
         <field name="name">My Classes</field>
         <field name="res_model">university.class.section</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="view_ids" eval="[(5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_university_class_section_my_classes_kanban')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('view_university_class_section_list')}),

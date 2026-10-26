@@ -122,9 +122,6 @@ class StudentDashboardShell extends Component {
                 "completed_credits",
                 "risk_level",
                 "risk_reason",
-                "fee_total",
-                "fee_paid",
-                "fee_balance",
                 "email",
                 "phone",
                 "gender",
@@ -658,16 +655,24 @@ class StudentDashboardShell extends Component {
                 this.state.programSubjects = programSubjects;
 
                 // 8. Financials & Followups
-                const [feeCount, paymentCount, followups] = await Promise.all([
-                    this.orm.searchCount("university.fee", [["student_id", "=", studentId]]),
-                    this.orm.searchCount("university.payment", [["student_id", "=", studentId]]),
-                    this.orm.searchRead(
-                        "university.student.followup",
-                        [["student_id", "=", studentId], ["visible_to_student", "=", true]],
-                        ["title", "description", "action_type", "date_deadline", "state", "advisor_id"],
-                        { order: "date_deadline asc, id desc" }
-                    ),
-                ]);
+                let feeCount = 0;
+                let paymentCount = 0;
+                let followups = [];
+                try {
+                    [feeCount, paymentCount, followups] = await Promise.all([
+                        this.orm.searchCount("university.fee", [["student_id", "=", studentId]]),
+                        this.orm.searchCount("university.payment", [["student_id", "=", studentId]]),
+                        this.orm.searchRead(
+                            "university.student.followup",
+                            [["student_id", "=", studentId], ["visible_to_student", "=", true]],
+                            ["title", "description", "action_type", "date_deadline", "state", "advisor_id"],
+                            { order: "date_deadline asc, id desc" }
+                        ),
+                    ]);
+                } catch {
+                    // Financial fields and models are intentionally restricted
+                    // for student users. The rest of the dashboard must still load.
+                }
                 this.state.enrollmentCount = enrolledClasses.length;
                 this.state.feeCount = feeCount;
                 this.state.paymentCount = paymentCount;

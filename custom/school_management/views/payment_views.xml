@@ -6,7 +6,7 @@
         <field name="name">university.payment.list</field>
         <field name="model">university.payment</field>
         <field name="arch" type="xml">
-            <list string="Payments" multi_edit="1" default_order="date desc, id desc" class="o_university_payment_list">
+            <list string="Payments" multi_edit="1" limit="10" default_order="date desc, id desc" class="o_university_payment_list">
                 <field name="name" decoration-bf="1"/>
                 <field name="student_id" decoration-bf="1"/>
                 <field name="fee_id" optional="show"/>
@@ -110,7 +110,7 @@
         <field name="name">university.payment.kanban</field>
         <field name="model">university.payment</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="payment_method" quick_create="false" class="o_university_payment_kanban">
+            <kanban sample="1" default_group_by="payment_method" quick_create="false" limit="10" class="o_university_payment_kanban">
                 <field name="name"/>
                 <field name="student_id"/>
                 <field name="amount"/>
@@ -160,6 +160,7 @@
         <field name="res_model">university.payment</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_university_payment_search"/>
+        <field name="limit">10</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Record your first student tuition payment receipt!
@@ -172,6 +173,7 @@
         <field name="res_model">university.payment</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
+        <field name="limit">10</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>
 

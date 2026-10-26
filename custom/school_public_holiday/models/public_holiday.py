@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -376,8 +376,6 @@ class PublicHoliday(models.Model):
             for h in holidays:
                 if h.session_count > 0:
                     _logger.warning("Created holiday '%s' affects %d sessions.", h.name, h.session_count)
-        for holiday in holidays.filtered("auto_publish_notice"):
-            holiday._sync_notice()
         return holidays
 
     def write(self, vals):
@@ -395,12 +393,15 @@ class PublicHoliday(models.Model):
         res = super().write(vals)
         if not self.env.context.get("skip_notice_sync"):
             notice_fields_changed = bool(
-                {"name", "date_from", "date_to", "active", "auto_publish_notice"} & set(vals)
+                {"name", "date_from", "date_to", "academic_year_id", "active"} & set(vals)
             )
             if notice_fields_changed:
                 for holiday in self:
-                    if holiday.notice_id or holiday.auto_publish_notice:
-                        holiday._sync_notice()
+                    if holiday.notice_id:
+                        if "active" in vals and not vals["active"]:
+                            holiday.notice_id.write({"active": False})
+                        else:
+                            holiday.notice_id.write(holiday._prepare_notice_values())
         if len(self) <= 20:
             for h in self:
                 if h.session_count > 0:
@@ -408,7 +409,9 @@ class PublicHoliday(models.Model):
         return res
 
     def unlink(self):
-        self.mapped("notice_id").sudo().write({"active": False})
+        notices = self.mapped("notice_id")
+        for notice in notices:
+            notice.write({"active": False, "holiday_id": False})
         return super().unlink()
 
     def _next_working_day(self, value):
@@ -418,55 +421,113 @@ class PublicHoliday(models.Model):
             candidate += timedelta(days=1)
         return candidate
 
-    def _notice_values(self):
+    def _prepare_notice_values(self):
         self.ensure_one()
         start = fields.Date.to_string(self.date_from)
         end = fields.Date.to_string(self.date_to or self.date_from)
         next_working_day = fields.Date.to_string(self._next_working_day(self.date_to or self.date_from))
-        return {
-            "name": _("%s Holiday") % self.name,
-            "date": fields.Date.context_today(self),
-            "notice_type": "holiday",
-            "target_audience": "all",
-            "academic_year_id": self.academic_year_id.id or False,
-            "content": _(
-                "<p>Classes are closed from %(start)s to %(end)s. "
-                "Classes resume on %(next_working_day)s.</p>"
+        if self.date_from == (self.date_to or self.date_from):
+            content = _(
+                "<p>Please be informed that the university will be closed on %(date)s in observance of %(name)s.</p>"
+                "<p>Classes and regular campus operations will resume on %(next_working_day)s.</p>"
+            ) % {
+                "date": start,
+                "name": self.name,
+                "next_working_day": next_working_day,
+            }
+        else:
+            content = _(
+                "<p>Please be informed that the university will be closed from %(start)s to %(end)s in observance of %(name)s.</p>"
+                "<p>Classes and regular campus operations will resume on %(next_working_day)s.</p>"
             ) % {
                 "start": start,
                 "end": end,
+                "name": self.name,
                 "next_working_day": next_working_day,
-            },
+            }
+
+        vals = {
+            "name": self.name,
+            # The notice calendar uses this field as its event date.  Using
+            # today here makes every holiday appear on the day it was
+            # published instead of on the actual holiday date.
+            "date": self.date_from,
+            "notice_type": "holiday",
+            "target_audience": "all",
+            "priority": "medium",
+            "academic_year_id": self.academic_year_id.id or False,
+            "content": content,
             "holiday_id": self.id,
             "active": bool(self.active),
         }
+        if "expiry_date" in self.env["university.notice.board"]._fields:
+            vals["expiry_date"] = self.date_to or self.date_from
+        elif "date_end" in self.env["university.notice.board"]._fields:
+            vals["date_end"] = self.date_to or self.date_from
+        return vals
 
-    def _sync_notice(self):
-        """Create or update exactly one Notice Board record for this holiday."""
-        Notice = self.env["university.notice.board"].sudo()
+    def _check_publish_access(self):
+        user = self.env.user
+        if not (
+            self.env.is_system()
+            or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_registrar")
+        ):
+            raise AccessError(_("Only administrators and registrars can announce holidays on the Notice Board."))
+
+    def action_publish_notice(self):
+        self._check_publish_access()
+        Notice = self.env["university.notice.board"]
         for holiday in self:
-            notice = holiday.notice_id.sudo()
+            notice = holiday.notice_id
             if not notice:
                 notice = Notice.search([("holiday_id", "=", holiday.id)], limit=1)
+            vals = holiday._prepare_notice_values()
             if notice:
-                notice.write(holiday._notice_values())
+                vals["active"] = bool(holiday.active)
+                notice.write(vals)
             else:
-                notice = Notice.create(holiday._notice_values())
+                notice = Notice.create(vals)
             if holiday.notice_id != notice:
                 holiday.with_context(skip_notice_sync=True).write({"notice_id": notice.id})
-        return self.mapped("notice_id")
+
+        if len(self) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Published Notice"),
+                "res_model": "university.notice.board",
+                "view_mode": "form",
+                "res_id": self.notice_id.id,
+                "target": "current",
+            }
+        return True
 
     def action_publish_as_notice(self):
+        return self.action_publish_notice()
+
+    def action_open_notice(self):
         self.ensure_one()
-        self._sync_notice()
+        if not self.notice_id:
+            return False
         return {
             "type": "ir.actions.act_window",
-            "name": _("Holiday Notice"),
+            "name": _("Notice: %s") % self.name,
             "res_model": "university.notice.board",
             "view_mode": "form",
             "res_id": self.notice_id.id,
             "target": "current",
         }
+
+    def init(self):
+        """Repair dates on notices created before holiday dates were used."""
+        super().init()
+        self.env.cr.execute("""
+            UPDATE university_notice_board AS notice
+               SET date = holiday.date_from
+              FROM public_holiday AS holiday
+             WHERE notice.holiday_id = holiday.id
+               AND notice.date IS DISTINCT FROM holiday.date_from
+        """)
 
     # -------------------------------------------------------------------------
     # ACTIONS

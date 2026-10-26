@@ -5,7 +5,7 @@
         <field name="login">teacher1</field>
         <field name="password">teacher1</field>
         <field name="email">teacher1@example.com</field>
-        <field name="group_ids" eval="[(6, 0, [ref('group_university_teacher')])]"/>
+        <field name="group_ids" eval="[(6, 0, [ref('group_university_teacher'), ref('group_school_teacher')])]"/>
     </record>
     <record id="teacher_profile_teacher1" model="university.teacher">
         <field name="name">Teacher One</field>

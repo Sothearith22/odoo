@@ -53,7 +53,7 @@
                                     invisible="not line_ids"/>
                         </div>
                         <field name="line_ids" nolabel="1" colspan="2" class="o_bulk_enrollment_lines">
-                            <list string="Eligible Students" editable="bottom" create="false" delete="false" decoration-muted="note != ''">
+                            <list limit="10" string="Eligible Students" editable="bottom" create="false" delete="false" decoration-muted="note != ''">
                                 <field name="selected" widget="boolean_toggle"/>
                                 <field name="student_code"/>
                                 <field name="student_id"/>
@@ -96,6 +96,7 @@
         <field name="name">Bulk Enrollment</field>
         <field name="res_model">university.bulk.enrollment.wizard</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="target">new</field>
         <field name="binding_model_id" ref="model_university_student"/>
         <field name="binding_view_types">list</field>

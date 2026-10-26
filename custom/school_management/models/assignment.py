@@ -1,3 +1,4 @@
+from datetime import timedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -30,6 +31,11 @@ class UniversityAssignment(models.Model):
         domain="[('active', '=', True)]",
     )
     max_score = fields.Float(string="Max Score", default=100.0)
+    is_due_this_week = fields.Boolean(
+        string="Due This Week",
+        compute="_compute_is_due_this_week",
+        search="_search_is_due_this_week",
+    )
     submission_ids = fields.One2many(
         "university.assignment.submission",
         "assignment_id",
@@ -78,6 +84,25 @@ class UniversityAssignment(models.Model):
     def _default_teacher(self):
         teacher = self.env["university.teacher"].search([("user_id", "=", self.env.uid)], limit=1)
         return teacher.id if teacher else False
+
+    @api.depends("due_date")
+    def _compute_is_due_this_week(self):
+        today = fields.Date.context_today(self)
+        monday = today - timedelta(days=today.weekday())
+        sunday = monday + timedelta(days=6)
+        for rec in self:
+            rec.is_due_this_week = bool(rec.due_date and monday <= rec.due_date <= sunday)
+
+    def _search_is_due_this_week(self, operator, value):
+        if operator not in ("=", "!="):
+            return []
+        today = fields.Date.context_today(self)
+        monday = today - timedelta(days=today.weekday())
+        sunday = monday + timedelta(days=6)
+        matching_domain = [("due_date", ">=", monday), ("due_date", "<=", sunday)]
+        if (operator == "=" and value) or (operator == "!=" and not value):
+            return matching_domain
+        return ["|", ("due_date", "<", monday), ("due_date", ">", sunday)]
 
     @api.depends("submission_ids")
     def _compute_submission_count(self):

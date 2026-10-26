@@ -29,6 +29,9 @@
         "web.assets_backend": [
             "school_public_holiday/static/src/scss/schedule_holiday.scss",
             "school_public_holiday/static/src/schedule_patch/schedule_holiday_patch.js",
+            "school_public_holiday/static/src/calendar_side_panel/calendar_holiday_side_panel.scss",
+            "school_public_holiday/static/src/calendar_side_panel/calendar_holiday_side_panel.js",
+            "school_public_holiday/static/src/calendar_side_panel/calendar_holiday_side_panel.xml",
         ],
     },
     "installable": True,

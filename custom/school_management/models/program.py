@@ -34,6 +34,12 @@ class UniversityProgram(models.Model):
     )
     duration_years = fields.Integer(string="Duration (Years)", default=4, tracking=True)
     total_credits = fields.Integer(string="Total Credits Required", default=120, tracking=True)
+    min_graduation_grade_id = fields.Many2one(
+        "university.grade.scale.line",
+        string="Minimum Graduation Grade",
+        help="Minimum passing grade required for graduation. If not set, falls back to the lowest passing scale line.",
+        tracking=True,
+    )
     student_ids = fields.One2many(
         "university.student", "program_id", string="Students"
     )

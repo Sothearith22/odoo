@@ -258,7 +258,7 @@
                         </div>
                         <div class="card-body p-0 o_preview_table_container">
                             <field name="preview_line_ids" readonly="1">
-                                <list decoration-success="status == 'ok'" decoration-warning="status == 'duplicate'" decoration-danger="status in ('invalid_date', 'missing_name')">
+                                <list limit="10" decoration-success="status == 'ok'" decoration-warning="status == 'duplicate'" decoration-danger="status in ('invalid_date', 'missing_name')">
                                     <field name="line_number" string="#"/>
                                     <field name="name" string="Holiday Name"/>
                                     <field name="name_km" string="Khmer Name" optional="show"/>
@@ -354,6 +354,7 @@
         <field name="name">Import Public Holidays</field>
         <field name="res_model">wizard.import.public.holiday</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="view_id" ref="view_wizard_import_public_holiday_form"/>
         <field name="target">new</field>
         <field name="context">{'dialog_size': 'large'}</field>
@@ -364,6 +365,7 @@
         <field name="name">Import Public Holidays</field>
         <field name="res_model">wizard.import.public.holiday</field>
         <field name="view_mode">form</field>
+        <field name="limit">10</field>
         <field name="view_id" ref="view_wizard_import_public_holiday_form"/>
         <field name="target">new</field>
         <field name="context">{'dialog_size': 'large'}</field>

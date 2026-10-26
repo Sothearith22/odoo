@@ -4,7 +4,7 @@
     <!-- ==================== ROOT MENU ==================== -->
     <menuitem
         id="menu_school_root"
-        name="University"
+        name="Harvard University"
         sequence="10"
         web_icon="school_management,static/description/icon.png"
         action="action_school_dashboard_shell"
@@ -38,13 +38,14 @@
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
     </record>
 
-    <!-- Teacher Dashboard for Admins / Academic Managers to inspect faculty view -->
+    <!-- Teacher Dashboard for users explicitly assigned the teacher workspace. -->
     <record id="menu_school_teacher_dashboard" model="ir.ui.menu">
         <field name="name">Teacher Dashboard</field>
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_school_dashboard_shell"/>
         <field name="sequence">15</field>
-        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_admin'), ref('base.group_system')])]"/>
+        <field name="active" eval="False"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_teacher_dashboard')])]"/>
     </record>
 
     <!-- ==================== STUDENT TOP BAR (STREAMLINED LMS EXPERIENCE) ==================== -->
@@ -217,9 +218,17 @@
         id="menu_university_room_occupancy"
         name="Room Occupancy"
         parent="menu_university_sec_timetable"
-        action="action_university_timetable_slot_room"
+        action="action_university_room_availability"
         sequence="20"
         groups="school_management.group_university_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_room_occupancy_details"
+        name="Room Occupancy Details"
+        parent="menu_university_sec_timetable"
+        action="action_university_timetable_slot_room"
+        sequence="21"
+        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_schedule_conflicts"
@@ -428,14 +437,13 @@
         sequence="10"
         groups="school_management.group_university_teacher,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
-    <menuitem
-        id="menu_school_teacher_all"
-        name="Academic Staff"
-        parent="menu_university_people"
-        action="action_university_teacher"
-        sequence="20"
-        groups="school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
-    />
+    <record id="menu_school_teacher_all" model="ir.ui.menu">
+        <field name="name">Academic Staff</field>
+        <field name="parent_id" ref="menu_university_people"/>
+        <field name="action" ref="action_university_teacher"/>
+        <field name="sequence">20</field>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_hod'), ref('school_management.group_school_dean')])]"/>
+    </record>
 
     <!-- Submenu: Student Advising -->
     <menuitem
@@ -443,7 +451,7 @@
         name="Student Advising"
         parent="menu_university_people"
         sequence="30"
-        groups="school_management.group_school_admin,base.group_system"
+        groups="school_management.group_university_teacher,school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
     <menuitem
         id="menu_university_advising_notes"
@@ -459,7 +467,7 @@
         parent="menu_university_advising_category"
         action="action_university_student_followup"
         sequence="20"
-        groups="school_management.group_university_teacher,school_management.group_school_admin,base.group_system"
+        groups="school_management.group_university_teacher,school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_registrar,school_management.group_school_admin,base.group_system"
     />
 
     <!-- Submenu: Leadership -->
@@ -520,13 +528,13 @@
         groups="school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Teacher Profile -->
+    <!-- Teacher/student profile; administrators do not get a self-service profile menu. -->
     <record id="menu_teacher_nav_profile" model="ir.ui.menu">
         <field name="name">My Profile</field>
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_open_university_teacher_profile"/>
         <field name="sequence">95</field>
-        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_university_teacher'), ref('school_management.group_school_student')])]"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher'), ref('school_management.group_school_student')])]"/>
     </record>
 
     <!-- ==================== 5. ADMISSIONS & FINANCE (MERGED) (SEQ 50) ==================== -->
@@ -1001,6 +1009,7 @@
 
     <record id="menu_university_class_section_teacher" model="ir.ui.menu">
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_admin'), ref('base.group_system')])]"/>
+        <field name="active" eval="False"/>
     </record>
     <record id="menu_school_teacher_all" model="ir.ui.menu">
         <field name="group_ids" eval="[(6, 0, [

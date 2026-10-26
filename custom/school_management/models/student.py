@@ -107,19 +107,20 @@ class Student(models.Model):
     @api.depends("program_id", "program_id.curriculum_line_ids", "curriculum_id", "curriculum_id.line_ids", "academic_year_id")
     def _compute_curriculum_line_ids(self):
         for student in self:
-            if student.curriculum_id and student.curriculum_id.line_ids:
-                student.curriculum_line_ids = student.curriculum_id.line_ids
+            curriculum = student.sudo().curriculum_id
+            if curriculum and curriculum.line_ids:
+                student.curriculum_line_ids = curriculum.line_ids
             elif student.program_id:
                 if student.academic_year_id:
-                    session_curriculum = self.env["university.curriculum"].search([
+                    session_curriculum = self.env["university.curriculum"].sudo().search([
                         ("program_id", "=", student.program_id.id),
                         ("session_id", "=", student.academic_year_id.id),
                     ], limit=1)
                     if session_curriculum and session_curriculum.line_ids:
                         student.curriculum_line_ids = session_curriculum.line_ids
                         continue
-                if student.program_id.curriculum_line_ids:
-                    student.curriculum_line_ids = student.program_id.curriculum_line_ids
+                if student.program_id.sudo().curriculum_line_ids:
+                    student.curriculum_line_ids = student.program_id.sudo().curriculum_line_ids
                 else:
                     student.curriculum_line_ids = False
             else:
@@ -135,7 +136,7 @@ class Student(models.Model):
         "university.student.advising.note",
         "student_id",
         string="Advising Notes",
-        groups="school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_admin",
+        groups="school_management.group_school_hod,school_management.group_school_admin",
     )
     followup_ids = fields.One2many(
         "university.student.followup",
@@ -260,13 +261,13 @@ class Student(models.Model):
         "university.fee",
         "student_id",
         string="Fee Invoices",
-        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
+        groups="school_management.group_school_admin,base.group_system",
     )
     payment_ids = fields.One2many(
         "university.payment",
         "student_id",
         string="Payments",
-        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
+        groups="school_management.group_school_admin,base.group_system",
     )
     currency_id = fields.Many2one(
         "res.currency",
@@ -277,19 +278,19 @@ class Student(models.Model):
         string="Fee Total",
         compute="_compute_fee_totals",
         currency_field="currency_id",
-        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
+        groups="school_management.group_school_admin,base.group_system",
     )
     fee_paid = fields.Monetary(
         string="Fees Paid",
         compute="_compute_fee_totals",
         currency_field="currency_id",
-        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
+        groups="school_management.group_school_admin,base.group_system",
     )
     fee_balance = fields.Monetary(
         string="Fee Balance",
         compute="_compute_fee_totals",
         currency_field="currency_id",
-        groups="school_management.group_school_admin,school_management.group_school_registrar,school_management.group_school_student",
+        groups="school_management.group_school_admin,base.group_system",
     )
     financial_status = fields.Selection(
         [
@@ -301,31 +302,35 @@ class Student(models.Model):
         string="Financial Status",
         compute="_compute_financial_status",
         store=True,
+        groups="school_management.group_school_admin,base.group_system",
     )
     overdue_fee_count = fields.Integer(
         string="Overdue Invoices Count",
         compute="_compute_financial_status",
         store=True,
+        groups="school_management.group_school_admin,base.group_system",
     )
     unpaid_fee_count = fields.Integer(
         string="Unpaid Invoices Count",
         compute="_compute_financial_status",
         store=True,
+        groups="school_management.group_school_admin,base.group_system",
     )
     enrollment_count = fields.Integer(
         string="Enrollment Count",
         compute="_compute_counts",
-        store=True,
+    )
+    session_count = fields.Integer(
+        string="Total Sessions",
+        compute="_compute_counts",
     )
     submission_count = fields.Integer(
         string="Submission Count",
         compute="_compute_counts",
-        store=True,
     )
     report_card_count = fields.Integer(
         string="Report Card Count",
         compute="_compute_counts",
-        store=True,
     )
 
     _unique_student_id = models.UniqueIndex(
@@ -359,12 +364,53 @@ class Student(models.Model):
 
     def action_view_enrollments(self):
         self.ensure_one()
+        user = self.env.user
+        is_admin = user.has_group("school_management.group_school_admin") or self.env.su
+        teacher_rec = False
+        if not is_admin and (
+            user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_university_teacher")
+        ):
+            teacher_rec = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
+
+        domain = [("student_id", "=", self.id)]
+        if teacher_rec:
+            domain.append(("section_id.teacher_id", "=", teacher_rec.id))
+
         return {
             "type": "ir.actions.act_window",
             "name": _("Enrollments - %s", self.name),
             "res_model": "university.enrollment",
             "view_mode": "list,form",
-            "domain": [("student_id", "=", self.id)],
+            "domain": domain,
+            "context": {"default_student_id": self.id},
+        }
+
+    def action_view_sessions(self):
+        self.ensure_one()
+        user = self.env.user
+        is_admin = user.has_group("school_management.group_school_admin") or self.env.su
+        teacher_rec = False
+        if not is_admin and (
+            user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_university_teacher")
+        ):
+            teacher_rec = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
+
+        if teacher_rec:
+            teacher_enrs = self.sudo().enrollment_ids.filtered(lambda e: e.section_id.teacher_id == teacher_rec)
+            sec_ids = teacher_enrs.mapped("section_id").ids
+            domain = [("section_id", "in", sec_ids), "|", ("teacher_id", "=", teacher_rec.id), ("instructor_id", "=", teacher_rec.id)]
+        else:
+            sec_ids = self.sudo().enrollment_ids.mapped("section_id").ids
+            domain = [("section_id", "in", sec_ids)]
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Sessions - %s", self.name),
+            "res_model": "university.timetable.slot",
+            "view_mode": "calendar,list,form",
+            "domain": domain,
             "context": {"default_student_id": self.id},
         }
 
@@ -381,12 +427,25 @@ class Student(models.Model):
 
     def action_view_submissions(self):
         self.ensure_one()
+        user = self.env.user
+        is_admin = user.has_group("school_management.group_school_admin") or self.env.su
+        teacher_rec = False
+        if not is_admin and (
+            user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_university_teacher")
+        ):
+            teacher_rec = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
+
+        domain = [("student_id", "=", self.id)]
+        if teacher_rec:
+            domain.append(("assignment_id.teacher_id", "=", teacher_rec.id))
+
         return {
             "type": "ir.actions.act_window",
             "name": _("Submissions - %s", self.name),
             "res_model": "university.assignment.submission",
             "view_mode": "list,form",
-            "domain": [("student_id", "=", self.id)],
+            "domain": domain,
             "context": {"default_student_id": self.id},
         }
 
@@ -561,32 +620,108 @@ class Student(models.Model):
         }
 
     @api.depends("enrollment_ids", "submission_ids", "report_card_ids")
+    @api.depends_context("uid")
     def _compute_counts(self):
-        enrollment_data = dict(
-            self.env["university.enrollment"]._read_group(
-                [("student_id", "in", self.ids)],
-                groupby=["student_id"],
-                aggregates=["__count"],
-            )
+        user = self.env.user
+        is_admin = user.has_group("school_management.group_school_admin") or self.env.su
+        is_teacher = not is_admin and (
+            user.has_group("school_management.group_school_teacher")
+            or user.has_group("school_management.group_university_teacher")
         )
-        submission_data = dict(
-            self.env["university.assignment.submission"]._read_group(
-                [("student_id", "in", self.ids)],
-                groupby=["student_id"],
-                aggregates=["__count"],
+        teacher_rec = False
+        if is_teacher:
+            teacher_rec = self.env["university.teacher"].search([("user_id", "=", user.id)], limit=1)
+
+        if teacher_rec:
+            enrollment_data = dict(
+                self.env["university.enrollment"].sudo()._read_group(
+                    [("student_id", "in", self.ids), ("section_id.teacher_id", "=", teacher_rec.id)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
             )
-        )
-        report_card_data = dict(
-            self.env["university.report.card"]._read_group(
-                [("student_id", "in", self.ids)],
-                groupby=["student_id"],
-                aggregates=["__count"],
+            submission_data = dict(
+                self.env["university.assignment.submission"].sudo()._read_group(
+                    [("student_id", "in", self.ids), ("assignment_id.teacher_id", "=", teacher_rec.id)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
             )
-        )
-        for student in self:
-            student.enrollment_count = enrollment_data.get(student, 0)
-            student.submission_count = submission_data.get(student, 0)
-            student.report_card_count = report_card_data.get(student, 0)
+            report_card_data = dict(
+                self.env["university.report.card"].sudo()._read_group(
+                    [("student_id", "in", self.ids)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
+            )
+            teacher_slots = self.env["university.timetable.slot"].sudo().search([
+                "|",
+                ("teacher_id", "=", teacher_rec.id),
+                ("instructor_id", "=", teacher_rec.id),
+            ])
+            sec_slot_map = {}
+            for slot in teacher_slots:
+                if slot.section_id:
+                    sec_slot_map[slot.section_id.id] = sec_slot_map.get(slot.section_id.id, 0) + 1
+
+            teacher_enrollments = self.env["university.enrollment"].sudo().search([
+                ("student_id", "in", self.ids),
+                ("section_id.teacher_id", "=", teacher_rec.id),
+            ])
+            student_sec_map = {}
+            for enr in teacher_enrollments:
+                if enr.section_id:
+                    student_sec_map.setdefault(enr.student_id.id, []).append(enr.section_id.id)
+
+            for student in self:
+                student.enrollment_count = enrollment_data.get(student, 0)
+                student.submission_count = submission_data.get(student, 0)
+                student.report_card_count = report_card_data.get(student, 0)
+                sec_ids = student_sec_map.get(student.id, [])
+                student.session_count = sum(sec_slot_map.get(s, 0) for s in sec_ids)
+        else:
+            enrollment_data = dict(
+                self.env["university.enrollment"]._read_group(
+                    [("student_id", "in", self.ids)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
+            )
+            submission_data = dict(
+                self.env["university.assignment.submission"]._read_group(
+                    [("student_id", "in", self.ids)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
+            )
+            report_card_data = dict(
+                self.env["university.report.card"].sudo()._read_group(
+                    [("student_id", "in", self.ids)],
+                    groupby=["student_id"],
+                    aggregates=["__count"],
+                )
+            )
+            all_slots = self.env["university.timetable.slot"].search([
+                ("section_id", "!=", False)
+            ])
+            sec_slot_map = {}
+            for slot in all_slots:
+                sec_slot_map[slot.section_id.id] = sec_slot_map.get(slot.section_id.id, 0) + 1
+
+            all_enrollments = self.env["university.enrollment"].sudo().search([
+                ("student_id", "in", self.ids),
+            ])
+            student_sec_map = {}
+            for enr in all_enrollments:
+                if enr.section_id:
+                    student_sec_map.setdefault(enr.student_id.id, []).append(enr.section_id.id)
+
+            for student in self:
+                student.enrollment_count = enrollment_data.get(student, 0)
+                student.submission_count = submission_data.get(student, 0)
+                student.report_card_count = report_card_data.get(student, 0)
+                sec_ids = student_sec_map.get(student.id, [])
+                student.session_count = sum(sec_slot_map.get(s, 0) for s in sec_ids)
 
     @api.depends(
         "fee_ids.total_amount",
@@ -707,9 +842,13 @@ class Student(models.Model):
                     gpa = 0.0
                     credits = 0
 
-            # 2. Failed Subjects
+            # 2. Failed Subjects & Graduation Standard
             cards = student.report_card_ids.filtered(lambda c: c.state in ("generated", "approved"))
-            failed_count = sum(1 for c in cards for line in c.line_ids if not line.is_passing)
+            min_grad = student.program_id.min_graduation_grade_id
+            if min_grad:
+                failed_count = sum(1 for c in cards for line in c.line_ids if not line.is_passing or line.grade_point < min_grad.grade_point)
+            else:
+                failed_count = sum(1 for c in cards for line in c.line_ids if not line.is_passing)
 
             # 3. Attendance Rate
             attendances = self.env["university.attendance"].search([("student_id", "=", student.id)])

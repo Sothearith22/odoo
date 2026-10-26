@@ -49,7 +49,7 @@ def run():
             "marketing": ("Brand Identity & Strategic Marketing", "Ph.D. in Marketing, UC Berkeley"),
             "logistics": ("Supply Chain Analytics & Global Logistics", "Ph.D. in Operations Research, MIT"),
             "finance": ("Asset Pricing & Portfolio Optimization", "Ph.D. in Financial Economics, University of Chicago"),
-            "management": ("Strategic Leadership & Disruptive Innovation", "Doctor of Business Administration (DBA), Harvard Business School"),
+            "management": ("Strategic Leadership & Disruptive Innovation", "Doctor of Business Administration (DBA), Stanford Graduate School of Business"),
             "computer science": ("Algorithms & Distributed Systems", "Ph.D. in Computer Science, Stanford University"),
             "software engineering": ("Software Architecture & Design Patterns", "Ph.D. in Software Engineering, Carnegie Mellon University"),
             "artificial intelligence": ("Deep Learning & Neural Architectures", "Ph.D. in Artificial Intelligence, University of Toronto"),

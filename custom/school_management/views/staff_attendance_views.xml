@@ -12,7 +12,7 @@
         <field name="name">university.staff.attendance.kanban</field>
         <field name="model">university.staff.attendance</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="status" sample="1" quick_create="false">
                 <header>
                     <button name="action_approve" type="object" string="Approve" class="btn-success text-white" icon="fa-check"
                             groups="school_management.group_school_admin,base.group_system"/>
@@ -128,7 +128,7 @@
         <field name="name">university.staff.attendance.list</field>
         <field name="model">university.staff.attendance</field>
         <field name="arch" type="xml">
-            <list string="Take Attendance and OT" editable="bottom" multi_edit="1" default_order="employee_id" sample="1">
+            <list limit="10" string="Take Attendance and OT" editable="bottom" multi_edit="1" default_order="employee_id" sample="1">
                 <header>
                     <button name="%(action_university_staff_attendance_generate_today)d" type="action" string="Generate today's sheet" class="btn-primary" icon="fa-calendar-plus-o"/>
                     <button name="%(action_university_staff_attendance_mark_present)d" type="action" string="Mark all present" class="btn-secondary" icon="fa-check"/>
@@ -275,7 +275,7 @@
         <field name="search_view_id" ref="view_university_staff_attendance_search"/>
         <field name="domain">[('date', '=', context_today())]</field>
         <field name="context">{'default_date': context_today()}</field>
-        <field name="limit">80</field>
+        <field name="limit">10</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No staff attendance records found.</p>
             <p>Analyze and report staff attendance across departments, or switch to Attendance Dashboard for monthly matrix and daily check-in.</p>

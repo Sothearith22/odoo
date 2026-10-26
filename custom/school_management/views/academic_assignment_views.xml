@@ -13,7 +13,7 @@
         <field name="name">university.academic.assignment.list</field>
         <field name="model">university.academic.assignment</field>
         <field name="arch" type="xml">
-            <list string="Role Assignments" sample="1">
+            <list limit="10" string="Role Assignments" sample="1">
                 <field name="staff_id" string="Academic Staff"/>
                 <field name="staff_code" optional="show"/>
                 <field name="role" widget="badge"
@@ -110,7 +110,7 @@
         <field name="name">university.academic.assignment.kanban</field>
         <field name="model">university.academic.assignment</field>
         <field name="arch" type="xml">
-            <kanban sample="1" default_group_by="role" quick_create="false">
+            <kanban limit="10" sample="1" default_group_by="role" quick_create="false">
                 <field name="staff_id"/>
                 <field name="role"/>
                 <field name="faculty_id"/>
@@ -201,6 +201,7 @@
         <field name="name">Role Assignments</field>
         <field name="res_model">university.academic.assignment</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_academic_assignment_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first role assignment</p>

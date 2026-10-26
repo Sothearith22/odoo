@@ -1,6 +1,6 @@
 {
-    "name": "University Management System",
-    "version": "19.0.2.2.0",
+    "name": "Harvard University",
+    "version": "19.0.2.3.0",
     "category": "Education",
     "summary": "University ERP - Structure, Academics, Students, Teachers, Enrollments",
     "author": "University Department",
@@ -26,6 +26,7 @@
         "data/student_sequence.xml",
         "data/teacher_sequence.xml",
         "data/academic_defaults.xml",
+        "data/company_branding.xml",
         "data/admission_stage_data.xml",
         "data/mail_template.xml",
         "data/university_capability_data.xml",
@@ -73,6 +74,8 @@
         "views/transcript_request_views.xml",
 
         # Reports
+        "reports/academic_reports.xml",
+        "reports/academic_report_templates.xml",
         "reports/payment_report_template.xml",
         "reports/payment_report.xml",
         "reports/curriculum_report_template.xml",
@@ -110,9 +113,7 @@
         "views/student_change_request_views.xml",
         "views/fee_payment_wizard_views.xml",
 
-        # Academic Reports
-        "reports/academic_report_templates.xml",
-        "reports/academic_reports.xml",
+
 
         # Menu must load after actions
         "views/menu_views.xml",

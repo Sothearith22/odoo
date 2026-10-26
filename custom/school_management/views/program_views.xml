@@ -6,7 +6,7 @@
         <field name="name">university.program.list</field>
         <field name="model">university.program</field>
         <field name="arch" type="xml">
-            <list string="Degree Programs" sample="1">
+            <list limit="10" string="Degree Programs" sample="1">
                 <field name="code" decoration-bf="1"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="faculty_id"/>
@@ -33,7 +33,7 @@
         <field name="name">university.program.kanban</field>
         <field name="model">university.program</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban limit="10" sample="1">
                 <field name="name"/>
                 <field name="code"/>
                 <field name="faculty_id"/>
@@ -172,6 +172,7 @@
                         <group string="Graduation Requirements">
                             <field name="duration_years"/>
                             <field name="total_credits"/>
+                            <field name="min_graduation_grade_id"/>
                             <field name="active" widget="boolean_toggle"/>
                         </group>
                     </group>
@@ -216,7 +217,7 @@
                     <notebook>
                         <page string="Curriculum Structure" name="curriculum_structure_tab">
                             <field name="curriculum_line_ids">
-                                <list editable="bottom" default_order="year_level, semester_number, sequence, id">
+                                <list limit="10" editable="bottom" default_order="year_level, semester_number, sequence, id">
                                     <field name="sequence" widget="handle"/>
                                     <field name="year_level"/>
                                     <field name="semester_number"/>
@@ -229,7 +230,7 @@
                             <field name="subject_ids"
                                    context="{'default_department_id': department_id}"
                                    domain="[('active', '=', True)]">
-                                <list default_order="code">
+                                <list limit="10" default_order="code">
                                     
                                     <field name="code" decoration-bf="1"/>
                                     <field name="name" decoration-bf="1"/>
@@ -241,7 +242,7 @@
                         </page>
                         <page string="Enrolled Students" name="students_tab">
                             <field name="student_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="student_id" string="ID" decoration-bf="1"/>
                                     <field name="name" decoration-bf="1"/>
                                     <field name="email"/>
@@ -257,7 +258,7 @@
                         </page>
                         <page string="Class Sections" name="sections_tab">
                             <field name="section_ids">
-                                <list>
+                                <list limit="10">
                                     <field name="name" decoration-bf="1"/>
                                     <field name="section_type"
                                            widget="badge"
@@ -344,6 +345,7 @@
         <field name="name">Programs</field>
         <field name="res_model">university.program</field>
         <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_program_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create your first degree program</p>
@@ -352,4 +354,3 @@
     </record>
 
 </odoo>
-

@@ -7,7 +7,7 @@
         <field name="name">university.grade.scale.list</field>
         <field name="model">university.grade.scale</field>
         <field name="arch" type="xml">
-            <list string="Grade Scales">
+            <list limit="10" string="Grade Scales">
                 <field name="name"/>
                 <field name="active" widget="boolean_toggle" optional="hide"/>
             </list>
@@ -22,7 +22,7 @@
                 <sheet>
                     <div class="oe_title"><h1><field name="name"/></h1></div>
                     <field name="line_ids">
-                        <list editable="bottom">
+                        <list limit="10" editable="bottom">
                             <field name="name"/>
                             <field name="min_score"/>
                             <field name="max_score"/>
@@ -39,6 +39,7 @@
         <field name="name">Grade Scales</field>
         <field name="res_model">university.grade.scale</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
     </record>
 
     <!-- =================================================================== -->
@@ -77,7 +78,7 @@
         <field name="name">university.assessment.category.list</field>
         <field name="model">university.assessment.category</field>
         <field name="arch" type="xml">
-            <list string="Assessment Categories" default_order="sequence, id">
+            <list limit="10" string="Assessment Categories" default_order="sequence, id">
                 <field name="sequence" widget="handle"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="code" widget="badge"
@@ -101,7 +102,7 @@
         <field name="name">university.assessment.category.kanban</field>
         <field name="model">university.assessment.category</field>
         <field name="arch" type="xml">
-            <kanban sample="1" class="o_university_assessment_category_kanban">
+            <kanban limit="10" sample="1" class="o_university_assessment_category_kanban">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="code"/>
@@ -294,7 +295,7 @@
                         </page>
                         <page string="Linked Assignments" name="assignments_tab">
                             <field name="assignment_ids" readonly="1">
-                                <list string="Assignments" decoration-muted="state == 'draft'">
+                                <list limit="10" string="Assignments" decoration-muted="state == 'draft'">
                                     <field name="name"/>
                                     <field name="subject_id"/>
                                     <field name="section_id"/>
@@ -307,7 +308,7 @@
                         </page>
                         <page string="Recent Assessment Results" name="results_tab">
                             <field name="result_ids" readonly="1">
-                                <list string="Assessment Results" limit="15">
+                                <list string="Assessment Results" limit="10">
                                     <field name="student_id"/>
                                     <field name="subject_id"/>
                                     <field name="section_id"/>
@@ -329,6 +330,7 @@
         <field name="name">Assessment Categories</field>
         <field name="res_model">university.assessment.category</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_assessment_category_search"/>
         <field name="context">{'search_default_filter_active': 1}</field>
         <field name="help" type="html">
@@ -348,7 +350,7 @@
         <field name="name">university.assessment.result.list</field>
         <field name="model">university.assessment.result</field>
         <field name="arch" type="xml">
-            <list string="Assessment Results">
+            <list limit="10" string="Assessment Results">
                 <field name="student_id"/>
                 <field name="subject_id"/>
                 <field name="section_id"/>
@@ -404,6 +406,7 @@
         <field name="name">My Results</field>
         <field name="res_model">university.assessment.result</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>
@@ -415,7 +418,7 @@
         <field name="name">university.report.card.list</field>
         <field name="model">university.report.card</field>
         <field name="arch" type="xml">
-            <list string="Report Cards" sample="1">
+            <list limit="10" string="Report Cards" sample="1">
                 <field name="name" string="Reference"/>
                 <field name="student_id"/>
                 <field name="program_id"/>
@@ -446,7 +449,7 @@
         <field name="name">university.report.card.kanban</field>
         <field name="model">university.report.card</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="academic_standing" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="academic_standing" sample="1" quick_create="false">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
@@ -601,17 +604,17 @@
                     <notebook>
                         <page string="Course Component Breakdown" name="components_tab">
                             <field name="line_ids">
-                                <list editable="bottom"
+                                <list limit="10" editable="bottom"
                                       decoration-danger="not is_passing"
                                       decoration-success="is_passing">
                                     <field name="subject_id"/>
                                     <field name="credits" string="Credits"/>
-                                    <field name="attendance_score" string="Att (10%)"/>
-                                    <field name="quiz_score" string="Quiz (10%)"/>
-                                    <field name="midterm_score" string="Mid (20%)"/>
-                                    <field name="assignment_score" string="Assign (10%)"/>
-                                    <field name="final_exam_score" string="Final (50%)"/>
-                                    <field name="final_score" string="Total (100%)" class="fw-bold"/>
+                                    <field name="attendance_score"/>
+                                    <field name="quiz_score"/>
+                                    <field name="midterm_score"/>
+                                    <field name="assignment_score"/>
+                                    <field name="final_exam_score"/>
+                                    <field name="final_score" class="fw-bold"/>
                                     <field name="grade" string="Grade" class="fw-bold"/>
                                     <field name="grade_point" string="GPA Pts"/>
                                     <field name="is_passing" string="Pass" widget="boolean"/>
@@ -665,6 +668,7 @@
         <field name="name">Report Cards</field>
         <field name="res_model">university.report.card</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_report_card_search"/>
     </record>
 
@@ -672,6 +676,7 @@
         <field name="name">My Report Cards</field>
         <field name="res_model">university.report.card</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>
@@ -683,7 +688,7 @@
         <field name="name">university.transcript.list</field>
         <field name="model">university.transcript</field>
         <field name="arch" type="xml">
-            <list string="Transcripts" sample="1">
+            <list limit="10" string="Transcripts" sample="1">
                 <field name="name" string="Reference"/>
                 <field name="student_id"/>
                 <field name="program_id"/>
@@ -705,7 +710,7 @@
         <field name="name">university.transcript.kanban</field>
         <field name="model">university.transcript</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="state" sample="1" quick_create="false">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="student_id"/>
@@ -839,7 +844,7 @@
                     <notebook>
                         <page string="Curriculum &amp; Course History" name="courses_tab">
                             <field name="line_ids">
-                                <list editable="bottom"
+                                <list limit="10" editable="bottom"
                                       decoration-danger="not is_passing"
                                       decoration-success="is_passing">
                                     <field name="academic_year_id"/>
@@ -890,6 +895,7 @@
         <field name="name">Transcripts</field>
         <field name="res_model">university.transcript</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_transcript_search"/>
     </record>
 
@@ -897,6 +903,7 @@
         <field name="name">My Transcript</field>
         <field name="res_model">university.transcript</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
     </record>

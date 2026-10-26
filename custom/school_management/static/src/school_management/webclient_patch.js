@@ -62,6 +62,30 @@ const SCHOOL_ACTION_XMLIDS = new Set([
     "school_management.action_university_attendance_at_risk",
     "school_management.action_university_attendance_comparison",
     "school_management.action_university_staff_attendance_sheet",
+    "school_management.action_university_course_registration_student",
+    "school_management.action_university_course_evaluation_student_open",
+    "school_management.action_university_course_evaluation_student",
+    "school_management.action_university_student_change_request_student",
+    "school_management.action_university_service_request_student",
+]);
+
+const STUDENT_SAFE_ACTION_XMLIDS = new Set([
+    STUDENT_ACTION_XMLID,
+    SCHEDULE_ACTION_XMLID,
+    "school_management.action_university_course_registration_student",
+    "school_management.action_university_course_evaluation_student_open",
+    "school_management.action_university_course_evaluation_student",
+    "school_management.action_university_student_change_request_student",
+    "school_management.action_university_service_request_student",
+    "school_management.action_university_assignment_my",
+    "school_management.action_university_assignment_submission_student",
+    "school_management.action_university_attendance_student",
+    "school_management.action_university_class_section_student",
+    "school_management.action_university_curriculum_student",
+    "school_management.action_university_report_card_student",
+    "school_management.action_university_transcript_student",
+    "school_management.action_university_transcript_request_student",
+    "school_management.action_university_notice_board",
 ]);
 const SCHOOL_ACTION_TAGS = new Set([
     SCHOOL_DASHBOARD_TAG,
@@ -111,21 +135,32 @@ const SCHOOL_MODELS = new Set([
     "university.transcript.request.reject.wizard",
     "university.exam",
     "university.exam.score",
+    "university.course.registration",
+    "university.course.registration.line",
+    "university.course.evaluation",
+    "university.student.change.request",
+    "university.service.request",
+    "university.service.request.line",
+    "university.fee.payment.wizard",
 ]);
 const STUDENT_SAFE_ACTION_TAGS = new Set([STUDENT_DASHBOARD_TAG, SCHEDULE_ACTION_TAG]);
 const STUDENT_SAFE_MODELS = new Set([
     "university.student",
     "university.enrollment",
     "university.fee",
+    "university.fee.line",
     "university.payment",
     "university.assignment",
     "university.assignment.submission",
     "university.assessment.result",
     "university.attendance",
     "university.report.card",
+    "university.report.card.line",
     "university.timetable.slot",
     "university.transcript",
+    "university.transcript.line",
     "university.transcript.request",
+    "university.exam",
     "university.exam.score",
     "university.notice.board",
     "university.service.hour",
@@ -135,7 +170,21 @@ const STUDENT_SAFE_MODELS = new Set([
     "university.subject",
     "university.curriculum",
     "university.curriculum.line",
-    "university.exam",
+    "university.course.registration",
+    "university.course.registration.line",
+    "university.course.evaluation",
+    "university.student.change.request",
+    "university.service.request",
+    "university.service.request.line",
+    "university.fee.payment.wizard",
+    "university.faculty",
+    "university.department",
+    "university.academic.year",
+    "university.semester",
+    "university.semester.subject",
+    "university.timeslot",
+    "university.student.followup",
+    "public.holiday",
 ]);
 
 function debugNavigation(...args) {
@@ -330,7 +379,9 @@ patch(WebClient.prototype, {
 
         const actionModel = currentAction.res_model;
         const isStudentSafeAction =
-            STUDENT_SAFE_ACTION_TAGS.has(currentAction.tag) || STUDENT_SAFE_MODELS.has(actionModel);
+            STUDENT_SAFE_ACTION_TAGS.has(currentAction.tag) ||
+            STUDENT_SAFE_MODELS.has(actionModel) ||
+            STUDENT_SAFE_ACTION_XMLIDS.has(currentAction.xml_id);
 
         if (isStudentSafeAction) {
             return;

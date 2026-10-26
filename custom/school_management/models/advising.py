@@ -164,3 +164,21 @@ class UniversityStudentFollowup(models.Model):
 
     def action_reset(self):
         self.write({"state": "pending"})
+
+    def unlink(self):
+        user = self.env.user
+        is_admin = (
+            user.has_group("school_management.group_school_admin")
+            or user.has_group("base.group_system")
+            or self.env.su
+        )
+        is_hod = user.has_group("school_management.group_school_hod")
+        for rec in self:
+            if not is_admin and not is_hod:
+                raise AccessError(_("You are not allowed to delete follow-up actions. Only Administrators and Department Heads can delete follow-up actions."))
+            if is_hod and not is_admin:
+                hod_user_id = rec.department_id.head_id.user_id.id if rec.department_id.head_id else False
+                hod_teacher_id = rec.department_id.head_id.id if rec.department_id.head_id else False
+                if hod_user_id != user.id and (not user.teacher_id or hod_teacher_id != user.teacher_id.id):
+                    raise AccessError(_("Department Heads can only delete follow-up actions for students in their own department."))
+        return super().unlink()

@@ -238,7 +238,7 @@
                             </div>
                             <div class="col-4">
                                 <div style="margin-top: 40px; border-top: 1px dashed #64748b; width: 80%; margin-left: auto; margin-right: auto; padding-top: 6px;">
-                                    <strong style="color: #0f172a;">University Registrar</strong><br/>
+                                    <strong style="color: #0f172a;"><t t-out="o.env.company.name"/> Registrar</strong><br/>
                                     <span style="color: #64748b;">Official University Seal</span>
                                 </div>
                             </div>

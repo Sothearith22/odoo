@@ -4,7 +4,7 @@
         <field name="name">university.department.term.list</field>
         <field name="model">university.department.term</field>
         <field name="arch" type="xml">
-            <list string="Department Terms" sample="1" decoration-warning="is_below_min_weeks">
+            <list limit="10" string="Department Terms" sample="1" decoration-warning="is_below_min_weeks">
                 <field name="is_below_min_weeks" column_invisible="True"/>
                 <field name="semester_id"/>
                 <field name="academic_year_id" optional="hide"/>
@@ -34,7 +34,7 @@
         <field name="name">university.department.term.kanban</field>
         <field name="model">university.department.term</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" sample="1" quick_create="false">
+            <kanban limit="10" default_group_by="state" sample="1" quick_create="false">
                 <field name="id"/>
                 <field name="department_id"/>
                 <field name="faculty_id"/>
@@ -172,6 +172,7 @@
         <field name="name">Department Terms</field>
         <field name="res_model">university.department.term</field>
         <field name="view_mode">kanban,list,form,pivot,graph</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_department_term_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No department schedules found.</p>

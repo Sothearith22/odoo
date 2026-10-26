@@ -70,6 +70,7 @@ class UniversityTimetableConflict(models.Model):
             "res_model": "university.timetable.conflict",
             "view_mode": "kanban,list,form",
             "domain": domain,
+            "limit": 10,
             "search_view_id": self.env.ref("school_management.view_university_timetable_conflict_search").id,
             "context": ctx,
         }

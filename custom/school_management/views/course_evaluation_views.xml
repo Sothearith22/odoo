@@ -31,7 +31,7 @@
         <field name="name">university.course.evaluation.list</field>
         <field name="model">university.course.evaluation</field>
         <field name="arch" type="xml">
-            <list string="Course &amp; Lecturer Evaluations" sample="1">
+            <list limit="10" string="Course &amp; Lecturer Evaluations" sample="1">
                 <field name="subject_id" string="Course" decoration-bf="1"/>
                 <field name="teacher_id" string="Instructor"/>
                 <field name="section_id" string="Section"/>
@@ -112,6 +112,7 @@
         <field name="name">Course &amp; Lecturer Evaluations</field>
         <field name="res_model">university.course.evaluation</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_course_evaluation_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No course evaluations yet.</p>
@@ -123,6 +124,7 @@
         <field name="name">Course &amp; Lecturer Evaluations</field>
         <field name="res_model">university.course.evaluation</field>
         <field name="view_mode">list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="search_view_id" ref="view_university_course_evaluation_search"/>
         <field name="help" type="html">

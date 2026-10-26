@@ -4,7 +4,7 @@
         <field name="name">university.attendance.kanban</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status" sample="1" quick_create="false" class="o_attendance_history_kanban">
+            <kanban limit="10" default_group_by="status" sample="1" quick_create="false" class="o_attendance_history_kanban">
                 <field name="date"/>
                 <field name="student_id"/>
                 <field name="section_id"/>
@@ -64,7 +64,7 @@
         <field name="name">university.attendance.list</field>
         <field name="model">university.attendance</field>
         <field name="arch" type="xml">
-            <list string="Attendance" sample="1" js_class="university_attendance_list">
+            <list limit="10" string="Attendance" sample="1" js_class="university_attendance_list">
                 <header>
                     <button name="action_set_present" string="Mark Present" type="object" class="btn-success text-white" icon="fa-check"
                             groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
@@ -156,6 +156,7 @@
         <field name="name">Attendance</field>
         <field name="res_model">university.attendance</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="search_view_id" ref="view_university_attendance_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No attendance records found.</p>
@@ -167,6 +168,7 @@
         <field name="name">My Attendance</field>
         <field name="res_model">university.attendance</field>
         <field name="view_mode">kanban,list,form</field>
+        <field name="limit">10</field>
         <field name="domain">[('student_id.user_id', '=', uid)]</field>
         <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_attendance_search"/>

@@ -17,7 +17,7 @@
                             </div>
                         </div>
                         <a href="/my/student/dashboard" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" role="button">
-                            Launch Dashboard <i class="fa fa-arrow-right ms-2" aria-hidden="true"/>
+                            Launch Dashboard <i class="fa fa-arrow-right ms-2" aria-hidden="true" title="Arrow right" aria-label="Arrow right"/>
                         </a>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
             <div class="container py-5 text-center">
                 <div class="card p-5 border-0 shadow-sm rounded-4 mx-auto" style="max-width: 600px; background-color: #ffffff;">
                     <div class="text-muted mb-3" style="font-size: 4rem;">
-                        <i class="fa fa-user-circle-o text-secondary" aria-hidden="true"/>
+                        <i class="fa fa-user-circle-o text-secondary" aria-hidden="true" title="User circle o" aria-label="User circle o"/>
                     </div>
                     <h3 class="fw-bold text-dark mb-2">No Student Profile Linked</h3>
                     <p class="text-muted mb-4">
@@ -40,7 +40,7 @@
                     </p>
                     <div>
                         <a href="/my/home" class="btn btn-outline-secondary px-4 py-2 rounded-pill me-2" role="button">
-                            <i class="fa fa-chevron-left me-1" aria-hidden="true"/> Back to Portal Home
+                            <i class="fa fa-chevron-left me-1" aria-hidden="true" title="Chevron left" aria-label="Chevron left"/> Back to Portal Home
                         </a>
                     </div>
                 </div>
@@ -58,7 +58,7 @@
                 <!-- Success Alert for Transcript Request -->
                 <t t-if="transcript_success">
                     <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-sm mb-4 border-0 d-flex align-items-center" role="status">
-                        <i class="fa fa-check-circle-o fs-4 me-3 text-success" aria-hidden="true"/>
+                        <i class="fa fa-check-circle-o fs-4 me-3 text-success" aria-hidden="true" title="Check circle o" aria-label="Check circle o"/>
                         <div class="flex-grow-1">
                             <strong>Transcript Request Submitted!</strong>
                             Your request has been received by the Academic Registrar. You will receive an email update once processed.
@@ -87,7 +87,7 @@
                                 <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                     <h1 class="student-hero-name mb-0 fw-bold fs-2" t-out="student['name']"/>
                                     <span class="badge rounded-pill bg-light text-dark fw-bold px-3 py-1 border shadow-xs">
-                                        <i class="fa fa-id-badge text-muted me-1" aria-hidden="true"/>
+                                        <i class="fa fa-id-badge text-muted me-1" aria-hidden="true" title="Id badge" aria-label="Id badge"/>
                                         <span t-out="student['student_id']"/>
                                     </span>
                                 </div>
@@ -96,16 +96,16 @@
                                 </p>
                                 <div class="d-flex align-items-center flex-wrap gap-2">
                                     <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1">
-                                        <i class="fa fa-graduation-cap me-1" aria-hidden="true"/>
+                                        <i class="fa fa-graduation-cap me-1" aria-hidden="true" title="Graduation cap" aria-label="Graduation cap"/>
                                         <t t-out="student['year_level_label']"/>
                                     </span>
                                     <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1">
-                                        <i class="fa fa-calendar-alt me-1" aria-hidden="true"/>
+                                        <i class="fa fa-calendar-alt me-1" aria-hidden="true" title="Calendar alt" aria-label="Calendar alt"/>
                                         <t t-out="student['semester_label']"/>
                                     </span>
                                     <t t-if="student['faculty_name']">
                                         <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-3 py-1">
-                                            <i class="fa fa-university me-1" aria-hidden="true"/>
+                                            <i class="fa fa-university me-1" aria-hidden="true" title="University" aria-label="University"/>
                                             <t t-out="student['faculty_name']"/>
                                         </span>
                                     </t>
@@ -118,12 +118,12 @@
                             <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
                                 <t t-if="courses and courses[0]['syllabus_url']">
                                     <a t-att-href="courses[0]['syllabus_url']" target="_blank" class="btn btn-hero-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center" role="button">
-                                        <i class="fa fa-file-pdf-o me-2" aria-hidden="true"/>
+                                        <i class="fa fa-file-pdf-o me-2" aria-hidden="true" title="File pdf o" aria-label="File pdf o"/>
                                         Curriculum PDF
                                     </a>
                                 </t>
                                 <button type="button" class="btn btn-hero-primary rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#transcriptModal">
-                                    <i class="fa fa-file-text-o me-2" aria-hidden="true"/>
+                                    <i class="fa fa-file-text-o me-2" aria-hidden="true" title="File text o" aria-label="File text o"/>
                                     Request Transcript
                                 </button>
                             </div>
@@ -136,7 +136,7 @@
                     <div class="student-alert-banner alert alert-warning rounded-4 shadow-sm p-4 mb-4 border-0 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" role="alert">
                         <div class="d-flex align-items-start mb-3 mb-md-0">
                             <div class="student-alert-icon-box bg-warning text-white rounded-3 d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.4rem;">
-                                <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                                <i class="fa fa-exclamation-triangle" aria-hidden="true" title="Exclamation triangle" aria-label="Exclamation triangle"/>
                             </div>
                             <div>
                                 <h5 class="fw-bold mb-1 text-warning-emphasis">⚠️ Attendance Alert</h5>
@@ -148,7 +148,7 @@
                             </div>
                         </div>
                         <a href="#enrolled-courses-section" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 flex-shrink-0 shadow-xs" role="button">
-                            <i class="fa fa-calendar-times-o me-1" aria-hidden="true"/> View Absences
+                            <i class="fa fa-calendar-times-o me-1" aria-hidden="true" title="Calendar times o" aria-label="Calendar times o"/> View Absences
                         </a>
                     </div>
                 </t>
@@ -162,7 +162,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <span class="student-kpi-label text-muted fw-semibold small text-uppercase tracking-wider">Cumulative GPA</span>
                                     <div class="student-kpi-icon-wrap bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-graduation-cap" aria-hidden="true"/>
+                                        <i class="fa fa-graduation-cap" aria-hidden="true" title="Graduation cap" aria-label="Graduation cap"/>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-baseline mb-2">
@@ -172,7 +172,7 @@
                                 <div class="mt-auto pt-2">
                                     <t t-if="metrics['is_deans_list']">
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-semibold">
-                                            <i class="fa fa-star me-1" aria-hidden="true"/> Dean's List Honor
+                                            <i class="fa fa-star me-1" aria-hidden="true" title="Star" aria-label="Star"/> Dean's List Honor
                                         </span>
                                     </t>
                                     <t t-else="">
@@ -190,7 +190,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <span class="student-kpi-label text-muted fw-semibold small text-uppercase tracking-wider">Attendance Rate</span>
                                     <div t-attf-class="student-kpi-icon-wrap rounded-3 d-flex align-items-center justify-content-center #{'bg-danger-subtle text-danger' if metrics['is_attendance_at_risk'] else 'bg-success-subtle text-success'}">
-                                        <i class="fa fa-check-circle" aria-hidden="true"/>
+                                        <i class="fa fa-check-circle" aria-hidden="true" title="Check circle" aria-label="Check circle"/>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-baseline mb-2">
@@ -200,12 +200,12 @@
                                 <div class="mt-auto pt-2">
                                     <t t-if="metrics['is_attendance_at_risk']">
                                         <span class="badge bg-danger text-white rounded-pill px-2 py-1 small fw-semibold">
-                                            <i class="fa fa-warning me-1" aria-hidden="true"/> Below 80% Threshold
+                                            <i class="fa fa-warning me-1" aria-hidden="true" title="Warning" aria-label="Warning"/> Below 80% Threshold
                                         </span>
                                     </t>
                                     <t t-else="">
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small fw-semibold">
-                                            <i class="fa fa-shield me-1" aria-hidden="true"/> Meets 80% Requirement
+                                            <i class="fa fa-shield me-1" aria-hidden="true" title="Shield" aria-label="Shield"/> Meets 80% Requirement
                                         </span>
                                     </t>
                                 </div>
@@ -218,7 +218,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <span class="student-kpi-label text-muted fw-semibold small text-uppercase tracking-wider">Completed Credits</span>
                                     <div class="student-kpi-icon-wrap bg-info-subtle text-info rounded-3 d-flex align-items-center justify-content-center">
-                                        <i class="fa fa-bookmark" aria-hidden="true"/>
+                                        <i class="fa fa-bookmark" aria-hidden="true" title="Bookmark" aria-label="Bookmark"/>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-baseline mb-2">
@@ -240,7 +240,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-3">
                                     <span class="student-kpi-label text-muted fw-semibold small text-uppercase tracking-wider">Tuition &amp; Fees</span>
                                     <div t-attf-class="student-kpi-icon-wrap rounded-3 d-flex align-items-center justify-content-center #{'bg-success-subtle text-success' if metrics['is_fee_paid'] else 'bg-warning-subtle text-warning'}">
-                                        <i class="fa fa-credit-card" aria-hidden="true"/>
+                                        <i class="fa fa-credit-card" aria-hidden="true" title="Credit card" aria-label="Credit card"/>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-baseline mb-2">
@@ -249,12 +249,12 @@
                                 <div class="mt-auto pt-2">
                                     <t t-if="metrics['is_fee_paid']">
                                         <span class="badge bg-success text-white rounded-pill px-3 py-1 small fw-semibold">
-                                            <i class="fa fa-check-circle me-1" aria-hidden="true"/> Fully Paid
+                                            <i class="fa fa-check-circle me-1" aria-hidden="true" title="Check circle" aria-label="Check circle"/> Fully Paid
                                         </span>
                                     </t>
                                     <t t-else="">
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 small fw-semibold">
-                                            <i class="fa fa-clock-o me-1" aria-hidden="true"/> Balance Due
+                                            <i class="fa fa-clock-o me-1" aria-hidden="true" title="Clock o" aria-label="Clock o"/> Balance Due
                                         </span>
                                     </t>
                                 </div>
@@ -300,12 +300,12 @@
                                                     <h5 class="fw-bold text-dark mb-2" t-out="course['name']"/>
                                                     <div class="student-course-meta d-flex flex-wrap gap-3 text-muted small">
                                                         <span class="d-flex align-items-center">
-                                                            <i class="fa fa-user-circle-o text-primary me-2" aria-hidden="true"/>
+                                                            <i class="fa fa-user-circle-o text-primary me-2" aria-hidden="true" title="User circle o" aria-label="User circle o"/>
                                                             <strong class="text-dark me-1">Instructor:</strong>
                                                             <t t-out="course['instructor_name']"/>
                                                         </span>
                                                         <span class="d-flex align-items-center">
-                                                            <i class="fa fa-map-marker text-danger me-2" aria-hidden="true"/>
+                                                            <i class="fa fa-map-marker text-danger me-2" aria-hidden="true" title="Map marker" aria-label="Map marker"/>
                                                             <strong class="text-dark me-1">Room:</strong>
                                                             <t t-out="course['classroom_name']"/> (<t t-out="course['building_name']"/>)
                                                         </span>
@@ -316,13 +316,13 @@
                                                 <div class="col-12 col-md-4 text-md-end border-top border-md-top-0 pt-2 pt-md-0">
                                                     <div class="d-flex flex-md-column gap-2 justify-content-end">
                                                         <a t-att-href="course['syllabus_url']" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" role="button">
-                                                            <i class="fa fa-book text-muted me-1" aria-hidden="true"/> Syllabus
+                                                            <i class="fa fa-book text-muted me-1" aria-hidden="true" title="Book" aria-label="Book"/> Syllabus
                                                         </a>
                                                         <a href="#today-agenda" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" role="button">
-                                                            <i class="fa fa-tasks text-muted me-1" aria-hidden="true"/> Assignments
+                                                            <i class="fa fa-tasks text-muted me-1" aria-hidden="true" title="Tasks" aria-label="Tasks"/> Assignments
                                                         </a>
                                                         <a href="#today-agenda" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" role="button">
-                                                            <i class="fa fa-history text-muted me-1" aria-hidden="true"/> Attendance History
+                                                            <i class="fa fa-history text-muted me-1" aria-hidden="true" title="History" aria-label="History"/> Attendance History
                                                         </a>
                                                     </div>
                                                 </div>
@@ -335,7 +335,7 @@
                         <t t-else="">
                             <div class="card p-5 border-0 rounded-4 shadow-sm bg-white text-center">
                                 <div class="text-muted mb-3" style="font-size: 3rem;">
-                                    <i class="fa fa-folder-open-o" aria-hidden="true"/>
+                                    <i class="fa fa-folder-open-o" aria-hidden="true" title="Folder open o" aria-label="Folder open o"/>
                                 </div>
                                 <h5 class="fw-bold text-dark mb-1">No Active Course Enrollments</h5>
                                 <p class="text-muted small mb-0">You are not currently enrolled in any courses for the active term.</p>
@@ -352,7 +352,7 @@
                                     <span class="text-muted small" t-out="today_date_formatted"/>
                                 </div>
                                 <div class="agenda-calendar-badge bg-primary-subtle text-primary rounded-3 p-2 text-center" style="min-width: 42px;">
-                                    <i class="fa fa-calendar-check-o" aria-hidden="true"/>
+                                    <i class="fa fa-calendar-check-o" aria-hidden="true" title="Calendar check o" aria-label="Calendar check o"/>
                                 </div>
                             </div>
 
@@ -362,32 +362,32 @@
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <t t-if="live_or_next_class['status'] == 'Live Now'">
                                             <span class="badge bg-danger text-white rounded-pill px-3 py-1 text-uppercase fw-bold letter-spacing-1 live-pulse-badge">
-                                                <i class="fa fa-circle text-white me-1 animate-pulse" aria-hidden="true"/> Live Now
+                                                <i class="fa fa-circle text-white me-1 animate-pulse" aria-hidden="true" title="Circle" aria-label="Circle"/> Live Now
                                             </span>
                                         </t>
                                         <t t-else="">
                                             <span class="badge bg-primary text-white rounded-pill px-3 py-1 text-uppercase fw-bold letter-spacing-1">
-                                                <i class="fa fa-clock-o text-white me-1" aria-hidden="true"/> Next Class
+                                                <i class="fa fa-clock-o text-white me-1" aria-hidden="true" title="Clock o" aria-label="Clock o"/> Next Class
                                             </span>
                                         </t>
                                         <span class="text-muted small fw-semibold" t-out="live_or_next_class['time_formatted']"/>
                                     </div>
                                     <h6 class="fw-bold text-dark mb-1" t-out="live_or_next_class['subject_name']"/>
                                     <div class="text-muted small mb-3">
-                                        <div><i class="fa fa-user-circle me-1 text-secondary" aria-hidden="true"/> <t t-out="live_or_next_class['instructor_name']"/></div>
+                                        <div><i class="fa fa-user-circle me-1 text-secondary" aria-hidden="true" title="User circle" aria-label="User circle"/> <t t-out="live_or_next_class['instructor_name']"/></div>
                                         <div class="mt-1">
-                                            <i class="fa fa-map-marker text-danger me-1" aria-hidden="true"/>
+                                            <i class="fa fa-map-marker text-danger me-1" aria-hidden="true" title="Map marker" aria-label="Map marker"/>
                                             <strong><t t-out="live_or_next_class['classroom_name']"/></strong> &amp;bull; <t t-out="live_or_next_class['building_name']"/>
                                         </div>
                                     </div>
                                     <a href="https://maps.google.com" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-semibold" role="button">
-                                        <i class="fa fa-location-arrow me-1" aria-hidden="true"/> View Classroom on Campus Map
+                                        <i class="fa fa-location-arrow me-1" aria-hidden="true" title="Location arrow" aria-label="Location arrow"/> View Classroom on Campus Map
                                     </a>
                                 </div>
                             </t>
                             <t t-else="">
                                 <div class="alert alert-light border rounded-3 p-3 mb-4 text-center small text-muted">
-                                    <i class="fa fa-coffee text-muted me-1" aria-hidden="true"/> No further live classes scheduled for today.
+                                    <i class="fa fa-coffee text-muted me-1" aria-hidden="true" title="Coffee" aria-label="Coffee"/> No further live classes scheduled for today.
                                 </div>
                             </t>
 
@@ -410,7 +410,7 @@
                                                 </div>
                                                 <div class="fw-semibold text-dark fs-7" t-out="slot['subject_name']"/>
                                                 <div class="text-muted fs-8 d-flex align-items-center mt-1">
-                                                    <i class="fa fa-map-marker text-secondary me-1" aria-hidden="true"/>
+                                                    <i class="fa fa-map-marker text-secondary me-1" aria-hidden="true" title="Map marker" aria-label="Map marker"/>
                                                     <span><t t-out="slot['classroom_name']"/> (<t t-out="slot['building_name']"/>)</span>
                                                 </div>
                                             </div>
@@ -420,7 +420,7 @@
                             </t>
                             <t t-else="">
                                 <div class="text-center py-4 text-muted small">
-                                    <i class="fa fa-calendar-o fs-2 mb-2 d-block opacity-50" aria-hidden="true"/>
+                                    <i class="fa fa-calendar-o fs-2 mb-2 d-block opacity-50" aria-hidden="true" title="Calendar o" aria-label="Calendar o"/>
                                     No scheduled timetable slots for today.
                                 </div>
                             </t>
@@ -438,7 +438,7 @@
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <div class="modal-header border-0 pb-0">
                                 <h5 class="modal-title fw-bold text-dark" id="transcriptModalLabel">
-                                    <i class="fa fa-file-text-o text-primary me-2" aria-hidden="true"/>
+                                    <i class="fa fa-file-text-o text-primary me-2" aria-hidden="true" title="File text o" aria-label="File text o"/>
                                     Request Official Transcript
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"/>
