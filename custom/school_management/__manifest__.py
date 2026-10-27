@@ -11,6 +11,7 @@
         "mail",
         "portal",
         "web",
+        "spreadsheet_dashboard",
     ],
     "external_dependencies": {"python": ["xlsxwriter"]},
     "data": [
@@ -35,6 +36,7 @@
         "data/exam_cron_data.xml",
         "data/ir_cron.xml",
         "data/timetable_config_param.xml",
+        "data/academic_spreadsheet_dashboard.xml",
 
         # Portal
         "views/portal_templates.xml",
@@ -81,6 +83,7 @@
         "reports/curriculum_report_template.xml",
         "reports/curriculum_report.xml",
         "reports/attendance_reports.xml",
+        "reports/exam_marksheet_report.xml",
 
         # Business Views
         "views/enrollment_views.xml",

@@ -86,6 +86,18 @@
                             class="btn-outline-primary"
                             icon="fa-bar-chart"
                             invisible="state == 'draft'"/>
+                    <button name="action_download_marksheet"
+                            string="Export Excel"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-file-excel-o"
+                            invisible="state == 'draft'"/>
+                    <button name="%(school_management.action_report_university_exam_marksheet)d"
+                            string="Print PDF"
+                            type="action"
+                            class="btn-secondary"
+                            icon="fa-file-pdf-o"
+                            invisible="state == 'draft'"/>
                     <button name="action_cancel"
                             string="Cancel"
                             type="object"

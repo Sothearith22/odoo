@@ -257,3 +257,82 @@ class TestHolidayNoticeBoard(TransactionCase):
         self.assertEqual(action.get("type"), "ir.actions.act_window")
         self.assertEqual(action.get("res_model"), "university.notice.board")
         self.assertEqual(action.get("res_id"), holiday.notice_id.id)
+
+    def test_11_multiday_holiday_consolidates_into_single_notice(self):
+        """Multi-day holidays with Day 1, 2, 3 create only 1 combined notice row on Campus Notice Board."""
+        h1 = self.PublicHoliday.with_user(self.admin_user).create({
+            "name": "Test Multiday Festival (Day 1)",
+            "date_from": date(2027, 11, 23),
+            "date_to": date(2027, 11, 23),
+            "active": True,
+        })
+        h2 = self.PublicHoliday.with_user(self.admin_user).create({
+            "name": "Test Multiday Festival (Day 2)",
+            "date_from": date(2027, 11, 24),
+            "date_to": date(2027, 11, 24),
+            "active": True,
+        })
+        h3 = self.PublicHoliday.with_user(self.admin_user).create({
+            "name": "Test Multiday Festival (Day 3)",
+            "date_from": date(2027, 11, 25),
+            "date_to": date(2027, 11, 25),
+            "active": True,
+        })
+        holidays = h1 | h2 | h3
+        holidays.with_user(self.admin_user).action_publish_notice()
+
+        # Check notices on Notice Board: must be exactly ONE notice created
+        notices = self.NoticeBoard.search([("holiday_id", "in", holidays.ids)])
+        self.assertEqual(len(notices), 1, "Must create only 1 notice row for multi-day holiday group.")
+        notice = notices[0]
+
+        # Name should be stripped of day suffix
+        self.assertEqual(notice.name, "Test Multiday Festival")
+        self.assertEqual(notice.date, date(2027, 11, 23))
+        self.assertIn("2027-11-23 to 2027-11-25", notice.content)
+        self.assertIn("Test Multiday Festival", notice.content)
+
+        # All three holidays must share the single notice
+        self.assertEqual(h1.notice_id, notice)
+        self.assertEqual(h2.notice_id, notice)
+        self.assertEqual(h3.notice_id, notice)
+
+        # Deactivating Day 3 narrows the date range on the notice
+        h3.with_user(self.admin_user).write({"active": False})
+        self.assertTrue(notice.active, "Notice should stay active since Day 1 and 2 are active.")
+        self.assertIn("2027-11-23 to 2027-11-24", notice.content)
+
+        # Deleting Day 2 keeps notice for Day 1
+        h2.with_user(self.admin_user).unlink()
+        self.assertTrue(notice.exists())
+        self.assertTrue(notice.active)
+
+        # Deactivating Day 1 archives notice
+        h1.with_user(self.admin_user).write({"active": False})
+        self.assertFalse(notice.active, "Notice must be archived once all days are inactive.")
+
+    def test_12_single_publish_sequential_merges_notice(self):
+        """Publishing Day 1 then Day 2 sequentially merges into the existing notice without duplicating rows."""
+        h1 = self.PublicHoliday.with_user(self.admin_user).create({
+            "name": "Sequential Holiday Day 1",
+            "date_from": date(2027, 4, 14),
+            "date_to": date(2027, 4, 14),
+            "active": True,
+        })
+        h1.with_user(self.admin_user).action_publish_notice()
+        notice1 = h1.notice_id
+        self.assertTrue(notice1)
+
+        h2 = self.PublicHoliday.with_user(self.admin_user).create({
+            "name": "Sequential Holiday Day 2",
+            "date_from": date(2027, 4, 15),
+            "date_to": date(2027, 4, 15),
+            "active": True,
+        })
+        h2.with_user(self.admin_user).action_publish_notice()
+
+        # Both should share the exact same notice, no new notice created
+        self.assertEqual(h2.notice_id.id, notice1.id, "Day 2 must merge into existing notice.")
+        all_notices = self.NoticeBoard.search([("holiday_id", "in", (h1 | h2).ids)])
+        self.assertEqual(len(all_notices), 1, "There must only be 1 notice row on the Notice Board.")
+        self.assertIn("2027-04-14 to 2027-04-15", notice1.content)

@@ -168,6 +168,18 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Timetable Manager: unrestricted access to all timetable slots -->
+    <record id="rule_timetable_manager_all_timetable_slots" model="ir.rule">
+        <field name="name">Timetable Manager: all timetable slots</field>
+        <field name="model_id" ref="model_university_timetable_slot"/>
+        <field name="groups" eval="[(4, ref('group_school_timetable_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
     <!-- Admin: unrestricted access to all timetable slots -->
     <record id="rule_admin_all_timetable_slots" model="ir.rule">
         <field name="name">Admin: all timetable slots</field>
@@ -890,7 +902,7 @@
         <field name="name">Teacher: own section exams</field>
         <field name="model_id" ref="model_university_exam"/>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
-        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -901,7 +913,7 @@
         <field name="name">Teacher: own section exam scores</field>
         <field name="model_id" ref="model_university_exam_score"/>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
-        <field name="domain_force">[('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('exam_id.teacher_id.user_id', '=', user.id), ('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
@@ -1069,11 +1081,12 @@
     </record>
 
     <!-- ==================== STUDENT TEACHER VISIBILITY RULE ==================== -->
+    <!-- Include slot instructors: timetable.teacher_id can differ from section.teacher_id. -->
     <record id="rule_student_teachers" model="ir.rule">
         <field name="name">Student: my teachers and advisor</field>
         <field name="model_id" ref="model_university_teacher"/>
         <field name="groups" eval="[(4, ref('group_school_student'))]"/>
-        <field name="domain_force">['|', ('advisee_ids.user_id', '=', user.id), ('section_ids.enrollment_ids.student_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', ('advisee_ids.user_id', '=', user.id), ('section_ids.enrollment_ids', 'any', [('student_id.user_id', '=', user.id), ('status', '=', 'enrolled')]), ('timetable_slot_ids.section_id.enrollment_ids', 'any', [('student_id.user_id', '=', user.id), ('status', '=', 'enrolled')])]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

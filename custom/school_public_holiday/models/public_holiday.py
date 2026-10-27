@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
@@ -96,6 +97,56 @@ class PublicHoliday(models.Model):
         if (operator in (">", "!=") and value == 0) or (operator == ">=" and value == 1):
             return [("id", "in", holidays_with_sessions)]
         return [("id", "not in", holidays_with_sessions)]
+
+    # -------------------------------------------------------------------------
+    # MULTI-DAY HOLIDAY NORMALIZATION & CLUSTERING
+    # -------------------------------------------------------------------------
+    @classmethod
+    def _normalize_holiday_base_name(cls, name):
+        """Extract canonical base holiday name by stripping day indicators.
+
+        Examples:
+        - 'Water Festival (Day 1)' => 'Water Festival'
+        - 'Water Festival (Day 2)' => 'Water Festival'
+        - 'Khmer New Year Day (Day 1)' => 'Khmer New Year Day'
+        - 'Khmer New Year Day 1' => 'Khmer New Year'
+        - 'Pchum Ben Festival (Day 3)' => 'Pchum Ben Festival'
+        - 'ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ ថ្ងៃទី១' => 'ពិធីបុណ្យចូលឆ្នាំថ្មីប្រពៃណីជាតិ'
+        """
+        if not name:
+            return ""
+        s = name.strip()
+        digit_pat = r"[0-9០-៩]+"
+        s1 = re.sub(r"\s*[\(\[](?:Day|ថ្ងៃទី|Part)\s*" + digit_pat + r"[\)\]]\s*$", "", s, flags=re.IGNORECASE)
+        if s1 != s:
+            return s1.strip()
+        s2 = re.sub(r"[\s\-]+(?:Day|ថ្ងៃទី|Part)\s*" + digit_pat + r"\s*$", "", s, flags=re.IGNORECASE)
+        if s2 != s:
+            return s2.strip()
+        return s
+
+    def _get_base_holiday_name(self):
+        self.ensure_one()
+        return self._normalize_holiday_base_name(self.name)
+
+    def _get_holiday_cluster(self):
+        """Return all public holidays in the database belonging to the same holiday event cluster as self."""
+        self.ensure_one()
+        base_name = self._get_base_holiday_name().strip().lower()
+        if not base_name or not self.date_from:
+            return self
+
+        domain = [("active", "in", [True, False])]
+        if self.academic_year_id:
+            domain.append(("academic_year_id", "=", self.academic_year_id.id))
+
+        candidates = self.search(domain)
+        cluster = self.browse()
+        for cand in candidates:
+            if cand._get_base_holiday_name().strip().lower() == base_name and cand.date_from:
+                if abs((cand.date_from - self.date_from).days) <= 7:
+                    cluster |= cand
+        return cluster if cluster else self
 
     # -------------------------------------------------------------------------
     # CANONICAL HOOK METHODS
@@ -398,10 +449,17 @@ class PublicHoliday(models.Model):
             if notice_fields_changed:
                 for holiday in self:
                     if holiday.notice_id:
+                        cluster = holiday._get_holiday_cluster() | self.search([("notice_id", "=", holiday.notice_id.id)])
                         if "active" in vals and not vals["active"]:
-                            holiday.notice_id.write({"active": False})
+                            remaining_active = cluster.filtered(lambda h: h.id != holiday.id and h.active)
+                            if not remaining_active:
+                                holiday.notice_id.write({"active": False})
+                            else:
+                                primary = min(remaining_active, key=lambda h: (h.date_from or fields.Date.today(), h.id))
+                                holiday.notice_id.write(primary._prepare_notice_values(cluster_holidays=remaining_active))
                         else:
-                            holiday.notice_id.write(holiday._prepare_notice_values())
+                            primary = min(cluster, key=lambda h: (h.date_from or fields.Date.today(), h.id))
+                            holiday.notice_id.write(primary._prepare_notice_values(cluster_holidays=cluster))
         if len(self) <= 20:
             for h in self:
                 if h.session_count > 0:
@@ -411,7 +469,15 @@ class PublicHoliday(models.Model):
     def unlink(self):
         notices = self.mapped("notice_id")
         for notice in notices:
-            notice.write({"active": False, "holiday_id": False})
+            remaining_holidays = self.env["public.holiday"].search([
+                ("notice_id", "=", notice.id),
+                ("id", "not in", self.ids),
+            ])
+            if remaining_holidays:
+                primary = min(remaining_holidays, key=lambda h: (h.date_from or fields.Date.today(), h.id))
+                notice.write(primary._prepare_notice_values(cluster_holidays=remaining_holidays))
+            else:
+                notice.write({"active": False, "holiday_id": False})
         return super().unlink()
 
     def _next_working_day(self, value):
@@ -421,18 +487,31 @@ class PublicHoliday(models.Model):
             candidate += timedelta(days=1)
         return candidate
 
-    def _prepare_notice_values(self):
+    def _prepare_notice_values(self, cluster_holidays=None):
         self.ensure_one()
-        start = fields.Date.to_string(self.date_from)
-        end = fields.Date.to_string(self.date_to or self.date_from)
-        next_working_day = fields.Date.to_string(self._next_working_day(self.date_to or self.date_from))
-        if self.date_from == (self.date_to or self.date_from):
+        holidays = cluster_holidays or self
+        active_holidays = holidays.filtered(lambda h: h.active)
+        target = active_holidays if active_holidays else holidays
+        primary = min(target, key=lambda h: (h.date_from or fields.Date.today(), h.id))
+
+        all_starts = [h.date_from for h in target if h.date_from]
+        all_ends = [h.date_to or h.date_from for h in target if (h.date_to or h.date_from)]
+        start_date = min(all_starts) if all_starts else primary.date_from
+        end_date = max(all_ends) if all_ends else (primary.date_to or primary.date_from)
+
+        display_name = primary._get_base_holiday_name() if len(holidays) > 1 else primary.name
+
+        start = fields.Date.to_string(start_date)
+        end = fields.Date.to_string(end_date)
+        next_working_day = fields.Date.to_string(self._next_working_day(end_date))
+
+        if start_date == end_date:
             content = _(
                 "<p>Please be informed that the university will be closed on %(date)s in observance of %(name)s.</p>"
                 "<p>Classes and regular campus operations will resume on %(next_working_day)s.</p>"
             ) % {
                 "date": start,
-                "name": self.name,
+                "name": display_name,
                 "next_working_day": next_working_day,
             }
         else:
@@ -442,28 +521,28 @@ class PublicHoliday(models.Model):
             ) % {
                 "start": start,
                 "end": end,
-                "name": self.name,
+                "name": display_name,
                 "next_working_day": next_working_day,
             }
 
         vals = {
-            "name": self.name,
+            "name": display_name,
             # The notice calendar uses this field as its event date.  Using
             # today here makes every holiday appear on the day it was
             # published instead of on the actual holiday date.
-            "date": self.date_from,
+            "date": start_date,
             "notice_type": "holiday",
             "target_audience": "all",
             "priority": "medium",
-            "academic_year_id": self.academic_year_id.id or False,
+            "academic_year_id": primary.academic_year_id.id or False,
             "content": content,
-            "holiday_id": self.id,
-            "active": bool(self.active),
+            "holiday_id": primary.id,
+            "active": any(h.active for h in holidays),
         }
         if "expiry_date" in self.env["university.notice.board"]._fields:
-            vals["expiry_date"] = self.date_to or self.date_from
+            vals["expiry_date"] = end_date
         elif "date_end" in self.env["university.notice.board"]._fields:
-            vals["date_end"] = self.date_to or self.date_from
+            vals["date_end"] = end_date
         return vals
 
     def _check_publish_access(self):
@@ -478,26 +557,44 @@ class PublicHoliday(models.Model):
     def action_publish_notice(self):
         self._check_publish_access()
         Notice = self.env["university.notice.board"]
+        visited = self.browse()
+        last_notice = Notice.browse()
+
         for holiday in self:
-            notice = holiday.notice_id
-            if not notice:
-                notice = Notice.search([("holiday_id", "=", holiday.id)], limit=1)
-            vals = holiday._prepare_notice_values()
-            if notice:
-                vals["active"] = bool(holiday.active)
+            if holiday in visited:
+                continue
+
+            cluster = holiday._get_holiday_cluster() | holiday
+            visited |= cluster
+
+            linked_notices = (
+                cluster.mapped("notice_id")
+                | Notice.search([("holiday_id", "in", cluster.ids)])
+            )
+
+            primary = min(cluster, key=lambda h: (h.date_from or fields.Date.today(), h.id))
+            vals = primary._prepare_notice_values(cluster_holidays=cluster)
+
+            if linked_notices:
+                notice = linked_notices.sorted(lambda n: n.id)[0]
                 notice.write(vals)
+                extra_notices = linked_notices - notice
+                if extra_notices:
+                    extra_notices.write({"holiday_id": False, "active": False})
+                    extra_notices.unlink()
             else:
                 notice = Notice.create(vals)
-            if holiday.notice_id != notice:
-                holiday.with_context(skip_notice_sync=True).write({"notice_id": notice.id})
 
-        if len(self) == 1:
+            cluster.with_context(skip_notice_sync=True).write({"notice_id": notice.id})
+            last_notice = notice
+
+        if len(self) == 1 and last_notice:
             return {
                 "type": "ir.actions.act_window",
                 "name": _("Published Notice"),
                 "res_model": "university.notice.board",
                 "view_mode": "form",
-                "res_id": self.notice_id.id,
+                "res_id": last_notice.id,
                 "target": "current",
             }
         return True
@@ -519,7 +616,7 @@ class PublicHoliday(models.Model):
         }
 
     def init(self):
-        """Repair dates on notices created before holiday dates were used."""
+        """Repair dates on notices created before holiday dates were used and consolidate multi-day duplicate notices."""
         super().init()
         self.env.cr.execute("""
             UPDATE university_notice_board AS notice
@@ -528,6 +625,40 @@ class PublicHoliday(models.Model):
              WHERE notice.holiday_id = holiday.id
                AND notice.date IS DISTINCT FROM holiday.date_from
         """)
+        self._consolidate_existing_duplicate_notices()
+
+    @api.model
+    def _consolidate_existing_duplicate_notices(self):
+        """Consolidate existing duplicate notices for multi-day public holidays into 1 notice row."""
+        Notice = self.env["university.notice.board"]
+        holidays_with_notices = self.search([("notice_id", "!=", False)], order="date_from asc, id asc")
+        visited_clusters = set()
+
+        for h in holidays_with_notices:
+            b_name = h._get_base_holiday_name().strip().lower()
+            year = h.date_from.year if h.date_from else 0
+            cluster_key = (b_name, year)
+            if cluster_key in visited_clusters:
+                continue
+
+            cluster = h._get_holiday_cluster()
+            if len(cluster) > 1:
+                visited_clusters.add(cluster_key)
+                linked_notices = (
+                    cluster.mapped("notice_id")
+                    | Notice.search([("holiday_id", "in", cluster.ids)])
+                )
+                if len(linked_notices) > 1:
+                    primary_notice = linked_notices.sorted(lambda n: n.id)[0]
+                    primary_holiday = min(cluster, key=lambda item: (item.date_from or fields.Date.today(), item.id))
+                    vals = primary_holiday._prepare_notice_values(cluster_holidays=cluster)
+                    primary_notice.write(vals)
+
+                    extra_notices = linked_notices - primary_notice
+                    extra_notices.write({"holiday_id": False, "active": False})
+                    extra_notices.unlink()
+
+                    cluster.with_context(skip_notice_sync=True).write({"notice_id": primary_notice.id})
 
     # -------------------------------------------------------------------------
     # ACTIONS

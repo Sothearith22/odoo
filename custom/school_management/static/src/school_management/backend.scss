@@ -12,6 +12,30 @@
         font-weight: 600;
         padding: 0.25rem 0.5rem;
         line-height: 1.25;
+
+        &.text-bg-success {
+            background-color: #e8f5f0 !important;
+            color: #1f7a5c !important;
+            border: 1px solid #a7f3d0 !important;
+        }
+
+        &.text-bg-warning {
+            background-color: #fef3c7 !important;
+            color: #b45309 !important;
+            border: 1px solid #fde68a !important;
+        }
+
+        &.text-bg-danger {
+            background-color: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+        }
+
+        &.text-bg-info {
+            background-color: #eff6ff !important;
+            color: #2563eb !important;
+            border: 1px solid #bfdbfe !important;
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -940,4 +964,131 @@ body:has(.o_university_academic_year_searchpanel) {
     background-color: #e0f2fe !important;
     color: #0369a1 !important;
     border-color: #bae6fd !important;
+}
+
+.badge.bg-success-subtle {
+    background-color: #e8f5f0 !important;
+    color: #1f7a5c !important;
+    border-color: #a7f3d0 !important;
+}
+
+.badge.bg-warning-subtle {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+    border-color: #fde68a !important;
+}
+
+.badge.bg-danger-subtle {
+    background-color: #fef2f2 !important;
+    color: #dc2626 !important;
+    border-color: #fecaca !important;
+}
+
+.border-success-subtle {
+    border-color: #a7f3d0 !important;
+}
+
+.border-warning-subtle {
+    border-color: #fde68a !important;
+}
+
+.border-danger-subtle {
+    border-color: #fecaca !important;
+}
+
+.border-info-subtle {
+    border-color: #bae6fd !important;
+}
+
+
+// ---------------------------------------------------------------------------
+// Assessment Categories Kanban Styling & Card Layout
+// ---------------------------------------------------------------------------
+.o_university_assessment_category_kanban {
+    --KanbanRecord-width: 360px;
+
+    .o_kanban_renderer.o_kanban_ungrouped {
+        padding: 16px !important;
+        gap: 16px !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+
+        .o_kanban_record {
+            flex: 1 1 350px !important;
+            max-width: 520px !important;
+            min-width: 320px !important;
+            margin: 0 !important;
+            height: auto !important;
+            align-self: stretch !important;
+            display: flex !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+    }
+
+    .o_assessment_cat_card {
+        width: 100%;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+
+        &:hover,
+        &:focus-within {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 25px -5px rgba(27, 42, 74, 0.08), 0 8px 10px -6px rgba(27, 42, 74, 0.04) !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        // Icon tiles
+        .o_category_icon_tile {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.15rem;
+
+            &.o_category_exam {
+                background: linear-gradient(135deg, #ef4444, #b91c1c);
+            }
+            &.o_category_quiz {
+                background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            }
+            &.o_category_attendance {
+                background: linear-gradient(135deg, #10b981, #047857);
+            }
+            &.o_category_practical {
+                background: linear-gradient(135deg, #06b6d4, #0e7490);
+            }
+            &.o_category_coursework {
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            }
+        }
+
+        // Mini metrics grid
+        .o_metric_box {
+            background-color: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            transition: background-color 0.15s ease, border-color 0.15s ease !important;
+
+            &:hover {
+                background-color: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
+            }
+        }
+
+        .o_metric_icon {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            flex-shrink: 0;
+        }
+    }
 }

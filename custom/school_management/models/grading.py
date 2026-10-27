@@ -304,7 +304,11 @@ class UniversityAssessmentResult(models.Model):
 class UniversityReportCard(models.Model):
     _name = "university.report.card"
     _description = "Report Card"
+    _inherit = ["university.document.download.mixin"]
     _order = "academic_year_id desc, semester_id desc, id desc"
+
+    _download_report_xmlid = "school_management.action_report_university_report_card"
+    _download_states = ("approved",)
 
     name = fields.Char(
         string="Report Reference",
@@ -583,6 +587,20 @@ class UniversityReportCard(models.Model):
     def action_print_report_card(self):
         return self.env.ref("school_management.action_report_university_report_card").report_action(self)
 
+    def _get_xlsx_data(self):
+        self.ensure_one()
+        headers = ["Subject", "Credits", "Grade", "Grade Point", "Passing"]
+        rows = []
+        for line in self.line_ids:
+            rows.append([
+                line.subject_id.name or '',
+                line.credits or 0,
+                line.grade or '',
+                line.grade_point or 0.0,
+                "Yes" if line.is_passing else "No",
+            ])
+        return (f"ReportCard_{self.student_id.student_id or self.id}", headers, rows)
+
 
 class UniversityReportCardLine(models.Model):
     _name = "university.report.card.line"
@@ -609,6 +627,8 @@ class UniversityReportCardLine(models.Model):
     grade = fields.Char(string="Grade")
     grade_point = fields.Float(string="Grade Point", digits=(3, 2))
     is_passing = fields.Boolean(string="Passing")
+    is_repeated = fields.Boolean(string="Repeated Course", default=False)
+    counts_for_credits = fields.Boolean(string="Counts For Credits", default=True)
     evaluation_status = fields.Selection(
         [
             ("in_progress", "In Progress"),
@@ -642,7 +662,11 @@ class UniversityReportCardLine(models.Model):
 class UniversityTranscript(models.Model):
     _name = "university.transcript"
     _description = "Academic Transcript"
+    _inherit = ["university.document.download.mixin"]
     _order = "id desc"
+
+    _download_report_xmlid = "school_management.action_report_university_transcript"
+    _download_states = ("approved",)
 
     name = fields.Char(
         string="Transcript Reference",
@@ -687,13 +711,36 @@ class UniversityTranscript(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("university.transcript") or "New"
         return super().create(vals_list)
 
-    @api.depends("line_ids.credits", "line_ids.grade_point")
+    @api.depends("line_ids.credits", "line_ids.grade_point", "line_ids.subject_id")
     def _compute_cumulative_gpa(self):
         for transcript in self:
-            credits = sum(transcript.line_ids.mapped("credits"))
-            quality = sum(line.credits * line.grade_point for line in transcript.line_ids)
-            transcript.total_credits = credits
-            transcript.cumulative_gpa = quality / credits if credits else 0.0
+            subject_lines = {}
+            for line in transcript.line_ids:
+                subject_lines.setdefault(line.subject_id.id, []).append(line)
+
+            best_lines = []
+            for sub_id, l_list in subject_lines.items():
+                if len(l_list) == 1:
+                    best_lines.append(l_list[0])
+                else:
+                    sorted_attempts = sorted(
+                        l_list,
+                        key=lambda l: (
+                            l.grade_point or 0.0,
+                            l.academic_year_id.date_start or fields.Date.min,
+                            l.semester_id.date_start or fields.Date.min,
+                            l.id or 0,
+                        ),
+                        reverse=True,
+                    )
+                    best_lines.append(sorted_attempts[0])
+
+            effective_credits = sum(l.credits for l in best_lines if l.is_passing or (l.grade_point or 0.0) > 0)
+            quality = sum(l.credits * (l.grade_point or 0.0) for l in best_lines)
+            gpa_credits = sum(l.credits for l in best_lines)
+
+            transcript.total_credits = effective_credits
+            transcript.cumulative_gpa = quality / gpa_credits if gpa_credits else 0.0
 
     @api.depends(
         "student_id.report_card_ids.academic_standing",
@@ -713,23 +760,30 @@ class UniversityTranscript(models.Model):
             min_credits = 12.0
 
         for transcript in self:
-            latest_card = self.env["university.report.card"].search(
+            cards = self.env["university.report.card"].search(
                 [
                     ("student_id", "=", transcript.student_id.id),
                     ("state", "in", ["generated", "approved"]),
-                ],
-                order="academic_year_id desc, semester_id desc, id desc",
-                limit=1,
+                ]
             )
-            if latest_card:
-                transcript.academic_standing = latest_card.academic_standing
+            # Find chronologically latest card
+            cards_sorted = cards.sorted(
+                key=lambda c: (
+                    c.academic_year_id.date_start or fields.Date.min,
+                    c.semester_id.date_start or fields.Date.min,
+                    c.id,
+                ),
+                reverse=True,
+            )
+            latest_card = cards_sorted[:1]
+            if transcript.cumulative_gpa >= min_gpa and transcript.total_credits >= min_credits:
+                transcript.academic_standing = "dean_list"
+            elif latest_card and latest_card.academic_standing == "dean_list":
+                transcript.academic_standing = "dean_list"
+            elif transcript.cumulative_gpa >= 2.0:
+                transcript.academic_standing = "good"
             else:
-                if transcript.cumulative_gpa >= min_gpa and transcript.total_credits >= min_credits:
-                    transcript.academic_standing = "dean_list"
-                elif transcript.cumulative_gpa >= 2.0:
-                    transcript.academic_standing = "good"
-                else:
-                    transcript.academic_standing = "probation"
+                transcript.academic_standing = "probation"
 
     def action_generate_lines(self):
         for transcript in self:
@@ -737,28 +791,59 @@ class UniversityTranscript(models.Model):
                 [
                     ("student_id", "=", transcript.student_id.id),
                     ("state", "in", ["generated", "approved"]),
-                ],
-                order="academic_year_id, semester_id, id",
+                ]
             )
-            lines = [(5, 0, 0)]
+            cards = cards.sorted(
+                key=lambda c: (
+                    c.academic_year_id.date_start or fields.Date.min,
+                    c.semester_id.date_start or fields.Date.min,
+                    c.id,
+                )
+            )
+            raw_lines = []
             for card in cards:
                 for card_line in card.line_ids:
-                    lines.append(
-                        (
-                            0,
-                            0,
-                            {
-                                "academic_year_id": card.academic_year_id.id,
-                                "semester_id": card.semester_id.id,
-                                "subject_id": card_line.subject_id.id,
-                                "credits": card_line.credits,
-                                "final_score": card_line.final_score,
-                                "grade": card_line.grade,
-                                "grade_point": card_line.grade_point,
-                                "is_passing": card_line.is_passing,
-                            },
-                        )
+                    raw_lines.append({
+                        "academic_year_id": card.academic_year_id.id,
+                        "semester_id": card.semester_id.id,
+                        "subject_id": card_line.subject_id.id,
+                        "credits": card_line.credits,
+                        "final_score": card_line.final_score,
+                        "grade": card_line.grade,
+                        "grade_point": card_line.grade_point,
+                        "is_passing": card_line.is_passing,
+                        "date_sort": (
+                            card.academic_year_id.date_start or fields.Date.min,
+                            card.semester_id.date_start or fields.Date.min,
+                        ),
+                    })
+
+            subject_groups = {}
+            for item in raw_lines:
+                subject_groups.setdefault(item["subject_id"], []).append(item)
+
+            for sub_id, items in subject_groups.items():
+                if len(items) == 1:
+                    items[0]["is_repeated"] = False
+                    items[0]["counts_for_credits"] = True
+                else:
+                    sorted_items = sorted(
+                        items,
+                        key=lambda x: (x["grade_point"] or 0.0, x["date_sort"]),
+                        reverse=True,
                     )
+                    sorted_items[0]["is_repeated"] = False
+                    sorted_items[0]["counts_for_credits"] = True
+                    for rep in sorted_items[1:]:
+                        rep["is_repeated"] = True
+                        rep["counts_for_credits"] = False
+
+            lines = [(5, 0, 0)]
+            for item in raw_lines:
+                vals_line = dict(item)
+                vals_line.pop("date_sort", None)
+                lines.append((0, 0, vals_line))
+
             vals = {"line_ids": lines, "state": "generated"}
             scale = cards.mapped("grade_scale_id")[:1]
             if scale:
@@ -774,6 +859,21 @@ class UniversityTranscript(models.Model):
 
     def action_print_transcript(self):
         return self.env.ref("school_management.action_report_university_transcript").report_action(self)
+
+    def _get_xlsx_data(self):
+        self.ensure_one()
+        headers = ["Academic Year", "Semester", "Subject", "Credits", "Grade", "Grade Point"]
+        rows = []
+        for line in self.line_ids:
+            rows.append([
+                line.academic_year_id.name or '',
+                line.semester_id.name or '',
+                line.subject_id.name or '',
+                line.credits or 0,
+                line.grade or '',
+                line.grade_point or 0.0,
+            ])
+        return (f"Transcript_{self.student_id.student_id or self.id}", headers, rows)
 
 
 class UniversityTranscriptLine(models.Model):

@@ -141,9 +141,9 @@ class UniversityPayment(models.Model):
                     "ref": payment.reference or "N/A",
                     "balance": fee.balance,
                 }
-                fee.message_post(body=msg)
+                fee.message_post(body=msg, message_type="comment", subtype_xmlid="mail.mt_note")
                 if payment.student_id:
-                    payment.student_id.message_post(body=msg)
+                    payment.student_id.message_post(body=msg, message_type="comment", subtype_xmlid="mail.mt_note")
 
                 if not was_paid and fee.state == "paid":
                     fee._send_payment_receipt_email(payment)

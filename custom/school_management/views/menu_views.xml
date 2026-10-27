@@ -23,7 +23,6 @@
             ref('school_management.group_school_registrar'),
             ref('school_management.group_school_dean'),
             ref('school_management.group_school_hod'),
-            ref('school_management.group_university_teacher'),
             ref('base.group_system')
         ])]"/>
     </record>
@@ -38,24 +37,28 @@
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
     </record>
 
-    <!-- Teacher Dashboard for users explicitly assigned the teacher workspace. -->
+    <!-- Teacher Faculty & Academic Portal Dashboard -->
     <record id="menu_school_teacher_dashboard" model="ir.ui.menu">
-        <field name="name">Teacher Dashboard</field>
+        <field name="name">Dashboard</field>
         <field name="parent_id" ref="menu_school_root"/>
-        <field name="action" ref="action_school_dashboard_shell"/>
-        <field name="sequence">15</field>
-        <field name="active" eval="False"/>
-        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_teacher_dashboard')])]"/>
+        <field name="action" ref="action_teacher_dashboard_shell"/>
+        <field name="sequence">10</field>
+        <field name="active" eval="True"/>
+        <field name="group_ids" eval="[(6, 0, [
+            ref('school_management.group_teacher_dashboard')
+        ])]"/>
     </record>
 
     <!-- ==================== STUDENT TOP BAR (STREAMLINED LMS EXPERIENCE) ==================== -->
-    <!-- 1. Schedule (Direct Action for Student) -->
+    <!-- 1. Schedule is available from the student dashboard only. Keep the
+         backend timetable menu disabled for student users. -->
     <record id="menu_student_nav_schedule" model="ir.ui.menu">
-        <field name="name">My Schedule Session</field>
+        <field name="name">Schedule Session</field>
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_university_timetable_slot_student"/>
         <field name="sequence">20</field>
         <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_student')])]"/>
+        <field name="active" eval="False"/>
     </record>
 
     <!-- 2. Academics Dropdown -->
@@ -322,14 +325,14 @@
     />
     <menuitem
         id="menu_university_student_attendance_management"
-        name="Student Attendance Management"
+        name="Student Attendance"
         parent="menu_university_sec_attendance"
         action="action_university_attendance_session"
         sequence="15"
         groups="school_management.group_university_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
     <!-- The legacy Attendance Reports entry is deactivated below; the single
-         Student Attendance Management entry above is the canonical screen. -->
+         Student Attendance entry above is the canonical screen. -->
 
     <!-- Section Header: Coursework -->
     <menuitem
@@ -379,6 +382,14 @@
         action="action_university_exam_score"
         sequence="20"
         groups="school_management.group_university_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
+    />
+    <menuitem
+        id="menu_university_academic_analytics"
+        name="Academic &amp; Student Analytics"
+        parent="menu_university_sec_exams"
+        action="spreadsheet_dashboard.ir_actions_dashboard_action"
+        sequence="30"
+        groups="school_management.group_university_teacher,school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,base.group_system"
     />
 
     <!-- Section Header: Results (deactivated; records moved to Academic Setup) -->

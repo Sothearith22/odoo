@@ -552,9 +552,9 @@
                 <templates>
                     <t t-name="card">
                         <main class="p-0 d-flex flex-column h-100 bg-white border rounded shadow-sm overflow-hidden">
-                            <!-- 1. Header Band: Course Title Badge + Enroll / Status Badge -->
-                            <div class="d-flex justify-content-between align-items-center p-2" style="background-color: #533b65;">
-                                <span class="text-white fw-bold text-truncate" style="font-size: 0.88rem;">
+                            <!-- 1. Header Band: Course Title + Status Badge -->
+                            <div class="d-flex justify-content-between align-items-center gap-2 p-2" style="background-color: #533b65;">
+                                <span class="text-white fw-bold text-truncate min-w-0" style="font-size: 0.88rem; flex: 1 1 auto;">
                                     <t t-if="record.subject_id.value">
                                         <field name="subject_id"/>
                                     </t>
@@ -562,25 +562,23 @@
                                         <field name="name"/>
                                     </t>
                                 </span>
-                                <div class="ms-2 flex-shrink-0">
-                                    <button name="action_enroll_self"
-                                            type="object"
-                                            t-if="!record.is_full.raw_value"
-                                            class="btn btn-sm text-success fw-bold bg-success-subtle border-0 py-0 px-2"
-                                            style="font-size: 0.75rem; border-radius: 4px;">
-                                        Enroll..
-                                    </button>
-                                    <span t-elif="record.is_full.raw_value"
-                                          class="badge bg-danger text-white py-1 px-2"
+                                <div class="flex-shrink-0">
+                                    <span t-if="record.is_full.raw_value"
+                                          class="badge bg-danger text-white py-1 px-2 text-nowrap"
                                           style="font-size: 0.72rem;">
                                         Full
+                                    </span>
+                                    <span t-else=""
+                                          class="badge text-success fw-bold bg-success-subtle py-1 px-2 text-nowrap"
+                                          style="font-size: 0.72rem;">
+                                        Enrolled
                                     </span>
                                 </div>
                             </div>
 
                             <!-- 2. Section Type Tag (e.g. Course) -->
                             <div class="px-3 pt-2 pb-1">
-                                <span class="badge text-secondary border bg-light" style="font-size: 0.7rem; font-weight: 500;">
+                                <span class="badge text-dark border bg-white" style="font-size: 0.7rem; font-weight: 500;">
                                     <t t-if="record.section_type.raw_value == 'course'">Course</t>
                                     <t t-else="">Cohort</t>
                                 </span>
@@ -605,7 +603,7 @@
                                 </div>
                                 <!-- Major / Level Badge -->
                                 <div t-if="record.program_id.value">
-                                    <span class="badge text-secondary bg-light border px-2 py-1 text-truncate" style="font-size: 0.72rem; font-weight: 500; max-width: 100%;">
+                                    <span class="badge text-dark bg-white border px-2 py-1 text-truncate" style="font-size: 0.72rem; font-weight: 500; max-width: 100%;">
                                         <i class="fa fa-university me-1" title="Major / Program" aria-label="Major / Program"/>
                                         <field name="program_id"/>
                                     </span>
@@ -613,14 +611,14 @@
                             </div>
 
                             <!-- 5. Schedule (Days and Time) -->
-                            <div class="px-3 py-2 small" style="color: #636b78;">
+                            <div class="px-3 py-2 small text-body">
                                 <t t-if="record.day_summary.value">
-                                    <i class="fa fa-clock-o text-muted me-1" title="Schedule Time" aria-label="Schedule Time"/>
+                                    <i class="fa fa-clock-o me-1" title="Schedule Time" aria-label="Schedule Time"/>
                                     <span><field name="day_summary"/> &#183; <field name="time_summary"/></span>
                                 </t>
                                 <t t-else="">
-                                    <i class="fa fa-clock-o text-muted me-1" title="Schedule Time" aria-label="Schedule Time"/>
-                                    <span class="fst-italic text-muted">Schedule TBA</span>
+                                    <i class="fa fa-clock-o me-1" title="Schedule Time" aria-label="Schedule Time"/>
+                                    <span class="fst-italic">Schedule TBA</span>
                                 </t>
                             </div>
 
@@ -628,13 +626,13 @@
 
                             <!-- 6. Instructor & Classroom Location -->
                             <div class="px-3 py-1 small d-flex flex-column gap-1 flex-grow-1">
-                                <div class="d-flex align-items-center text-secondary" t-if="record.teacher_id.value">
-                                    <i class="fa fa-user-circle text-muted me-2" style="font-size: 0.85rem;" title="Instructor" aria-label="Instructor"/>
+                                <div class="d-flex align-items-center text-dark" t-if="record.teacher_id.value">
+                                    <i class="fa fa-user-circle me-2" style="font-size: 0.85rem;" title="Instructor" aria-label="Instructor"/>
                                     <span class="text-truncate"><field name="teacher_id"/></span>
                                 </div>
-                                <div class="d-flex align-items-center text-danger" t-if="record.classroom_id.value">
+                                <div class="d-flex align-items-center" t-if="record.classroom_id.value">
                                     <i class="fa fa-map-marker text-danger me-2" style="font-size: 0.85rem;" title="Classroom Location" aria-label="Classroom Location"/>
-                                    <span class="text-truncate" style="color: #6c757d;"><field name="classroom_id"/></span>
+                                    <span class="text-truncate text-dark"><field name="classroom_id"/></span>
                                 </div>
                             </div>
 

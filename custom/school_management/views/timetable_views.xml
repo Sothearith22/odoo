@@ -202,7 +202,7 @@
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">records.action_publish()</field>
-        <field name="group_ids" eval="[(4, ref('school_management.group_school_admin')), (4, ref('school_management.group_school_hod'))]"/>
+        <field name="group_ids" eval="[(4, ref('school_management.group_school_admin')), (4, ref('school_management.group_school_timetable_manager')), (4, ref('school_management.group_school_hod'))]"/>
     </record>
 
     <record id="view_university_timetable_slot_form" model="ir.ui.view">
@@ -211,8 +211,8 @@
         <field name="arch" type="xml">
             <form string="Timetable Slot">
                 <header>
-                    <button name="action_publish" type="object" string="Publish" class="btn-primary" invisible="generation_state == 'published'" groups="school_management.group_school_admin,school_management.group_school_hod"/>
-                    <button name="action_set_draft" type="object" string="Set to Draft" class="btn-secondary" invisible="generation_state == 'draft'" groups="school_management.group_school_admin,school_management.group_school_hod"/>
+                    <button name="action_publish" type="object" string="Publish" class="btn-primary" invisible="generation_state == 'published'" groups="school_management.group_school_admin,school_management.group_school_timetable_manager,school_management.group_school_hod"/>
+                    <button name="action_set_draft" type="object" string="Set to Draft" class="btn-secondary" invisible="generation_state == 'draft'" groups="school_management.group_school_admin,school_management.group_school_timetable_manager,school_management.group_school_hod"/>
                     <button name="action_track_attendance" type="object" string="Track Attendance" class="btn-primary" icon="fa-calendar-check-o" groups="school_management.group_school_teacher,school_management.group_school_admin" invisible="teacher_user_id != uid and not can_view_session_details"/>
                     <button name="action_create_assignment" type="object" string="Create Assignment" class="btn-secondary" icon="fa-plus-circle" groups="school_management.group_school_teacher,school_management.group_school_admin" invisible="teacher_user_id != uid and not can_view_session_details"/>
                     <button name="action_upload_material" type="object" string="Course Materials" class="btn-secondary" icon="fa-paperclip"/>
@@ -222,6 +222,7 @@
                 <sheet>
                     <field name="teacher_user_id" invisible="1"/>
                     <field name="can_view_session_details" invisible="1"/>
+                    <field name="can_edit_schedule" invisible="1"/>
                     <field name="is_today" invisible="1"/>
                     <field name="is_this_week" invisible="1"/>
                     <field name="is_this_month" invisible="1"/>
@@ -244,17 +245,17 @@
                         <group string="Class &amp; Subject">
                             <field name="academic_year_id" readonly="1"/>
                             <field name="semester_id" readonly="1"/>
-                            <field name="section_id"/>
-                            <field name="subject_id"/>
-                            <field name="teacher_id"/>
+                            <field name="section_id" readonly="not can_edit_schedule"/>
+                            <field name="subject_id" readonly="not can_edit_schedule"/>
+                            <field name="teacher_id" readonly="not can_edit_schedule"/>
                             <field name="session_type"/>
                             <field name="enrolled_student_count" invisible="teacher_user_id != uid and not can_view_session_details"/>
                         </group>
                         <group string="Schedule &amp; Room">
-                            <field name="start_time"/>
-                            <field name="end_time"/>
+                            <field name="start_time" readonly="not can_edit_schedule"/>
+                            <field name="end_time" readonly="not can_edit_schedule"/>
                             <field name="duration_hours" widget="float_time"/>
-                            <field name="classroom_id"/>
+                            <field name="classroom_id" readonly="not can_edit_schedule"/>
                             <field name="room_capacity"/>
                             <field name="has_conflict" invisible="1"/>
                             <field name="is_room_changed"/>
@@ -297,6 +298,7 @@
                 <field name="teacher_id" string="Teacher" filters="1" invisible="teacher_user_id != uid and not can_view_session_details"/>
                 <field name="teacher_user_id" invisible="1"/>
                 <field name="can_view_session_details" invisible="1"/>
+                    <field name="can_edit_schedule" invisible="1"/>
                 <field name="session_type"/>
                 <field name="location"/>
                 <field name="has_conflict"/>
@@ -417,11 +419,12 @@
                 <field name="room_id"/>
                 <separator/>
                 <filter string="Current Academic Year" name="filter_current_academic_year" domain="[('academic_year_id.current', '=', True)]"/>
+                <filter string="Current Semester" name="filter_current_semester" domain="[('semester_id.is_active', '=', True)]"/>
                 <filter string="Active" name="active_sessions" domain="[('state', '!=', 'cancelled')]"/>
                 <filter string="Today" name="filter_today" domain="[('session_date', '=', context_today())]"/>
                 <filter string="This Week" name="filter_this_week" domain="[('is_this_week', '=', True)]"/>
                 <separator/>
-                <filter string="Upcoming" name="filter_upcoming" domain="[('status', '=', 'upcoming')]"/>
+                <filter string="Upcoming" name="filter_upcoming" domain="[('start_time', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter string="Ongoing" name="filter_ongoing" domain="[('status', '=', 'ongoing')]"/>
                 <filter string="Completed" name="filter_completed" domain="[('status', '=', 'completed')]"/>
                 <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
@@ -431,7 +434,6 @@
                     <filter string="Semester" name="group_by_semester" context="{'group_by': 'semester_name'}"/>
                     <filter string="Room" name="group_by_room" context="{'group_by': 'room_id'}"/>
                     <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
-                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
                     <filter string="Session Date" name="group_by_session_date" context="{'group_by': 'session_date'}"/>
                 </group>
                 <searchpanel>
@@ -492,8 +494,8 @@
         <field name="res_model">university.timetable.slot</field>
         <field name="view_mode">calendar,kanban,list,form</field>
         <field name="limit">10</field>
-        <field name="domain">[('generation_state', '=', 'published')]</field>
-        <field name="context">{'default_mode': 'week', 'calendar_mode': 'week', 'search_default_active_sessions': 1, 'search_default_filter_upcoming': 1, 'create': False, 'edit': False, 'delete': False}</field>
+        <field name="domain">[('generation_state', '=', 'published'), ('section_id.enrollment_ids', 'any', [('student_id.user_id', '=', uid), ('status', '=', 'enrolled')])]</field>
+        <field name="context">{'default_mode': 'week', 'calendar_mode': 'week', 'search_default_filter_current_semester': 1, 'search_default_active_sessions': 1, 'search_default_filter_upcoming': 1, 'create': False, 'edit': False, 'delete': False}</field>
         <field name="search_view_id" ref="view_university_timetable_slot_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No classes this week. Enjoy your break!</p>

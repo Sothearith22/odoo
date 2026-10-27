@@ -2300,3 +2300,377 @@ If you really, really need access, perhaps you can win over your friendly admini
 2026-10-26 09:52:25,099 14044 INFO odoo odoo.addons.api_doc.models.ir_attachment: GC'd 0 /doc cached index 
 2026-10-26 09:52:25,120 14044 INFO odoo odoo.addons.base.models.res_users: GC 'res.users.apikeys' delete 0 entries 
 2026-10-26 09:52:25,194 14044 INFO odoo odoo.addons.base.models.ir_cron: Job 'Base: Auto-vacuum internal data' (1) fully done (#loop 1; done 0; remaining 0; duration 0.70s) 
+2026-10-26 09:53:34,709 14044 INFO ? odoo.registry: Reloading the model registry after database signaling. 
+2026-10-26 09:53:34,711 14044 INFO ? odoo.modules.loading: loading 1 modules... 
+2026-10-26 09:53:34,714 14044 INFO ? odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-10-26 09:53:34,717 14044 INFO ? odoo.modules.loading: loading 134 modules... 
+2026-10-26 09:53:34,818 14044 INFO ? odoo.modules.loading: 134 modules loaded in 0.10s, 0 queries (+0 extra) 
+2026-10-26 09:53:35,161 14044 INFO ? odoo.modules.loading: Modules loaded. 
+2026-10-26 09:53:35,185 14044 INFO ? odoo.registry: Registry loaded in 0.476s 
+2026-10-26 09:53:35,185 14044 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-10-26 09:53:36,486 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc="title or 'Odoo'" in template 184. Replace by @t-out 
+2026-10-26 09:53:36,487 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc='request.csrf_token(None)' in template 184. Replace by @t-out 
+2026-10-26 09:53:36,487 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc='debug' in template 184. Replace by @t-out 
+2026-10-26 09:53:36,490 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:36] "GET /odoo/action-198 HTTP/1.1" 200 - 141 0.034 1.748
+2026-10-26 09:53:36,569 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:36] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 18 0.015 0.019
+2026-10-26 09:53:36,569 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:36] "GET /web/webclient/load_menus HTTP/1.1" 200 - 25 0.017 0.020
+2026-10-26 09:53:39,251 14044 INFO odoo odoo.addons.base.models.assetsbundle: Generating a new asset bundle attachment /web/assets/f888ee5/web.assets_web.min.js (id:14475) 
+2026-10-26 09:53:39,252 14044 INFO odoo odoo.addons.base.models.assetsbundle: Deleting attachments [14474] (matching /web/assets/_______/web.assets_web.min.js) because it was replaced with /web/assets/f888ee5/web.assets_web.min.js 
+2026-10-26 09:53:39,289 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:39] "GET /web/assets/f888ee5/web.assets_web.min.js HTTP/1.1" 200 - 35 0.045 2.743
+2026-10-26 09:53:40,328 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:40] "GET /web/webclient/translations?hash=&lang=en_US HTTP/1.1" 200 - 2 0.001 0.003
+2026-10-26 09:53:40,354 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:40] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 304 - 4 0.002 0.004
+2026-10-26 09:53:40,778 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:40] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 1 0.000 0.003
+2026-10-26 09:53:41,374 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:41] "POST /mail/data HTTP/1.1" 200 - 38 0.015 0.011
+2026-10-26 09:53:42,322 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:42] "GET /web/service-worker.js HTTP/1.1" 200 - 1 0.002 0.001
+2026-10-26 09:53:44,123 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/ir.http/lazy_session_info#ir.http.lazy_session_info HTTP/1.1" 200 - 3 0.001 0.008
+2026-10-26 09:53:44,140 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "GET /web/image?model=res.users&field=avatar_128&id=95 HTTP/1.1" 304 - 19 0.020 0.011
+2026-10-26 09:53:44,141 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "GET /web/image/res.partner/98/avatar_128?unique=1792983199000 HTTP/1.1" 200 - 17 0.012 0.018
+2026-10-26 09:53:44,147 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.003
+2026-10-26 09:53:44,154 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.003
+2026-10-26 09:53:44,154 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.001 0.003
+2026-10-26 09:53:44,161 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.001 0.005
+2026-10-26 09:53:44,166 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.005
+2026-10-26 09:53:44,169 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.001 0.004
+2026-10-26 09:53:44,179 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/action/load HTTP/1.1" 200 - 8 0.002 0.007
+2026-10-26 09:53:44,189 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.004 0.012
+2026-10-26 09:53:44,199 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.001 0.012
+2026-10-26 09:53:44,201 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.000 0.000
+2026-10-26 09:53:44,214 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.004
+2026-10-26 09:53:44,233 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.007 0.009
+2026-10-26 09:53:44,263 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.010 0.018
+2026-10-26 09:53:44,279 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.004
+2026-10-26 09:53:44,286 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:53:44,301 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.001 0.010
+2026-10-26 09:53:44,314 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.001 0.004
+2026-10-26 09:53:44,371 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.022 0.031
+2026-10-26 09:53:44,389 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.002 0.007
+2026-10-26 09:53:44,400 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.005 0.004
+2026-10-26 09:53:44,409 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.000 0.008
+2026-10-26 09:53:44,421 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.003 0.005
+2026-10-26 09:53:44,428 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.001 0.004
+2026-10-26 09:53:44,441 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.003 0.007
+2026-10-26 09:53:44,441 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.006 0.004
+2026-10-26 09:53:44,442 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.004 0.006
+2026-10-26 09:53:44,462 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:44] "GET /web/image/university.student/1/image_1920 HTTP/1.1" 304 - 10 0.006 0.004
+2026-10-26 09:53:46,797 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc="title or 'Odoo'" in template 184. Replace by @t-out 
+2026-10-26 09:53:46,797 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc='request.csrf_token(None)' in template 184. Replace by @t-out 
+2026-10-26 09:53:46,798 14044 WARNING odoo odoo.addons.base.models.ir_qweb: Found deprecated directive @t-esc='debug' in template 184. Replace by @t-out 
+2026-10-26 09:53:46,801 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:46] "GET /odoo/action-198 HTTP/1.1" 200 - 83 0.021 1.435
+2026-10-26 09:53:46,851 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:46] "GET /web/webclient/load_menus HTTP/1.1" 200 - 1 0.002 0.028
+2026-10-26 09:53:46,971 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:46] "GET /web/manifest.webmanifest HTTP/1.1" 200 - 9 0.008 0.002
+2026-10-26 09:53:46,976 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:46] "GET /web/webclient/translations?hash=f7434452c8c257eb07445857a2639d8e180e834a&lang=en_US HTTP/1.1" 200 - 1 0.001 0.002
+2026-10-26 09:53:46,986 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:46] "GET /bus/websocket_worker_bundle?v=19.0-2 HTTP/1.1" 304 - 4 0.003 0.006
+2026-10-26 09:53:47,038 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/ir.http/lazy_session_info#ir.http.lazy_session_info HTTP/1.1" 200 - 2 0.002 0.007
+2026-10-26 09:53:47,055 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "GET /web/image?model=res.users&field=avatar_128&id=95 HTTP/1.1" 304 - 19 0.006 0.022
+2026-10-26 09:53:47,064 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.010
+2026-10-26 09:53:47,066 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.002 0.009
+2026-10-26 09:53:47,071 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.001 0.015
+2026-10-26 09:53:47,081 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "GET /websocket?version=19.0-2 HTTP/1.1" 101 - 1 0.001 0.015
+2026-10-26 09:53:47,084 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.001 0.007
+2026-10-26 09:53:47,090 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.008
+2026-10-26 09:53:47,097 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/res.users/has_group#res.users.has_group HTTP/1.1" 200 - 1 0.000 0.007
+2026-10-26 09:53:47,115 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/action/load HTTP/1.1" 200 - 7 0.007 0.011
+2026-10-26 09:53:47,122 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /mail/data HTTP/1.1" 200 - 37 0.036 0.031
+2026-10-26 09:53:47,131 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.010 0.016
+2026-10-26 09:53:47,139 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.003 0.002
+2026-10-26 09:53:47,163 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:53:47,183 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.006 0.010
+2026-10-26 09:53:47,211 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.010 0.016
+2026-10-26 09:53:47,216 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:53:47,223 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:53:47,233 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.003 0.004
+2026-10-26 09:53:47,242 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:53:47,281 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.013 0.024
+2026-10-26 09:53:47,295 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.006 0.003
+2026-10-26 09:53:47,309 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.008 0.005
+2026-10-26 09:53:47,321 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.002 0.007
+2026-10-26 09:53:47,331 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.002 0.005
+2026-10-26 09:53:47,340 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.003 0.001
+2026-10-26 09:53:47,354 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.007 0.004
+2026-10-26 09:53:47,354 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.007 0.003
+2026-10-26 09:53:47,354 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.006 0.006
+2026-10-26 09:53:47,371 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:47] "GET /web/image/university.student/1/image_1920 HTTP/1.1" 304 - 10 0.003 0.006
+2026-10-26 09:53:48,915 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:48] "GET /web/service-worker.js HTTP/1.1" 200 - 1 0.000 0.004
+2026-10-26 09:53:52,023 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:52] "POST /web/action/load HTTP/1.1" 200 - 10 0.002 0.005
+2026-10-26 09:53:52,131 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:52] "POST /web/dataset/call_kw/university.timetable.slot/get_views#university.timetable.slot.get_views HTTP/1.1" 200 - 52 0.034 0.064
+2026-10-26 09:53:52,161 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:52] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 17 0.009 0.011
+2026-10-26 09:53:52,192 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:52] "GET /web/bundle/web.fullcalendar_lib?lang=en_US&debug=1 HTTP/1.1" 200 - 2 0.001 0.005
+2026-10-26 09:53:57,862 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:57] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 17 0.009 0.011
+2026-10-26 09:53:59,564 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:53:59] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.003 0.005
+2026-10-26 09:54:07,033 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:07] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.002 0.011
+2026-10-26 09:54:11,143 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:11] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 19 0.017 0.014
+2026-10-26 09:54:13,874 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:13] "POST /web/dataset/call_kw/university.timetable.slot/check_can_manage_attendance#university.timetable.slot.check_can_manage_attendance HTTP/1.1" 200 - 1 0.001 0.005
+2026-10-26 09:54:14,298 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:14] "POST /web/dataset/call_kw/university.subject/get_formview_action#university.subject.get_formview_action HTTP/1.1" 200 - 1 0.001 0.001
+2026-10-26 09:54:14,337 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:14] "POST /web/dataset/call_kw/university.subject/get_views#university.subject.get_views HTTP/1.1" 200 - 32 0.008 0.025
+2026-10-26 09:54:14,391 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:14] "POST /web/dataset/call_kw/university.subject/web_read#university.subject.web_read HTTP/1.1" 200 - 37 0.020 0.026
+2026-10-26 09:54:15,977 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:15] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.004 0.006
+2026-10-26 09:54:16,735 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/action/load HTTP/1.1" 200 - 6 0.003 0.005
+2026-10-26 09:54:16,751 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.002 0.009
+2026-10-26 09:54:16,771 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.000 0.004
+2026-10-26 09:54:16,784 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.004
+2026-10-26 09:54:16,817 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.006 0.020
+2026-10-26 09:54:16,854 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.005 0.028
+2026-10-26 09:54:16,862 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.002
+2026-10-26 09:54:16,875 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.000 0.005
+2026-10-26 09:54:16,886 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.002 0.007
+2026-10-26 09:54:16,891 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.000 0.004
+2026-10-26 09:54:16,941 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.020 0.026
+2026-10-26 09:54:16,952 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.004 0.004
+2026-10-26 09:54:16,967 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.005 0.007
+2026-10-26 09:54:16,981 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.004 0.007
+2026-10-26 09:54:16,991 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.003 0.004
+2026-10-26 09:54:16,999 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:16] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.001 0.004
+2026-10-26 09:54:17,010 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:17] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.005 0.002
+2026-10-26 09:54:17,014 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:17] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.004 0.007
+2026-10-26 09:54:17,015 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:17] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.002 0.008
+2026-10-26 09:54:17,037 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:17] "GET /web/image/university.student/1/image_1920 HTTP/1.1" 304 - 10 0.006 0.007
+2026-10-26 09:54:17,837 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:17] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.006 0.006
+2026-10-26 09:54:19,151 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:19] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.003 0.005
+2026-10-26 09:54:19,658 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:19] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.005 0.003
+2026-10-26 09:54:22,068 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:22] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.006 0.007
+2026-10-26 09:54:23,109 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:23] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.008 0.002
+2026-10-26 09:54:24,992 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:24] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.002 0.005
+2026-10-26 09:54:25,642 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:25] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.006 0.003
+2026-10-26 09:54:26,068 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:26] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.002 0.009
+2026-10-26 09:54:26,501 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:26] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.005 0.009
+2026-10-26 09:54:27,016 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:27] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.014 0.004
+2026-10-26 09:54:27,546 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:27] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.006 0.002
+2026-10-26 09:54:27,986 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:27] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.001 0.009
+2026-10-26 09:54:29,296 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:29] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.006 0.005
+2026-10-26 09:54:29,680 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:29] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.003 0.006
+2026-10-26 09:54:30,039 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:30] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.007 0.003
+2026-10-26 09:54:30,244 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:30] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 7 0.005 0.006
+2026-10-26 09:54:31,352 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:31] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 20 0.012 0.023
+2026-10-26 09:54:38,566 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:38] "POST /web/dataset/call_kw/university.timetable.slot/check_can_manage_attendance#university.timetable.slot.check_can_manage_attendance HTTP/1.1" 200 - 1 0.000 0.002
+2026-10-26 09:54:42,213 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:42] "POST /web/dataset/call_kw/university.timetable.slot/check_can_manage_attendance#university.timetable.slot.check_can_manage_attendance HTTP/1.1" 200 - 1 0.000 0.002
+2026-10-26 09:54:43,719 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:43] "POST /web/dataset/call_kw/university.timetable.slot/check_can_manage_attendance#university.timetable.slot.check_can_manage_attendance HTTP/1.1" 200 - 1 0.000 0.002
+2026-10-26 09:54:48,774 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:48] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.005 0.006
+2026-10-26 09:54:50,279 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.001 0.014
+2026-10-26 09:54:50,286 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.002 0.001
+2026-10-26 09:54:50,293 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:54:50,316 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.004 0.015
+2026-10-26 09:54:50,352 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.006 0.027
+2026-10-26 09:54:50,359 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:54:50,367 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:54:50,381 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.002 0.009
+2026-10-26 09:54:50,389 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.001 0.002
+2026-10-26 09:54:50,439 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.018 0.028
+2026-10-26 09:54:50,455 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.003 0.005
+2026-10-26 09:54:50,470 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.005 0.006
+2026-10-26 09:54:50,482 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.003 0.005
+2026-10-26 09:54:50,494 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.002 0.006
+2026-10-26 09:54:50,503 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.003 0.003
+2026-10-26 09:54:50,517 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.005 0.005
+2026-10-26 09:54:50,518 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.007 0.004
+2026-10-26 09:54:50,518 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.004 0.007
+2026-10-26 09:54:50,538 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "GET /web/image/university.student/1/image_1920 HTTP/1.1" 304 - 10 0.006 0.004
+2026-10-26 09:54:50,803 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.002 0.009
+2026-10-26 09:54:50,999 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:50] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.008 0.003
+2026-10-26 09:54:52,298 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:52] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 7 0.011 0.006
+2026-10-26 09:54:52,299 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:52] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.009 0.008
+2026-10-26 09:54:52,302 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:52] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.008 0.010
+2026-10-26 09:54:52,342 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:52] "POST /web/dataset/call_kw/university.timetable.slot/web_read_group#university.timetable.slot.web_read_group HTTP/1.1" 200 - 16 0.009 0.025
+2026-10-26 09:54:54,782 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:54] "POST /web/dataset/call_kw/university.timetable.slot/web_search_read#university.timetable.slot.web_search_read HTTP/1.1" 200 - 17 0.005 0.016
+2026-10-26 09:54:56,344 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:56] "POST /web/dataset/call_kw/university.timetable.slot/web_read#university.timetable.slot.web_read HTTP/1.1" 200 - 13 0.004 0.007
+2026-10-26 09:54:56,966 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:56] "POST /web/dataset/call_kw/university.timetable.slot/web_search_read#university.timetable.slot.web_search_read HTTP/1.1" 200 - 17 0.008 0.012
+2026-10-26 09:54:57,663 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:57] "POST /web/dataset/call_kw/university.timetable.slot/web_read_group#university.timetable.slot.web_read_group HTTP/1.1" 200 - 16 0.007 0.012
+2026-10-26 09:54:58,389 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 7 0.010 0.008
+2026-10-26 09:54:58,391 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.009 0.009
+2026-10-26 09:54:58,393 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.008 0.011
+2026-10-26 09:54:58,413 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/web_search_read#university.timetable.slot.web_search_read HTTP/1.1" 200 - 17 0.018 0.018
+2026-10-26 09:54:58,827 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 7 0.009 0.008
+2026-10-26 09:54:58,836 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.010 0.011
+2026-10-26 09:54:58,838 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/search_panel_select_range#university.timetable.slot.search_panel_select_range HTTP/1.1" 200 - 6 0.009 0.017
+2026-10-26 09:54:58,851 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:58] "POST /web/dataset/call_kw/university.timetable.slot/web_read_group#university.timetable.slot.web_read_group HTTP/1.1" 200 - 16 0.018 0.016
+2026-10-26 09:54:59,449 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:54:59] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.004 0.006
+2026-10-26 09:55:01,561 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:55:01] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 6 0.006 0.002
+2026-10-26 09:55:01,778 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:55:01] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 17 0.006 0.012
+2026-10-26 09:56:50,030 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.004 0.011
+2026-10-26 09:56:50,038 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:56:50,046 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.000 0.006
+2026-10-26 09:56:50,068 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.003 0.015
+2026-10-26 09:56:50,105 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.008 0.026
+2026-10-26 09:56:50,113 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.002
+2026-10-26 09:56:50,121 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:56:50,133 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.001 0.008
+2026-10-26 09:56:50,145 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:56:50,211 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.002 0.014
+2026-10-26 09:56:50,221 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:56:50,229 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:56:50,251 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.005 0.016
+2026-10-26 09:56:50,291 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.013 0.024
+2026-10-26 09:56:50,300 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:56:50,306 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:56:50,322 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.003 0.009
+2026-10-26 09:56:50,330 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.001 0.007
+2026-10-26 09:56:50,393 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.005 0.008
+2026-10-26 09:56:50,399 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.001 0.002
+2026-10-26 09:56:50,407 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.004
+2026-10-26 09:56:50,425 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.011 0.004
+2026-10-26 09:56:50,461 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.013 0.024
+2026-10-26 09:56:50,469 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.000 0.003
+2026-10-26 09:56:50,477 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.000 0.003
+2026-10-26 09:56:50,494 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.000 0.013
+2026-10-26 09:56:50,502 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:50] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.000 0.007
+2026-10-26 09:56:54,246 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.007 0.007
+2026-10-26 09:56:54,253 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.000 0.004
+2026-10-26 09:56:54,260 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:56:54,284 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.007 0.013
+2026-10-26 09:56:54,326 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.011 0.026
+2026-10-26 09:56:54,335 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.000 0.004
+2026-10-26 09:56:54,344 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.001 0.005
+2026-10-26 09:56:54,359 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.002 0.011
+2026-10-26 09:56:54,368 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.002 0.002
+2026-10-26 09:56:54,708 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 4.349 0.027
+2026-10-26 09:56:54,709 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.312 0.026
+2026-10-26 09:56:54,711 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 4.534 0.030
+2026-10-26 09:56:54,713 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 4.177 0.034
+2026-10-26 09:56:54,724 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.003 0.005
+2026-10-26 09:56:54,738 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.001 0.009
+2026-10-26 09:56:54,750 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.003 0.005
+2026-10-26 09:56:54,768 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.005 0.006
+2026-10-26 09:56:54,777 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.002 0.003
+2026-10-26 09:56:54,794 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.006 0.006
+2026-10-26 09:56:54,795 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.008 0.006
+2026-10-26 09:56:54,795 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.007 0.006
+2026-10-26 09:56:54,816 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:54] "GET /web/image/university.student/1/image_1920 HTTP/1.1" 304 - 10 0.004 0.008
+2026-10-26 09:56:59,353 14044 INFO ? odoo.registry: Reloading the model registry after database signaling. 
+2026-10-26 09:56:59,358 14044 INFO ? odoo.modules.loading: loading 1 modules... 
+2026-10-26 09:56:59,363 14044 INFO ? odoo.modules.loading: 1 modules loaded in 0.00s, 0 queries (+0 extra) 
+2026-10-26 09:56:59,366 14044 INFO ? odoo.modules.loading: loading 134 modules... 
+2026-10-26 09:56:59,441 14044 INFO ? odoo.modules.loading: 134 modules loaded in 0.08s, 0 queries (+0 extra) 
+2026-10-26 09:56:59,742 14044 INFO ? odoo.modules.loading: Modules loaded. 
+2026-10-26 09:56:59,759 14044 INFO ? odoo.registry: Registry loaded in 0.406s 
+2026-10-26 09:56:59,761 14044 INFO odoo odoo.addons.base.models.ir_http: Generating routing map for key 1 
+2026-10-26 09:56:59,835 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:56:59] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 52 0.022 0.464
+2026-10-26 09:57:01,032 14044 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [2106], uid: 95, model: university.teacher 
+2026-10-26 09:57:01,140 14044 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [2106], uid: 95, model: university.teacher 
+2026-10-26 09:57:01,154 14044 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [2106], uid: 95, model: university.teacher 
+2026-10-26 09:57:01,167 14044 INFO odoo odoo.addons.base.models.ir_rule: Access Denied by record rules for operation: read on record ids: [2106], uid: 95, model: university.teacher 
+2026-10-26 09:57:01,172 14044 WARNING odoo odoo.http: Uh-oh! Looks like you have stumbled upon some top-secret records.
+
+Sorry, Rith-STU (id=95) doesn't have 'read' access to:
+- University Teacher, Dr. Claude Shannon (university.teacher: 2106)
+
+Blame the following rules:
+- Student: my teachers and advisor
+
+If you really, really need access, perhaps you can win over your friendly administrator with a batch of freshly baked cookies. 
+Traceback (most recent call last):
+  File "C:\Odoo\odoo\odoo\http.py", line 2856, in __call__
+    response = request._serve_db()
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\http.py", line 2331, in _serve_db
+    raise self._update_served_exception(exc)
+  File "C:\Odoo\odoo\odoo\http.py", line 2329, in _serve_db
+    return service_model.retrying(serve_func, env=self.env)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\service\model.py", line 188, in retrying
+    result = func()
+             ^^^^^^
+  File "C:\Odoo\odoo\odoo\http.py", line 2384, in _serve_ir_http
+    response = self.dispatcher.dispatch(rule.endpoint, args)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\http.py", line 2599, in dispatch
+    result = self.request.registry['ir.http']._dispatch(endpoint)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\addons\base\models\ir_http.py", line 353, in _dispatch
+    result = endpoint(**request.params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\http.py", line 838, in route_wrapper
+    result = endpoint(self, *args, **params_ok)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\odoo\odoo\addons\web\controllers\dataset.py", line 32, in call_kw
+    return call_kw(request.env[model], method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\service\model.py", line 97, in call_kw
+    result = method(recs, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 5787, in search_read
+    return records._read_format(fnames=fields, **read_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 3747, in _read_format
+    vals[name] = convert(record[name], record, use_display_name)
+                         ~~~~~~^^^^^^
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 6688, in __getitem__
+    return self._fields[key].__get__(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\orm\fields.py", line 1751, in __get__
+    self.compute_value(record)
+  File "C:\Odoo\odoo\odoo\orm\fields.py", line 1917, in compute_value
+    records._compute_field_value(self)
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 4954, in _compute_field_value
+    determine(field.compute, self)
+  File "C:\Odoo\odoo\odoo\orm\fields.py", line 81, in determine
+    return needle(*args)
+           ^^^^^^^^^^^^^
+  File "c:\odoo\odoo\custom\school_management\models\timetable.py", line 628, in _compute_display_name
+    teacher = slot.teacher_id.name or _("No Teacher")
+              ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Odoo\odoo\odoo\orm\fields.py", line 1702, in __get__
+    recs._fetch_field(self)
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 3772, in _fetch_field
+    self.fetch(fnames)
+  File "C:\Odoo\odoo\odoo\orm\models.py", line 3818, in fetch
+    raise self.env['ir.rule']._make_access_error('read', forbidden)
+odoo.exceptions.AccessError: Uh-oh! Looks like you have stumbled upon some top-secret records.
+
+Sorry, Rith-STU (id=95) doesn't have 'read' access to:
+- University Teacher, Dr. Claude Shannon (university.teacher: 2106)
+
+Blame the following rules:
+- Student: my teachers and advisor
+
+If you really, really need access, perhaps you can win over your friendly administrator with a batch of freshly baked cookies.
+2026-10-26 09:57:01,173 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:01] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 203 0.071 0.089
+2026-10-26 09:57:03,199 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.002 0.011
+2026-10-26 09:57:03,207 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.001 0.005
+2026-10-26 09:57:03,215 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:57:03,238 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.005 0.016
+2026-10-26 09:57:03,278 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.017 0.020
+2026-10-26 09:57:03,286 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:03,294 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.003 0.001
+2026-10-26 09:57:03,306 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.006 0.003
+2026-10-26 09:57:03,313 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.000 0.007
+2026-10-26 09:57:03,363 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.015 0.032
+2026-10-26 09:57:03,382 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.004 0.009
+2026-10-26 09:57:03,390 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.000 0.005
+2026-10-26 09:57:03,397 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:03,418 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.006 0.013
+2026-10-26 09:57:03,462 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.010 0.031
+2026-10-26 09:57:03,468 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:03,474 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.000 0.004
+2026-10-26 09:57:03,484 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.001 0.007
+2026-10-26 09:57:03,493 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.002 0.004
+2026-10-26 09:57:03,533 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.017 0.020
+2026-10-26 09:57:03,542 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.003 0.003
+2026-10-26 09:57:03,555 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.005 0.005
+2026-10-26 09:57:03,567 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.004 0.005
+2026-10-26 09:57:03,579 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.005 0.003
+2026-10-26 09:57:03,586 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.002 0.003
+2026-10-26 09:57:03,598 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.005 0.004
+2026-10-26 09:57:03,603 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.008 0.005
+2026-10-26 09:57:03,603 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:03] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.004 0.008
+2026-10-26 09:57:04,441 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:04] "POST /web/dataset/call_kw/university.timetable.slot/search_read#university.timetable.slot.search_read HTTP/1.1" 200 - 17 0.007 0.011
+2026-10-26 09:57:05,778 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.student/search_read#university.student.search_read HTTP/1.1" 200 - 13 0.004 0.010
+2026-10-26 09:57:05,787 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.academic.year/search_read#university.academic.year.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:05,795 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.semester/search_read#university.semester.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:05,816 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.enrollment/search_read#university.enrollment.search_read HTTP/1.1" 200 - 11 0.003 0.014
+2026-10-26 09:57:05,855 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.class.section/search_read#university.class.section.search_read HTTP/1.1" 200 - 19 0.009 0.028
+2026-10-26 09:57:05,863 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.classroom/search_read#university.classroom.search_read HTTP/1.1" 200 - 3 0.001 0.003
+2026-10-26 09:57:05,872 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 3 0.002 0.004
+2026-10-26 09:57:05,887 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.attendance/search_read#university.attendance.search_read HTTP/1.1" 200 - 8 0.003 0.008
+2026-10-26 09:57:05,895 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.notice.board/search_read#university.notice.board.search_read HTTP/1.1" 200 - 3 0.002 0.003
+2026-10-26 09:57:05,949 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.timetable.slot/get_schedule#university.timetable.slot.get_schedule HTTP/1.1" 200 - 38 0.019 0.031
+2026-10-26 09:57:05,961 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.transcript/search_read#university.transcript.search_read HTTP/1.1" 200 - 6 0.001 0.007
+2026-10-26 09:57:05,975 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.transcript.line/search_read#university.transcript.line.search_read HTTP/1.1" 200 - 9 0.004 0.007
+2026-10-26 09:57:05,988 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.transcript.request/search_read#university.transcript.request.search_read HTTP/1.1" 200 - 7 0.002 0.008
+2026-10-26 09:57:05,999 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:05] "POST /web/dataset/call_kw/university.program/search_read#university.program.search_read HTTP/1.1" 200 - 9 0.004 0.004
+2026-10-26 09:57:06,009 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:06] "POST /web/dataset/call_kw/university.subject/search_read#university.subject.search_read HTTP/1.1" 200 - 4 0.001 0.005
+2026-10-26 09:57:06,025 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:06] "POST /web/dataset/call_kw/university.payment/search_count#university.payment.search_count HTTP/1.1" 200 - 6 0.005 0.006
+2026-10-26 09:57:06,026 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:06] "POST /web/dataset/call_kw/university.fee/search_count#university.fee.search_count HTTP/1.1" 200 - 6 0.006 0.006
+2026-10-26 09:57:06,026 14044 INFO odoo werkzeug: 127.0.0.1 - - [26/Oct/2026 09:57:06] "POST /web/dataset/call_kw/university.student.followup/search_read#university.student.followup.search_read HTTP/1.1" 200 - 7 0.005 0.007
+2026-10-26 09:57:25,254 14044 INFO odoo odoo.addons.base.models.ir_cron: Job 'University: Auto-Close Expired Exams' (38) starting 
+2026-10-26 09:57:25,262 14044 INFO odoo odoo.addons.base.models.ir_cron: Job 'University: Auto-Close Expired Exams' (38) fully done (#loop 1; done 0; remaining 0; duration 0.02s) 
+2026-10-26 09:57:25,266 14044 INFO odoo odoo.addons.base.models.ir_cron: Job 'University: Auto-Create Session Quizzes' (39) starting 
+2026-10-26 09:57:25,271 14044 INFO odoo odoo.addons.base.models.ir_cron: Job 'University: Auto-Create Session Quizzes' (39) fully done (#loop 1; done 0; remaining 0; duration 0.00s) 

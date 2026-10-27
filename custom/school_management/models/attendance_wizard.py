@@ -192,7 +192,7 @@ class UniversityAttendanceTakeWizard(models.TransientModel):
         )
 
     def action_open_management(self):
-        """Jump to Student Attendance Management for this section/date."""
+        """Jump to Student Attendance for this section/date."""
         self.ensure_one()
         return self.env["university.attendance.session"].action_open_or_create(
             self.section_id.id if self.section_id else None,

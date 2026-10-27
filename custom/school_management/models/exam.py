@@ -470,6 +470,14 @@ class UniversityExam(models.Model):
             results.unlink()
             exam.write({"state": "cancelled"})
 
+    def action_download_marksheet(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/university/marksheet/{self.id}/xlsx',
+            'target': 'self',
+        }
+
     # -------------------------------------------------------------------------
     # Cron Jobs
     # -------------------------------------------------------------------------

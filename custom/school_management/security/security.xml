@@ -8,6 +8,7 @@
         Building "University Administration"
             ├── school_student   (Student)
             ├── school_teacher   (Teacher)
+            │       ├── school_timetable_manager (Timetable Manager)
             │       └── school_hod  (Head of Department)
             │               └── school_dean (Head of Faculty)
             └── school_admin    (Administration - full control)
@@ -54,6 +55,12 @@
         <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
     </record>
 
+    <record id="group_school_timetable_manager" model="res.groups">
+        <field name="name">Timetable Manager</field>
+        <field name="privilege_id" ref="school_management_privilege"/>
+        <field name="implied_ids" eval="[(4, ref('group_school_teacher'))]"/>
+    </record>
+
     <record id="group_school_hod" model="res.groups">
         <field name="name">Head of Department</field>
         <field name="privilege_id" ref="school_management_privilege"/>
@@ -75,7 +82,7 @@
     <record id="group_school_admin" model="res.groups">
         <field name="name">University Administrator</field>
         <field name="privilege_id" ref="school_management_privilege"/>
-        <field name="implied_ids" eval="[(6, 0, [ref('group_school_registrar'), ref('base.group_system')])]"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('group_school_registrar'), ref('group_school_timetable_manager'), ref('base.group_system')])]"/>
         <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
@@ -163,10 +170,10 @@
     <record id="rule_teacher_ui_timetable" model="ir.rule">
         <field name="name">Teacher: timetable for assigned sections</field>
         <field name="model_id" ref="model_university_timetable_slot"/>
-        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="False"/>
+        <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
@@ -215,13 +222,13 @@
     <record id="rule_teacher_ui_exams" model="ir.rule">
         <field name="name">Teacher: exams for assigned sections</field>
         <field name="model_id" ref="model_university_exam"/>
-        <field name="domain_force">[('section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('teacher_id.user_id', '=', user.id), ('section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
     </record>
     <record id="rule_teacher_ui_exam_scores" model="ir.rule">
         <field name="name">Teacher: exam scores for assigned sections</field>
         <field name="model_id" ref="model_university_exam_score"/>
-        <field name="domain_force">[('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', ('exam_id.teacher_id.user_id', '=', user.id), ('exam_id.section_id.teacher_id.user_id', '=', user.id)]</field>
         <field name="groups" eval="[(4, ref('group_university_teacher'))]"/>
     </record>
     <record id="rule_teacher_ui_schedule_lines" model="ir.rule">
@@ -286,6 +293,12 @@
         <field name="model_id" ref="model_university_timetable_slot"/>
         <field name="domain_force">[(1, '=', 1)]</field>
         <field name="groups" eval="[(4, ref('group_school_admin'))]"/>
+    </record>
+    <record id="rule_timetable_manager_ui_timetable" model="ir.rule">
+        <field name="name">Timetable Manager: all timetable slots</field>
+        <field name="model_id" ref="model_university_timetable_slot"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_school_timetable_manager'))]"/>
     </record>
     <record id="rule_admin_ui_students" model="ir.rule">
         <field name="name">Administrator: all students</field>

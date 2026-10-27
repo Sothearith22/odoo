@@ -46,6 +46,7 @@ class SchoolDashboardShell extends Component {
 
         this.chartEnrollmentRef = useRef("chart_enrollment");
         this.chartProgramRef = useRef("chart_program");
+        this.chartStatusRef = useRef("chart_status");
         this.charts = [];
 
         this.state = useState({
@@ -78,14 +79,21 @@ class SchoolDashboardShell extends Component {
         onWillStart(async () => {
             try {
                 const isStudent = await user.hasGroup("school_management.group_school_student");
-                const isStaff = (await user.hasGroup("school_management.group_school_teacher")) ||
-                                (await user.hasGroup("school_management.group_school_admin")) ||
-                                (await user.hasGroup("base.group_system")) ||
-                                (await user.hasGroup("school_management.group_school_registrar")) ||
-                                (await user.hasGroup("school_management.group_school_hod")) ||
-                                (await user.hasGroup("school_management.group_school_dean"));
-                if (isStudent && !isStaff) {
+                const isTeacher = (await user.hasGroup("school_management.group_school_teacher")) ||
+                                  (await user.hasGroup("school_management.group_university_teacher"));
+                const isAdminOrLeadership = (await user.hasGroup("school_management.group_school_admin")) ||
+                                            (await user.hasGroup("base.group_system")) ||
+                                            (await user.hasGroup("school_management.group_school_registrar")) ||
+                                            (await user.hasGroup("school_management.group_school_hod")) ||
+                                            (await user.hasGroup("school_management.group_school_dean"));
+                if (isStudent && !isAdminOrLeadership && !isTeacher) {
                     await this.action.doAction("school_management.action_student_dashboard_shell", {
+                        clearBreadcrumbs: true,
+                    });
+                    return;
+                }
+                if (isTeacher && !isAdminOrLeadership) {
+                    await this.action.doAction("school_management.action_teacher_dashboard_shell", {
                         clearBreadcrumbs: true,
                     });
                     return;
@@ -246,6 +254,33 @@ class SchoolDashboardShell extends Component {
         this.navigate("school_management.action_university_teacher");
     }
 
+    openSubjects() {
+        this.navigate("school_management.action_university_subject");
+    }
+
+    openDepartments() {
+        this.navigate("school_management.action_university_department");
+    }
+
+    openEnrollments() {
+        this.navigate("school_management.action_university_enrollment");
+    }
+
+    openStudentDetails(studentId) {
+        if (studentId) {
+            this.action.doAction({
+                type: "ir.actions.act_window",
+                res_model: "university.student",
+                res_id: studentId,
+                views: [[false, "form"]],
+                target: "current",
+            });
+        } else {
+            this.openStudents();
+        }
+    }
+
+
     openAttendance() {
         this.navigate("school_management.action_university_attendance");
     }
@@ -306,6 +341,84 @@ class SchoolDashboardShell extends Component {
 
     formatNumber(val) {
         return (Number(val) || 0).toLocaleString();
+    }
+
+    get isExecutiveLayout() {
+        return Boolean(this.state.dashboard?.kpi_five && this.state.dashboard.kpi_five.length);
+    }
+
+    get kpiFive() {
+        return this.state.dashboard?.kpi_five || [];
+    }
+
+    get recentEnrollments() {
+        return this.state.dashboard?.recent_enrollments || [];
+    }
+
+    getStatusBadgeClass(status, statusClass = '') {
+        if (statusClass && !statusClass.includes('text-secondary') && !statusClass.includes('bg-light')) {
+            return statusClass;
+        }
+        const s = String(status || '').toLowerCase().trim();
+        if (s === 'active' || s === 'enrolled' || s === 'approved' || s === 'good_standing' || s === 'completed') {
+            return 'bg-success-subtle text-success border border-success-subtle';
+        }
+        if (s === 'pending' || s === 'to_approve' || s === 'review' || s === 'in_progress' || s === 'suspended') {
+            return 'bg-warning-subtle text-warning border border-warning-subtle';
+        }
+        if (s === 'draft' || s === 'planning' || s === 'planned') {
+            return 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+        }
+        if (s === 'dropped' || s === 'withdrawn' || s === 'cancelled' || s === 'rejected' || s === 'overdue') {
+            return 'bg-danger-subtle text-danger border border-danger-subtle';
+        }
+        if (s === 'graduated') {
+            return 'bg-info-subtle text-info border border-info-subtle';
+        }
+        return 'bg-success-subtle text-success border border-success-subtle';
+    }
+
+    get topDepartments() {
+        return this.state.dashboard?.top_departments || [];
+    }
+
+    get lowGpaAlert() {
+        return this.state.dashboard?.low_gpa_alert || {
+            count: 18,
+            title: "Low GPA Students",
+            badge: "Need Review",
+            description: "18 Students with GPA < 2.0 need academic advising",
+            btn_label: "Review Advisees",
+            action: "openStudents",
+        };
+    }
+
+    get upcomingEvents() {
+        return this.state.dashboard?.upcoming_events || [];
+    }
+
+    get pendingReports() {
+        return this.state.dashboard?.pending_reports || {
+            count: 7,
+            title: "Pending Reports",
+            badge: "Action Required",
+            description: "7 reports awaiting administrative review & signature",
+            btn_label: "Review Reports",
+            action: "openReports",
+        };
+    }
+
+    get studentStatusBreakdown() {
+        return this.state.chartData?.student_status?.breakdown || [
+            { name: "Active", count: 973, percentage: 78, color: "#10b981", badge_class: "bg-success-subtle text-success" },
+            { name: "Graduated", count: 125, percentage: 10, color: "#6366f1", badge_class: "bg-indigo-subtle text-indigo" },
+            { name: "Suspended", count: 100, percentage: 8, color: "#f59e0b", badge_class: "bg-warning-subtle text-warning" },
+            { name: "Dropped", count: 50, percentage: 4, color: "#ef4444", badge_class: "bg-danger-subtle text-danger" },
+        ];
+    }
+
+    get enrollmentActiveBadge() {
+        return this.state.chartData?.enrollment_trend?.active_badge || "1,248 Active";
     }
 
     get userGreeting() {
@@ -399,6 +512,14 @@ class SchoolDashboardShell extends Component {
             this.state.activeRoleOverride = role;
             this.state.activeNavId = "dashboard";
         }
+    }
+
+    openTeacherWorkspace() {
+        return this.action.doAction("school_management.action_teacher_dashboard_shell");
+    }
+
+    openSpreadsheetAnalytics() {
+        return this.action.doAction("spreadsheet_dashboard.ir_actions_dashboard_action");
     }
 
     handleSidebarItemClick(item) {
@@ -767,30 +888,44 @@ class SchoolDashboardShell extends Component {
         this.destroyCharts();
         if (!this.state.chartData || !window.Chart) return;
 
-        // 1. Enrollment Overview / Trend Chart (8 Cols) - Scaled properly without wasted headroom
+        // 1. Enrollment Overview / Trend Chart (Smooth Curved Area/Line Chart matching Mockup)
         if (this.chartEnrollmentRef.el) {
             const trend = this.state.chartData.enrollment_trend || {
-                labels: ["2025-S1", "2025-S2", "2026-S1", "2026-S2", "2027-S1", "2027-S2"],
-                data: [42, 55, 68, 76, 88, 94],
+                labels: ["2023-S1", "2023-S2", "2024-S1", "2024-S2", "2025-S1", "2026-S1"],
+                data: [940, 1020, 1080, 1150, 1200, 1248],
             };
             const ctxEnrollment = this.chartEnrollmentRef.el.getContext("2d");
             const maxVal = Math.max(...trend.data, 20);
-            const ySuggestedMax = Math.ceil((maxVal * 1.15) / 5) * 5;
+            const ySuggestedMax = Math.ceil((maxVal * 1.15) / 100) * 100;
+            const minVal = Math.min(...trend.data);
+            const ySuggestedMin = Math.max(0, Math.floor((minVal * 0.85) / 100) * 100);
+
+            // Subtle gradient fill under the line
+            const gradient = ctxEnrollment.createLinearGradient(0, 0, 0, 260);
+            gradient.addColorStop(0, "rgba(79, 70, 229, 0.22)");
+            gradient.addColorStop(1, "rgba(79, 70, 229, 0.00)");
 
             this.charts.push(new window.Chart(ctxEnrollment, {
-                type: "bar",
+                type: "line",
                 data: {
                     labels: trend.labels,
                     datasets: [{
-                        label: this.trendLegend,
+                        label: "Enrolled Students",
                         data: trend.data,
-                        backgroundColor: "#4f46e5",
-                        hoverBackgroundColor: "#4338ca",
-                        borderRadius: 8,
-                        maxBarThickness: 46,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.7,
-                    }]
+                        borderColor: "#4f46e5",
+                        borderWidth: 3,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: "#ffffff",
+                        pointBorderColor: "#4f46e5",
+                        pointBorderWidth: 2.5,
+                        pointRadius: 4.5,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: "#4f46e5",
+                        pointHoverBorderColor: "#ffffff",
+                        pointHoverBorderWidth: 2,
+                    }],
                 },
                 options: {
                     responsive: true,
@@ -804,7 +939,7 @@ class SchoolDashboardShell extends Component {
                             padding: 10,
                             cornerRadius: 8,
                             callbacks: {
-                                label: (ctx) => ` ${this.trendLegend}: ${Number(ctx.raw).toLocaleString()}`,
+                                label: (ctx) => ` Enrolled Students: ${Number(ctx.raw).toLocaleString()}`,
                             },
                         },
                     },
@@ -818,7 +953,8 @@ class SchoolDashboardShell extends Component {
                             border: { display: false },
                         },
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: false,
+                            suggestedMin: ySuggestedMin,
                             suggestedMax: ySuggestedMax,
                             ticks: {
                                 color: "#94a3b8",
@@ -836,23 +972,26 @@ class SchoolDashboardShell extends Component {
             }));
         }
 
-        // 2. Student Distribution Doughnut Chart (4 Cols)
-        if (this.chartProgramRef.el) {
-            const prog = this.state.chartData.program_distribution || {
-                labels: ["Computer Science", "Business Admin", "Engineering", "Data Science", "Finance & Acct"],
-                data: [28, 24, 16, 12, 8],
-                colors: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#06b6d4"],
-            };
-            const ctxProgram = this.chartProgramRef.el.getContext("2d");
-            const totalCount = this.state.dashboard?.student_count || prog.data.reduce((a, b) => a + b, 0);
+        // 2. Student Status / Program Distribution Doughnut Chart
+        const targetStatusEl = this.chartStatusRef?.el || this.chartProgramRef?.el;
+        if (targetStatusEl) {
+            const statusData = this.state.chartData.student_status;
+            const progData = this.state.chartData.program_distribution;
 
-            this.charts.push(new window.Chart(ctxProgram, {
+            const labels = statusData?.labels || progData?.labels || ["Active", "Graduated", "Suspended", "Dropped"];
+            const dataVals = statusData?.data || progData?.data || [973, 125, 100, 50];
+            const colors = statusData?.colors || progData?.colors || ["#10b981", "#6366f1", "#f59e0b", "#ef4444"];
+            const totalCount = statusData?.total || this.state.dashboard?.student_count || 1248;
+
+            const ctxStatus = targetStatusEl.getContext("2d");
+
+            this.charts.push(new window.Chart(ctxStatus, {
                 type: "doughnut",
                 data: {
-                    labels: prog.labels,
+                    labels: labels,
                     datasets: [{
-                        data: prog.data,
-                        backgroundColor: prog.colors,
+                        data: dataVals,
+                        backgroundColor: colors,
                         borderWidth: 3,
                         borderColor: "#ffffff",
                         hoverOffset: 4,
@@ -861,7 +1000,7 @@ class SchoolDashboardShell extends Component {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: "70%",
+                    cutout: "72%",
                     plugins: {
                         legend: { display: false },
                         centerText: {
@@ -879,9 +1018,9 @@ class SchoolDashboardShell extends Component {
                             callbacks: {
                                 label: (ctx) => {
                                     const val = Number(ctx.raw) || 0;
-                                    const total = prog.data.reduce((a, b) => a + b, 0) || 1;
+                                    const total = dataVals.reduce((a, b) => a + b, 0) || 1;
                                     const pct = Math.round((val / total) * 100);
-                                    return ` ${ctx.label}: ${val} (${pct}%)`;
+                                    return ` ${ctx.label}: ${val.toLocaleString()} (${pct}%)`;
                                 },
                             },
                         },

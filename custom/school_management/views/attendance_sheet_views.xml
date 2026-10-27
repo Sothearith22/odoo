@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- ============================================================
-         Student Attendance Management — native kanban / list / chatter
+         Student Attendance — native kanban / list / chatter
          ============================================================ -->
 
     <record id="view_university_attendance_session_search" model="ir.ui.view">
@@ -114,7 +114,7 @@
         <field name="name">university.attendance.session.form</field>
         <field name="model">university.attendance.session</field>
         <field name="arch" type="xml">
-            <form string="Student Attendance Management">
+            <form string="Student Attendance">
                 <header>
                     <button name="action_load_students" type="object" string="Load Students"
                             class="btn-secondary" icon="fa-users"
@@ -168,7 +168,7 @@
                     </div>
 
                     <div class="oe_title">
-                        <label for="section_id" string="Student Attendance Management"/>
+                        <label for="section_id" string="Student Attendance"/>
                         <h1 class="d-flex align-items-center gap-2 flex-wrap">
                             <field name="section_id" placeholder="Select class section..."
                                    options="{'no_create': True, 'no_open': True}"
@@ -300,7 +300,7 @@
 
     <!-- Primary menu action: native kanban + list + form (with mail log notes) -->
     <record id="action_university_attendance_session" model="ir.actions.act_window">
-        <field name="name">Student Attendance Management</field>
+        <field name="name">Student Attendance</field>
         <field name="res_model">university.attendance.session</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="limit">10</field>

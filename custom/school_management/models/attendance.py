@@ -238,7 +238,7 @@ class UniversityAttendanceSession(models.Model):
         self._sync_attendance_lines()
         return {
             "type": "ir.actions.act_window",
-            "name": _("Student Attendance Management"),
+            "name": _("Student Attendance"),
             "res_model": self._name,
             "res_id": self.id,
             "view_mode": "form",

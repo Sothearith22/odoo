@@ -261,9 +261,9 @@ class UniversityFee(models.Model):
             "due": due_str,
             "count": self.reminder_count,
         }
-        self.message_post(body=body, message_type="notification")
+        self.message_post(body=body, message_type="comment", subtype_xmlid="mail.mt_note")
         if self.student_id:
-            self.student_id.message_post(body=body, message_type="notification")
+            self.student_id.message_post(body=body, message_type="comment", subtype_xmlid="mail.mt_note")
 
         return {
             "type": "ir.actions.client",

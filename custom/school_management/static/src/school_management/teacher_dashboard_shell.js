@@ -53,7 +53,7 @@ export class TeacherDashboardShell extends Component {
             isPreviewMode: false,
             previewTeachers: [],
             selectedPreviewTeacherId: null,
-            activeTab: "schedule", // 'schedule' | 'attendance' | 'advising' | 'assignments' | 'lesson_plans'
+            activeTab: "schedule", // 'schedule' | 'attendance' | 'advising' | 'assignments' | 'exams' | 'lesson_plans'
             scheduleViewMode: "calendar", // 'calendar' | 'list'
             sidebarViewMode: (localStorage.getItem("teacher_sidebar_view_mode") === "week") ? "week" : "agenda",
             currentWeekOffset: 0,
@@ -66,12 +66,23 @@ export class TeacherDashboardShell extends Component {
                 adviseeCount: 0,
                 highRiskAdvisees: 0,
             },
+            exams: [],
+            examStats: {
+                total: 0,
+                completed: 0,
+                pending: 0,
+                avgPassRate: 0,
+            },
+            examFilterType: "all", // 'all' | 'quiz' | 'midterm' | 'final'
+            examFilterState: "all", // 'all' | 'scheduled' | 'pending' | 'completed' | 'draft'
+            examSearchQuery: "",
             counts: {
                 schedule: 0,
                 attendance: 0,
                 advising: 0,
                 assignments: 0,
                 lessonPlans: 0,
+                exams: 0,
                 notices: 0,
             },
             noticeBoard: [],
@@ -191,18 +202,18 @@ export class TeacherDashboardShell extends Component {
 
                 // 1. Fetch KPI counts
                 const [totalClasses, totalAssignments, pendingSubmissionsCount, pendingServiceHours, adviseeCount, highRiskAdvisees] = await Promise.all([
-                    this.orm.searchCount("university.timetable.slot", [["teacher_id", "=", teacherId]]),
-                    this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId]]),
+                    this.orm.searchCount("university.timetable.slot", [["teacher_id", "=", teacherId]]).catch(() => 0),
+                    this.orm.searchCount("university.assignment", [["teacher_id", "=", teacherId]]).catch(() => 0),
                     this.orm.searchCount("university.assignment.submission", [
                         ["assignment_id.teacher_id", "=", teacherId],
                         ["state", "=", "submitted"],
-                    ]),
+                    ]).catch(() => 0),
                     this.orm.searchCount("university.service.hour", [
                         ["teacher_id", "=", teacherId],
                         ["state", "=", "pending"],
-                    ]),
-                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId]]),
-                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId], ["risk_level", "=", "high"]]),
+                    ]).catch(() => 0),
+                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId]]).catch(() => 0),
+                    this.orm.searchCount("university.student", [["advisor_id", "=", teacherId], ["risk_level", "=", "high"]]).catch(() => 0),
                 ]);
 
                 this.state.stats = {
@@ -227,7 +238,7 @@ export class TeacherDashboardShell extends Component {
 
                     const pad = (n) => String(n).padStart(2, "0");
                     const startStr = `${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`;
-                    const endStr = `${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`;
+                    const endStr = `${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`
 
                     const schedRes = await this.orm.call(
                         "university.timetable.slot",
@@ -289,23 +300,31 @@ export class TeacherDashboardShell extends Component {
                 }
 
                 // 4. Fetch Pending Submissions for quick review
-                this.state.pendingSubmissions = await this.orm.searchRead(
-                    "university.assignment.submission",
-                    [
-                        ["assignment_id.teacher_id", "=", teacherId],
-                        ["state", "=", "submitted"],
-                    ],
-                    ["name", "assignment_id", "student_id", "create_date", "state"],
-                    { limit: 10, order: "create_date desc" }
-                );
+                try {
+                    this.state.pendingSubmissions = await this.orm.searchRead(
+                        "university.assignment.submission",
+                        [
+                            ["assignment_id.teacher_id", "=", teacherId],
+                            ["state", "=", "submitted"],
+                        ],
+                        ["name", "assignment_id", "student_id", "create_date", "state"],
+                        { limit: 10, order: "create_date desc" }
+                    );
+                } catch {
+                    this.state.pendingSubmissions = [];
+                }
 
                 // 5. Fetch Teacher's Published Assignments
-                this.state.teacherAssignments = await this.orm.searchRead(
-                    "university.assignment",
-                    [["teacher_id", "=", teacherId]],
-                    ["name", "subject_id", "section_id", "due_date", "max_score", "state", "submission_count"],
-                    { limit: 10, order: "create_date desc" }
-                );
+                try {
+                    this.state.teacherAssignments = await this.orm.searchRead(
+                        "university.assignment",
+                        [["teacher_id", "=", teacherId]],
+                        ["name", "subject_id", "section_id", "due_date", "max_score", "state", "submission_count"],
+                        { limit: 10, order: "create_date desc" }
+                    );
+                } catch {
+                    this.state.teacherAssignments = [];
+                }
 
                 // 6. Fetch Notice Board Announcements
                 try {
@@ -354,37 +373,46 @@ export class TeacherDashboardShell extends Component {
                 }
 
                 // 7. Fetch Lesson Plans
-                this.state.lessonPlans = await this.orm.searchRead(
-                    "university.lesson.plan",
-                    [["teacher_id", "=", teacherId]],
-                    ["name", "subject_id", "create_date"],
-                    { limit: 10, order: "create_date desc" }
-                );
+                try {
+                    this.state.lessonPlans = await this.orm.searchRead(
+                        "university.lesson.plan",
+                        [["teacher_id", "=", teacherId]],
+                        ["name", "subject_id", "create_date"],
+                        { limit: 10, order: "create_date desc" }
+                    );
+                } catch {
+                    this.state.lessonPlans = [];
+                }
 
                 // 8. Fetch Advisees & Follow-ups
-                const [advisees, followups] = await Promise.all([
-                    this.orm.searchRead(
-                        "university.student",
-                        [["advisor_id", "=", teacherId]],
-                        ["name", "student_id", "gpa", "attendance_rate", "risk_level", "risk_reason", "current_semester_id"],
-                        { limit: 20, order: "risk_level desc, gpa asc" }
-                    ),
-                    this.orm.searchRead(
-                        "university.student.followup",
-                        [["advisor_id", "=", teacherId], ["state", "in", ["pending", "in_progress"]]],
-                        ["title", "student_id", "action_type", "date_deadline", "state", "description"],
-                        { limit: 10, order: "date_deadline asc" }
-                    ),
-                ]);
-                this.state.advisees = advisees;
-                this.state.followups = followups;
+                try {
+                    const [advisees, followups] = await Promise.all([
+                        this.orm.searchRead(
+                            "university.student",
+                            [["advisor_id", "=", teacherId]],
+                            ["name", "student_id", "gpa", "attendance_rate", "risk_level", "risk_reason", "current_semester_id"],
+                            { limit: 20, order: "risk_level desc, gpa asc" }
+                        ).catch(() => []),
+                        this.orm.searchRead(
+                            "university.student.followup",
+                            [["advisor_id", "=", teacherId], ["state", "in", ["pending", "in_progress"]]],
+                            ["title", "student_id", "action_type", "date_deadline", "state", "description"],
+                            { limit: 10, order: "date_deadline asc" }
+                        ).catch(() => []),
+                    ]);
+                    this.state.advisees = advisees || [];
+                    this.state.followups = followups || [];
+                } catch {
+                    this.state.advisees = [];
+                    this.state.followups = [];
+                }
 
                 // 9. Fetch Attendance stats
                 const [presentCount, absentCount, lateCount, excusedCount] = await Promise.all([
-                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]),
-                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]),
-                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "late"]]),
-                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "excused"]]),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "present"]]).catch(() => 0),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "absent"]]).catch(() => 0),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "late"]]).catch(() => 0),
+                    this.orm.searchCount("university.attendance", [["teacher_id", "=", teacherId], ["status", "=", "excused"]]).catch(() => 0),
                 ]);
 
                 this.state.presentCount = presentCount;
@@ -397,18 +425,71 @@ export class TeacherDashboardShell extends Component {
                 this.state.hasAttendanceData = total > 0;
                 this.state.attendanceRate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
 
-                // 10. Counts
+                // 10. Fetch Course Examinations with Complete Metrics & Fixed Field Name
+                try {
+                    const exams = await this.orm.searchRead(
+                        "university.exam",
+                        [["teacher_id", "=", teacherId]],
+                        [
+                            "id", "name", "subject_id", "section_id", "department_id", "program_id",
+                            "exam_type", "exam_date", "max_score", "state", "duration_minutes",
+                            "weight_percent", "student_count", "scored_count", "average_score",
+                            "highest_score", "lowest_score", "pass_count", "fail_count"
+                        ],
+                        { limit: 50, order: "exam_date desc, id desc" }
+                    );
+
+                    this.state.exams = exams.map((e) => {
+                        const studentCount = e.student_count || 0;
+                        const scoredCount = e.scored_count || 0;
+                        const progressPct = studentCount > 0 ? Math.min(100, Math.round((scoredCount / studentCount) * 100)) : 0;
+                        const passCount = e.pass_count || 0;
+                        const failCount = e.fail_count || 0;
+                        const totalEvaluated = passCount + failCount;
+                        const passRate = totalEvaluated > 0 ? Math.round((passCount / totalEvaluated) * 100) : 0;
+                        return {
+                            ...e,
+                            dateFormatted: this.formatDate(e.exam_date),
+                            progressPct,
+                            passRate,
+                        };
+                    });
+
+                    const totalExams = this.state.exams.length;
+                    const completedExams = this.state.exams.filter(
+                        (e) => e.state === "published" || e.state === "completed" || e.state === "closed"
+                    ).length;
+                    const pendingGrading = this.state.exams.filter(
+                        (e) => e.state === "grading" || e.state === "open"
+                    ).length;
+                    const avgPass = totalExams > 0
+                        ? Math.round(this.state.exams.reduce((sum, e) => sum + (e.passRate || 0), 0) / totalExams)
+                        : 100;
+
+                    this.state.examStats = {
+                        total: totalExams,
+                        completed: completedExams,
+                        pending: pendingGrading,
+                        avgPassRate: avgPass,
+                    };
+                } catch {
+                    this.state.exams = [];
+                    this.state.examStats = { total: 0, completed: 0, pending: 0, avgPassRate: 0 };
+                }
+
+                // 11. Counts
                 this.state.counts = {
                     schedule: this.state.scheduleSlots.length,
                     attendance: this.state.enrolledSections.length,
                     advising: adviseeCount,
                     assignments: this.state.pendingSubmissions.length,
                     lessonPlans: this.state.lessonPlans.length,
+                    exams: this.state.exams.length,
                     notices: this.state.noticeBoard.length,
                 };
             }
         } catch (error) {
-            this.state.error = error.message || "Unable to load your teacher dashboard.";
+            console.error("TEACHER DASHBOARD LOAD ERROR:", error); this.state.error = (error.data && error.data.message) || error.message || String(error);
         } finally {
             this.state.loading = false;
             setTimeout(() => this.renderChart(), 50);
@@ -789,7 +870,6 @@ export class TeacherDashboardShell extends Component {
         });
     }
 
-
     get timetableWeekDays() {
         const days = this.currentWeekDays;
         if (!days.length) return [];
@@ -835,6 +915,106 @@ export class TeacherDashboardShell extends Component {
                 calendar_mode: "week",
             },
         });
+    }
+
+    // -------------------------------------------------------------
+    // Course Examination & Marksheet Methods & Filters
+    // -------------------------------------------------------------
+    get filteredExams() {
+        let list = this.state.exams || [];
+        if (this.state.examFilterType && this.state.examFilterType !== "all") {
+            list = list.filter((e) => e.exam_type === this.state.examFilterType);
+        }
+        if (this.state.examFilterState && this.state.examFilterState !== "all") {
+            if (this.state.examFilterState === "pending") {
+                list = list.filter((e) => e.state === "grading" || e.state === "open");
+            } else if (this.state.examFilterState === "completed") {
+                list = list.filter((e) => e.state === "published" || e.state === "completed" || e.state === "closed");
+            } else {
+                list = list.filter((e) => e.state === this.state.examFilterState);
+            }
+        }
+        if (this.state.examSearchQuery) {
+            const q = this.state.examSearchQuery.trim().toLowerCase();
+            list = list.filter((e) => {
+                const name = (e.name || "").toLowerCase();
+                const subj = (e.subject_id ? e.subject_id[1] : "").toLowerCase();
+                const sec = (e.section_id ? e.section_id[1] : "").toLowerCase();
+                return name.includes(q) || subj.includes(q) || sec.includes(q);
+            });
+        }
+        return list;
+    }
+
+    setExamFilterType(type) {
+        this.state.examFilterType = type;
+    }
+
+    setExamFilterState(state) {
+        this.state.examFilterState = state;
+    }
+
+    onExamSearch(ev) {
+        this.state.examSearchQuery = ev.target.value || "";
+    }
+
+    resetExamFilters() {
+        this.state.examFilterType = "all";
+        this.state.examFilterState = "all";
+        this.state.examSearchQuery = "";
+    }
+
+    downloadExamMarksheet(examId) {
+        if (!examId) return;
+        window.open(`/university/marksheet/${examId}/xlsx`, "_blank");
+    }
+
+    openExam(examId) {
+        return this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "university.exam",
+            res_id: examId,
+            views: [[false, "form"]],
+            target: "current",
+        });
+    }
+
+    openExamScores(examId) {
+        if (!examId) return;
+        return this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "Student Exam Scores",
+            res_model: "university.exam.score",
+            views: [
+                [false, "list"],
+                [false, "form"],
+            ],
+            domain: [["exam_id", "=", examId]],
+            context: { default_exam_id: examId },
+            target: "current",
+        });
+    }
+
+    openAllExams() {
+        return this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "My Course Exams",
+            res_model: "university.exam",
+            domain: [["teacher_id", "=", this.state.teacher?.id]],
+            views: [
+                [false, "list"],
+                [false, "form"],
+            ],
+            target: "current",
+        });
+    }
+
+    openSpreadsheetAnalytics() {
+        return this.action.doAction("spreadsheet_dashboard.ir_actions_dashboard_action");
+    }
+
+    get recentExamsForSidebar() {
+        return (this.state.exams || []).slice(0, 4);
     }
 
     openAssignments() {

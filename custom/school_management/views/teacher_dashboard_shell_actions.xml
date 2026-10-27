@@ -2,7 +2,7 @@
 <odoo>
     <record id="action_teacher_dashboard_shell" model="ir.actions.client">
         <field name="name">Teacher Dashboard</field>
-        <field name="tag">school_dashboard_shell</field>
+        <field name="tag">teacher_dashboard_shell</field>
         <field name="target">main</field>
     </record>
 </odoo>

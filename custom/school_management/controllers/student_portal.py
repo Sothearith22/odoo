@@ -203,8 +203,14 @@ class StudentPortalDashboard(CustomerPortal):
                 'live_or_next_class': live_or_next_class,
             })
 
+        latest_report = request.env['university.report.card'].sudo().search([
+            ('student_id', '=', student.id),
+            ('state', '=', 'approved'),
+        ], order='id desc', limit=1)
+
         values = {
             'page_name': 'student_dashboard',
+            'latest_report_card_id': latest_report.id if latest_report else None,
             'student': student_profile,
             'metrics': academic_metrics,
             'courses': enrolled_courses,

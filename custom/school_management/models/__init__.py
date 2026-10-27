@@ -1,3 +1,4 @@
+from . import document_download_mixin
 from . import faculty
 from . import department
 from . import program

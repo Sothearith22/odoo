@@ -27,3 +27,4 @@ from . import test_study_plan
 from . import test_weekly_schedule_timetable
 from . import test_admission_fee
 from . import test_faculty
+from . import test_academic_transcript_report

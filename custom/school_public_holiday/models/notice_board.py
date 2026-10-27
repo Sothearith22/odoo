@@ -12,6 +12,12 @@ class UniversityNoticeBoardHoliday(models.Model):
         copy=False,
         readonly=True,
     )
+    holiday_ids = fields.One2many(
+        "public.holiday",
+        "notice_id",
+        string="Linked Public Holidays",
+        readonly=True,
+    )
 
     _holiday_notice_unique = models.Constraint(
         "UNIQUE(holiday_id)",

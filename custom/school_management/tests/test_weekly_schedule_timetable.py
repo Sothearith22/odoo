@@ -315,9 +315,40 @@ class TestWeeklyScheduleTimetable(StudyPlanCommon):
             "state": "published",
         })
 
+        # Guest instructor on the slot (differs from section.teacher_id)
+        guest = self.env["university.teacher"].create({
+            "name": "Prof. Guest Instructor",
+            "faculty_id": self.faculty.id,
+            "department_id": self.department.id,
+        })
+        guest_slot = Slot.create({
+            "section_id": self.class_section.id,
+            "subject_id": self.subject_1.id,
+            "teacher_id": guest.id,
+            "classroom_id": self.classroom.id,
+            "start_time": dt_start + timedelta(days=14),
+            "end_time": dt_end + timedelta(days=14),
+            "generation_state": "published",
+            "state": "published",
+        })
+
         # Read as student user
         slots_as_student = Slot.with_user(self.student_user).search([
-            ("id", "in", (draft_slot.id, pub_slot.id))
+            ("id", "in", (draft_slot.id, pub_slot.id, guest_slot.id))
         ])
         self.assertIn(pub_slot, slots_as_student, "Published session must be visible to enrolled student.")
+        self.assertIn(guest_slot, slots_as_student, "Published guest-instructor session must be visible.")
         self.assertNotIn(draft_slot, slots_as_student, "Draft session must not be visible to student.")
+
+        # Calendar search_read must not AccessError on guest instructor / display_name
+        rows = Slot.with_user(self.student_user).search_read(
+            [("id", "=", guest_slot.id)],
+            ["display_name", "teacher_id", "teacher_user_id"],
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertIn("Guest Instructor", rows[0]["display_name"])
+        self.assertEqual(rows[0]["teacher_id"][0], guest.id)
+        self.assertTrue(
+            self.env["university.teacher"].with_user(self.student_user).browse(guest.id).exists(),
+            "Student must be allowed to read the slot instructor.",
+        )

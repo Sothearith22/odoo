@@ -122,6 +122,14 @@
                                         Curriculum PDF
                                     </a>
                                 </t>
+                                <t t-if="latest_report_card_id">
+                                    <a t-attf-href="/university/document/#{latest_report_card_id}/download" class="btn btn-hero-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center" role="button">
+                                        <i class="fa fa-file-pdf-o me-2" aria-hidden="true" title="PDF"/> Download PDF
+                                    </a>
+                                    <a t-attf-href="/university/document/#{latest_report_card_id}/download/xlsx" class="btn btn-hero-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center" role="button">
+                                        <i class="fa fa-file-excel-o me-2" aria-hidden="true" title="Excel"/> Download Excel
+                                    </a>
+                                </t>
                                 <button type="button" class="btn btn-hero-primary rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#transcriptModal">
                                     <i class="fa fa-file-text-o me-2" aria-hidden="true" title="File text o" aria-label="File text o"/>
                                     Request Transcript

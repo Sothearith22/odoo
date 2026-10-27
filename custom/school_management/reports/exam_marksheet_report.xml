@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_university_exam_marksheet" model="report.paperformat">
+        <field name="name">University Exam Marksheet (Landscape)</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top" eval="12"/>
+        <field name="margin_bottom" eval="12"/>
+        <field name="margin_left" eval="10"/>
+        <field name="margin_right" eval="10"/>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing" eval="5"/>
+    </record>
+
+    <record id="action_report_university_exam_marksheet" model="ir.actions.report">
+        <field name="name">Exam Results PDF</field>
+        <field name="model">university.exam</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">school_management.report_university_exam_marksheet</field>
+        <field name="report_file">school_management.report_university_exam_marksheet</field>
+        <field name="print_report_name">'Exam Results - ' + object.name</field>
+        <field name="binding_model_id" ref="model_university_exam"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_university_exam_marksheet"/>
+    </record>
+
+    <template id="report_university_exam_marksheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="exam">
+                <t t-set="o" t-value="exam"/>
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 style="text-align: center;">Exam Results</h2>
+                        <h3 style="text-align: center;"><t t-out="exam.name"/></h3>
+                        <table style="width: 100%; margin-bottom: 16px; border-collapse: collapse;">
+                            <tr>
+                                <td><strong>Subject:</strong> <t t-out="exam.subject_id.name"/></td>
+                                <td><strong>Class Section:</strong> <t t-out="exam.section_id.name"/></td>
+                                <td><strong>Exam Date:</strong> <span t-field="exam.exam_date"/></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Academic Year:</strong> <t t-out="exam.academic_year_id.name"/></td>
+                                <td><strong>Semester:</strong> <t t-out="exam.semester_id.name"/></td>
+                                <td><strong>Maximum Score:</strong> <span t-field="exam.max_score"/></td>
+                            </tr>
+                        </table>
+                        <table class="table table-sm" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #eeeeee;">
+                                    <th style="border: 1px solid #999; padding: 5px;">Student ID</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Student</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Absent</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Raw Score</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Late</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Final Score</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">%</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Pass</th>
+                                    <th style="border: 1px solid #999; padding: 5px;">Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="exam.score_ids" t-as="score">
+                                    <td style="border: 1px solid #999; padding: 5px;"><t t-out="score.student_code or ''"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px;"><t t-out="score.student_id.name"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: center;"><t t-out="'Yes' if score.is_absent else 'No'"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: right;"><span t-field="score.score"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: center;"><t t-out="'Yes' if score.is_late else 'No'"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: right;"><span t-field="score.final_score"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: right;"><span t-field="score.percentage"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px; text-align: center;"><t t-out="'Passed' if score.is_passed else 'Failed'"/></td>
+                                    <td style="border: 1px solid #999; padding: 5px;"><t t-out="score.remark or ''"/></td>
+                                </tr>
+                                <tr t-if="not exam.score_ids">
+                                    <td colspan="9" style="border: 1px solid #999; padding: 8px; text-align: center;">No student scores available.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

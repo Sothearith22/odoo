@@ -4,6 +4,7 @@ import pytz
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+from odoo.fields import Domain
 
 
 class UniversityTimeslot(models.Model):
@@ -167,13 +168,17 @@ class UniversityTimetableSlot(models.Model):
     teacher_user_id = fields.Many2one(
         "res.users",
         string="Teacher User",
-        related="teacher_id.user_id",
+        compute="_compute_teacher_user_id",
         readonly=True,
     )
     can_view_session_details = fields.Boolean(
         string="Can View Session Details",
         compute="_compute_can_view_session_details",
         readonly=True,
+    )
+    can_edit_schedule = fields.Boolean(
+        string="Can Edit Schedule",
+        compute="_compute_can_edit_schedule",
     )
     instructor_id = fields.Many2one(
         "university.teacher",
@@ -314,8 +319,7 @@ class UniversityTimetableSlot(models.Model):
         ],
         string="Session Status",
         compute="_compute_status",
-        store=True,
-        index=True,
+        search="_search_status",
     )
     session_type = fields.Selection(
         [
@@ -336,6 +340,13 @@ class UniversityTimetableSlot(models.Model):
         readonly=True,
     )
 
+    @api.depends("teacher_id", "teacher_id.user_id")
+    def _compute_teacher_user_id(self):
+        # sudo: students can see slots but may lack teacher record-rule access
+        # when slot.teacher_id differs from section.teacher_id.
+        for slot in self:
+            slot.teacher_user_id = slot.sudo().teacher_id.user_id
+
     @api.depends("teacher_id")
     def _compute_can_view_session_details(self):
         can_view = (
@@ -347,6 +358,15 @@ class UniversityTimetableSlot(models.Model):
         )
         for slot in self:
             slot.can_view_session_details = can_view
+
+    def _compute_can_edit_schedule(self):
+        can_edit = (
+            self.env.su
+            or self.env.user.has_group("school_management.group_school_admin")
+            or self.env.user.has_group("school_management.group_school_timetable_manager")
+        )
+        for slot in self:
+            slot.can_edit_schedule = can_edit
     room_capacity = fields.Integer(
         string="Room Capacity",
         related="classroom_id.capacity",
@@ -456,6 +476,7 @@ class UniversityTimetableSlot(models.Model):
 
     @api.depends("start_time", "end_time", "state")
     def _compute_status(self):
+        # Non-stored: recomputed on every read so badges stay correct as time passes.
         now = fields.Datetime.now()
         for slot in self:
             if slot.state == "cancelled":
@@ -468,6 +489,41 @@ class UniversityTimetableSlot(models.Model):
                 slot.status = "ongoing"
             else:
                 slot.status = "completed"
+
+    def _search_status(self, operator, value):
+        """Translate status domains into start/end datetime comparisons."""
+        now = fields.Datetime.now()
+        if operator not in ("=", "in"):
+            raise NotImplementedError(f"Unsupported search operator on status: {operator}")
+
+        values = list(value or []) if operator == "in" else [value]
+
+        def domain_for(status_val):
+            if status_val == "cancelled":
+                return [("state", "=", "cancelled")]
+            if status_val == "upcoming":
+                return [
+                    ("state", "!=", "cancelled"),
+                    "|",
+                    ("start_time", "=", False),
+                    ("start_time", ">", now),
+                ]
+            if status_val == "ongoing":
+                return [
+                    ("state", "!=", "cancelled"),
+                    ("start_time", "<=", now),
+                    ("end_time", ">=", now),
+                ]
+            if status_val == "completed":
+                return [
+                    ("state", "!=", "cancelled"),
+                    ("end_time", "<", now),
+                ]
+            return [("id", "=", False)]
+
+        if not values:
+            return [("id", "=", False)]
+        return Domain.OR([domain_for(v) for v in values])
 
     @api.depends("start_time", "end_time", "timeslot_id")
     def _compute_schedule_slot_display(self):
@@ -622,10 +678,13 @@ class UniversityTimetableSlot(models.Model):
 
     @api.depends("subject_id.name", "classroom_id.name", "location", "teacher_id.name")
     def _compute_display_name(self):
+        # Use sudo for related names: students may read a slot whose instructor
+        # differs from section.teacher_id, and related ACLs must not break the calendar.
         for slot in self:
-            subject = slot.subject_id.name or _("Unknown Subject")
-            room = slot.classroom_id.name or slot.location or _("No Room")
-            teacher = slot.teacher_id.name or _("No Teacher")
+            slot_sudo = slot.sudo()
+            subject = slot_sudo.subject_id.name or _("Unknown Subject")
+            room = slot_sudo.classroom_id.name or slot_sudo.location or _("No Room")
+            teacher = slot_sudo.teacher_id.name or _("No Teacher")
             slot.display_name = f"{subject} · {room} · {teacher}"
 
     @api.depends("start_time", "end_time", "teacher_id", "classroom_id", "state")
@@ -1049,25 +1108,40 @@ class UniversityTimetableSlot(models.Model):
         self.ensure_one()
         user = self.env.user
         if (
-            self.env.is_system()
+            self.env.su
+            or self.env.is_system()
             or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_timetable_manager")
             or user.has_group("school_management.group_school_hod")
             or user.has_group("school_management.group_school_dean")
         ):
             return True
-        if user.has_group("school_management.group_school_teacher"):
+        if user.has_group("school_management.group_school_teacher") or user.has_group("school_management.group_university_teacher"):
             if (self.teacher_id and self.teacher_id.user_id == user) or (self.section_id.teacher_id and self.section_id.teacher_id.user_id == user):
                 return True
         raise AccessError(_("You do not have permission to modify this timetable session."))
 
     def write(self, vals):
         user = self.env.user
-        if not (
-            self.env.is_system()
+        is_manager = (
+            self.env.su
+            or self.env.is_system()
             or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_timetable_manager")
             or user.has_group("school_management.group_school_hod")
             or user.has_group("school_management.group_school_dean")
-        ):
+        )
+        if not is_manager:
+            restricted_fields = {
+                "start_time", "end_time", "date", "timeslot_id",
+                "classroom_id", "room_id", "section_id", "class_id", "teacher_id",
+            }
+            modified_restricted = restricted_fields.intersection(vals.keys())
+            if modified_restricted:
+                raise AccessError(
+                    _("Teachers are not allowed to change session time, room, section, or teacher. "
+                      "Restricted field(s): %s") % ", ".join(sorted(modified_restricted))
+                )
             for slot in self:
                 slot._check_modify_access()
         if vals.get("state") == "cancelled" and "generation_state" not in vals:
@@ -1095,8 +1169,13 @@ class UniversityTimetableSlot(models.Model):
 
     def unlink(self):
         user = self.env.user
-        if not (self.env.is_system() or user.has_group("school_management.group_school_admin")):
-            raise AccessError(_("Only administrators can delete timetable sessions."))
+        if not (
+            self.env.su
+            or self.env.is_system()
+            or user.has_group("school_management.group_school_admin")
+            or user.has_group("school_management.group_school_timetable_manager")
+        ):
+            raise AccessError(_("Only administrators and timetable managers can delete timetable sessions."))
         for slot in self:
             if slot.has_attendance:
                 raise ValidationError(_("Cannot delete session '%s' because attendance has already been recorded.") % (slot.name or slot.display_name))
@@ -1244,14 +1323,9 @@ class UniversityTimetableSlot(models.Model):
 
     @api.model
     def _cron_update_states(self):
-        now = fields.Datetime.now()
-        yesterday = now - timedelta(days=1)
-        tomorrow = now + timedelta(days=1)
-        slots = self.search([
-            ("start_time", ">=", yesterday),
-            ("start_time", "<=", tomorrow),
-        ])
-        slots._compute_status()
+        # Status is non-stored and recomputed on read; keep cron as a no-op
+        # safety net for any callers that still flush/compute explicitly.
+        return True
 
     def check_can_manage_attendance(self):
         self.ensure_one()
