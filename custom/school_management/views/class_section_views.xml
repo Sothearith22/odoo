@@ -78,6 +78,16 @@
                             type="object"
                             class="btn-outline-primary"
                             icon="fa-calendar"/>
+                    <button name="action_download_class_marksheet"
+                            string="Marksheet (Excel)"
+                            type="object"
+                            class="btn-outline-success"
+                            icon="fa-file-excel-o"/>
+                    <button name="action_print_class_marksheet_pdf"
+                            string="Marksheet (PDF)"
+                            type="object"
+                            class="btn-outline-danger"
+                            icon="fa-file-pdf-o"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
                 </header>
                 <sheet>

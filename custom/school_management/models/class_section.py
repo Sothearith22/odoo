@@ -316,6 +316,22 @@ class UniversityClassSection(models.Model):
             },
         }
 
+    def action_download_class_marksheet(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/university/class_marksheet/{self.id}/xlsx",
+            "target": "self",
+        }
+
+    def action_print_class_marksheet_pdf(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/university/class_marksheet/{self.id}/pdf",
+            "target": "self",
+        }
+
     def action_view_exams(self):
         self.ensure_one()
         return {
@@ -632,8 +648,8 @@ class UniversityClassSection(models.Model):
         }
 
     def action_open_timetable_generation_wizard(self):
-        if not self.env.user.has_group("school_management.group_school_admin"):
-            raise AccessError(_("Only University Administrators can schedule a timetable."))
+        if not (self.env.user.has_group("school_management.group_school_admin") or self.env.user.has_group("school_management.group_school_timetable_manager")):
+            raise AccessError(_("Only University Administrators or Timetable Managers can schedule a timetable."))
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",

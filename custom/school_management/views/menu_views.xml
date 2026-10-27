@@ -45,7 +45,9 @@
         <field name="sequence">10</field>
         <field name="active" eval="True"/>
         <field name="group_ids" eval="[(6, 0, [
-            ref('school_management.group_teacher_dashboard')
+            ref('school_management.group_teacher_dashboard'),
+            ref('school_management.group_school_teacher'),
+            ref('school_management.group_university_teacher')
         ])]"/>
     </record>
 
@@ -211,11 +213,11 @@
     />
     <menuitem
         id="menu_university_timetable_sessions"
-        name="Scheduled Sessions"
+        name="Schedule by Resource"
         parent="menu_university_sec_timetable"
         action="action_university_timetable_slot"
         sequence="10"
-        groups="school_management.group_university_teacher,school_management.group_school_hod,school_management.group_school_admin,base.group_system"
+        groups="school_management.group_university_teacher,school_management.group_school_teacher,school_management.group_school_hod,school_management.group_school_dean,school_management.group_school_admin,school_management.group_school_timetable_manager,base.group_system"
     />
     <menuitem
         id="menu_university_room_occupancy"
@@ -539,13 +541,13 @@
         groups="school_management.group_school_admin,base.group_system"
     />
 
-    <!-- Teacher/student profile; administrators do not get a self-service profile menu. -->
+    <!-- Teacher profile; administrators do not get a self-service profile menu. -->
     <record id="menu_teacher_nav_profile" model="ir.ui.menu">
         <field name="name">My Profile</field>
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_open_university_teacher_profile"/>
         <field name="sequence">95</field>
-        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher'), ref('school_management.group_school_student')])]"/>
+        <field name="group_ids" eval="[(6, 0, [ref('school_management.group_school_teacher')])]"/>
     </record>
 
     <!-- ==================== 5. ADMISSIONS & FINANCE (MERGED) (SEQ 50) ==================== -->
@@ -910,12 +912,19 @@
         <field name="active" eval="False"/>
     </record>
 
-    <!-- Deactivated action menuitem "Generate Timetable" (moved to Scheduled Sessions list header) -->
+    <!-- Action menuitem "Generate Timetable" -->
     <record id="menu_university_timetable_generate" model="ir.ui.menu">
         <field name="name">Generate Timetable</field>
         <field name="parent_id" ref="menu_university_sec_timetable"/>
         <field name="action" ref="action_university_timetable_generation_wizard"/>
-        <field name="active" eval="False"/>
+        <field name="sequence">15</field>
+        <field name="active" eval="True"/>
+        <field name="group_ids" eval="[(6, 0, [
+            ref('school_management.group_school_admin'),
+            ref('school_management.group_school_timetable_manager'),
+            ref('school_management.group_school_hod'),
+            ref('base.group_system')
+        ])]"/>
     </record>
 
     <!-- Deactivated legacy Timetable menus -->

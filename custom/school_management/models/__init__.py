@@ -1,3 +1,4 @@
+from . import ir_ui_view
 from . import document_download_mixin
 from . import faculty
 from . import department
@@ -8,6 +9,7 @@ from . import semester
 from . import department_term
 from . import holiday
 from . import teacher
+from . import planning_resource
 from . import academic_assignment
 from . import res_users
 from . import classroom

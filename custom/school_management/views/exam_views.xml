@@ -92,9 +92,9 @@
                             class="btn-secondary"
                             icon="fa-file-excel-o"
                             invisible="state == 'draft'"/>
-                    <button name="%(school_management.action_report_university_exam_marksheet)d"
+                    <button name="action_print_marksheet_pdf"
                             string="Print PDF"
-                            type="action"
+                            type="object"
                             class="btn-secondary"
                             icon="fa-file-pdf-o"
                             invisible="state == 'draft'"/>

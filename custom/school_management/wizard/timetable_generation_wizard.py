@@ -58,6 +58,43 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
         help="Delete existing draft timetable slots (without attendance) for selected sections within the generated date range.",
     )
 
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if "academic_year_id" in fields_list and not res.get("academic_year_id"):
+            current_year = self.env["university.academic.year"].search(
+                [("current", "=", True), ("active", "=", True)], limit=1
+            )
+            if not current_year:
+                current_year = self.env["university.academic.year"].search(
+                    [("active", "=", True)], limit=1
+                )
+            if current_year:
+                res["academic_year_id"] = current_year.id
+                if "semester_id" in fields_list and not res.get("semester_id"):
+                    active_sem = self.env["university.semester"].search(
+                        [
+                            ("academic_year_id", "=", current_year.id),
+                            ("active", "=", True),
+                            ("is_active", "=", True),
+                        ],
+                        limit=1,
+                    )
+                    if not active_sem:
+                        active_sem = self.env["university.semester"].search(
+                            [
+                                ("academic_year_id", "=", current_year.id),
+                                ("active", "=", True),
+                            ],
+                            limit=1,
+                        )
+                    if active_sem:
+                        res["semester_id"] = active_sem.id
+                        if active_sem.date_start and not res.get("start_date"):
+                            res["start_date"] = active_sem.date_start
+        return res
+
     @api.onchange("academic_year_id")
     def _onchange_academic_year_id(self):
         if (
@@ -156,7 +193,7 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
             return Slot, exc.args[0], []
 
     def action_generate_timetable(self):
-        if not self.env.user.has_group("school_management.group_school_admin"):
+        if not (self.env.user.has_group("school_management.group_school_admin") or self.env.user.has_group("school_management.group_school_timetable_manager")):
             raise AccessError(_("Only University Administrators can schedule a timetable."))
         self.ensure_one()
         if self.semester_id.academic_year_id != self.academic_year_id:
@@ -421,7 +458,7 @@ class UniversityTimetableGenerationWizard(models.TransientModel):
             "type": "ir.actions.act_window",
             "name": summary_title,
             "res_model": "university.timetable.slot",
-            "view_mode": "calendar,list,form",
+            "view_mode": "gantt,list,form",
             "domain": [("id", "in", target_ids)],
-            "context": {"default_mode": "week"},
+            "context": {"default_mode": "week", "search_default_group_by_resource": 1},
         }

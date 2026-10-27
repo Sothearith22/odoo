@@ -263,7 +263,8 @@ def build_marksheet_xlsx(title, subtitle, full_marks, pass_marks, subjects, stud
         sheet.write_formula(r, 10, formula_rank, f_data_rank, rank_val if isinstance(rank_val, int) else 1)
 
         # Col 11: Remarks
-        rem_str = stu.get('remark', '') or ('Absent' if is_absent else ('Passed with Distinction' if pct_100 >= 90 else ('Passed' if final_val >= pass_marks else 'Failed')))
+        rem_str = stu.get('remark', '') or ('Absent' if is_absent else ('Passed with Distinction' if pct_100 >= 90 else ('Passed' if final_val >= pass_marks else 'Failed')))\
+
         sheet.write(r, 11, rem_str, rem_z)
 
     # Freeze panes below headers
@@ -283,7 +284,7 @@ def build_marksheet_xlsx(title, subtitle, full_marks, pass_marks, subjects, stud
         first_data = start_r + 1
         last_data = start_r + num_students
 
-        stats_data = [
+        stats_data = [\
             ('Total Students Enrolled', f'=COUNTA(B{first_data}:B{last_data})', num_students, f_stat_val_int),
             ('Students Present', f'=COUNTIF(D{first_data}:D{last_data},"Present")', sum(1 for s in students if not s.get('is_absent')), f_stat_val_int),
             ('Students Absent', f'=COUNTIF(D{first_data}:D{last_data},"Absent")', sum(1 for s in students if s.get('is_absent')), f_stat_val_int),
@@ -295,7 +296,7 @@ def build_marksheet_xlsx(title, subtitle, full_marks, pass_marks, subjects, stud
             ('Class Passing Rate', f'=IFERROR(ROUND(COUNTIF(I{first_data}:I{last_data},"PASS")/MAX(1,COUNTIF(D{first_data}:D{last_data},"Present")),4),0.0000)', (sum(1 for s in students if not s.get('is_absent') and s.get('final_score', 0) >= pass_marks) / max(1, sum(1 for s in students if not s.get('is_absent')))), f_stat_highlight),
         ]
 
-        grade_breakdown = [
+        grade_breakdown = [\
             ('Grade A (90% - 100%)', f'=COUNTIF(J{first_data}:J{last_data},"A")'),
             ('Grade B (80% - 89%)', f'=COUNTIF(J{first_data}:J{last_data},"B")'),
             ('Grade C (70% - 79%)', f'=COUNTIF(J{first_data}:J{last_data},"C")'),
@@ -351,7 +352,10 @@ def build_marksheet_xlsx(title, subtitle, full_marks, pass_marks, subjects, stud
 
 class UniversityExamMarksheetController(http.Controller):
 
-    @http.route(['/university/marksheet/<int:exam_id>/xlsx'],
+    @http.route([
+        '/university/marksheet/<int:exam_id>/xlsx',
+        '/university/marksheet/<int:exam_id>/excel',
+    ],
                 type='http', auth='user', methods=['GET'])
     def download_marksheet_xlsx(self, exam_id, **kwargs):
         exam = request.env['university.exam'].browse(exam_id).exists()
@@ -362,63 +366,69 @@ class UniversityExamMarksheetController(http.Controller):
         except AccessError:
             return request.not_found()
 
-        # Format Exam Metadata
-        exam_type_label = dict(exam._fields['exam_type'].selection).get(exam.exam_type, (exam.exam_type or 'Exam').capitalize())
-        state_label = dict(exam._fields['state'].selection).get(exam.state, (exam.state or '').capitalize())
-        course_label = f"[{exam.subject_id.code}] {exam.subject_id.name}" if exam.subject_id.code else (exam.subject_id.name or 'Subject')
-        period_label = f"{exam.academic_year_id.name or ''} - {exam.semester_id.name or ''}".strip(' -')
-        teacher_label = f"{exam.teacher_id.name} ({exam.teacher_id.teacher_id})" if exam.teacher_id.teacher_id else (exam.teacher_id.name or 'Course Instructor')
-        duration_str = f"{exam.duration_minutes} minutes" if exam.duration_minutes else 'Standard Duration'
-        date_str = str(exam.exam_date) if exam.exam_date else 'TBA'
-        date_duration_label = f"{date_str} ({duration_str})"
+        if hasattr(exam, '_log_download'):
+            exam._log_download(file_type='Excel')
 
-        exam_info = {
-            'institution': exam.env.company.name or 'HARVARD UNIVERSITY - FACULTY ACADEMIC PORTAL',
-            'course': course_label,
-            'section': exam.section_id.name or 'N/A',
-            'program': exam.program_id.name or (exam.section_id.program_id.name if exam.section_id else 'N/A'),
-            'department': exam.department_id.name or (exam.section_id.department_id.name if exam.section_id else 'Academic Department'),
-            'academic_period': period_label,
-            'teacher': teacher_label,
-            'teacher_name': exam.teacher_id.name or 'Teacher',
-            'teacher_code': exam.teacher_id.teacher_id or '',
-            'weight': f"{exam.weight_percent:.1f}%" if exam.weight_percent else 'N/A',
-            'exam_type': exam_type_label,
-            'exam_date_duration': date_duration_label,
-            'status': state_label,
-            'avg_score': exam.average_score or 0.0,
-            'pass_count': exam.pass_count or 0,
-            'fail_count': exam.fail_count or 0,
-            'student_count': exam.student_count or len(exam.score_ids),
-        }
+        if hasattr(exam, '_generate_xlsx_bytes'):
+            content = exam._generate_xlsx_bytes()
+        else:
+            # Format Exam Metadata
+            exam_type_label = dict(exam._fields['exam_type'].selection).get(exam.exam_type, (exam.exam_type or 'Exam').capitalize())
+            state_label = dict(exam._fields['state'].selection).get(exam.state, (exam.state or '').capitalize())
+            course_label = f"[{exam.subject_id.code}] {exam.subject_id.name}" if exam.subject_id.code else (exam.subject_id.name or 'Subject')
+            period_label = f"{exam.academic_year_id.name or ''} - {exam.semester_id.name or ''}".strip(' -')
+            teacher_label = f"{exam.teacher_id.name} ({exam.teacher_id.teacher_id})" if exam.teacher_id.teacher_id else (exam.teacher_id.name or 'Course Instructor')
+            duration_str = f"{exam.duration_minutes} minutes" if exam.duration_minutes else 'Standard Duration'
+            date_str = str(exam.exam_date) if exam.exam_date else 'TBA'
+            date_duration_label = f"{date_str} ({duration_str})"
 
-        subjects = [exam.subject_id.name or 'Subject']
-        students = []
-        for score in exam.score_ids.sorted(key=lambda s: (s.student_code or '', s.student_id.name or '')):
-            students.append({
-                'id': score.student_code or score.student_id.student_id or f'STU-{score.student_id.id}',
-                'name': score.student_id.name or '',
-                'is_absent': score.is_absent,
-                'raw_score': score.score,
-                'penalty': score.penalty_applied or 0.0,
-                'final_score': score.final_score if not score.is_absent else 0.0,
-                'percentage': score.percentage or 0.0,
-                'remark': score.remark or '',
-                'marks': [score.final_score if not score.is_absent else 0.0],
-            })
+            exam_info = {
+                'institution': exam.env.company.name or 'HARVARD UNIVERSITY - FACULTY ACADEMIC PORTAL',
+                'course': course_label,
+                'section': exam.section_id.name or 'N/A',
+                'program': exam.program_id.name or (exam.section_id.program_id.name if exam.section_id else 'N/A'),
+                'department': exam.department_id.name or (exam.section_id.department_id.name if exam.section_id else 'Academic Department'),
+                'academic_period': period_label,
+                'teacher': teacher_label,
+                'teacher_name': exam.teacher_id.name or 'Teacher',
+                'teacher_code': exam.teacher_id.teacher_id or '',
+                'weight': f"{exam.weight_percent:.1f}%" if exam.weight_percent else 'N/A',
+                'exam_type': exam_type_label,
+                'exam_date_duration': date_duration_label,
+                'status': state_label,
+                'avg_score': exam.average_score or 0.0,
+                'pass_count': exam.pass_count or 0,
+                'fail_count': exam.fail_count or 0,
+                'student_count': exam.student_count or len(exam.score_ids),
+            }
 
-        full_marks = exam.max_score or 100.0
-        pass_marks = round(full_marks * 0.5, 2)
+            subjects = [exam.subject_id.name or 'Subject']
+            students = []
+            for score in exam.score_ids.sorted(key=lambda s: (s.student_code or '', s.student_id.name or '')):
+                students.append({
+                    'id': score.student_code or score.student_id.student_id or f'STU-{score.student_id.id}',
+                    'name': score.student_id.name or '',
+                    'is_absent': score.is_absent,
+                    'raw_score': score.score,
+                    'penalty': score.penalty_applied or 0.0,
+                    'final_score': score.final_score if not score.is_absent else 0.0,
+                    'percentage': score.percentage or 0.0,
+                    'remark': score.remark or '',
+                    'marks': [score.final_score if not score.is_absent else 0.0],
+                })
 
-        content = build_marksheet_xlsx(
-            title=exam.name or 'Student Examination Marksheet',
-            subtitle=f"{exam_type_label} Official Ledger",
-            full_marks=full_marks,
-            pass_marks=pass_marks,
-            subjects=subjects,
-            students=students,
-            exam_info=exam_info,
-        )
+            full_marks = exam.max_score or 100.0
+            pass_marks = round(full_marks * 0.5, 2)
+
+            content = build_marksheet_xlsx(
+                title=exam.name or 'Student Examination Marksheet',
+                subtitle=f"{exam_type_label} Official Ledger",
+                full_marks=full_marks,
+                pass_marks=pass_marks,
+                subjects=subjects,
+                students=students,
+                exam_info=exam_info,
+            )
 
         clean_name = "".join(c for c in (exam.name or f"exam_{exam_id}") if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
         filename = f"marksheet_{clean_name}_{exam_id}.xlsx"
@@ -429,5 +439,39 @@ class UniversityExamMarksheetController(http.Controller):
                 ('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
                 ('Content-Disposition', f'attachment; filename="{filename}"'),
                 ('Content-Length', str(len(content))),
+            ],
+        )
+
+    @http.route([
+        '/university/marksheet/<int:exam_id>/pdf',
+        '/university/marksheet/<int:exam_id>/download',
+    ],
+                type='http', auth='user', methods=['GET'])
+    def download_marksheet_pdf(self, exam_id, **kwargs):
+        exam = request.env['university.exam'].browse(exam_id).exists()
+        if not exam:
+            return request.not_found()
+        try:
+            exam.check_access('read')
+        except AccessError:
+            return request.not_found()
+
+        if hasattr(exam, '_log_download'):
+            exam._log_download(file_type='PDF')
+
+        pdf_content, _ct = request.env['ir.actions.report']._render_qweb_pdf(
+            'school_management.action_report_university_exam_marksheet',
+            res_ids=[exam.id],
+        )
+
+        clean_name = "".join(c for c in (exam.name or f"exam_{exam_id}") if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+        filename = f"marksheet_{clean_name}_{exam_id}.pdf"
+
+        return request.make_response(
+            pdf_content,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'attachment; filename="{filename}"'),
+                ('Content-Length', str(len(pdf_content))),
             ],
         )

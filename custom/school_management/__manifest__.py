@@ -12,6 +12,7 @@
         "portal",
         "web",
         "spreadsheet_dashboard",
+        "resource",
     ],
     "external_dependencies": {"python": ["xlsxwriter"]},
     "data": [
@@ -35,7 +36,6 @@
         "data/demo_attendance_links.xml",
         "data/exam_cron_data.xml",
         "data/ir_cron.xml",
-        "data/timetable_config_param.xml",
         "data/academic_spreadsheet_dashboard.xml",
 
         # Portal
@@ -156,7 +156,6 @@
              "school_management/static/src/attendance/attendance_comparison.xml",
             "school_management/static/src/attendance/attendance_reports.js",
              "school_management/static/src/attendance/attendance_reports.xml",
-            "school_management/static/src/scss/native_schedule.scss",
             "school_management/static/src/school_management/dashboard_shell.js",
             "school_management/static/src/school_management/dashboard_shell.xml",
             "school_management/static/src/school_management/dashboard_shell.scss",
@@ -167,11 +166,14 @@
             "school_management/static/src/school_management/teacher_dashboard_shell.js",
             "school_management/static/src/school_management/teacher_dashboard_shell.xml",
             "school_management/static/src/school_management/teacher_dashboard_shell.scss",
-            "school_management/static/src/schedule/university_schedule.js",
-            "school_management/static/src/schedule/university_schedule.xml",
-            "school_management/static/src/schedule/university_schedule.scss",
-            "school_management/static/src/timetable/timetable_popover.js",
-            "school_management/static/src/timetable/timetable_popover.xml",
+            "school_management/static/src/views/gantt/gantt_view.scss",
+            "school_management/static/src/views/gantt/gantt_arch_parser.js",
+            "school_management/static/src/views/gantt/gantt_model.js",
+            "school_management/static/src/views/gantt/gantt_renderer.js",
+            "school_management/static/src/views/gantt/gantt_renderer.xml",
+            "school_management/static/src/views/gantt/gantt_controller.js",
+            "school_management/static/src/views/gantt/gantt_controller.xml",
+            "school_management/static/src/views/gantt/gantt_view.js",
         ],
         "web.assets_frontend": [
             "school_management/static/src/scss/student_portal.scss",

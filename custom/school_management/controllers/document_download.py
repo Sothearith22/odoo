@@ -15,6 +15,7 @@ class UniversityDocumentDownloadController(http.Controller):
             'university.transcript',
             'university.transcript.request',
             'university.document',
+            'university.exam',
         ]
         document = None
         for m in models_to_check:
@@ -79,6 +80,15 @@ class UniversityDocumentDownloadController(http.Controller):
             return error
         if hasattr(document, '_log_download'):
             document._log_download(file_type='Excel')
+
+        if hasattr(document, '_generate_xlsx_bytes'):
+            content = document._generate_xlsx_bytes()
+            filename = f"{document._name.replace('.', '_')}_{document_id}.xlsx"
+            return self._file_response(
+                content,
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                filename,
+            )
 
         sheet_name, headers, rows = document._get_xlsx_data()
 
