@@ -365,7 +365,7 @@
 
                                         <div class="text-center pt-2 border-top">
                                             <button type="button" class="btn btn-link p-0 fw-semibold o_link_full_calendar text-decoration-none"
-                                                    t-on-click="() => this.setActiveTab('schedule')">
+                                                    t-on-click="() => this.openMyTimetableCalendar()">
                                                 Open full calendar
                                             </button>
                                         </div>
@@ -375,7 +375,7 @@
                                         <div class="d-flex align-items-center justify-content-between mb-3">
                                             <h3 class="o_admin_card_title mb-0">Campus notices</h3>
                                             <button type="button" class="btn btn-link p-0 fw-semibold o_link_view_all_notices text-decoration-none small"
-                                                    t-on-click="() => this.setActiveTab('notices')">View all</button>
+                                                    t-on-click="() => this.openNoticeBoardAction()">View all</button>
                                         </div>
                                         <div class="d-flex flex-column gap-3 o_campus_notices_list">
                                             <t t-foreach="this.campusNoticesItems" t-as="ntc" t-key="ntc.id">

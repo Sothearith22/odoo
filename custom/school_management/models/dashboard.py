@@ -152,6 +152,8 @@ class UniversityDashboard(models.Model):
             domain.append(("academic_year_id", "=", year_id))
         if semester_id and "semester_id" in model_fields:
             domain.append(("semester_id", "=", semester_id))
+        elif semester_id and "current_semester_id" in model_fields:
+            domain.append(("current_semester_id", "=", semester_id))
         return domain
 
     def _attendance_domain(self, year_id=False, semester_id=False):
@@ -178,7 +180,7 @@ class UniversityDashboard(models.Model):
                 counts[status] = count
         credited = counts["present"] + counts["late"] + counts["excused"]
         total = credited + counts["absent"]
-        return round(credited * 100.0 / total, 1) if total else 89.1
+        return round(credited * 100.0 / total, 1) if total else 0.0
 
     def _group_label(self, value):
         if hasattr(value, "display_name"):
@@ -842,54 +844,43 @@ class UniversityDashboard(models.Model):
         fee_domain = self._period_domain("university.fee", year_id, semester_id)
         payment_domain = self._period_domain("university.payment", year_id, semester_id)
 
-        raw_student_count = self._safe_count("university.student", student_domain)
-        student_count = raw_student_count if raw_student_count > 0 else 1248
+        student_count = self._safe_count("university.student", student_domain)
+        teacher_count = self._safe_count("university.teacher", [("active", "=", True)])
+        courses_count = self._safe_count("university.subject", [("active", "=", True)])
+        department_count = self._safe_count("university.department", [("active", "=", True)])
 
-        raw_teacher_count = self._safe_count("university.teacher", [("active", "=", True)])
-        teacher_count = raw_teacher_count if raw_teacher_count > 0 else 87
-
-        raw_courses_count = self._safe_count("university.subject", [("active", "=", True)])
-        courses_count = raw_courses_count if raw_courses_count > 0 else 142
-
-        raw_dept_count = self._safe_count("university.department", [("active", "=", True)])
-        department_count = raw_dept_count if raw_dept_count > 0 else 12
-
-        raw_pending_adm = self._safe_count(
+        pending_admission_count = self._safe_count(
             "university.admission.application", admission_domain + [("state", "=", "submitted")]
         )
-        pending_admission_count = raw_pending_adm if raw_pending_adm > 0 else 4
 
         conflict_domain = [("status", "=", "unresolved")]
         if year_id:
             conflict_domain.append(("academic_year_id", "=", year_id))
-        raw_conflicts_count = self._safe_count("university.timetable.conflict", conflict_domain)
-        schedule_conflicts_count = raw_conflicts_count if raw_conflicts_count > 0 else 1
+        schedule_conflicts_count = self._safe_count("university.timetable.conflict", conflict_domain)
 
         attendance_rate = self._get_attendance_rate(year_id, semester_id)
 
-        raw_total_paid = self._safe_sum(
+        total_paid = self._safe_sum(
             "university.payment", payment_domain + [("state", "=", "posted")], "amount"
         )
-        raw_total_unpaid = self._safe_sum(
+        total_unpaid = self._safe_sum(
             "university.fee",
             fee_domain + [("state", "=", "posted"), ("balance", ">", 0)],
             "balance",
         )
-        total_paid = raw_total_paid if raw_total_paid > 0 else 287520.0
-        total_unpaid = raw_total_unpaid if raw_total_unpaid > 0 else 14110.0
         tot_rev = total_paid + total_unpaid
-        coll_rate = round((total_paid * 100.0) / tot_rev, 1) if tot_rev else 90.0
+        coll_rate = round((total_paid * 100.0) / tot_rev, 1) if tot_rev else 0.0
 
-        currency_sym = self.env.company.currency_id.symbol or "$"
+        currency_sym = self.env.company.currency_id.symbol or ""
 
-        # 5 Top KPI Metric Cards (Matching User Mockup Image)
+        # KPI values and dashboard lists are derived from the current database.
         kpi_five = [
             {
                 "id": "total_students",
                 "category": "Total Students",
-                "value": "1,248",
-                "growth": "+12% from last semester",
-                "growth_type": "up",
+                "value": f"{student_count:,}",
+                "growth": "Current total",
+                "growth_type": "neutral",
                 "icon": "fa-users",
                 "color": "indigo",
                 "action": "openStudents",
@@ -897,9 +888,9 @@ class UniversityDashboard(models.Model):
             {
                 "id": "academic_staff",
                 "category": "Academic Staff",
-                "value": "87",
-                "growth": "+5% from last semester",
-                "growth_type": "up",
+                "value": f"{teacher_count:,}",
+                "growth": "Active staff",
+                "growth_type": "neutral",
                 "icon": "fa-user-tie",
                 "color": "teal",
                 "action": "openTeachers",
@@ -907,9 +898,9 @@ class UniversityDashboard(models.Model):
             {
                 "id": "total_courses",
                 "category": "Total Courses",
-                "value": "142",
-                "growth": "+3% from last semester",
-                "growth_type": "up",
+                "value": f"{courses_count:,}",
+                "growth": "Active courses",
+                "growth_type": "neutral",
                 "icon": "fa-book",
                 "color": "purple",
                 "action": "openSubjects",
@@ -917,8 +908,8 @@ class UniversityDashboard(models.Model):
             {
                 "id": "departments",
                 "category": "Departments",
-                "value": str(department_count or 12),
-                "growth": "No change",
+                "value": f"{department_count:,}",
+                "growth": "Active departments",
                 "growth_type": "neutral",
                 "icon": "fa-building-o",
                 "color": "amber",
@@ -927,125 +918,103 @@ class UniversityDashboard(models.Model):
             {
                 "id": "tuition_fee",
                 "category": "Tuition Fee Collected",
-                "value": f"{currency_sym} 287,520",
-                "growth": "+15% from last semester",
-                "growth_type": "up",
+                "value": f"{currency_sym} {total_paid:,.2f}",
+                "growth": "Posted payments",
+                "growth_type": "neutral",
                 "icon": "fa-credit-card",
                 "color": "emerald",
                 "action": "openFees",
             },
         ]
 
-        # Recent Enrollments Table Data (5 rows matching mockup)
+        enrollment_domain = self._period_domain("university.enrollment", year_id, semester_id)
+        enrollment_model = self.env["university.enrollment"].sudo()
+        recent_records = enrollment_model.search(
+            enrollment_domain,
+            order="enrollment_date desc, id desc",
+            limit=5,
+        )
+        enrollment_status_labels = dict(enrollment_model._fields["status"].selection)
         recent_enrollments = [
             {
-                "id": 1,
-                "student_id": "STU0001",
-                "name": "Sok Chenda",
-                "department": "Computer Science",
-                "status": "Active",
-                "status_class": "bg-success-subtle text-success border border-success-subtle",
-                "date": "2026-08-25",
-            },
-            {
-                "id": 2,
-                "student_id": "STU0002",
-                "name": "Vannak Chan",
-                "department": "Engineering",
-                "status": "Active",
-                "status_class": "bg-success-subtle text-success border border-success-subtle",
-                "date": "2026-08-24",
-            },
-            {
-                "id": 3,
-                "student_id": "STU0003",
-                "name": "Pheaktra K.",
-                "department": "Business Admin",
-                "status": "Active",
-                "status_class": "bg-success-subtle text-success border border-success-subtle",
-                "date": "2026-08-24",
-            },
-            {
-                "id": 4,
-                "student_id": "STU0004",
-                "name": "Sreypov Heng",
-                "department": "Data Science",
-                "status": "Pending",
-                "status_class": "bg-warning-subtle text-warning border border-warning-subtle",
-                "date": "2026-08-23",
-            },
-            {
-                "id": 5,
-                "student_id": "STU0005",
-                "name": "Vicheka Men",
-                "department": "Clinical Medicine",
-                "status": "Active",
-                "status_class": "bg-success-subtle text-success border border-success-subtle",
-                "date": "2026-08-22",
-            },
+                "id": enrollment.student_id.id,
+                "enrollment_id": enrollment.id,
+                "student_id": enrollment.student_id.student_id or str(enrollment.student_id.id),
+                "name": enrollment.student_id.display_name,
+                "department": enrollment.department_id.display_name or "",
+                "status": enrollment_status_labels.get(enrollment.status, enrollment.status),
+                "date": fields.Date.to_string(enrollment.enrollment_date) if enrollment.enrollment_date else "",
+            }
+            for enrollment in recent_records
         ]
 
-        # Top Departments Ranked by Students
+        department_rows = self._safe_read_group(
+            "university.student",
+            student_domain + [("department_id", "!=", False)],
+            ["department_id"],
+            ["__count"],
+        )
+        department_rows.sort(key=lambda row: row[1], reverse=True)
+        department_rows = department_rows[:5]
+        top_department_count = max((row[1] for row in department_rows), default=0)
         top_departments = [
-            {"name": "Computer Science", "count": 320, "percentage": 100, "color": "#4f46e5"},
-            {"name": "Engineering", "count": 248, "percentage": 78, "color": "#3b82f6"},
-            {"name": "Business Administration", "count": 212, "percentage": 66, "color": "#06b6d4"},
-            {"name": "Clinical Medicine", "count": 180, "percentage": 56, "color": "#10b981"},
-            {"name": "Science & Humanities", "count": 142, "percentage": 44, "color": "#f59e0b"},
+            {
+                "name": self._group_label(row[0]),
+                "count": row[1],
+                "percentage": round(row[1] * 100.0 / top_department_count) if top_department_count else 0,
+                "color": prog_palette[index % len(prog_palette)],
+            }
+            for index, row in enumerate(department_rows)
         ]
 
-        # Low GPA Students Alert
+        low_gpa_count = self._safe_count(
+            "university.student",
+            student_domain + [("gpa", ">", 0), ("gpa", "<", 2.0)],
+        )
         low_gpa_alert = {
-            "count": 18,
+            "count": low_gpa_count,
             "title": "Low GPA Students",
             "badge": "Need Review",
-            "description": "18 Students with GPA < 2.0 need academic advising",
+            "description": _("%(count)s students with GPA below 2.0 need academic advising", count=low_gpa_count),
             "btn_label": "Review Advisees",
             "action": "openStudents",
         }
 
-        # Upcoming Events & Deadlines
-        upcoming_events = [
-            {
-                "title": "Midterm Examination",
-                "scope": "All Departments • 08:00 AM",
-                "date": "Nov 15",
+        upcoming_exam_domain = [("exam_date", ">=", today_date)]
+        if year_id:
+            upcoming_exam_domain.append(("academic_year_id", "=", year_id))
+        if semester_id:
+            upcoming_exam_domain.append(("semester_id", "=", semester_id))
+        upcoming_events = []
+        upcoming_exams = self.env["university.exam"].sudo().search(
+            upcoming_exam_domain,
+            order="exam_date, start_time, id",
+            limit=4,
+        )
+        for exam in upcoming_exams:
+            scope = exam.department_id.display_name or exam.section_id.display_name
+            if exam.start_time:
+                exam_time = fields.Datetime.context_timestamp(self, exam.start_time).strftime("%H:%M")
+                scope = f"{scope} · {exam_time}" if scope else exam_time
+            upcoming_events.append({
+                "title": exam.display_name,
+                "scope": scope or "",
+                "date": fields.Date.to_string(exam.exam_date) if exam.exam_date else "",
                 "icon": "fa-calendar-check-o",
                 "icon_color": "text-primary",
                 "bg_color": "bg-primary-subtle",
-            },
-            {
-                "title": "Tuition Fee Deadline",
-                "scope": "Finance Office • 11:59 PM",
-                "date": "Nov 20",
-                "icon": "fa-clock-o",
-                "icon_color": "text-danger",
-                "bg_color": "bg-danger-subtle",
-            },
-            {
-                "title": "Student Registration (Next Sem)",
-                "scope": "Registrar Office • 09:00 AM",
-                "date": "Dec 01",
-                "icon": "fa-pencil-square-o",
-                "icon_color": "text-info",
-                "bg_color": "bg-info-subtle",
-            },
-            {
-                "title": "Academic Committee Meeting",
-                "scope": "Conference Room A • 02:00 PM",
-                "date": "Dec 05",
-                "icon": "fa-users",
-                "icon_color": "text-purple",
-                "bg_color": "bg-purple-subtle",
-            },
-        ]
+            })
 
-        # Pending Reports Banner
+        report_domain = self._period_domain("university.report.card", year_id, semester_id)
+        pending_report_count = self._safe_count(
+            "university.report.card",
+            report_domain + [("state", "=", "generated")],
+        )
         pending_reports = {
-            "count": 7,
+            "count": pending_report_count,
             "title": "Pending Reports",
             "badge": "Action Required",
-            "description": "7 reports awaiting administrative review & signature",
+            "description": _("%(count)s generated reports awaiting approval", count=pending_report_count),
             "btn_label": "Review Reports",
             "action": "openReports",
         }
@@ -1107,16 +1076,16 @@ class UniversityDashboard(models.Model):
                     "students": {
                         "label": "Enrolled Students",
                         "value": student_count,
-                        "target": 1500,
-                        "growth": "+8.2% vs last sem",
-                        "progress": min(round((student_count / 1500.0) * 100, 1), 100),
+                        "target": 0,
+                        "growth": "Current total",
+                        "progress": 0,
                     },
                     "staff": {
                         "label": "Academic Staff",
                         "value": teacher_count,
-                        "target": 120,
-                        "growth": "+4.5% vs last sem",
-                        "progress": min(round((teacher_count / 120.0) * 100, 1), 100),
+                        "target": 0,
+                        "growth": "Active staff",
+                        "progress": 0,
                     },
                 },
                 "performance": {
@@ -1126,9 +1095,9 @@ class UniversityDashboard(models.Model):
                     "action": "openAttendance",
                     "attendance_rate": attendance_rate,
                     "label": "Attendance Rate",
-                    "target": "> 75%",
-                    "growth": "+14.1% Above Target",
-                    "status": "healthy",
+                    "target": "",
+                    "growth": "Recorded attendance",
+                    "status": _("Based on recorded attendance"),
                     "progress": attendance_rate,
                 },
                 "financials": {
@@ -1138,9 +1107,9 @@ class UniversityDashboard(models.Model):
                     "action": "openFees",
                     "collected": total_paid,
                     "label": "Tuition Collection",
-                    "target_rate": f"{int(coll_rate)}% Collected",
+                    "target_rate": f"{coll_rate}% collected",
                     "projected": tot_rev,
-                    "sub_label": "Total Invoiced",
+                    "sub_label": "Posted payments + outstanding fees",
                     "progress": coll_rate,
                 },
                 "admissions": {
@@ -1150,38 +1119,50 @@ class UniversityDashboard(models.Model):
                     "action": "openAdmissions",
                     "label": "Pending Reviews",
                     "pending": pending_admission_count,
-                    "target": "Action required",
-                    "status": "Action required",
-                    "sub_label": "Awaiting Registrar",
-                    "progress": 75.0,
+                    "target": _("Awaiting review"),
+                    "status": _("Review queue"),
+                    "sub_label": _("Submitted applications"),
+                    "progress": 0,
                 },
             },
         }
 
-        # Student Status Breakdown Data (Matching Mockup: Active 973 (78%), Graduated 125 (10%), Suspended 100 (8%), Dropped 50 (4%))
+        student_model = self.env["university.student"].sudo()
+        status_rows = self._safe_read_group(
+            "university.student",
+            student_domain,
+            ["status"],
+            ["__count"],
+        )
+        status_labels = dict(student_model._fields["status"].selection)
+        status_total = sum(count for _status, count in status_rows)
+        status_colors = ["#10b981", "#6366f1", "#f59e0b", "#ef4444", "#06b6d4", "#64748b"]
         student_status_breakdown = [
-            {"name": "Active", "count": 973, "percentage": 78, "color": "#10b981", "badge_class": "bg-success-subtle text-success"},
-            {"name": "Graduated", "count": 125, "percentage": 10, "color": "#6366f1", "badge_class": "bg-indigo-subtle text-indigo"},
-            {"name": "Suspended", "count": 100, "percentage": 8, "color": "#f59e0b", "badge_class": "bg-warning-subtle text-warning"},
-            {"name": "Dropped", "count": 50, "percentage": 4, "color": "#ef4444", "badge_class": "bg-danger-subtle text-danger"},
+            {
+                "name": status_labels.get(status, self._group_label(status)),
+                "count": count,
+                "percentage": round(count * 100.0 / status_total) if status_total else 0,
+                "color": status_colors[index % len(status_colors)],
+            }
+            for index, (status, count) in enumerate(status_rows)
         ]
 
-        # Enrollment Trend (Area/Line chart matching mockup)
+        trend_rows = self._safe_read_group(
+            "university.enrollment",
+            [("semester_id", "!=", False)],
+            ["semester_id"],
+            ["__count"],
+        )
+        trend_rows.sort(key=lambda row: (row[0].date_start or date.min, row[0].id))
+        trend_rows = trend_rows[-6:]
         enrollment_trend = {
-            "labels": ["2023-S1", "2023-S2", "2024-S1", "2024-S2", "2025-S1", "2026-S1"],
-            "data": [940, 1020, 1080, 1150, 1200, 1248],
-            "current_total": 1248,
-            "active_badge": "1,248 Active",
+            "labels": [semester.display_name for semester, _count in trend_rows],
+            "data": [count for _semester, count in trend_rows],
+            "current_total": student_count,
+            "active_badge": _("%(count)s students", count=f"{student_count:,}"),
         }
 
-        # Program Breakdown fallback for compatibility
-        program_breakdown = [
-            {"name": "Computer Science", "count": 320, "percentage": 26, "color": "#4f46e5"},
-            {"name": "Engineering", "count": 248, "percentage": 20, "color": "#3b82f6"},
-            {"name": "Business Administration", "count": 212, "percentage": 17, "color": "#06b6d4"},
-            {"name": "Clinical Medicine", "count": 180, "percentage": 14, "color": "#10b981"},
-            {"name": "Science & Humanities", "count": 142, "percentage": 11, "color": "#f59e0b"},
-        ]
+        program_breakdown = top_departments
 
         return {
             "dashboard": dashboard,
@@ -1190,14 +1171,14 @@ class UniversityDashboard(models.Model):
             "chart_data": {
                 "enrollment_trend": enrollment_trend,
                 "student_status": {
-                    "total": 1248,
+                    "total": student_count,
                     "labels": [s["name"] for s in student_status_breakdown],
                     "data": [s["count"] for s in student_status_breakdown],
                     "colors": [s["color"] for s in student_status_breakdown],
                     "breakdown": student_status_breakdown,
                 },
                 "trend_title": "Enrollment Trend",
-                "trend_subtitle": "Total students per semester",
+                "trend_subtitle": "Enrollment records per semester",
                 "distribution_title": "Student Status",
                 "distribution_subtitle": "Current academic status of all students",
                 "program_distribution": {

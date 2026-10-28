@@ -313,6 +313,10 @@ class SchoolDashboardShell extends Component {
         this.navigate("school_management.action_university_report_card");
     }
 
+    openExams() {
+        this.navigate("school_management.action_university_exam");
+    }
+
     quickTimetable() {
         this.action.doAction("school_management.action_university_schedule_view");
     }
@@ -335,7 +339,7 @@ class SchoolDashboardShell extends Component {
 
     formatCurrency(amount) {
         const val = Number(amount) || 0;
-        const symbol = this.state.dashboard?.currency_symbol || "$";
+        const symbol = this.state.dashboard?.currency_symbol || "";
         return symbol + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
 
@@ -383,14 +387,7 @@ class SchoolDashboardShell extends Component {
     }
 
     get lowGpaAlert() {
-        return this.state.dashboard?.low_gpa_alert || {
-            count: 18,
-            title: "Low GPA Students",
-            badge: "Need Review",
-            description: "18 Students with GPA < 2.0 need academic advising",
-            btn_label: "Review Advisees",
-            action: "openStudents",
-        };
+        return this.state.dashboard?.low_gpa_alert || {};
     }
 
     get upcomingEvents() {
@@ -398,35 +395,23 @@ class SchoolDashboardShell extends Component {
     }
 
     get pendingReports() {
-        return this.state.dashboard?.pending_reports || {
-            count: 7,
-            title: "Pending Reports",
-            badge: "Action Required",
-            description: "7 reports awaiting administrative review & signature",
-            btn_label: "Review Reports",
-            action: "openReports",
-        };
+        return this.state.dashboard?.pending_reports || {};
     }
 
     get studentStatusBreakdown() {
-        return this.state.chartData?.student_status?.breakdown || [
-            { name: "Active", count: 973, percentage: 78, color: "#10b981", badge_class: "bg-success-subtle text-success" },
-            { name: "Graduated", count: 125, percentage: 10, color: "#6366f1", badge_class: "bg-indigo-subtle text-indigo" },
-            { name: "Suspended", count: 100, percentage: 8, color: "#f59e0b", badge_class: "bg-warning-subtle text-warning" },
-            { name: "Dropped", count: 50, percentage: 4, color: "#ef4444", badge_class: "bg-danger-subtle text-danger" },
-        ];
+        return this.state.chartData?.student_status?.breakdown || [];
     }
 
     get enrollmentActiveBadge() {
-        return this.state.chartData?.enrollment_trend?.active_badge || "1,248 Active";
+        return this.state.chartData?.enrollment_trend?.active_badge || "";
     }
 
     get userGreeting() {
-        return this.state.dashboard?.user_greeting || "Good morning, Sothearith Kim";
+        return this.state.dashboard?.user_greeting || "";
     }
 
     get userName() {
-        return this.state.dashboard?.user_name || "Sothearith Kim";
+        return this.state.dashboard?.user_name || "";
     }
 
     get subtitle() {
@@ -683,14 +668,14 @@ class SchoolDashboardShell extends Component {
                 id: "tasks",
                 label: "Tasks",
                 items: [
-                    { id: "needs_action", label: "Needs action", iconSvg: "approvals", badge: "6", badgeClass: "o_badge_red", dotClass: "o_dot_red", isActive: activeNav === "needs_action" },
+                    { id: "needs_action", label: "Needs action", iconSvg: "approvals", isActive: activeNav === "needs_action" },
                 ],
             },
             {
                 id: "people",
                 label: "People",
                 items: [
-                    { id: "users_roles", label: "Users & roles", iconSvg: "users", badge: "12", badgeClass: "o_badge_teal_solid", dotClass: "o_dot_teal", isActive: activeNav === "users_roles" },
+                    { id: "users_roles", label: "Users & roles", iconSvg: "users", isActive: activeNav === "users_roles" },
                 ],
             },
             {
@@ -736,7 +721,7 @@ class SchoolDashboardShell extends Component {
                     label: stu.label || "Enrolled Students",
                     value: this.formatNumber(stu.value || 0),
                     targetText: `/ Target ${this.formatNumber(stu.target || 0)}`,
-                    growthText: stu.growth || "+8.2%",
+                    growthText: stu.growth || "",
                     growthClass: "bg-success-subtle text-success",
                     progress: stu.progress || 0,
                 },
@@ -744,7 +729,7 @@ class SchoolDashboardShell extends Component {
                     label: staff.label || "Academic Staff",
                     value: this.formatNumber(staff.value || 0),
                     targetText: `/ Target ${this.formatNumber(staff.target || 0)}`,
-                    statusText: staff.growth || "+4.5%",
+                    statusText: staff.growth || "",
                     statusClass: "bg-success-subtle text-success",
                 },
             });
@@ -762,15 +747,15 @@ class SchoolDashboardShell extends Component {
                 metric1: {
                     label: p.label || "Attendance Rate",
                     value: `${p.attendance_rate || 0}%`,
-                    targetText: `Target: ${p.target || "> 75%"}`,
-                    growthText: p.growth || "+14.1% Above Target",
+                    targetText: p.target ? `Target: ${p.target}` : "",
+                    growthText: p.growth || "",
                     growthClass: "bg-success-subtle text-success",
                     progress: p.progress || p.attendance_rate || 0,
                 },
                 metric2: {
                     label: "Health Status",
-                    value: "Optimal",
-                    statusText: "Healthy",
+                    value: p.status || "",
+                    statusText: "",
                     statusClass: "bg-success-subtle text-success",
                 },
             });
@@ -792,7 +777,7 @@ class SchoolDashboardShell extends Component {
                     label: f.label || "Tuition Collection",
                     value: valFormatted,
                     targetText: "",
-                    growthText: f.target_rate || "90% Collected",
+                    growthText: f.target_rate || "",
                     growthClass: f.color === "warning" ? "bg-warning text-dark" : "bg-success text-white",
                     progress: f.progress || 0,
                 },
@@ -817,14 +802,14 @@ class SchoolDashboardShell extends Component {
                     label: a.label || "Pending Reviews",
                     value: this.formatNumber(a.pending || 0),
                     targetText: "",
-                    growthText: a.target || "Action required",
+                    growthText: a.target || "",
                     growthClass: a.color === "info" ? "bg-info-subtle text-info" : "bg-danger-subtle text-danger",
-                    progress: a.progress || 75,
+                    progress: a.progress || 0,
                 },
                 metric2: {
                     label: a.sub_label || "Awaiting Review",
                     value: a.status || "Action required",
-                    statusText: "View List →",
+                    statusText: "",
                     statusClass: "bg-white text-primary border",
                 },
             });
@@ -886,15 +871,13 @@ class SchoolDashboardShell extends Component {
 
         // 1. Enrollment Overview / Trend Chart (Smooth Curved Area/Line Chart matching Mockup)
         if (this.chartEnrollmentRef.el) {
-            const trend = this.state.chartData.enrollment_trend || {
-                labels: ["2023-S1", "2023-S2", "2024-S1", "2024-S2", "2025-S1", "2026-S1"],
-                data: [940, 1020, 1080, 1150, 1200, 1248],
-            };
+            const trend = this.state.chartData.enrollment_trend || { labels: [], data: [] };
+            const trendData = trend.data || [];
             const ctxEnrollment = this.chartEnrollmentRef.el.getContext("2d");
-            const maxVal = Math.max(...trend.data, 20);
+            const maxVal = Math.max(...trendData, 20);
             const ySuggestedMax = Math.ceil((maxVal * 1.15) / 100) * 100;
-            const minVal = Math.min(...trend.data);
-            const ySuggestedMin = Math.max(0, Math.floor((minVal * 0.85) / 100) * 100);
+            const minVal = trendData.length ? Math.min(...trendData) : 0;
+            const ySuggestedMin = trendData.length ? Math.max(0, Math.floor((minVal * 0.85) / 100) * 100) : 0;
 
             // Subtle gradient fill under the line
             const gradient = ctxEnrollment.createLinearGradient(0, 0, 0, 260);
@@ -907,7 +890,7 @@ class SchoolDashboardShell extends Component {
                     labels: trend.labels,
                     datasets: [{
                         label: "Enrolled Students",
-                        data: trend.data,
+                        data: trendData,
                         borderColor: "#4f46e5",
                         borderWidth: 3,
                         backgroundColor: gradient,
@@ -974,10 +957,10 @@ class SchoolDashboardShell extends Component {
             const statusData = this.state.chartData.student_status;
             const progData = this.state.chartData.program_distribution;
 
-            const labels = statusData?.labels || progData?.labels || ["Active", "Graduated", "Suspended", "Dropped"];
-            const dataVals = statusData?.data || progData?.data || [973, 125, 100, 50];
-            const colors = statusData?.colors || progData?.colors || ["#10b981", "#6366f1", "#f59e0b", "#ef4444"];
-            const totalCount = statusData?.total || this.state.dashboard?.student_count || 1248;
+            const labels = statusData?.labels || progData?.labels || [];
+            const dataVals = statusData?.data || progData?.data || [];
+            const colors = statusData?.colors || progData?.colors || [];
+            const totalCount = statusData?.total ?? this.state.dashboard?.student_count ?? 0;
 
             const ctxStatus = targetStatusEl.getContext("2d");
 

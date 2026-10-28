@@ -18,6 +18,7 @@
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_school_dashboard_shell"/>
         <field name="sequence">10</field>
+        <field name="active" eval="True"/>
         <field name="group_ids" eval="[(6, 0, [
             ref('school_management.group_school_admin'),
             ref('school_management.group_school_registrar'),
@@ -43,7 +44,7 @@
         <field name="parent_id" ref="menu_school_root"/>
         <field name="action" ref="action_teacher_dashboard_shell"/>
         <field name="sequence">10</field>
-        <field name="active" eval="True"/>
+        <field name="active" eval="False"/>
         <field name="group_ids" eval="[(6, 0, [
             ref('school_management.group_teacher_dashboard'),
             ref('school_management.group_school_teacher'),
@@ -514,6 +515,7 @@
         action="action_university_academic_assignment"
         sequence="30"
         groups="school_management.group_school_hod,school_management.group_school_admin,base.group_system"
+        active="False"
     />
 
     <!-- Submenu: Staff Management -->

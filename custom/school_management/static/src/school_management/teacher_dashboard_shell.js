@@ -4,6 +4,7 @@ import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState } fr
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { user } from "@web/core/user";
 
 // Inline plugin drawing the center label & percentage in the doughnut chart
 const doughnutCenterText = {
@@ -42,7 +43,6 @@ export class TeacherDashboardShell extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-        this.user = useService("user");
 
         this.chartTrendRef = useRef("chart_attendance_trend");
         this.chartStatusRef = useRef("chart_attendance_status");
@@ -66,14 +66,12 @@ export class TeacherDashboardShell extends Component {
 
         onWillStart(async () => {
             try {
-                const isAdminOrLeadership = (await this.user.hasGroup("school_management.group_school_admin")) ||
-                                            (await this.user.hasGroup("base.group_system")) ||
-                                            (await this.user.hasGroup("school_management.group_school_registrar")) ||
-                                            (await this.user.hasGroup("school_management.group_school_hod")) ||
-                                            (await this.user.hasGroup("school_management.group_school_dean"));
-                const isTeacher = (await this.user.hasGroup("school_management.group_school_teacher")) ||
-                                  (await this.user.hasGroup("school_management.group_university_teacher"));
-                if (isAdminOrLeadership && !isTeacher) {
+                const isAdminOrLeadership = (await user.hasGroup("school_management.group_school_admin")) ||
+                                            (await user.hasGroup("base.group_system")) ||
+                                            (await user.hasGroup("school_management.group_school_registrar")) ||
+                                            (await user.hasGroup("school_management.group_school_hod")) ||
+                                            (await user.hasGroup("school_management.group_school_dean"));
+                if (isAdminOrLeadership) {
                     await this.action.doAction("school_management.action_school_dashboard_shell", {
                         clearBreadcrumbs: true,
                     });

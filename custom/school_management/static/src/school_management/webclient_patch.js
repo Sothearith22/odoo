@@ -297,10 +297,23 @@ patch(WebClient.prototype, {
         // A real loaded action or an explicit dashboard action owns the route.
         if (isDashboardAction || actionLoaded) {
             const isStudent = await user.hasGroup(STUDENT_GROUP_XMLID);
+            const isAdminOrLeadership =
+                (await user.hasGroup("base.group_system")) ||
+                (await user.hasGroup("school_management.group_school_admin")) ||
+                (await user.hasGroup("school_management.group_school_registrar")) ||
+                (await user.hasGroup("school_management.group_school_hod")) ||
+                (await user.hasGroup("school_management.group_school_dean"));
             const isStaff = (await user.hasGroup(STAFF_GROUP_XMLID)) ||
                             (await user.hasGroup("school_management.group_school_admin")) ||
                             (await user.hasGroup("base.group_system")) ||
                             (await user.hasGroup("school_management.group_school_registrar"));
+            if (
+                isAdminOrLeadership &&
+                (currentAction.tag === TEACHER_DASHBOARD_TAG || currentAction.xml_id === TEACHER_ACTION_XMLID)
+            ) {
+                await this.actionService.doAction(SCHOOL_DASHBOARD_XMLID, { clearBreadcrumbs: true });
+                return;
+            }
             if (isStudent && !isStaff) {
                 if (currentAction.tag === SCHOOL_DASHBOARD_TAG || currentAction.xml_id === SCHOOL_DASHBOARD_XMLID) {
                     await this.actionService.doAction(STUDENT_ACTION_XMLID, { clearBreadcrumbs: true });
@@ -312,16 +325,21 @@ patch(WebClient.prototype, {
 
         this.dashboardRedirecting = true;
         try {
-            const isHod = await user.hasGroup("school_management.group_school_hod");
-            const isDean = await user.hasGroup("school_management.group_school_dean");
-            const isAdmin = (await user.hasGroup("base.group_system")) || (await user.hasGroup("school_management.group_school_admin"));
-            const isTeacher = await user.hasGroup("school_management.group_school_teacher");
+            const isAdminOrLeadership =
+                (await user.hasGroup("base.group_system")) ||
+                (await user.hasGroup("school_management.group_school_admin")) ||
+                (await user.hasGroup("school_management.group_school_registrar")) ||
+                (await user.hasGroup("school_management.group_school_hod")) ||
+                (await user.hasGroup("school_management.group_school_dean"));
+            const isTeacher =
+                (await user.hasGroup("school_management.group_school_teacher")) ||
+                (await user.hasGroup("school_management.group_university_teacher"));
             const isStudent = await user.hasGroup(STUDENT_GROUP_XMLID);
 
             let targetAction = SCHOOL_DASHBOARD_XMLID;
-            if (isStudent && !isAdmin && !isTeacher) {
+            if (isStudent && !isAdminOrLeadership && !isTeacher) {
                 targetAction = STUDENT_ACTION_XMLID;
-            } else if (isTeacher && !isAdmin && !isDean && !isHod) {
+            } else if (isTeacher && !isAdminOrLeadership) {
                 targetAction = TEACHER_ACTION_XMLID;
             }
 

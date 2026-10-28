@@ -16,7 +16,7 @@
             <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
 
               <div class="o_exec_header_left min-w-0">
-                <h1 class="o_exec_title h4 fw-semibold text-dark text-truncate mb-1" t-esc="this.userGreeting">Good morning, Admin</h1>
+                <h1 class="o_exec_title h4 fw-semibold text-dark text-truncate mb-1" t-esc="this.userGreeting"/>
                 <p class="o_exec_subtitle text-muted small mb-0">University Management System · Overview</p>
               </div>
 
@@ -27,7 +27,7 @@
                   <t t-foreach="state.filterOptions.academicYears" t-as="year" t-key="year.id">
                     <option t-att-value="year.id" t-esc="year.name"/>
                   </t>
-                  <option t-if="!state.filterOptions.academicYears.length" value="" selected="1">2026 - 2027</option>
+                  <option t-if="!state.filterOptions.academicYears.length" value="" selected="1">No academic years</option>
                 </select>
 
                 <select class="form-select form-select-sm w-auto"
@@ -36,7 +36,7 @@
                   <t t-foreach="state.filterOptions.semesters" t-as="sem" t-key="sem.id">
                     <option t-att-value="sem.id" t-esc="sem.name"/>
                   </t>
-                  <option t-if="!state.filterOptions.semesters.length" value="" selected="1">Sem 1</option>
+                  <option t-if="!state.filterOptions.semesters.length" value="" selected="1">No semesters</option>
                 </select>
 
                 <button class="btn btn-sm btn-outline-secondary o_btn_refresh"
@@ -98,8 +98,8 @@
                     <div class="o_chart_card o_trend_chart_card p-4 bg-white border rounded-3 h-100 d-flex flex-column">
                       <div class="d-flex align-items-start justify-content-between mb-3 gap-2">
                         <div>
-                          <h3 class="o_card_title h6 fw-semibold text-dark mb-1">Enrollment Trend</h3>
-                          <p class="o_card_subtitle small text-muted mb-0">Total students per semester</p>
+                          <h3 class="o_card_title h6 fw-semibold text-dark mb-1" t-esc="this.trendTitle"/>
+                          <p class="o_card_subtitle small text-muted mb-0" t-esc="this.trendSubtitle"/>
                         </div>
                         <span class="small text-muted" t-esc="this.enrollmentActiveBadge"/>
                       </div>
@@ -164,7 +164,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <t t-foreach="this.recentEnrollments" t-as="row" t-key="row.student_id">
+                            <t t-foreach="this.recentEnrollments" t-as="row" t-key="row.enrollment_id">
                               <tr role="button" t-on-click="() => this.openStudentDetails(row.id)">
                                 <td class="small text-muted" t-esc="row.student_id"/>
                                 <td class="small text-dark text-truncate" style="max-width: 90px;" t-esc="row.name"/>
@@ -233,6 +233,12 @@
                             <span class="small text-muted text-nowrap ms-2" t-esc="evt.date"/>
                           </li>
                         </t>
+                        <li t-if="!this.upcomingEvents.length" class="small text-muted py-3">
+                          No upcoming exams scheduled for this academic period.
+                          <button type="button" class="btn btn-link btn-sm p-0 ms-1" t-on-click="() => this.openExams()">
+                            View exams
+                          </button>
+                        </li>
                       </ul>
 
                       <div class="o_pending_reports_banner mt-auto p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between gap-3">
