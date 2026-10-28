@@ -40,7 +40,7 @@
 
                 <button class="btn btn-sm btn-outline-secondary o_btn_refresh"
                         type="button"
-                        t-att-class="{ 'is-refreshing': state.isRefreshing }"
+                        t-att-class="{ 'is-2222222': state.isRefreshing }"
                         t-on-click="() => this.reload()"
                         title="Refresh">
                   <i class="fa fa-refresh" aria-hidden="true"></i>

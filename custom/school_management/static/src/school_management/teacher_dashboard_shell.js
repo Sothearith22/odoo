@@ -42,6 +42,7 @@ export class TeacherDashboardShell extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.user = useService("user");
 
         this.chartTrendRef = useRef("chart_attendance_trend");
         this.chartStatusRef = useRef("chart_attendance_status");
@@ -65,6 +66,20 @@ export class TeacherDashboardShell extends Component {
 
         onWillStart(async () => {
             try {
+                const isAdminOrLeadership = (await this.user.hasGroup("school_management.group_school_admin")) ||
+                                            (await this.user.hasGroup("base.group_system")) ||
+                                            (await this.user.hasGroup("school_management.group_school_registrar")) ||
+                                            (await this.user.hasGroup("school_management.group_school_hod")) ||
+                                            (await this.user.hasGroup("school_management.group_school_dean"));
+                const isTeacher = (await this.user.hasGroup("school_management.group_school_teacher")) ||
+                                  (await this.user.hasGroup("school_management.group_university_teacher"));
+                if (isAdminOrLeadership && !isTeacher) {
+                    await this.action.doAction("school_management.action_school_dashboard_shell", {
+                        clearBreadcrumbs: true,
+                    });
+                    return;
+                }
+
                 // Consolidated single-pass initialization
                 await Promise.all([
                     loadBundle("web.chartjs_lib"),

@@ -29,6 +29,10 @@ class UniversitySemester(models.Model):
         "UNIQUE(academic_year_id, semester_type)",
         "Only one semester of each type is allowed per academic year.",
     )
+    _current_semester_per_year = models.UniqueIndex(
+        "(academic_year_id) WHERE is_current",
+        "Only one semester can be marked as current per academic year.",
+    )
 
     name = fields.Char(
         string="Semester Name",
@@ -74,6 +78,16 @@ class UniversitySemester(models.Model):
         search='search_is_active',
         help="True when today's date falls within the semester start and end dates.",
     )
+    status = fields.Boolean(
+        string="Current Semester",
+        compute="_compute_status",
+        default=False,
+        help="True when today's date falls within the active semester dates.",
+    )
+    is_current = fields.Boolean(
+        string="Current Semester",
+        default=False,
+    )
     semester_subject_ids = fields.One2many(
         "university.semester.subject", "semester_id", string="Offered Subjects"
     )
@@ -98,6 +112,20 @@ class UniversitySemester(models.Model):
         string="Rooms Count", compute="_compute_metrics"
     )
     active = fields.Boolean(string="Active", default=True)
+
+
+    @api.depends("date_start", "date_end", "active")
+    def _compute_status(self):
+        today = fields.Date.today()
+        for rec in self:
+            is_active_period = False
+            if rec.active and rec.date_start and rec.date_end:
+                is_active_period = (
+                    rec.date_start <= rec.date_end
+                    and rec.date_start <= today <= rec.date_end
+                )
+            rec.status = is_active_period
+
 
     @api.depends("semester_type")
     def _compute_name(self):

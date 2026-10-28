@@ -1,7 +1,9 @@
+from datetime import timedelta
 from uuid import uuid4
 
 from psycopg2 import IntegrityError
 
+from odoo import fields
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 
@@ -68,6 +70,29 @@ class TestSemesterSubject(TransactionCase):
         }
         offering_values.update(values)
         return model.create(offering_values)
+
+    def test_current_semester_is_searchable_and_unique_per_year(self):
+        today = fields.Date.today()
+        year = self.AcademicYear.create({
+            "name": "Current Semester Test Year %s" % uuid4().hex,
+            "date_start": today - timedelta(days=180),
+            "date_end": today + timedelta(days=180),
+            "active": False,
+        })
+        semester = self.Semester.create({
+            "academic_year_id": year.id,
+            "semester_type": "semester_1",
+            "date_start": today - timedelta(days=56),
+            "date_end": today + timedelta(days=56),
+            "is_current": True,
+        })
+
+        current_semesters = self.Semester.search([
+            ("academic_year_id", "=", year.id),
+            ("is_current", "=", True),
+        ])
+        self.assertEqual(current_semesters, semester)
+        self.assertTrue(semester.status)
 
     def test_create_in_open_year_preserves_derived_relationships(self):
         subject = self._subject("Open")

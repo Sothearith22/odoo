@@ -1,9 +1,39 @@
 /** @odoo-module **/
 
-import { Component, onWillStart, useState } from "@odoo/owl";
+import { Component, onWillStart, onMounted, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { loadBundle } from "@web/core/assets";
 import { user } from "@web/core/user";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+
+// Inline plugin drawing the center label & percentage in the doughnut chart
+const doughnutCenterText = {
+    id: "doughnutCenterText",
+    afterDraw(chart) {
+        const opts = chart.options?.plugins?.centerText;
+        if (!opts || !chart.data?.datasets?.length) return;
+        const first = chart.getDatasetMeta(0)?.data?.[0];
+        if (!first) return;
+        const values = chart.data.datasets[0].data || [];
+        const total = opts.customValue || values.reduce((sum, v) => sum + (Number(v) || 0), 0);
+        const x = typeof first.x === "number" ? first.x : ((chart.chartArea.left + chart.chartArea.right) / 2);
+        const y = typeof first.y === "number" ? first.y : ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+        const { ctx } = chart;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = opts.valueColor || "#0f172a";
+        ctx.font = `800 ${opts.valueSize || 20}px system-ui, -apple-system, sans-serif`;
+        const formattedTotal = String(total);
+        ctx.fillText(formattedTotal, x, y - (opts.label ? 8 : 0));
+        if (opts.label) {
+            ctx.fillStyle = opts.labelColor || "#64748b";
+            ctx.font = "600 11px system-ui, -apple-system, sans-serif";
+            ctx.fillText(opts.label, x, y + 14);
+        }
+        ctx.restore();
+    },
+};
 
 class StudentDashboardShell extends Component {
     static template = "school_management.StudentDashboardShell";
@@ -13,6 +43,10 @@ class StudentDashboardShell extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+
+        this.chartTrendRef = useRef("chart_attendance_trend");
+        this.chartStatusRef = useRef("chart_attendance_status");
+        this.charts = [];
         const actionContext = this.props.action?.context || this.props.context || {};
         const initialTab = ["dashboard", "classes", "schedule", "attendance", "transcript", "curriculum", "financial", "notices"]
             .includes(actionContext.student_initial_tab)
@@ -21,7 +55,19 @@ class StudentDashboardShell extends Component {
 
         this.state = useState({
             loading: true,
+            isLoading: true,
+            isRefreshing: false,
             error: null,
+            dashboard: {},
+            chartData: {},
+            filterOptions: {
+                academicYears: [],
+                semesters: [],
+            },
+            filters: {
+                yearId: false,
+                semesterId: false,
+            },
             student: null,
             isPreviewMode: false,
             previewStudents: [],
@@ -98,8 +144,340 @@ class StudentDashboardShell extends Component {
                             (await user.hasGroup("school_management.group_school_hod")) ||
                             (await user.hasGroup("school_management.group_school_dean"));
             this.state.canSwitchRoles = isStaff;
-            await this.loadStudentData();
+            try {
+                await Promise.all([
+                    loadBundle("web.chartjs_lib"),
+                    this.loadDashboardData(),
+                    this.loadStudentData(),
+                ]);
+            } catch (err) {
+                console.error("Student dashboard init error", err);
+            } finally {
+                this.state.isLoading = false;
+            }
         });
+
+        onMounted(() => {
+            if (this.state.activeTab === "dashboard") {
+                this.renderCharts();
+            }
+        });
+
+        onWillUnmount(() => {
+            this.destroyCharts();
+        });
+    }
+
+    destroyCharts() {
+        this.charts.forEach((chart) => {
+            try {
+                chart.destroy();
+            } catch (err) {
+                console.warn("Student chart destroy warning", err);
+            }
+        });
+        this.charts = [];
+    }
+
+    async loadFilterOptions(yearId = false) {
+        try {
+            const options = await this.orm.call(
+                "school.dashboard",
+                "get_filter_options",
+                yearId ? [Number(yearId)] : []
+            );
+            if (options) {
+                this.state.filterOptions.academicYears = options.academic_years || [];
+                this.state.filterOptions.semesters = options.semesters || [];
+                if (!this.state.filters.yearId) {
+                    this.state.filters.yearId = options.selected_year_id || false;
+                }
+                if (!this.state.filters.semesterId) {
+                    this.state.filters.semesterId = options.selected_semester_id || false;
+                }
+            }
+        } catch (error) {
+            console.error("Failed to load filter options", error);
+        }
+    }
+
+    async loadDashboardData(targetStudentId = null) {
+        try {
+            const payload = await this.orm.call(
+                "school.dashboard",
+                "get_student_dashboard_data",
+                [],
+                {
+                    year_id: this.state.filters.yearId || false,
+                    semester_id: this.state.filters.semesterId || false,
+                    student_id: targetStudentId || this.state.selectedPreviewStudentId || false,
+                }
+            );
+            if (payload) {
+                this.state.dashboard = payload.dashboard || {};
+                this.state.chartData = payload.chart_data || {};
+                if (payload.filter_options) {
+                    this.state.filterOptions.academicYears = payload.filter_options.academic_years || [];
+                    this.state.filterOptions.semesters = payload.filter_options.semesters || [];
+                }
+                if (payload.selected_year_id && !this.state.filters.yearId) {
+                    this.state.filters.yearId = payload.selected_year_id;
+                }
+                if (payload.selected_semester_id && !this.state.filters.semesterId) {
+                    this.state.filters.semesterId = payload.selected_semester_id;
+                }
+                if (payload.student_view?.student && !this.state.student) {
+                    this.state.student = payload.student_view.student;
+                }
+                this.state.error = null;
+            }
+        } catch (error) {
+            console.error("Failed to load student dashboard payload", error);
+            this.state.error = error.message || "Failed to retrieve student portal analytics.";
+        }
+    }
+
+    async changeFilter(field, value) {
+        const numVal = value ? Number(value) : false;
+        this.state.filters[field] = numVal;
+        this.state.isLoading = true;
+
+        try {
+            if (field === "yearId") {
+                this.state.filters.semesterId = false;
+                await this.loadFilterOptions(numVal);
+            }
+            await this.loadDashboardData();
+        } finally {
+            this.state.isLoading = false;
+            this.renderCharts();
+        }
+    }
+
+    async reload() {
+        this.state.isRefreshing = true;
+        try {
+            await Promise.all([
+                this.loadDashboardData(),
+                this.loadStudentData(this.state.student?.id || null),
+            ]);
+            this.renderCharts();
+        } finally {
+            setTimeout(() => {
+                this.state.isRefreshing = false;
+            }, 300);
+        }
+    }
+
+    renderCharts() {
+        if (!window.Chart || this.state.isLoading || this.state.error) return;
+        this.destroyCharts();
+
+        // 1. Weekly Attendance Trend Line Chart
+        const trendEl = this.chartTrendRef.el;
+        if (trendEl && this.state.chartData?.attendance_trend) {
+            const trendData = this.state.chartData.attendance_trend;
+            const ctx = trendEl.getContext("2d");
+            const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+            gradient.addColorStop(0, "rgba(79, 70, 229, 0.20)");
+            gradient.addColorStop(1, "rgba(79, 70, 229, 0.0)");
+
+            const chart = new window.Chart(trendEl, {
+                type: "line",
+                data: {
+                    labels: trendData.labels || ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6"],
+                    datasets: [
+                        {
+                            label: "Attendance Rate (%)",
+                            data: trendData.data || [92.0, 94.5, 93.0, 95.8, 95.0, 96.4],
+                            borderColor: "#4f46e5",
+                            borderWidth: 2.5,
+                            backgroundColor: gradient,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: "#ffffff",
+                            pointBorderColor: "#4f46e5",
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#0f172a",
+                            titleFont: { size: 12, weight: "600" },
+                            bodyFont: { size: 12 },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (context) => ` ${context.parsed.y}% attendance`,
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 12, weight: "500" }, color: "#64748b" },
+                        },
+                        y: {
+                            min: 50,
+                            max: 100,
+                            grid: { color: "#f1f5f9" },
+                            ticks: {
+                                font: { size: 11 },
+                                color: "#94a3b8",
+                                callback: (v) => `${v}%`,
+                            },
+                        },
+                    },
+                },
+            });
+            this.charts.push(chart);
+        }
+
+        // 2. Attendance Status Donut Chart
+        const statusEl = this.chartStatusRef.el;
+        if (statusEl && this.state.chartData?.attendance_status) {
+            const statusData = this.state.chartData.attendance_status;
+            const chart = new window.Chart(statusEl, {
+                type: "doughnut",
+                plugins: [doughnutCenterText],
+                data: {
+                    labels: statusData.labels || ["Present", "Late", "Absent", "Excused"],
+                    datasets: [
+                        {
+                            data: statusData.data || [92, 4, 2, 2],
+                            backgroundColor: statusData.colors || ["#10b981", "#f59e0b", "#ef4444", "#3b82f6"],
+                            borderWidth: 2,
+                            borderColor: "#ffffff",
+                            hoverOffset: 4,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "75%",
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "#0f172a",
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: (context) => ` ${context.label}: ${context.raw} sessions`,
+                            },
+                        },
+                        centerText: {
+                            customValue: statusData.center_text || "92% Present",
+                            valueColor: "#0f172a",
+                            valueSize: 18,
+                        },
+                    },
+                },
+            });
+            this.charts.push(chart);
+        }
+    }
+
+    // Getters for Executive Alignment
+    get userGreeting() {
+        return this.state.dashboard?.user_greeting || ("Good " + this.greeting);
+    }
+
+    get kpiFive() {
+        return this.state.dashboard?.kpi_five || [];
+    }
+
+    get attendanceAverageBadge() {
+        return this.state.chartData?.attendance_trend?.average_badge || "94.2% Avg";
+    }
+
+    get attendanceStatusBreakdown() {
+        return this.state.chartData?.attendance_status?.breakdown || [];
+    }
+
+    get todaySchedule() {
+        return this.state.dashboard?.today_schedule || [];
+    }
+
+    get myCourses() {
+        return this.state.dashboard?.my_courses || [];
+    }
+
+    get academicStandingAlert() {
+        return this.state.dashboard?.academic_standing_alert || {
+            title: "Academic Standing",
+            count: "Good Standing",
+            description: "All enrolled coursework in satisfactory standing",
+            btn_label: "View Transcript",
+            action: "openTranscript",
+        };
+    }
+
+    get upcomingExams() {
+        return this.state.dashboard?.upcoming_exams || [];
+    }
+
+    get tuitionStatusAlert() {
+        return this.state.dashboard?.tuition_status_alert || {
+            title: "Tuition Account Settled",
+            count: "$0.00 Due",
+            description: "All registration and term fees paid in full",
+            btn_label: "Fee Ledger",
+            action: "openFinancialLedger",
+        };
+    }
+
+    getStatusBadgeClass(status, fallbackClass) {
+        if (fallbackClass) return fallbackClass;
+        const s = String(status || "").toLowerCase();
+        if (s === "completed" || s === "done") return "bg-success-subtle text-success border border-success-subtle";
+        if (s === "ongoing" || s === "in progress") return "bg-primary-subtle text-primary border border-primary-subtle";
+        return "bg-secondary-subtle text-secondary border border-secondary-subtle";
+    }
+
+    handleActionClick(actionName) {
+        if (this[actionName] && typeof this[actionName] === "function") {
+            this[actionName]();
+        }
+    }
+
+    openMyClasses() {
+        this.setActiveTab("classes");
+    }
+
+    openCurriculum() {
+        this.setActiveTab("curriculum");
+    }
+
+    openAttendance() {
+        this.action.doAction("school_management.action_university_attendance_student");
+    }
+
+    openTimetable() {
+        this.setActiveTab("schedule");
+    }
+
+    openAssignments() {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: "My Assignments",
+            res_model: "university.assignment.submission",
+            domain: this.state.student?.id ? [["student_id", "=", this.state.student.id]] : [],
+            views: [[false, "list"], [false, "form"]],
+            view_mode: "list,form",
+            target: "current",
+        });
+    }
+
+    openFinancialLedger() {
+        this.setActiveTab("financial");
     }
 
     async loadStudentData(targetStudentId = null) {
@@ -794,7 +1172,13 @@ class StudentDashboardShell extends Component {
         const selectedId = parseInt(ev.target.value, 10);
         if (selectedId) {
             this.state.selectedPreviewStudentId = selectedId;
-            await this.loadStudentData(selectedId);
+            await Promise.all([
+                this.loadDashboardData(selectedId),
+                this.loadStudentData(selectedId),
+            ]);
+            if (this.state.activeTab === "dashboard") {
+                this.renderCharts();
+            }
         }
     }
 
@@ -1091,7 +1475,11 @@ class StudentDashboardShell extends Component {
     }
 
     setActiveTab(tab) {
+        this.destroyCharts();
         this.state.activeTab = tab;
+        if (tab === "dashboard") {
+            setTimeout(() => this.renderCharts(), 50);
+        }
     }
 
     setSidebarNav(tab) {
@@ -1952,7 +2340,7 @@ class StudentDashboardShell extends Component {
                 }
             }
         } catch {}
-        this.action.doAction("school_management.action_university_schedule_view");
+        this.action.doAction("school_management.action_university_timetable_slot_student");
     }
 
     openMyProfile() {
@@ -2234,6 +2622,10 @@ class StudentDashboardShell extends Component {
             views: [[false, 'list'], [false, 'form']],
             view_mode: 'list,form',
         });
+    }
+
+    openMyEnrollments() {
+        this.action.doAction("school_management.action_university_enrollment_student");
     }
 
     openCourseRegistration() {

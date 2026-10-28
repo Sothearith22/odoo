@@ -123,6 +123,7 @@
     ],
     "demo": [
         "demo/teacher_user_demo.xml",
+        "demo/semester_demo.xml",
         "demo/attendance_demo.xml",
     ],
     "assets": {
@@ -144,6 +145,7 @@
             "school_management/static/src/js/attendance_status_field.js",
             "school_management/static/src/xml/attendance_status_field.xml",
             "school_management/static/src/attendance_sheet/attendance_list_view.js",
+            "school_management/static/src/attendance_sheet/attendance_list_view.xml",
             "school_management/static/src/attendance_sheet/staff_attendance_sheet.js",
             "school_management/static/src/attendance_sheet/staff_attendance_sheet.xml",
             "school_management/static/src/attendance_sheet/staff_attendance_sheet.scss",

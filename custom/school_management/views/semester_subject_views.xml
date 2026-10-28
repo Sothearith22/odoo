@@ -13,6 +13,7 @@
                 <field name="semester_id"/>
                 <field name="academic_year_id" optional="show"/>
                 <field name="department_id"/>
+<!--                <field name="is_current"/>-->
                 <field name="faculty_id" optional="hide"/>
                 <field name="section_count" string="Sections" widget="badge" decoration-success="section_count &gt; 0" decoration-muted="section_count == 0"/>
                 <field name="enrollment_count" string="Enrolled" widget="badge" decoration-primary="enrollment_count &gt; 0" optional="show"/>

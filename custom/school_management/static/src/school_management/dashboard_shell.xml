@@ -268,9 +268,6 @@
                     </p>
                   </div>
                   <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-primary btn-sm" t-on-click="() => this.openTeacherWorkspace()">
-                      <i class="fa fa-th-large me-1"/>Open Teacher Dashboard
-                    </button>
                     <button type="button" class="btn btn-outline-success btn-sm" t-on-click="() => this.openSpreadsheetAnalytics()">
                       <i class="fa fa-table me-1"/>Academic &amp; Student Analytics
                     </button>
@@ -327,8 +324,8 @@
                       <div class="o_chart_canvas_wrap flex-grow-1" style="height: 280px;">
                         <canvas t-ref="chart_enrollment"></canvas>
                       </div>
-                    </div>
-                  </div>
+                        </div>
+                      </div>
 
                   <div class="col-12 col-lg-4">
                     <div class="o_chart_card h-100 p-4 bg-white border rounded-3 d-flex flex-column">

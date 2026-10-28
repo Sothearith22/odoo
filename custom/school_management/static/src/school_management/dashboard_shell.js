@@ -514,10 +514,6 @@ class SchoolDashboardShell extends Component {
         }
     }
 
-    openTeacherWorkspace() {
-        return this.action.doAction("school_management.action_teacher_dashboard_shell");
-    }
-
     openSpreadsheetAnalytics() {
         return this.action.doAction("spreadsheet_dashboard.ir_actions_dashboard_action");
     }

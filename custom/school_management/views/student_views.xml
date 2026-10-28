@@ -186,15 +186,9 @@
                     <button name="action_open_enrollment_registration"
                             string="Enroll in Classes"
                             type="object"
-                            class="btn-secondary"
+                            class="btn-primary"
                             icon="fa-graduation-cap"
                             groups="school_management.group_school_admin"/>
-                    <button name="action_view_exam_scores"
-                            string="Result of Exam and Quiz"
-                            type="object"
-                            class="btn-secondary"
-                            icon="fa-list-alt"
-                            groups="school_management.group_school_teacher,school_management.group_school_admin,base.group_system"/>
                     <button name="action_continue_student"
                             string="Continue Student"
                             type="object"
@@ -293,41 +287,47 @@
                         <page string="Overview" name="overview_tab">
                             <group>
                                 <group string="Academic Placement">
-                                    <field name="program_id"/>
+                                    <field name="faculty_id" readonly="1"/>
                                     <field name="department_id"/>
+                                    <field name="program_id"/>
                                     <field name="curriculum_id"/>
                                     <field name="year_level"/>
-                                    <field name="faculty_id" readonly="1"/>
                                     <field name="academic_year_id"/>
                                     <field name="current_semester_id"/>
                                     <field name="advisor_id"/>
+                                </group>
+                                <group string="Academic Standing">
                                     <field name="risk_level"
+                                           readonly="1"
                                            widget="badge"
                                            decoration-success="risk_level == 'low'"
                                            decoration-warning="risk_level == 'medium'"
                                            decoration-danger="risk_level == 'high'"/>
-                                    <field name="gpa"/>
-                                    <field name="attendance_rate"/>
-                                    <field name="completed_credits"/>
+                                    <field name="gpa" readonly="1" widget="badge"/>
+                                    <field name="attendance_rate" readonly="1" widget="progressbar"/>
+                                    <field name="completed_credits" readonly="1"/>
                                 </group>
-                                <group string="Personal Information">
+                            </group>
+                            <group string="Personal Information">
+                                <group>
                                     <field name="gender" widget="radio" options="{'horizontal': true}"/>
                                     <field name="date_of_birth"/>
-                                    <field name="active" widget="boolean_toggle"/>
+                                </group>
+                                <group>
                                     <field name="user_id" readonly="1" groups="school_management.group_school_admin"/>
                                 </group>
                             </group>
-                            <group string="Contact Details">
-                                <group>
+                            <group>
+                                <group string="Contact Details">
                                     <field name="email" widget="email"/>
                                     <field name="phone" widget="phone"/>
                                 </group>
                                 <group string="Emergency Contact">
-                                    <field name="emergency_contact_name"/>
-                                    <field name="emergency_contact_phone" widget="phone"/>
+                                    <field name="emergency_contact_name" string="Name"/>
+                                    <field name="emergency_contact_phone" string="Phone" widget="phone"/>
                                 </group>
                             </group>
-                            <group string="Address">
+                            <group string="Address" invisible="not address">
                                 <field name="address" nolabel="1" placeholder="Street, city, province, and address details..."/>
                             </group>
                         </page>
@@ -359,7 +359,7 @@
                             </field>
                         </page>
 
-                        <page string="My Curriculum" name="my_curriculum_tab">
+                        <page string="Curriculum" name="my_curriculum_tab">
                             <field name="curriculum_line_ids" readonly="1" context="{'active_student_id': id}">
                                 <list limit="10" default_order="year_level, semester_number, sequence, id"
                                       decoration-bf="is_current_student_year"

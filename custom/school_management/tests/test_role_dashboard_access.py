@@ -62,7 +62,9 @@ class TestRoleDashboardAccess(TransactionCase):
         cls.group_hod = cls.env.ref("school_management.group_school_hod")
         cls.group_registrar = cls.env.ref("school_management.group_school_registrar")
         cls.group_teacher = cls.env.ref("school_management.group_school_teacher")
+        cls.group_teacher_alias = cls.env.ref("school_management.group_university_teacher")
         cls.group_student = cls.env.ref("school_management.group_school_student")
+        cls.group_system = cls.env.ref("base.group_system")
         cls.group_user = cls.env.ref("base.group_user")
 
         # 1. Admin user
@@ -193,6 +195,16 @@ class TestRoleDashboardAccess(TransactionCase):
         dashboard_data = self.env["school.dashboard"].with_user(self.user_admin).get_role_dashboard_data()
         self.assertEqual(dashboard_data["dashboard"]["user_role"], "admin")
         self.assertGreaterEqual(dashboard_data["dashboard"]["student_count"], 3)
+
+    def test_01_system_user_with_teacher_group_uses_admin_dashboard(self):
+        """A system user must not be routed to teacher dashboard data."""
+        user = self._create_user(
+            "role.test.system_teacher",
+            [self.group_system.id, self.group_teacher_alias.id],
+        )
+        dashboard_data = self.env["school.dashboard"].with_user(user).get_role_dashboard_data()
+
+        self.assertEqual(dashboard_data["dashboard"]["user_role"], "admin")
 
     def test_02_hod_department_scoping(self):
         """HOD can access only their managed department records, not other departments."""
